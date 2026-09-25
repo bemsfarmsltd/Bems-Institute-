@@ -1,0 +1,256 @@
+// BEMS Institute of Technology & Vocational Studies
+// Core LMS Prisma Schema (PostgreSQL) - Phase 1 & 2: Core + Assessment
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  STUDENT
+  INSTRUCTOR
+  ADMIN
+}
+
+enum EnrollmentStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+}
+
+enum SubmissionStatus {
+  SUBMITTED
+  GRADED
+  RESUBMISSION_REQUESTED
+}
+
+model User {
+  id           String         @id @default(cuid())
+  clerkId      String?        @unique
+  name         String
+  email        String         @unique
+  phone        String?
+  role         UserRole       @default(STUDENT)
+  enrollments  Enrollment[]
+  progress     UserProgress[]
+  quizAttempts QuizAttempt[]
+  submissions  Submission[]
+  certificates Certificate[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+model Course {
+  id           String        @id @default(cuid())
+  slug         String        @unique
+  title        String
+  tagline      String
+  tutor        String
+  tutorRole    String
+  priceFull    Int
+  priceParts   Int
+  deposit      Int
+  finalProject String
+  isPublished  Boolean       @default(true)
+  modules      Module[]
+  quizzes      Quiz[]
+  assignments  Assignment[]
+  enrollments  Enrollment[]
+  certificates Certificate[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Module {
+  id        String   @id @default(cuid())
+  title     String
+  order     Int
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons   Lesson[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([courseId])
+}
+
+model Lesson {
+  id            String         @id @default(cuid())
+  title         String
+  slug          String
+  description   String         @db.Text
+  videoUrl      String?        // Mux playback ID or Cloudflare R2 stream URL
+  duration      String         @default("15:00")
+  order         Int
+  isFreePreview Boolean        @default(false)
+  moduleId      String
+  module        Module         @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  userProgress  UserProgress[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([moduleId])
+}
+
+model Enrollment {
+  id               String           @id @default(cuid())
+  userId           String
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId         String
+  course           Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  status           EnrollmentStatus @default(ACTIVE)
+  paymentPlan      String           @default("full") // "full" or "installment"
+  amountPaid       Int              @default(0)
+  paymentReference String?
+  source           String?          @default("website")
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@unique([userId, courseId])
+  @@index([courseId])
+}
+
+model UserProgress {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId    String
+  lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  isCompleted Boolean  @default(false)
+  completedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, lessonId])
+  @@index([lessonId])
+}
+
+// ---------------------------------------------
+// PHASE 2 — ASSESSMENT MODELS
+// ---------------------------------------------
+
+model Quiz {
+  id           String        @id @default(cuid())
+  title        String
+  description  String
+  passingScore Int           @default(70) // Percentage required to pass
+  courseId     String
+  course       Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  questions    Question[]
+  attempts     QuizAttempt[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([courseId])
+}
+
+model Question {
+  id            String   @id @default(cuid())
+  quizId        String
+  quiz          Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  prompt        String
+  options       String[] // Stored as array of strings
+  correctOption Int      // Index of correct option (0-based)
+  explanation   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([quizId])
+}
+
+model QuizAttempt {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quizId    String
+  quiz      Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  score     Int      // Percentage scored (0-100)
+  passed    Boolean
+  answers   Json     // Map of questionId -> selectedOptionIndex
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([quizId])
+}
+
+model Assignment {
+  id           String       @id @default(cuid())
+  title        String
+  instructions String       @db.Text
+  rubric       Json?        // Grading criteria
+  courseId     String
+  course       Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  submissions  Submission[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([courseId])
+}
+
+model Submission {
+  id           String           @id @default(cuid())
+  assignmentId String
+  assignment   Assignment       @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  githubUrl    String
+  liveDemoUrl  String?
+  notes        String?          @db.Text
+  status       SubmissionStatus @default(SUBMITTED)
+  score        Int?             // Out of 100
+  feedback     String?          @db.Text
+  gradedBy     String?          // Instructor name / ID
+  gradedAt     DateTime?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@unique([assignmentId, userId])
+  @@index([userId])
+}
+
+model Certificate {
+  id           String   @id @default(cuid())
+  certNumber   String   @unique // e.g. BEMS-CERT-2026-WD-8819
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId     String
+  course       Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  gradeTitle   String   @default("Distinction") // e.g. Distinction, Honors, Merit
+  finalScore   Int      // Composite score out of 100
+  qrVerifyUrl  String
+  issuedAt     DateTime @default(now())
+
+  @@unique([userId, courseId])
+  @@index([certNumber])
+}
+
+// -------------------------------------------------------------
+// PHASE 3 — COHORTS & PAYMENTS
+// -------------------------------------------------------------
+
+model Cohort {
+  id            String   @id @default(cuid())
+  name          String   // e.g. "October 2026 (Inaugural FutureSkills)"
+  startDate     DateTime
+  endDate       DateTime
+  targetStudents Int     @default(80)
+  createdAt     DateTime @default(now())
+}
+
+model Payment {
+  id            String   @id @default(cuid())
+  userId        String
+  courseId      String
+  amount        Int
+  currency      String   @default("NGN")
+  paymentMethod String   // "PAYSTACK" | "BANK_TRANSFER"
+  reference     String   @unique
+  planType      String   // "FULL" | "INSTALLMENT"
+  status        String   // "SUCCESS" | "PENDING"
+  qrSource      String?  // "BEMS Hub Banner", "MOUAU Umudike", etc.
+  createdAt     DateTime @default(now())
+}
+
