@@ -2,12 +2,12 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { Bell, Check, X, ExternalLink } from "lucide-react";
-import { mockNotifications } from "@/data/advanced-data";
+import { Bell, Check, Video, Award, Flame, CreditCard, ExternalLink } from "lucide-react";
+import { INITIAL_NOTIFICATIONS } from "@/data/advanced-data";
 import { AppNotification } from "@/types/advanced";
 
 export function NotificationBell() {
-  const [notifications, setNotifications] = useState<AppNotification[]>(mockNotifications);
+  const [notifications, setNotifications] = useState<AppNotification[]>(INITIAL_NOTIFICATIONS);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -27,40 +27,41 @@ export function NotificationBell() {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
   };
 
-  const markAsRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
-  };
-
-  const clearNotification = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  const getCategoryIcon = (category: AppNotification["category"]) => {
+    switch (category) {
+      case "CLASS":
+        return <Video className="w-4 h-4 text-purple-600" />;
+      case "GRADING":
+        return <Award className="w-4 h-4 text-emerald-600" />;
+      case "GAMIFICATION":
+        return <Flame className="w-4 h-4 text-amber-500" />;
+      case "PAYMENT":
+        return <CreditCard className="w-4 h-4 text-blue-600" />;
+    }
   };
 
   return (
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 rounded-xl text-brand-dark/70 hover:text-brand-purple hover:bg-brand-lavender/50 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand-purple/30"
         aria-label="View notifications"
+        className="relative p-2 rounded-xl text-[#18143D] hover:bg-[#FAF8FF] hover:text-[#7928CA] transition-colors border border-[#E6E1F5] cursor-pointer"
       >
-        <Bell className="w-5 h-5" />
+        <Bell className="w-4 h-4" />
         {unreadCount > 0 && (
-          <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white animate-pulse">
+          <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[10px] font-black flex items-center justify-center animate-pulse">
             {unreadCount}
           </span>
         )}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-3 w-80 sm:w-96 rounded-2xl bg-white shadow-2xl border border-brand-purple/10 py-3 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="px-4 pb-3 border-b border-gray-100 flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <h3 className="font-bold text-brand-dark text-sm">Notifications</h3>
+        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl border border-[#E6E1F5] shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+          <div className="p-3.5 px-4 bg-[#FAF8FF] border-b border-[#F0EDF9] flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="font-extrabold text-xs text-[#18143D]">Notifications</span>
               {unreadCount > 0 && (
-                <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-brand-purple/10 text-brand-purple">
+                <span className="text-[10px] bg-[#7928CA] text-white px-2 py-0.2 rounded-full font-bold">
                   {unreadCount} new
                 </span>
               )}
@@ -68,78 +69,44 @@ export function NotificationBell() {
             {unreadCount > 0 && (
               <button
                 onClick={markAllAsRead}
-                className="text-xs text-brand-purple hover:text-brand-navy font-medium flex items-center space-x-1"
+                className="text-[11px] font-bold text-[#7928CA] hover:text-[#581c87] flex items-center gap-1 cursor-pointer"
               >
-                <Check className="w-3 h-3" />
-                <span>Mark all read</span>
+                <Check className="w-3 h-3" /> Mark all read
               </button>
             )}
           </div>
 
-          <div className="max-h-96 overflow-y-auto divide-y divide-gray-50">
-            {notifications.length === 0 ? (
-              <div className="py-8 text-center text-sm text-gray-400">
-                No notifications right now
-              </div>
-            ) : (
-              notifications.map((item) => {
-                const content = (
-                  <div
-                    key={item.id}
-                    onClick={() => {
-                      markAsRead(item.id);
-                      if (item.linkUrl) setIsOpen(false);
-                    }}
-                    className={`px-4 py-3 hover:bg-brand-lavender/30 transition-colors cursor-pointer flex items-start space-x-3 ${
-                      !item.read ? "bg-brand-lavender/10" : ""
-                    }`}
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <p className={`text-xs font-semibold ${!item.read ? "text-brand-dark" : "text-gray-600"}`}>
-                          {item.title}
-                        </p>
-                        <span className="text-[10px] text-gray-400 shrink-0 ml-2">{item.timestamp}</span>
-                      </div>
-                      <p className="text-xs text-gray-600 mt-1 line-clamp-2 leading-relaxed">
-                        {item.message}
-                      </p>
-                      {item.linkUrl && (
-                        <div className="mt-1 flex items-center text-[11px] font-medium text-brand-purple">
-                          <span>View details</span>
-                          <ExternalLink className="w-3 h-3 ml-1" />
-                        </div>
-                      )}
-                    </div>
-                    <button
-                      onClick={(e) => clearNotification(item.id, e)}
-                      className="text-gray-300 hover:text-gray-500 p-1 rounded-md"
-                      title="Dismiss"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
+          <div className="divide-y divide-[#F0EDF9] max-h-80 overflow-y-auto">
+            {notifications.map((n) => (
+              <Link
+                key={n.id}
+                href={n.linkUrl || "#"}
+                onClick={() => setIsOpen(false)}
+                className={`p-3.5 flex items-start gap-3 transition-colors hover:bg-[#FAF8FF] block ${
+                  !n.read ? "bg-purple-50/40" : ""
+                }`}
+              >
+                <div className="mt-0.5 p-2 rounded-xl bg-white border border-[#E6E1F5] shadow-xs flex-shrink-0">
+                  {getCategoryIcon(n.category)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-1 mb-0.5">
+                    <h4 className="text-xs font-bold text-[#18143D] truncate">{n.title}</h4>
+                    <span className="text-[10px] text-[#8580A3] whitespace-nowrap">{n.timestamp}</span>
                   </div>
-                );
-
-                return item.linkUrl ? (
-                  <Link key={item.id} href={item.linkUrl} className="block">
-                    {content}
-                  </Link>
-                ) : (
-                  <div key={item.id}>{content}</div>
-                );
-              })
-            )}
+                  <p className="text-[11px] text-[#645F80] line-clamp-2 leading-relaxed">{n.message}</p>
+                </div>
+              </Link>
+            ))}
           </div>
 
-          <div className="px-4 pt-2.5 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
-            <span>BEMS FutureSkills Accelerator</span>
+          <div className="p-2.5 bg-[#FAF8FF] border-t border-[#F0EDF9] text-center">
             <Link
               href="/dashboard"
               onClick={() => setIsOpen(false)}
-              className="text-brand-purple hover:underline font-medium"
+              className="text-[11px] font-bold text-[#7928CA] hover:text-[#581c87]"
             >
-              Go to Dashboard
+              View Full Student Activity Stream &rarr;
             </Link>
           </div>
         </div>
@@ -148,4 +115,3 @@ export function NotificationBell() {
   );
 }
 
-export default NotificationBell;

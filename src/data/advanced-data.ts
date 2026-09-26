@@ -8,374 +8,389 @@ import {
   SubscriptionTier
 } from "@/types/advanced";
 
-export const mockLiveClasses: LiveClass[] = [
+export const INITIAL_LIVE_CLASSES: LiveClass[] = [
   {
-    id: "live-101",
-    title: "Mastering Next.js 16 App Router & Server Actions in Umuahia Lab 1",
+    id: "live-wd-101",
+    title: "Live Studio: Real-World Responsive Flexbox & Mobile Breakpoints",
     courseId: "web-dev",
-    courseTitle: "Full-Stack Web & Next.js Modern Engineering",
-    instructor: "Mr. Victor Okeke",
-    instructorRole: "Lead Full-Stack Instructor & Principal Architect",
-    startTime: "Today, 4:00 PM (WAT)",
-    duration: "90 Mins",
+    courseTitle: "Web Development",
+    instructor: "Mr. Victor",
+    instructorRole: "Senior Full-Stack Engineer",
+    startTime: "Happening Now",
+    duration: "90 Minutes",
     status: "LIVE_NOW",
-    location: "Hybrid (BEMS Tech Lab 1, Umuahia + Zoom Video Room A)",
-    zoomJoinUrl: "https://zoom.us/j/9827364120",
-    streamVideoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
-    currentAttendees: 42,
+    location: "BEMS Hub Lab 1 (Umuahia) + Zoom",
+    zoomJoinUrl: "https://zoom.us/j/bems-futureskills-live",
+    streamVideoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4",
+    currentAttendees: 48,
     agenda: [
-      "Deep dive into React 19 useActionState and Server Actions",
-      "Deploying high-performance edge lambdas on Vercel",
-      "Live Q&A and coding with Umuahia cohort participants"
+      "Common CSS layout traps on Android & iPhone screens",
+      "Live refactoring of student submissions from GitHub",
+      "Live Q&A and interactive code debugging in Chrome DevTools"
     ]
   },
   {
-    id: "live-102",
-    title: "Autonomous Agent Orchestration with Gemini 2.5 Flash & Function Calling",
-    courseId: "ai-prompt",
-    courseTitle: "Generative AI, Prompt Engineering & AI Workflows",
-    instructor: "Engr. Timi Adebayo",
-    instructorRole: "AI Automation Architect",
-    startTime: "Tomorrow, 2:00 PM (WAT)",
-    duration: "120 Mins",
+    id: "live-ai-102",
+    title: "Masterclass: Connecting Gemini 2.5 Flash to WhatsApp Webhooks",
+    courseId: "ai-automation",
+    courseTitle: "AI & Automation",
+    instructor: "Timi",
+    instructorRole: "AI Solutions Engineer",
+    startTime: "Tomorrow &middot; 4:30 PM WAT",
+    duration: "75 Minutes",
     status: "UPCOMING",
-    location: "Virtual Broadcast Room & BEMS Computer Lab",
-    zoomJoinUrl: "https://zoom.us/j/9827364121",
-    currentAttendees: 58,
+    location: "Virtual Live Zoom",
+    zoomJoinUrl: "https://zoom.us/j/bems-ai-webhooks",
+    currentAttendees: 36,
     agenda: [
-      "Structured Outputs with Pydantic & TypeScript schemas",
-      "Gemini Multimodal analysis for real-time document OCR",
-      "Building a WhatsApp-powered business intelligence bot"
+      "Deploying instant webhooks on Make.com without servers",
+      "Structuring prompt instructions for customer service bots",
+      "Handling real Nigerian customer dialect variations"
     ]
   },
   {
-    id: "live-103",
-    title: "Figma Variables, Tokenized Design Systems & Design-to-Code Handoff",
-    courseId: "ui-ux",
-    courseTitle: "UI/UX Product Design & Design Systems Mastery",
-    instructor: "Temi Adeleke",
-    instructorRole: "Principal Product Designer",
-    startTime: "Thursday, 11:00 AM (WAT)",
-    duration: "75 Mins",
+    id: "live-pd-103",
+    title: "Design Critique Studio: Portfolio Review & Figma Auto-Layout",
+    courseId: "product-design",
+    courseTitle: "Product Design (UI/UX)",
+    instructor: "Temi",
+    instructorRole: "Lead Product Designer",
+    startTime: "Friday &middot; 3:00 PM WAT",
+    duration: "60 Minutes",
     status: "UPCOMING",
-    location: "Design Studio & Google Meet",
-    zoomJoinUrl: "https://meet.google.com/bem-dsgn-lab",
-    currentAttendees: 31,
+    location: "BEMS Hub Lab 2 (Umuahia) + Zoom",
+    zoomJoinUrl: "https://zoom.us/j/bems-figma-critique",
+    currentAttendees: 28,
     agenda: [
-      "Advanced Auto-layout 5.0 techniques",
-      "Creating accessible color contrast tokens (WCAG AAA)",
-      "Prototyping dynamic state variants"
+      "Live review of 3 student case study prototypes",
+      "Figma variable tokens & developer handoff checklist",
+      "Preparing Behance case studies for international job recruiters"
     ]
   },
   {
-    id: "live-104",
-    title: "Live Fire Vulnerability Scanning & Defensive Hardening Workshop",
-    courseId: "cybersecurity",
-    courseTitle: "Cybersecurity Fundamentals & Defense Operations",
-    instructor: "Faculty Security Lead",
-    instructorRole: "Certified Ethical Hacker & Infrastructure Auditor",
-    startTime: "Yesterday, 3:00 PM (WAT)",
-    duration: "105 Mins",
+    id: "live-rec-01",
+    title: "Recorded Archive: Git Merge Conflicts & Team Collaboration",
+    courseId: "web-dev",
+    courseTitle: "Web Development",
+    instructor: "Mr. Victor",
+    instructorRole: "Senior Full-Stack Engineer",
+    startTime: "Recorded Yesterday",
+    duration: "84 Minutes",
     status: "RECORDED",
-    location: "Recorded in BEMS Security Sandbox",
-    zoomJoinUrl: "https://zoom.us/rec/play/bems-cyber-01",
-    recordingUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/friday.mp4",
-    currentAttendees: 64,
+    location: "BEMS Hub Lab 1 (Umuahia) + Zoom",
+    zoomJoinUrl: "https://zoom.us/rec/play/bems-git-archive",
+    recordingUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+    currentAttendees: 62,
     agenda: [
-      "OWASP Top 10 hands-on penetration testing",
-      "Configuring Cloudflare WAF rules & rate limiters",
-      "Post-incident review and forensic log aggregation"
+      "Anatomy of a 3-way merge conflict in VS Code",
+      "Resolving git HEAD tags without losing code",
+      "Pull request reviews on GitHub"
     ]
   }
 ];
 
-export const mockChannels: CommunityChannel[] = [
+export const COMMUNITY_CHANNELS: CommunityChannel[] = [
   {
-    id: "general-announcements",
-    name: "📢 announcements",
-    description: "Official notices from BEMS Academic Directorate & Umuahia Lab Coordinators",
+    id: "chan-announcements",
+    name: "school-announcements",
+    description: "Official BEMS Institute notices, schedule changes, and guest lecture links.",
     category: "CAMPUS_HUB",
+    unreadCount: 0
+  },
+  {
+    id: "chan-web-dev",
+    name: "web-development",
+    description: "HTML, CSS, JavaScript, Next.js discussions & lab troubleshooting with Mr. Victor.",
+    category: "CLASS_TRACKS",
+    unreadCount: 3
+  },
+  {
+    id: "chan-ai-auto",
+    name: "ai-and-automation",
+    description: "Make.com, Zapier, Gemini API, and autonomous chatbot builds with Timi.",
+    category: "CLASS_TRACKS",
     unreadCount: 1
   },
   {
-    id: "web-dev-chat",
-    name: "💻 full-stack-devs",
-    description: "HTML, CSS, TypeScript, Next.js, and server-side bug solving",
+    id: "chan-design",
+    name: "product-design-uiux",
+    description: "Figma wireframes, design systems, usability feedback with Temi.",
     category: "CLASS_TRACKS",
-    unreadCount: 4
+    unreadCount: 0
   },
   {
-    id: "ai-prompt-chat",
-    name: "🤖 genai-automations",
-    description: "Prompt tuning, Gemini integrations, Make.com flows, and bot deployments",
-    category: "CLASS_TRACKS"
-  },
-  {
-    id: "ui-ux-design",
-    name: "🎨 product-designers",
-    description: "Figma critiques, user journey mapping, and mobile UI feedback",
-    category: "CLASS_TRACKS"
-  },
-  {
-    id: "cyber-defense",
-    name: "🛡️ security-operations",
-    description: "Penetration testing labs, network packets, and safe coding practices",
-    category: "CLASS_TRACKS"
-  },
-  {
-    id: "career-freelance",
-    name: "💼 freelance-and-jobs",
-    description: "Upwork proposals, remote tech opportunities, and portfolio critiques",
+    id: "chan-project-help",
+    name: "project-showcase-and-help",
+    description: "Share live Vercel deployments, ask for bug fixes, and find study group partners.",
     category: "CAREER",
     unreadCount: 2
   }
 ];
 
-export const mockMessages: CommunityMessage[] = [
+export const INITIAL_COMMUNITY_MESSAGES: CommunityMessage[] = [
   {
-    id: "msg-1",
-    channelId: "web-dev-chat",
-    senderName: "Chukwudi Nwachukwu",
-    senderRole: "STUDENT",
-    content: "Hey guys! I just completed Capstone Project 1 for the Next.js e-commerce store. Quick tip: make sure you use 'next/image' with proper aspect ratio attributes or your layout shifts on mobile preview!",
-    codeSnippet: `// Tip for clean responsive images in Next.js\n<div className="relative w-full aspect-video rounded-xl overflow-hidden">\n  <Image src="/banner.jpg" alt="Cohort Banner" fill className="object-cover" />\n</div>`,
-    likes: 7,
-    timestamp: "10 mins ago"
-  },
-  {
-    id: "msg-2",
-    channelId: "web-dev-chat",
-    senderName: "Mr. Victor Okeke",
+    id: "msg-c-1",
+    channelId: "chan-web-dev",
+    senderName: "Mr. Victor",
     senderRole: "INSTRUCTOR",
-    content: "Great pointer @Chukwudi! Cumulative Layout Shift (CLS) is a vital Core Web Vital. In today's 4:00 PM live session, we will also demonstrate how to combine this with Next.js 16 Partial Prerendering (PPR). Bring your laptop to Lab 1 or join the Zoom room early!",
+    content: "Good morning team! Remember today's live interactive clinic at 4:30 PM in Lab 1. We will be live-refactoring mobile navigation bars. Bring your questions!",
     likes: 14,
-    timestamp: "6 mins ago"
+    timestamp: "9:15 AM"
   },
   {
-    id: "msg-3",
-    channelId: "ai-prompt-chat",
-    senderName: "Amina Yusuf",
+    id: "msg-c-2",
+    channelId: "chan-web-dev",
+    senderName: "Chinedu Okeke",
     senderRole: "STUDENT",
-    content: "The Gemini 2.5 Flash SDK function calling is so fast! I hooked it up to query a local SQLite database for inventory tracking in Aba market and response time is under 400ms.",
-    likes: 9,
-    timestamp: "25 mins ago"
+    content: "Thank you Mr. Victor! I had an issue where my hamburger drawer wasn't sliding smoothly on Android Chrome, but adding `transform: translateX(0)` fixed the jitter!",
+    codeSnippet: `.drawer {\n  transform: translateX(-100%);\n  transition: transform 0.3s ease-in-out;\n}\n.drawer.open {\n  transform: translateX(0);\n}`,
+    likes: 8,
+    timestamp: "10:30 AM"
   },
   {
-    id: "msg-4",
-    channelId: "career-freelance",
-    senderName: "Blessing Eze",
-    senderRole: "ALUMNI",
-    content: "To all October 2026 cohort trainees: don't wait until graduation to polish your GitHub profiles. Upload every capstone project, add a live Vercel demo link, and share it on LinkedIn tagging BEMS Institute!",
-    likes: 21,
-    timestamp: "1 hour ago"
+    id: "msg-c-3",
+    channelId: "chan-web-dev",
+    senderName: "Ngozi Eze",
+    senderRole: "STUDENT",
+    content: "Are lab workstations 14 to 20 free for practice this afternoon before the Zoom session starts?",
+    likes: 3,
+    timestamp: "11:05 AM"
+  },
+  {
+    id: "msg-c-4",
+    channelId: "chan-web-dev",
+    senderName: "Mr. Victor",
+    senderRole: "INSTRUCTOR",
+    content: "Yes Ngozi! Lab 1 is open from 1:00 PM with backup inverter power and high-speed fibre internet. See you there.",
+    likes: 9,
+    timestamp: "11:12 AM"
   }
 ];
 
-export const mockNotifications: AppNotification[] = [
+export const INITIAL_NOTIFICATIONS: AppNotification[] = [
   {
     id: "notif-1",
-    title: "🔴 Live Class Starting Soon",
-    message: "Mr. Victor Okeke is starting 'Next.js 16 App Router & Server Actions' in 15 minutes at Umuahia Lab 1 and Zoom.",
+    title: "Live Class Happening Now",
+    message: "Mr. Victor has started 'Responsive Design & Mobile Breakpoints' in Lab 1 + Zoom.",
     category: "CLASS",
-    timestamp: "15m ago",
+    timestamp: "Just now",
     read: false,
     linkUrl: "/live"
   },
   {
     id: "notif-2",
-    title: "🎉 Certificate Earned",
-    message: "Congratulations! You have completed all 4 core modules in Full-Stack Web Development. View your verified Certificate of Competence.",
-    category: "GAMIFICATION",
-    timestamp: "2h ago",
+    title: "Capstone Graded: Distinction (95/100)",
+    message: "Your Web Development portal capstone was approved by Mr. Victor! Your verified certificate is ready.",
+    category: "GRADING",
+    timestamp: "2 hours ago",
     read: false,
-    linkUrl: "/certificate/BEMS-FS-2026-WD01"
+    linkUrl: "/certificate/cert-001"
   },
   {
     id: "notif-3",
-    title: "📝 Faculty Grade Posted",
-    message: "Your submission for 'E-Commerce Storefront Architecture' has been graded: 96/100 (Pass with Distinction) with personal feedback from Mr. Victor.",
-    category: "GRADING",
-    timestamp: "1d ago",
+    title: "🔥 5-Day Study Streak Active!",
+    message: "Awesome consistency! You unlocked the 'CSS Grid Master' badge and earned +150 XP.",
+    category: "GAMIFICATION",
+    timestamp: "Yesterday",
     read: true,
-    linkUrl: "/learn/web-development/assignment/web-assign-1"
+    linkUrl: "/leaderboard"
   },
   {
     id: "notif-4",
-    title: "💳 Tuition Payment Confirmed",
-    message: "₦85,000 for Full-Stack Web Cohort has been verified via Paystack. Your physical workstation at Umuahia Lab 1 is reserved.",
+    title: "Tuition Receipt Acknowledged",
+    message: "Installment payment of ₦35,000 for October 2026 Cohort has been verified in the ledger.",
     category: "PAYMENT",
-    timestamp: "3d ago",
+    timestamp: "3 days ago",
     read: true,
     linkUrl: "/dashboard"
   }
 ];
 
-export const mockGamificationProfile: GamificationProfile = {
-  xpPoints: 2450,
-  streakDays: 8,
+export const INITIAL_GAMIFICATION: GamificationProfile = {
+  xpPoints: 1450,
+  streakDays: 5,
   level: 4,
-  levelTitle: "Senior Apprentice Architect",
+  levelTitle: "Senior Lab Apprentice",
   badges: [
     {
-      id: "b-first-code",
-      title: "First Commit",
-      description: "Successfully executed your first program in the BEMS Sandbox IDE.",
-      icon: "🚀",
-      unlockedAt: "Sep 18, 2026",
-      isUnlocked: true
-    },
-    {
-      id: "b-quiz-whiz",
-      title: "Quiz Whiz",
-      description: "Scored 100% on the Modern JavaScript & ES6 Architecture quiz.",
-      icon: "🎯",
-      unlockedAt: "Sep 21, 2026",
-      isUnlocked: true
-    },
-    {
-      id: "b-streak-7",
-      title: "7-Day Code Streak",
-      description: "Engaged in lessons or code challenges for 7 consecutive days.",
-      icon: "🔥",
-      unlockedAt: "Sep 24, 2026",
-      isUnlocked: true
-    },
-    {
-      id: "b-capstone-hero",
-      title: "Capstone Hero",
-      description: "Built and deployed a production-grade full-stack web application.",
-      icon: "🏆",
-      unlockedAt: "Sep 25, 2026",
-      isUnlocked: true
-    },
-    {
-      id: "b-ai-collaborator",
-      title: "AI Co-Pilot",
-      description: "Conducted 10+ prompt sessions with BEMS AI Technical Companion.",
-      icon: "🤖",
-      isUnlocked: false
-    },
-    {
-      id: "b-bug-hunter",
-      title: "Bug Hunter",
-      description: "Passed all edge case unit tests on first attempt in Sandbox.",
+      id: "badge-first-code",
+      title: "First Line of Code",
+      description: "Successfully configured your local development environment and ran your first script.",
       icon: "⚡",
-      isUnlocked: false
+      unlockedAt: "2026-09-18",
+      isUnlocked: true
+    },
+    {
+      id: "badge-css-wizard",
+      title: "CSS Grid Wizard",
+      description: "Built a fully responsive two-dimensional grid layout without breaking on mobile.",
+      icon: "📐",
+      unlockedAt: "2026-09-20",
+      isUnlocked: true
+    },
+    {
+      id: "badge-quiz-ace",
+      title: "Quiz Ace (100%)",
+      description: "Scored a perfect 100% on the technical assessment exam on first attempt.",
+      icon: "🎯",
+      unlockedAt: "2026-09-22",
+      isUnlocked: true
+    },
+    {
+      id: "badge-capstone",
+      title: "Capstone Finisher",
+      description: "Deployed a production-grade web application to a public domain.",
+      icon: "🚀",
+      unlockedAt: "2026-09-24",
+      isUnlocked: true
+    },
+    {
+      id: "badge-graduate",
+      title: "Pioneer Graduate",
+      description: "Conferred with the official institutional Certificate of Competence.",
+      icon: "🎓",
+      isUnlocked: true,
+      unlockedAt: "2026-09-24"
     }
   ]
 };
 
-export const mockLeaderboard: LeaderboardStudent[] = [
+export const LEADERBOARD_STUDENTS: LeaderboardStudent[] = [
   {
     rank: 1,
-    id: "lead-1",
-    name: "Emeka Anyanwu",
-    track: "Full-Stack Web Development",
-    xpPoints: 3120,
-    streakDays: 14,
-    badgesCount: 6,
-    avatarText: "EA"
+    id: "stu-001",
+    name: "Chinedu Okeke",
+    track: "Web Development",
+    xpPoints: 1450,
+    streakDays: 5,
+    badgesCount: 5,
+    avatarText: "CO"
   },
   {
     rank: 2,
-    id: "lead-2",
-    name: "Chukwudi Nwachukwu",
-    track: "Full-Stack Web Development",
-    xpPoints: 2450,
-    streakDays: 8,
+    id: "stu-009",
+    name: "Obinna Uzor",
+    track: "Cybersecurity",
+    xpPoints: 1380,
+    streakDays: 6,
     badgesCount: 4,
-    avatarText: "CN"
+    avatarText: "OU"
   },
   {
     rank: 3,
-    id: "lead-3",
-    name: "Amina Yusuf",
-    track: "Generative AI & Prompt Engineering",
-    xpPoints: 2380,
-    streakDays: 11,
-    badgesCount: 5,
-    avatarText: "AY"
+    id: "stu-011",
+    name: "David Madu",
+    track: "Product Design",
+    xpPoints: 1320,
+    streakDays: 4,
+    badgesCount: 4,
+    avatarText: "DM"
   },
   {
     rank: 4,
-    id: "lead-4",
-    name: "Ngozi Obi",
-    track: "UI/UX Product Design",
-    xpPoints: 2190,
-    streakDays: 7,
-    badgesCount: 4,
-    avatarText: "NO"
+    id: "stu-003",
+    name: "Emmanuel Kalu",
+    track: "Web Development",
+    xpPoints: 1190,
+    streakDays: 4,
+    badgesCount: 3,
+    avatarText: "EK"
   },
   {
     rank: 5,
-    id: "lead-5",
-    name: "Tariq Adeleke",
-    track: "Cybersecurity & Defense Operations",
-    xpPoints: 1940,
-    streakDays: 6,
+    id: "stu-006",
+    name: "Favour Chukwuebuka",
+    track: "AI & Automation",
+    xpPoints: 1150,
+    streakDays: 3,
     badgesCount: 3,
-    avatarText: "TA"
+    avatarText: "FC"
   },
   {
     rank: 6,
-    id: "lead-6",
-    name: "Kelechi Umeh",
-    track: "Full-Stack Web Development",
-    xpPoints: 1810,
-    streakDays: 5,
+    id: "stu-004",
+    name: "Amarachi Nwosu",
+    track: "Product Design",
+    xpPoints: 1040,
+    streakDays: 3,
     badgesCount: 3,
-    avatarText: "KU"
+    avatarText: "AN"
+  },
+  {
+    rank: 7,
+    id: "stu-002",
+    name: "Ngozi Eze",
+    track: "AI & Automation",
+    xpPoints: 920,
+    streakDays: 2,
+    badgesCount: 2,
+    avatarText: "NE"
+  },
+  {
+    rank: 8,
+    id: "stu-008",
+    name: "Chioma Daniel",
+    track: "Web Development",
+    xpPoints: 890,
+    streakDays: 3,
+    badgesCount: 2,
+    avatarText: "CD"
   }
 ];
 
-export const mockSubscriptionTiers: SubscriptionTier[] = [
+export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
   {
     id: "tier-cohort",
-    name: "FutureSkills Cohort Tuition",
-    badge: "Official October 2026 Batch",
-    priceNaira: 85000,
+    name: "FutureSkills Accelerator",
+    badge: "Most Popular",
+    priceNaira: 79000,
     billingPeriod: "One-Time",
-    description: "Complete 12-week intensive accelerator with physical workstation in Umuahia, mentorship, capstone certification, and WhatsApp VIP forum.",
+    description: "Full 3-Month practical cohort training at BEMS Hub Labs or Live Zoom, Capstone project, and verified Certificate.",
     features: [
-      "Physical Lab seat at BEMS Tech Lab 1, Umuahia",
-      "High-speed dedicated Wi-Fi & solar power backup",
-      "Live interactive classes with Mr. Victor & faculty",
-      "Full access to AI Academic Tutor & Sandbox IDE",
-      "Verified Certificate of Competence with QR verification",
-      "Direct WhatsApp VIP Community & Instructor desk"
+      "Access to all modules & HD lesson recordings for your track",
+      "Dedicated Umuahia physical lab workstation & high-speed internet",
+      "Weekly live code reviews & mentoring with Mr. Victor / Timi / Temi",
+      "Pre-submission AI code review & 24/7 AI Tutor assistant",
+      "Printable BEMS Certificate with cryptographic QR verifier",
+      "Direct admission to official BEMS Class WhatsApp Community"
     ],
     isPopular: true,
-    ctaText: "Enroll in Cohort (₦85,000)"
+    ctaText: "Enroll in October 2026 Cohort"
   },
   {
-    id: "tier-hybrid-monthly",
-    name: "Self-Paced Hybrid Access",
-    priceNaira: 32000,
+    id: "tier-all-access",
+    name: "BEMS All-Access Pro Pass",
+    badge: "Unlimited Tech Learning",
+    priceNaira: 15000,
     billingPeriod: "Monthly",
-    description: "Flexible remote learning with optional weekend campus lab privileges and full on-demand video classroom access.",
+    description: "Cross-skill continuously across all 4 tracks (AI, Web, Design, Cyber) with priority lab desk access.",
     features: [
-      "Full 24/7 on-demand video curriculum and sandbox",
-      "Weekly live Zoom Q&A and code clinics",
-      "Weekend pass to Umuahia Tech Lab (Saturdays 9am - 4pm)",
-      "Automated AI Quiz generator and assignment grading",
-      "Community forum and peer feedback channels"
+      "Unlimited access to ALL 4 technical tracks simultaneously",
+      "Priority physical lab seating in Umuahia during open lab hours",
+      "1-on-1 monthly code clinic with Senior Lead Instructors",
+      "Unlimited AI Quiz generations & automated capstone audits",
+      "Access to exclusive employer talent directory matchmaking",
+      "Cancel or pause anytime with no hidden penalty"
     ],
-    ctaText: "Start Monthly (₦32,000/mo)"
+    isPopular: false,
+    ctaText: "Subscribe for ₦15,000 / mo"
   },
   {
-    id: "tier-enterprise",
-    name: "Corporate & Institution Sponsor",
-    badge: "B2B & Government",
-    priceNaira: 280000,
-    billingPeriod: "Quarterly",
-    description: "Sponsor 3+ trainees or upskill your corporate staff with dedicated progress reporting, custom capstones, and physical lab reserved slots.",
+    id: "tier-alumni",
+    name: "Alumni Tech Mastermind",
+    badge: "Career Matchmaking",
+    priceNaira: 8000,
+    billingPeriod: "Monthly",
+    description: "For graduates who want ongoing career referrals, weekly engineering masterclasses, and freelance client leads.",
     features: [
-      "Up to 4 team members enrolled simultaneously",
-      "Dedicated company admin portal with performance metrics",
-      "Custom business capstone aligned with your software stack",
-      "Quarterly executive evaluation report",
-      "Priority physical lab bookings and boardroom access"
+      "Weekly live technical architecture deep-dives",
+      "Direct introductions to hiring tech startups across Nigeria & remote",
+      "BEMS Innovation Hub hot-desk pass (2 days/week)",
+      "Portfolio case study reviews for international job applications",
+      "Private Alumni WhatsApp Mastermind networking group"
     ],
-    ctaText: "Inquire for Enterprise"
+    isPopular: false,
+    ctaText: "Join Alumni Club (₦8,000 / mo)"
   }
 ];
+

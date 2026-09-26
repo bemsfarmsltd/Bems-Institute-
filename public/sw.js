@@ -1,11 +1,11 @@
+// BEMS FutureSkills Progressive Web App Service Worker
 const CACHE_NAME = "bems-pwa-v1";
 const STATIC_ASSETS = [
   "/",
   "/dashboard",
-  "/sandbox",
-  "/leaderboard",
-  "/manifest.json",
-  "/images/logo.png"
+  "/courses/web-dev",
+  "/images/bems-logo.jpg",
+  "/manifest.json"
 ];
 
 self.addEventListener("install", (event) => {
@@ -41,9 +41,9 @@ self.addEventListener("fetch", (event) => {
         return cachedResponse;
       }
       return fetch(event.request).catch(() => {
-        // Fallback or offline page
         return caches.match("/dashboard");
       });
     })
   );
 });
+
