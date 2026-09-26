@@ -21,7 +21,7 @@ export const INITIAL_LIVE_CLASSES: LiveClass[] = [
     status: "LIVE_NOW",
     location: "BEMS Hub Lab 1 (Umuahia) + Zoom",
     zoomJoinUrl: "https://zoom.us/j/bems-futureskills-live",
-    streamVideoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4",
+    streamVideoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
     currentAttendees: 48,
     agenda: [
       "Common CSS layout traps on Android & iPhone screens",
@@ -79,7 +79,7 @@ export const INITIAL_LIVE_CLASSES: LiveClass[] = [
     status: "RECORDED",
     location: "BEMS Hub Lab 1 (Umuahia) + Zoom",
     zoomJoinUrl: "https://zoom.us/rec/play/bems-git-archive",
-    recordingUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+    recordingUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/friday.mp4",
     currentAttendees: 62,
     agenda: [
       "Anatomy of a 3-way merge conflict in VS Code",
@@ -393,4 +393,13 @@ export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
     ctaText: "Join Alumni Club (₦8,000 / mo)"
   }
 ];
+
+export const mockLiveClasses = INITIAL_LIVE_CLASSES;
+export const mockChannels = COMMUNITY_CHANNELS;
+export const mockMessages = INITIAL_COMMUNITY_MESSAGES;
+export const mockNotifications = INITIAL_NOTIFICATIONS;
+export const mockGamificationProfile = INITIAL_GAMIFICATION;
+export const mockLeaderboard = LEADERBOARD_STUDENTS;
+export const mockSubscriptionTiers = SUBSCRIPTION_TIERS;
+
 
