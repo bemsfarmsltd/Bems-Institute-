@@ -8,6 +8,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { AdminGate } from "@/components/AdminGate";
 import {
   Users,
   BookOpen,
@@ -30,7 +31,6 @@ import {
   Eye,
   Edit3
 } from "lucide-react";
-import { AdminCourse } from "@/types/lms";
 
 function AdminDashboardContent() {
   const searchParams = useSearchParams();
@@ -76,14 +76,13 @@ function AdminDashboardContent() {
     return matchesSearch && matchesCourse && matchesPayment;
   });
 
-  const handleCreateCourse = (e: React.FormEvent) => {
+  const handleCreateCourse = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim() || !newSlug.trim()) return;
 
-    const course: AdminCourse = {
-      id: newSlug.toLowerCase().replace(/[^a-z0-9]/g, "-"),
-      slug: newSlug.toLowerCase().replace(/[^a-z0-9]/g, "-"),
+    await addCourse({
       title: newTitle,
+      slug: newSlug.toLowerCase().replace(/[^a-z0-9]/g, "-"),
       badge: "Newly Added Track",
       tutor: newTutor,
       tutorRole: newTutorRole,
@@ -91,17 +90,12 @@ function AdminDashboardContent() {
       priceParts: Number(newPriceParts),
       deposit: Number(newDeposit),
       delivery: newDelivery,
-      schedule: newSchedule,
-      enrolledCount: 0,
-      status: "ACTIVE",
-      modulesCount: 3
-    };
-
-    addCourse(course);
+      schedule: newSchedule
+    });
     setShowAddCourseModal(false);
     setNewTitle("");
     setNewSlug("");
-    alert(`Course "${course.title}" successfully added to the BEMS portal catalog!`);
+    alert(`Course "${newTitle}" successfully added to the BEMS portal catalog!`);
   };
 
   return (
@@ -127,15 +121,15 @@ function AdminDashboardContent() {
 
             <div className="flex flex-wrap items-center gap-3">
               <a
-                href="http://localhost:3000/qr-studio"
+                href="/qr-studio"
                 target="_blank"
                 rel="noreferrer"
               >
                 <Button
                   variant="outline"
-                  className="border-white/20 text-white hover:bg-white/10 text-xs"
+                  className="bg-transparent border-white/20 text-white hover:bg-white/10 text-xs"
                 >
-                  <QrCode className="w-4 h-4 mr-1.5" /> Banner QR Studio (Port 3000)
+                  <QrCode className="w-4 h-4 mr-1.5" /> Banner QR Studio
                 </Button>
               </a>
 
@@ -351,7 +345,7 @@ function AdminDashboardContent() {
                   <Button
                     onClick={() => setActiveTab("analytics")}
                     variant="outline"
-                    className="w-full border-white/20 text-white hover:bg-white/10 text-xs"
+                    className="w-full bg-transparent border-white/20 text-white hover:bg-white/10 text-xs"
                   >
                     Inspect Marketing Yield &rarr;
                   </Button>
@@ -681,7 +675,7 @@ function AdminDashboardContent() {
               </div>
 
               <a
-                href="http://localhost:3000/qr-studio"
+                href="/qr-studio"
                 target="_blank"
                 rel="noreferrer"
               >
@@ -954,8 +948,10 @@ function AdminDashboardContent() {
 
 export default function AdminDashboardPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading Master Admin Console...</div>}>
-      <AdminDashboardContent />
-    </Suspense>
+    <AdminGate>
+      <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading Master Admin Console...</div>}>
+        <AdminDashboardContent />
+      </Suspense>
+    </AdminGate>
   );
 }

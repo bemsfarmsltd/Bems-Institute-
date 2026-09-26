@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { useLMS } from "@/context/LMSContext";
-import { LMS_COURSES } from "@/data/lms-data";
+import { RequireRole } from "@/components/RequireRole";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Badge } from "@/components/ui/badge";
@@ -18,14 +18,13 @@ import {
   Sparkles,
   ExternalLink,
   MessageCircle,
-  FileText,
-  Bot,
-  HelpCircle
+  FileText
 } from "lucide-react";
 
-export default function StudentDashboardPage() {
+function StudentDashboardContent() {
   const {
     user,
+    courses,
     enrolledCourseIds,
     getCourseProgress,
     quizResults,
@@ -33,9 +32,11 @@ export default function StudentDashboardPage() {
     certificates
   } = useLMS();
 
-  const enrolledCourses = LMS_COURSES.filter((c) =>
+  const enrolledCourses = courses.filter((c) =>
     enrolledCourseIds.includes(c.id)
   );
+  const mySubmissions = submissions.filter((s) => s.userId === user?.id);
+  const myCertificates = certificates.filter((c) => c.userId === user?.id);
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF8FF]">
@@ -160,42 +161,6 @@ export default function StudentDashboardPage() {
           </div>
         </div>
 
-        {/* Phase 4 AI Learning Companion Card */}
-        <div className="bg-gradient-to-r from-[#18143D] via-[#24174D] to-[#7928CA] rounded-3xl p-6 sm:p-8 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-xl">
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full bg-white/20 text-xs font-black tracking-wide text-white uppercase flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-amber-300" /> PHASE 4 AI SUITE
-              </span>
-              <span className="text-xs text-purple-200">24/7 Virtual Tutor & Code Review</span>
-            </div>
-            <h3 className="text-2xl font-black tracking-tight">
-              BEMS AI Academic Companion
-            </h3>
-            <p className="text-xs sm:text-sm text-[#D8D2F2] leading-relaxed">
-              Ask Mr. Victor for live code explanations, generate practice quizzes on difficult concepts, run instant pre-submission audits on your capstone, and get personalized study paths.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            <Link href="/ai?tab=tutor">
-              <Button className="bg-white text-[#18143D] hover:bg-[#FAF8FF] font-black shadow-md text-xs">
-                <Bot className="w-4 h-4 mr-1.5 text-[#7928CA]" /> Chat AI Tutor
-              </Button>
-            </Link>
-            <Link href="/ai?tab=quiz">
-              <Button variant="outline" className="border-white/30 text-white hover:bg-white/10 text-xs">
-                <HelpCircle className="w-4 h-4 mr-1.5" /> Practice Quiz
-              </Button>
-            </Link>
-            <Link href="/ai?tab=feedback">
-              <Button variant="outline" className="border-white/30 text-white hover:bg-white/10 text-xs">
-                <FileText className="w-4 h-4 mr-1.5" /> Code Review
-              </Button>
-            </Link>
-          </div>
-        </div>
-
         {/* Phase 2 Assessment & Credentials Card */}
         <div className="bg-white rounded-2xl border border-[#E6E1F5] p-6 sm:p-8 shadow-xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-[#F0EDF9]">
@@ -261,10 +226,10 @@ export default function StudentDashboardPage() {
                 <p className="text-xs text-[#645F80] mb-4">
                   Submit GitHub repository and live deployment URL.
                 </p>
-                {submissions.length > 0 ? (
+                {mySubmissions.length > 0 ? (
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Graded (
-                    {submissions[0].score}/100)
+                    {mySubmissions[0].score}/100)
                   </div>
                 ) : (
                   <span className="text-xs text-amber-600 font-semibold">
@@ -295,10 +260,10 @@ export default function StudentDashboardPage() {
                 <p className="text-xs text-[#645F80] mb-4">
                   Print-ready digital certificate with public verification.
                 </p>
-                {certificates.length > 0 ? (
+                {myCertificates.length > 0 ? (
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-100 text-purple-900 text-xs font-bold">
                     <CheckCircle2 className="w-4 h-4 text-[#7928CA]" /> Issued (
-                    {certificates[0].gradeTitle})
+                    {myCertificates[0].gradeTitle})
                   </div>
                 ) : (
                   <span className="text-xs text-gray-500">Awaiting grading</span>
@@ -306,8 +271,8 @@ export default function StudentDashboardPage() {
               </div>
 
               <div className="mt-4 pt-3 border-t border-[#E6E1F5]">
-                {certificates.length > 0 ? (
-                  <Link href={`/certificate/${certificates[0].id}`}>
+                {myCertificates.length > 0 ? (
+                  <Link href={`/certificate/${myCertificates[0].id}`}>
                     <Button variant="purple" size="sm" className="w-full">
                       View Official Certificate <ExternalLink className="w-3.5 h-3.5 ml-1.5" />
                     </Button>
@@ -327,3 +292,12 @@ export default function StudentDashboardPage() {
     </div>
   );
 }
+
+export default function StudentDashboardPage() {
+  return (
+    <RequireRole allow={["STUDENT", "INSTRUCTOR", "ADMIN"]}>
+      <StudentDashboardContent />
+    </RequireRole>
+  );
+}
+

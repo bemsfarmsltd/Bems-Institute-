@@ -1,10 +1,8 @@
 "use client";
 
-import React, { useState, use } from "react";
+import React, { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LMS_COURSES } from "@/data/lms-data";
-import { LMS_QUIZZES } from "@/data/assessment-data";
 import { useLMS } from "@/context/LMSContext";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -28,10 +26,10 @@ export default function QuizAssessmentPage({
 }) {
   const { slug, quizId } = use(params);
   const router = useRouter();
-  const { submitQuiz, getQuizResult, user } = useLMS();
+  const { courses, quizzes, isHydrated, submitQuiz, getQuizResult } = useLMS();
 
-  const course = LMS_COURSES.find((c) => c.slug === slug);
-  const quiz = LMS_QUIZZES.find((q) => q.id === quizId);
+  const course = courses.find((c) => c.slug === slug);
+  const quiz = quizzes.find((q) => q.id === quizId);
 
   const existingResult = getQuizResult(quizId);
 
@@ -40,6 +38,27 @@ export default function QuizAssessmentPage({
   );
   const [submitted, setSubmitted] = useState<boolean>(!!existingResult);
   const [latestResult, setLatestResult] = useState(existingResult);
+  const [error, setError] = useState<string | null>(null);
+
+  // The context loads quizResults asynchronously after mount, so a prior
+  // attempt (existingResult) may not exist yet on first render — sync local
+  // state once it lands instead of only using it as a useState initial value.
+  useEffect(() => {
+    if (existingResult) {
+      setSelectedAnswers(existingResult.selectedAnswers);
+      setSubmitted(true);
+      setLatestResult(existingResult);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [existingResult?.attemptedAt]);
+
+  if (!isHydrated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#FAF8FF] text-sm text-[#645F80]">
+        Loading assessment…
+      </div>
+    );
+  }
 
   if (!course || !quiz) {
     return (
@@ -64,16 +83,21 @@ export default function QuizAssessmentPage({
     }));
   };
 
-  const handleSubmitQuiz = (e: React.FormEvent) => {
+  const handleSubmitQuiz = async (e: React.FormEvent) => {
     e.preventDefault();
     if (Object.keys(selectedAnswers).length < quiz.questions.length) {
       alert("Please answer all questions before submitting your assessment.");
       return;
     }
-    const res = submitQuiz(quiz.id, selectedAnswers);
-    setLatestResult(res);
-    setSubmitted(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setError(null);
+    try {
+      const res = await submitQuiz(quiz.id, selectedAnswers);
+      setLatestResult(res);
+      setSubmitted(true);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch {
+      setError("Could not submit your assessment. Please sign in and try again.");
+    }
   };
 
   const handleRetake = () => {
@@ -276,7 +300,12 @@ export default function QuizAssessmentPage({
           })}
 
           {!submitted && (
-            <div className="flex items-center justify-end gap-3 pt-4">
+            <div className="flex flex-col items-end gap-3 pt-4">
+              {error && (
+                <p className="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2 w-full sm:w-auto">
+                  {error}
+                </p>
+              )}
               <Button
                 type="submit"
                 variant="purple"

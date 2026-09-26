@@ -27,7 +27,7 @@ export const LMS_COURSES: LMSCourse[] = [
             title: "Course Welcome & Development Environment Setup",
             slug: "welcome-setup",
             duration: "18:40",
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+            videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
             description: "Orientation with Mr. Victor. Program expectations, lab workstation setup, tools installation (VS Code, Chrome DevTools), and roadmap.",
             isFreePreview: true
           },
@@ -36,7 +36,7 @@ export const LMS_COURSES: LMSCourse[] = [
             title: "Semantic HTML5 Elements & Page Architecture",
             slug: "semantic-html5",
             duration: "24:10",
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+            videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/friday.mp4",
             description: "Deep dive into header, main, nav, article, section, aside, and accessible markup.",
             isFreePreview: true
           },
@@ -45,7 +45,7 @@ export const LMS_COURSES: LMSCourse[] = [
             title: "Forms, Validations & User Input Controls",
             slug: "html5-forms",
             duration: "18:30",
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+            videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
             description: "Building production contact forms, input types, regex validations, and accessible form labels.",
             isFreePreview: false
           }
@@ -61,7 +61,7 @@ export const LMS_COURSES: LMSCourse[] = [
             title: "CSS Box Model & Modern Flexbox Layouts",
             slug: "flexbox-layouts",
             duration: "28:15",
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+            videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/friday.mp4",
             description: "Master flex-direction, justify-content, align-items, flex-wrap, and building responsive navigation bars.",
             isFreePreview: false
           },
@@ -70,7 +70,7 @@ export const LMS_COURSES: LMSCourse[] = [
             title: "CSS Grid Systems & Two-Dimensional Page Layouts",
             slug: "css-grid-mastery",
             duration: "32:00",
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+            videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
             description: "Grid template areas, repeat(), minmax(), responsive auto-fit cards without media queries.",
             isFreePreview: false
           },
@@ -79,7 +79,7 @@ export const LMS_COURSES: LMSCourse[] = [
             title: "Mobile-First Media Queries & Responsive Breakpoints",
             slug: "mobile-first-design",
             duration: "21:45",
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyBlazes.mp4",
+            videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/friday.mp4",
             description: "Designing for Android smartphones, iPads/tablets, and desktop screens with smooth viewport typography.",
             isFreePreview: false
           }
@@ -95,7 +95,7 @@ export const LMS_COURSES: LMSCourse[] = [
             title: "JavaScript Variables, Data Types & Functions",
             slug: "js-fundamentals",
             duration: "35:20",
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4",
+            videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
             description: "const, let, template literals, arrow functions, higher-order array methods (map, filter, reduce).",
             isFreePreview: false
           },
@@ -104,7 +104,7 @@ export const LMS_COURSES: LMSCourse[] = [
             title: "DOM Manipulation, Event Listeners & Dynamic UI",
             slug: "dom-manipulation",
             duration: "29:50",
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4",
+            videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/friday.mp4",
             description: "Selecting elements, adding event listeners, dynamic modals, accordions, and interactive toggles.",
             isFreePreview: false
           },
@@ -113,7 +113,7 @@ export const LMS_COURSES: LMSCourse[] = [
             title: "Asynchronous JavaScript, Fetch API & Promises",
             slug: "fetch-api-async",
             duration: "30:10",
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackSeeTheWorld.mp4",
+            videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
             description: "Working with JSON data, async/await, handling network errors, and loading states.",
             isFreePreview: false
           }
@@ -129,7 +129,7 @@ export const LMS_COURSES: LMSCourse[] = [
             title: "Git Version Control & Terminal Mastery",
             slug: "git-version-control",
             duration: "26:00",
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4",
+            videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/friday.mp4",
             description: "git init, commit, branch, merge, merge conflicts, and publishing repositories to GitHub.",
             isFreePreview: false
           },
@@ -138,7 +138,7 @@ export const LMS_COURSES: LMSCourse[] = [
             title: "Connecting Third-Party APIs (Paystack, WhatsApp Webhooks)",
             slug: "third-party-integrations",
             duration: "33:40",
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4",
+            videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
             description: "Integrating Paystack inline payment popups, redirecting to WhatsApp communities, and webhook handling.",
             isFreePreview: false
           },
@@ -147,7 +147,7 @@ export const LMS_COURSES: LMSCourse[] = [
             title: "Capstone Production Deployment to Vercel & Netlify",
             slug: "production-deployment",
             duration: "27:15",
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4",
+            videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/friday.mp4",
             description: "Deploying production-ready client portals, configuring custom domains, SSL certificates, and performance auditing.",
             isFreePreview: false
           }
@@ -181,7 +181,7 @@ export const LMS_COURSES: LMSCourse[] = [
             title: "Welcome & Modern AI Landscape Overview",
             slug: "ai-landscape",
             duration: "20:10",
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+            videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
             description: "Introduction to LLMs, multimodal models, tokens, temperature, and enterprise use-cases.",
             isFreePreview: true
           },
@@ -190,7 +190,7 @@ export const LMS_COURSES: LMSCourse[] = [
             title: "Advanced Prompt Engineering Frameworks",
             slug: "prompt-engineering",
             duration: "26:30",
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+            videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/friday.mp4",
             description: "Zero-shot, few-shot, chain-of-thought, system instructions, and structured JSON output techniques.",
             isFreePreview: false
           }
@@ -206,7 +206,7 @@ export const LMS_COURSES: LMSCourse[] = [
             title: "Workflow Automation with Make & Zapier",
             slug: "make-zapier-automation",
             duration: "31:40",
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+            videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
             description: "Automating lead intake, email notifications, Google Sheets synchronization, and webhooks.",
             isFreePreview: false
           },
@@ -215,7 +215,7 @@ export const LMS_COURSES: LMSCourse[] = [
             title: "Building Customer Support AI WhatsApp Agents",
             slug: "whatsapp-ai-agent",
             duration: "38:15",
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+            videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/friday.mp4",
             description: "Connecting Gemini API to WhatsApp Business API with knowledge retrieval.",
             isFreePreview: false
           }
@@ -249,7 +249,7 @@ export const LMS_COURSES: LMSCourse[] = [
             title: "Design Thinking Methodology & User Empathy",
             slug: "design-thinking",
             duration: "22:15",
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+            videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
             description: "Empathize, Define, Ideate, Prototype, and Test. Conducting real-world user interviews.",
             isFreePreview: true
           },
@@ -258,7 +258,7 @@ export const LMS_COURSES: LMSCourse[] = [
             title: "Wireframing & Information Architecture",
             slug: "wireframing-ia",
             duration: "25:40",
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+            videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/friday.mp4",
             description: "Low-fidelity sketches, user journey mapping, and sitemaps.",
             isFreePreview: false
           }
@@ -274,7 +274,7 @@ export const LMS_COURSES: LMSCourse[] = [
             title: "Auto-Layout, Variants & Interactive Components",
             slug: "figma-auto-layout",
             duration: "34:20",
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+            videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
             description: "Advanced Figma workflows: responsive auto-layout, nested variants, interactive component states.",
             isFreePreview: false
           },
@@ -283,7 +283,7 @@ export const LMS_COURSES: LMSCourse[] = [
             title: "Design Systems & Developer Handoff",
             slug: "design-systems-handoff",
             duration: "29:10",
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+            videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/friday.mp4",
             description: "Color tokens, typography scales, spacing rules, accessibility contrast, and Dev Mode handoff.",
             isFreePreview: false
           }
@@ -317,7 +317,7 @@ export const LMS_COURSES: LMSCourse[] = [
             title: "TCP/IP Suite, OSI Model & Network Topologies",
             slug: "tcp-ip-osi",
             duration: "25:30",
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+            videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
             description: "Packet analysis, Wireshark fundamentals, DNS, HTTP/HTTPS, and routing protocols.",
             isFreePreview: true
           },
@@ -326,7 +326,7 @@ export const LMS_COURSES: LMSCourse[] = [
             title: "Common Cyber Attacks & Threat Intelligence",
             slug: "threat-vectors",
             duration: "28:15",
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+            videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/friday.mp4",
             description: "Phishing, Man-in-the-Middle, SQL Injection, XSS, Ransomware, and social engineering anatomy.",
             isFreePreview: false
           }
@@ -342,7 +342,7 @@ export const LMS_COURSES: LMSCourse[] = [
             title: "Vulnerability Scanning with Nmap & OpenVAS",
             slug: "vulnerability-scanning",
             duration: "33:00",
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+            videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
             description: "Port scanning, service enumeration, detecting outdated packages, and creating audit logs.",
             isFreePreview: false
           },
@@ -351,7 +351,7 @@ export const LMS_COURSES: LMSCourse[] = [
             title: "Hardening Servers & Incident Response Planning",
             slug: "server-hardening-incident",
             duration: "36:40",
-            videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+            videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/friday.mp4",
             description: "Firewall rules (UFW/iptables), SSH key authentication, least privilege access, and incident playbooks.",
             isFreePreview: false
           }
@@ -360,3 +360,4 @@ export const LMS_COURSES: LMSCourse[] = [
     ]
   }
 ];
+

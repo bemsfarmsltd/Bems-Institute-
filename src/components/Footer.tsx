@@ -32,10 +32,10 @@ export function Footer() {
               Programs
             </h4>
             <ul className="space-y-2 text-xs text-[#A5A0C8]">
-              <li><Link href="http://localhost:3000/enroll?course=ai-automation" className="hover:text-white">AI & Automation</Link></li>
-              <li><Link href="http://localhost:3000/enroll?course=web-dev" className="hover:text-white">Web Development</Link></li>
-              <li><Link href="http://localhost:3000/enroll?course=product-design" className="hover:text-white">Product Design (UI/UX)</Link></li>
-              <li><Link href="http://localhost:3000/enroll?course=cybersecurity" className="hover:text-white">Cybersecurity</Link></li>
+              <li><Link href="/subscriptions?course=ai-automation" className="hover:text-white">AI & Automation</Link></li>
+              <li><Link href="/subscriptions?course=web-dev" className="hover:text-white">Web Development</Link></li>
+              <li><Link href="/subscriptions?course=product-design" className="hover:text-white">Product Design (UI/UX)</Link></li>
+              <li><Link href="/subscriptions?course=cybersecurity" className="hover:text-white">Cybersecurity</Link></li>
             </ul>
           </div>
 
@@ -44,9 +44,9 @@ export function Footer() {
               Portals & Tools
             </h4>
             <ul className="space-y-2 text-xs text-[#A5A0C8]">
-              <li><Link href="http://localhost:3000/enroll" className="hover:text-white">Student Enrollment</Link></li>
-              <li><Link href="http://localhost:3000/qr-studio" className="hover:text-white">Banner QR Studio</Link></li>
-              <li><Link href="http://localhost:3000/admin" className="hover:text-white">Live Scoreboard</Link></li>
+              <li><Link href="/subscriptions" className="hover:text-white">Student Enrollment</Link></li>
+              <li><Link href="/qr-studio" className="hover:text-white">Banner QR Studio</Link></li>
+              <li><Link href="/admin" className="hover:text-white">Live Scoreboard</Link></li>
             </ul>
           </div>
 
@@ -83,7 +83,7 @@ export function Footer() {
           <div className="flex gap-6">
             <Link href="#" className="hover:text-white">Privacy Policy</Link>
             <Link href="#" className="hover:text-white">Terms of Admission</Link>
-            <Link href="http://localhost:3000/admin" className="hover:text-white text-[#D8B4FE]">Staff Scoreboard</Link>
+            <Link href="/admin" className="hover:text-white text-[#D8B4FE]">Staff Scoreboard</Link>
           </div>
         </div>
 

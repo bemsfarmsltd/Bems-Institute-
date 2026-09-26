@@ -1,5 +1,32 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Accounts & database
+
+User accounts (name/email/password) are real, stored in Postgres via Prisma
+— not mocked. Local dev uses a portable, no-install PostgreSQL at
+`C:\Users\hp\AppData\Local\bems-postgres` (not a Windows service).
+
+```bash
+npm run postgres:start   # start local Postgres (needed before `npm run dev`)
+npm run dev
+npm run db:seed          # (re-)create the two demo accounts below
+npm run postgres:stop    # stop it when done
+```
+
+Demo accounts (seeded by `npm run db:seed`, password `demo1234` for both):
+- `chinedu.okeke@mouau.edu.ng` — STUDENT
+- `victor.lead@bemsinstitute.ng` — INSTRUCTOR
+
+New STUDENT/INSTRUCTOR accounts can sign up at `/login`. ADMIN accounts can't
+self-register — the first admin registers at `/admin` with the
+`ADMIN_ACCESS_CODE` from `.env.local` (a one-time invite code, not a standing
+password); after that they sign in normally with their own email/password.
+
+**Before deploying anywhere** (Vercel, etc.): this local Postgres only
+exists on this machine. Point `DATABASE_URL` in `.env.local` at a real hosted
+Postgres (Vercel Postgres, Neon, Supabase, Railway, ...) and re-run
+`npx prisma migrate deploy` against it.
+
 ## Getting Started
 
 First, run the development server:

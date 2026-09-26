@@ -42,7 +42,7 @@ export function Hero() {
             </p>
 
             <div className="flex flex-wrap items-center gap-4 mb-10">
-              <Link href="http://localhost:3000/enroll">
+              <Link href="/subscriptions">
                 <Button size="lg" className="gap-2">
                   <span>Apply for October Cohort</span>
                 </Button>
@@ -109,13 +109,13 @@ export function Hero() {
                   <p className="text-xs text-[#A5A0C8] mt-0.5">
                     Scan at the BEMS Hub, MOUAU, or LGA to register on the spot.
                   </p>
-                  <Link href="http://localhost:3000/qr-studio" className="text-xs font-bold text-[#D8B4FE] hover:underline mt-1 inline-block">
+                  <Link href="/qr-studio" className="text-xs font-bold text-[#D8B4FE] hover:underline mt-1 inline-block">
                     Open Banner QR Studio →
                   </Link>
                 </div>
               </div>
 
-              <Link href="http://localhost:3000/enroll" className="block w-full">
+              <Link href="/subscriptions" className="block w-full">
                 <Button variant="whatsapp" className="w-full gap-2 py-3">
                   <MessageCircle className="w-4 h-4" />
                   <span>Instant WhatsApp Onboarding</span>

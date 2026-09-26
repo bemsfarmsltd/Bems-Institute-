@@ -43,7 +43,7 @@ function AIHubContent() {
   const [tutorMessages, setTutorMessages] = useState<AIChatMessage[]>([
     {
       id: "welcome-1",
-      role: "model",
+      role: "assistant",
       content: "Hello! I'm Mr. Victor Okeke, Lead Web Development Instructor at BEMS Institute of Technology. What are you building or debugging today? Ask me any question about HTML, CSS, JavaScript, Next.js, or your capstone!",
       timestamp: "Just now"
     }
@@ -121,7 +121,7 @@ function AIHubContent() {
 
       const botMsg: AIChatMessage = {
         id: `bot-${Date.now()}`,
-        role: "model",
+        role: "assistant",
         content: data.text,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
       };
@@ -136,7 +136,7 @@ function AIHubContent() {
         ...prev,
         {
           id: `bot-err-${Date.now()}`,
-          role: "model",
+          role: "assistant",
           content: "I ran into a temporary connection issue. Please check your internet connection and try asking again.",
           timestamp: "Just now"
         }
@@ -425,7 +425,7 @@ function AIHubContent() {
                     setTutorMessages([
                       {
                         id: "welcome-reset",
-                        role: "model",
+                        role: "assistant",
                         content: `Hello! I am ${tutorName}. How can I assist your coding journey today?`,
                         timestamp: "Just now"
                       }
@@ -951,3 +951,4 @@ export default function AIPage() {
     </Suspense>
   );
 }
+

@@ -21,7 +21,7 @@ export const mockLiveClasses: LiveClass[] = [
     status: "LIVE_NOW",
     location: "Hybrid (BEMS Tech Lab 1, Umuahia + Zoom Video Room A)",
     zoomJoinUrl: "https://zoom.us/j/9827364120",
-    streamVideoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+    streamVideoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
     currentAttendees: 42,
     agenda: [
       "Deep dive into React 19 useActionState and Server Actions",
@@ -79,7 +79,7 @@ export const mockLiveClasses: LiveClass[] = [
     status: "RECORDED",
     location: "Recorded in BEMS Security Sandbox",
     zoomJoinUrl: "https://zoom.us/rec/play/bems-cyber-01",
-    recordingUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+    recordingUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/friday.mp4",
     currentAttendees: 64,
     agenda: [
       "OWASP Top 10 hands-on penetration testing",

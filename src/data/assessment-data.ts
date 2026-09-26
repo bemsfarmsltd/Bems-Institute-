@@ -241,3 +241,4 @@ export const LMS_ASSIGNMENTS: Assignment[] = [
     ]
   }
 ];
+

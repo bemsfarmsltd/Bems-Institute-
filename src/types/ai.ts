@@ -2,7 +2,7 @@ import { QuizQuestion } from "./lms";
 
 export interface AIChatMessage {
   id: string;
-  role: "user" | "assistant" | "model";
+  role: "user" | "assistant";
   content: string;
   timestamp: string;
   tutorPersona?: string;
@@ -69,3 +69,4 @@ export interface PersonalizedRecommendation {
   actionUrl: string;
   urgency: "HIGH" | "MEDIUM" | "RECOMMENDED";
 }
+

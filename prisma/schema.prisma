@@ -7,7 +7,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 enum UserRole {
@@ -28,11 +27,29 @@ enum SubmissionStatus {
   RESUBMISSION_REQUESTED
 }
 
+enum CourseStatus {
+  ACTIVE
+  UPCOMING
+  ARCHIVED
+}
+
+enum DeliveryMode {
+  PHYSICAL_LAB
+  VIRTUAL_ZOOM
+}
+
+enum PaymentStatus {
+  PENDING
+  PARTIAL
+  PAID_FULL
+}
+
 model User {
   id           String         @id @default(cuid())
   clerkId      String?        @unique
   name         String
   email        String         @unique
+  passwordHash String
   phone        String?
   role         UserRole       @default(STUDENT)
   enrollments  Enrollment[]
@@ -48,14 +65,20 @@ model Course {
   id           String        @id @default(cuid())
   slug         String        @unique
   title        String
-  tagline      String
+  badge        String        @default("")
   tutor        String
   tutorRole    String
+  schedule     String        @default("")
+  duration     String        @default("")
+  delivery     String        @default("")
+  tagline      String
   priceFull    Int
   priceParts   Int
   deposit      Int
   finalProject String
   isPublished  Boolean       @default(true)
+  status       CourseStatus  @default(ACTIVE)
+  color        String        @default("#7928CA") // for analytics chart display
   modules      Module[]
   quizzes      Quiz[]
   assignments  Assignment[]
@@ -105,13 +128,45 @@ model Enrollment {
   status           EnrollmentStatus @default(ACTIVE)
   paymentPlan      String           @default("full") // "full" or "installment"
   amountPaid       Int              @default(0)
+  totalDue         Int              @default(0)
+  paymentStatus    PaymentStatus    @default(PENDING)
+  deliveryMode     DeliveryMode     @default(PHYSICAL_LAB)
   paymentReference String?
-  source           String?          @default("website")
+  source           String?          @default("website") // banner/QR label — free text, see QrScan
+  cohortId         String?
+  cohort           Cohort?          @relation(fields: [cohortId], references: [id])
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
   @@unique([userId, courseId])
   @@index([courseId])
+}
+
+// One admissions intake round (e.g. "October 2026"). Enrollments link to
+// whichever cohort is active when they're created; targets here drive the
+// admin analytics dashboard's goal-vs-actual figures.
+model Cohort {
+  id             String       @id @default(cuid())
+  name           String
+  startDate      DateTime
+  endDate        DateTime
+  targetStudents Int          @default(80)
+  targetRevenue  Int          @default(0)
+  enrollments    Enrollment[]
+  createdAt      DateTime     @default(now())
+}
+
+// Append-only log of banner/QR landing-page visits (see /subscriptions and
+// the QR Studio), independent of whether the visit converted to an
+// enrollment. Aggregated by `source` for the admin banner-yield dashboard —
+// registrations are the subset of a source's scans whose visitor enrolled.
+model QrScan {
+  id        String   @id @default(cuid())
+  source    String
+  courseId  String?
+  createdAt DateTime @default(now())
+
+  @@index([source])
 }
 
 model UserProgress {
@@ -179,8 +234,9 @@ model QuizAttempt {
 model Assignment {
   id           String       @id @default(cuid())
   title        String
-  instructions String       @db.Text
-  rubric       Json?        // Grading criteria
+  brief        String       @db.Text
+  requirements String[]
+  rubric       Json         // [{ criteria: string, points: number }]
   courseId     String
   course       Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
   submissions  Submission[]
@@ -225,32 +281,5 @@ model Certificate {
 
   @@unique([userId, courseId])
   @@index([certNumber])
-}
-
-// -------------------------------------------------------------
-// PHASE 3 — COHORTS & PAYMENTS
-// -------------------------------------------------------------
-
-model Cohort {
-  id            String   @id @default(cuid())
-  name          String   // e.g. "October 2026 (Inaugural FutureSkills)"
-  startDate     DateTime
-  endDate       DateTime
-  targetStudents Int     @default(80)
-  createdAt     DateTime @default(now())
-}
-
-model Payment {
-  id            String   @id @default(cuid())
-  userId        String
-  courseId      String
-  amount        Int
-  currency      String   @default("NGN")
-  paymentMethod String   // "PAYSTACK" | "BANK_TRANSFER"
-  reference     String   @unique
-  planType      String   // "FULL" | "INSTALLMENT"
-  status        String   // "SUCCESS" | "PENDING"
-  qrSource      String?  // "BEMS Hub Banner", "MOUAU Umudike", etc.
-  createdAt     DateTime @default(now())
 }
 

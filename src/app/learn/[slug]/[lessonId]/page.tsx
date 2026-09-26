@@ -3,7 +3,6 @@
 import React, { use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LMS_COURSES } from "@/data/lms-data";
 import { useLMS } from "@/context/LMSContext";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -19,8 +18,7 @@ import {
   Award,
   Clock,
   Sparkles,
-  FileCheck,
-  Bot
+  FileCheck
 } from "lucide-react";
 
 export default function LessonViewPage({
@@ -31,6 +29,8 @@ export default function LessonViewPage({
   const { slug, lessonId } = use(params);
   const router = useRouter();
   const {
+    courses,
+    isHydrated,
     isEnrolled,
     completedLessonIds,
     toggleLessonComplete,
@@ -38,7 +38,15 @@ export default function LessonViewPage({
     getCourseProgress
   } = useLMS();
 
-  const course = LMS_COURSES.find((c) => c.slug === slug);
+  const course = courses.find((c) => c.slug === slug);
+
+  if (!isHydrated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#FAF8FF] text-sm text-[#645F80]">
+        Loading lesson…
+      </div>
+    );
+  }
 
   if (!course) {
     return (
@@ -70,9 +78,9 @@ export default function LessonViewPage({
   const isCompleted = isLessonCompleted(currentLesson.id);
   const progress = getCourseProgress(course.id);
 
-  const handleNextOrFinish = () => {
+  const handleNextOrFinish = async () => {
     if (!isCompleted) {
-      toggleLessonComplete(currentLesson.id);
+      await toggleLessonComplete(currentLesson.id);
     }
     if (nextLesson) {
       router.push(`/learn/${slug}/${nextLesson.id}`);
@@ -110,16 +118,7 @@ export default function LessonViewPage({
             </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Link href="/ai?tab=tutor" target="_blank">
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-purple-400/50 bg-[#7928CA]/20 text-purple-200 hover:bg-[#7928CA]/40"
-              >
-                <Bot className="w-4 h-4 mr-1.5 text-purple-300" /> Ask AI Tutor
-              </Button>
-            </Link>
+          <div className="flex items-center gap-3">
             <Link href={`/learn/${slug}/quiz/quiz-${slug}`}>
               <Button
                 variant="outline"
@@ -154,7 +153,6 @@ export default function LessonViewPage({
                 controls
                 playsInline
                 className="w-full h-full object-cover"
-                poster="/images/hero-classroom.png"
               >
                 <source src={currentLesson.videoUrl} type="video/mp4" />
                 Your browser does not support HTML5 video streaming.
@@ -353,3 +351,4 @@ export default function LessonViewPage({
     </div>
   );
 }
+

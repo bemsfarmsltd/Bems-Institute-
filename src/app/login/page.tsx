@@ -10,54 +10,60 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   GraduationCap,
-  Sparkles,
   ArrowRight,
-  ShieldCheck,
   UserCheck
 } from "lucide-react";
 
+type Mode = "signin" | "signup";
+
+const DEMO_STUDENT = { email: "chinedu.okeke@mouau.edu.ng", password: "demo1234" };
+const DEMO_INSTRUCTOR = { email: "victor.lead@bemsinstitute.ng", password: "demo1234" };
+
+function routeForRole(role: string, router: ReturnType<typeof useRouter>) {
+  if (role === "ADMIN") router.push("/admin");
+  else if (role === "INSTRUCTOR") router.push("/instructor/grading");
+  else router.push("/dashboard");
+}
+
 export default function LoginPage() {
   const router = useRouter();
-  const { login, user } = useLMS();
+  const { login, signup } = useLMS();
 
-  const [name, setName] = useState(user?.name || "Chinedu Okeke");
-  const [email, setEmail] = useState(user?.email || "chinedu.okeke@mouau.edu.ng");
-  const [role, setRole] = useState<"STUDENT" | "INSTRUCTOR" | "ADMIN">("STUDENT");
+  const [mode, setMode] = useState<Mode>("signin");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState<"STUDENT" | "INSTRUCTOR">("STUDENT");
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    login(name, email);
-    if (role === "ADMIN") {
-      router.push("/admin");
-    } else if (role === "INSTRUCTOR") {
-      router.push("/instructor");
-    } else {
-      router.push("/dashboard");
+    setError(null);
+    setSubmitting(true);
+    const result =
+      mode === "signin"
+        ? await login(email, password)
+        : await signup(name, email, password, role);
+    setSubmitting(false);
+
+    if (!result.ok || !result.user) {
+      setError(result.error || "Something went wrong.");
+      return;
     }
+    routeForRole(result.user.role, router);
   };
 
-  const handleDemoStudent = () => {
-    setName("Chinedu Okeke");
-    setEmail("chinedu.okeke@mouau.edu.ng");
-    setRole("STUDENT");
-    login("Chinedu Okeke", "chinedu.okeke@mouau.edu.ng");
-    router.push("/dashboard");
-  };
-
-  const handleDemoInstructor = () => {
-    setName("Mr. Victor (Lead Tutor)");
-    setEmail("victor.lead@bemsinstitute.ng");
-    setRole("INSTRUCTOR");
-    login("Mr. Victor (Lead Tutor)", "victor.lead@bemsinstitute.ng");
-    router.push("/instructor");
-  };
-
-  const handleDemoAdmin = () => {
-    setName("Academic Director (Admin)");
-    setEmail("admin@bemsinstitute.ng");
-    setRole("ADMIN");
-    login("Academic Director", "admin@bemsinstitute.ng");
-    router.push("/admin");
+  const handleDemo = async (creds: typeof DEMO_STUDENT) => {
+    setError(null);
+    setSubmitting(true);
+    const result = await login(creds.email, creds.password);
+    setSubmitting(false);
+    if (!result.ok || !result.user) {
+      setError(result.error || "Demo sign-in failed.");
+      return;
+    }
+    routeForRole(result.user.role, router);
   };
 
   return (
@@ -74,63 +80,89 @@ export default function LoginPage() {
               <Badge variant="purple">CORE LMS AUTH</Badge>
             </div>
             <h1 className="text-2xl font-black text-[#18143D]">
-              Sign in to BEMS LMS
+              {mode === "signin" ? "Sign in to BEMS LMS" : "Create your BEMS account"}
             </h1>
             <p className="text-xs sm:text-sm text-[#645F80] mt-1">
-              Enter your credentials or choose a 1-click demo persona to test Phase 1 & 2 workflows.
+              {mode === "signin"
+                ? "Enter your email and password, or try a demo account below."
+                : "Set a password so your progress is saved to your own account."}
             </p>
           </div>
 
-          {/* Quick 1-Click Persona Switchers */}
-          <div className="space-y-2 mb-6 p-4 rounded-2xl bg-[#FAF8FF] border border-[#E6E1F5]">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#645F80] block text-center mb-2">
-              ⚡ 1-Click Fast Access Persona
-            </span>
-            <div className="grid grid-cols-3 gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleDemoStudent}
-                className="text-[11px] px-2 border-[#D1C9EB] hover:border-[#7928CA] hover:text-[#7928CA]"
-              >
-                <GraduationCap className="w-3.5 h-3.5 mr-1 text-[#7928CA]" /> Student
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleDemoInstructor}
-                className="text-[11px] px-2 border-[#D1C9EB] hover:border-[#7928CA] hover:text-[#7928CA]"
-              >
-                <UserCheck className="w-3.5 h-3.5 mr-1 text-amber-600" /> Tutor
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleDemoAdmin}
-                className="text-[11px] px-2 border-[#D1C9EB] hover:border-[#7928CA] hover:text-[#7928CA]"
-              >
-                <ShieldCheck className="w-3.5 h-3.5 mr-1 text-emerald-600" /> Admin
-              </Button>
-            </div>
+          {/* Mode toggle */}
+          <div className="grid grid-cols-2 gap-2 mb-6 p-1 rounded-2xl bg-[#FAF8FF] border border-[#E6E1F5]">
+            <button
+              type="button"
+              onClick={() => {
+                setMode("signin");
+                setError(null);
+              }}
+              className={`py-2 rounded-xl text-xs font-bold transition-colors ${
+                mode === "signin" ? "bg-white shadow-sm text-[#7928CA]" : "text-[#645F80]"
+              }`}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMode("signup");
+                setError(null);
+              }}
+              className={`py-2 rounded-xl text-xs font-bold transition-colors ${
+                mode === "signup" ? "bg-white shadow-sm text-[#7928CA]" : "text-[#645F80]"
+              }`}
+            >
+              Create Account
+            </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-bold text-[#18143D] mb-1.5">
-                Full Name
-              </label>
-              <input
-                type="text"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Chinedu Okeke"
-                className="w-full px-4 py-3 rounded-xl border border-[#D1C9EB] focus:border-[#7928CA] focus:outline-hidden text-sm text-[#18143D] bg-white"
-              />
+          {mode === "signin" && (
+            <div className="space-y-2 mb-6 p-4 rounded-2xl bg-[#FAF8FF] border border-[#E6E1F5]">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#645F80] block text-center mb-2">
+                ⚡ Try a Demo Account
+              </span>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDemo(DEMO_STUDENT)}
+                  disabled={submitting}
+                  className="text-xs border-[#D1C9EB] hover:border-[#7928CA] hover:text-[#7928CA]"
+                >
+                  <GraduationCap className="w-3.5 h-3.5 mr-1 text-[#7928CA]" /> Student Demo
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDemo(DEMO_INSTRUCTOR)}
+                  disabled={submitting}
+                  className="text-xs border-[#D1C9EB] hover:border-[#7928CA] hover:text-[#7928CA]"
+                >
+                  <UserCheck className="w-3.5 h-3.5 mr-1 text-amber-600" /> Tutor Demo
+                </Button>
+              </div>
             </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {mode === "signup" && (
+              <div>
+                <label className="block text-xs font-bold text-[#18143D] mb-1.5">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Chinedu Okeke"
+                  className="w-full px-4 py-3 rounded-xl border border-[#D1C9EB] focus:border-[#7928CA] focus:outline-hidden text-sm text-[#18143D] bg-white"
+                />
+              </div>
+            )}
 
             <div>
               <label className="block text-xs font-bold text-[#18143D] mb-1.5">
@@ -148,26 +180,57 @@ export default function LoginPage() {
 
             <div>
               <label className="block text-xs font-bold text-[#18143D] mb-1.5">
-                Role Destination
+                Password
               </label>
-              <select
-                value={role}
-                onChange={(e) => setRole(e.target.value as "STUDENT" | "INSTRUCTOR" | "ADMIN")}
-                className="w-full px-4 py-3 rounded-xl border border-[#D1C9EB] focus:border-[#7928CA] focus:outline-hidden text-sm text-[#18143D] bg-white font-medium"
-              >
-                <option value="STUDENT">Student Dashboard (/dashboard)</option>
-                <option value="INSTRUCTOR">Instructor Studio (/instructor)</option>
-                <option value="ADMIN">Master Admin Console (/admin)</option>
-              </select>
+              <input
+                type="password"
+                required
+                minLength={8}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full px-4 py-3 rounded-xl border border-[#D1C9EB] focus:border-[#7928CA] focus:outline-hidden text-sm text-[#18143D] bg-white"
+              />
+              {mode === "signup" && (
+                <p className="text-[11px] text-[#8580A3] mt-1">At least 8 characters.</p>
+              )}
             </div>
+
+            {mode === "signup" && (
+              <div>
+                <label className="block text-xs font-bold text-[#18143D] mb-1.5">
+                  I am a…
+                </label>
+                <select
+                  value={role}
+                  onChange={(e) => setRole(e.target.value as "STUDENT" | "INSTRUCTOR")}
+                  className="w-full px-4 py-3 rounded-xl border border-[#D1C9EB] focus:border-[#7928CA] focus:outline-hidden text-sm text-[#18143D] bg-white font-medium"
+                >
+                  <option value="STUDENT">Student</option>
+                  <option value="INSTRUCTOR">Instructor / Tutor</option>
+                </select>
+              </div>
+            )}
+
+            {error && (
+              <p className="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
+                {error}
+              </p>
+            )}
 
             <Button
               type="submit"
               variant="purple"
               size="lg"
+              disabled={submitting}
               className="w-full shadow-md mt-2 font-bold"
             >
-              Sign In to Learning Portal <ArrowRight className="w-4 h-4 ml-1.5" />
+              {submitting
+                ? "Please wait…"
+                : mode === "signin"
+                ? "Sign In to Learning Portal"
+                : "Create Account"}
+              <ArrowRight className="w-4 h-4 ml-1.5" />
             </Button>
           </form>
 

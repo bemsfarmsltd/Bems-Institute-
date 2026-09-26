@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useLMS } from "@/context/LMSContext";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { RequireRole } from "@/components/RequireRole";
 import {
   Award,
   CheckCircle2,
@@ -19,25 +20,44 @@ import {
   UserCheck
 } from "lucide-react";
 
-export default function InstructorGradingPage() {
-  const { submissions, gradeSubmission, certificates } = useLMS();
+function InstructorGradingContent() {
+  const { user, submissions, gradeSubmission, certificates } = useLMS();
 
-  const [selectedSubId, setSelectedSubId] = useState<string | null>(
-    submissions[0]?.id || null
-  );
+  const [selectedSubId, setSelectedSubId] = useState<string | null>(null);
   const [scoreInput, setScoreInput] = useState<number>(92);
   const [feedbackInput, setFeedbackInput] = useState<string>(
     "Outstanding responsive layout, clean semantic tags, and reliable API consumption. Approved with distinction!"
   );
-  const [graderName, setGraderName] = useState<string>("Mr. Victor (Lead Tutor)");
+  const [error, setError] = useState<string | null>(null);
+  const [isGrading, setIsGrading] = useState(false);
+
+  // submissions loads asynchronously — default to the first one once it lands.
+  useEffect(() => {
+    if (!selectedSubId && submissions.length > 0) {
+      setSelectedSubId(submissions[0].id);
+    }
+  }, [submissions, selectedSubId]);
 
   const selectedSub = submissions.find((s) => s.id === selectedSubId);
+  const selectedCertificate = selectedSub
+    ? certificates.find(
+        (c) => c.userId === selectedSub.userId && c.courseId === selectedSub.courseId
+      )
+    : undefined;
 
-  const handleGrade = (e: React.FormEvent) => {
+  const handleGrade = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedSub) return;
-    gradeSubmission(selectedSub.id, scoreInput, feedbackInput, graderName);
-    alert(`Submission graded successfully! Certificate has been generated for ${selectedSub.studentName}.`);
+    setError(null);
+    setIsGrading(true);
+    try {
+      await gradeSubmission(selectedSub.id, scoreInput, feedbackInput);
+      alert(`Submission graded successfully! Certificate has been generated for ${selectedSub.studentName}.`);
+    } catch {
+      setError("Could not save this grade. Please try again.");
+    } finally {
+      setIsGrading(false);
+    }
   };
 
   return (
@@ -197,18 +217,14 @@ export default function InstructorGradingPage() {
 
                     <div>
                       <label className="block text-xs font-bold text-[#18143D] uppercase tracking-wider mb-1.5">
-                        Grading Instructor *
+                        Grading Instructor
                       </label>
-                      <select
-                        value={graderName}
-                        onChange={(e) => setGraderName(e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-xl border border-[#E6E1F5] text-xs text-[#18143D] font-semibold focus:outline-none focus:border-[#7928CA]"
-                      >
-                        <option value="Mr. Victor (Lead Tutor)">Mr. Victor (Web Dev Lead)</option>
-                        <option value="Timi (AI Lead Tutor)">Timi (AI & Automation Lead)</option>
-                        <option value="Temi (Product Design Lead)">Temi (UI/UX Design Lead)</option>
-                        <option value="BEMS Academic Board">BEMS Academic Board (GMD Review)</option>
-                      </select>
+                      <div className="w-full px-4 py-2.5 rounded-xl border border-[#E6E1F5] bg-[#FAF8FF] text-xs text-[#18143D] font-semibold">
+                        {user?.name || "Signed-in instructor"}
+                      </div>
+                      <span className="text-[11px] text-[#645F80] mt-1 block">
+                        Attributed to your signed-in account.
+                      </span>
                     </div>
                   </div>
 
@@ -225,14 +241,20 @@ export default function InstructorGradingPage() {
                     />
                   </div>
 
+                  {error && (
+                    <p className="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
+                      {error}
+                    </p>
+                  )}
+
                   <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                    <Button type="submit" size="lg" className="flex-1 gap-2">
+                    <Button type="submit" size="lg" disabled={isGrading} className="flex-1 gap-2">
                       <CheckCircle2 className="w-4 h-4" />
-                      <span>Approve Grade & Issue Certificate</span>
+                      <span>{isGrading ? "Saving…" : "Approve Grade & Issue Certificate"}</span>
                     </Button>
-                    
-                    {selectedSub.status === "GRADED" && (
-                      <Link href={`/certificate/BEMS-CERT-2026-WD-8819`}>
+
+                    {selectedSub.status === "GRADED" && selectedCertificate && (
+                      <Link href={`/certificate/${selectedCertificate.id}`}>
                         <Button variant="outline" size="lg" className="gap-2">
                           <Award className="w-4 h-4 text-[#7928CA]" />
                           <span>View Certificate</span>
@@ -255,5 +277,13 @@ export default function InstructorGradingPage() {
 
       <Footer />
     </div>
+  );
+}
+
+export default function InstructorGradingPage() {
+  return (
+    <RequireRole allow={["INSTRUCTOR", "ADMIN"]}>
+      <InstructorGradingContent />
+    </RequireRole>
   );
 }

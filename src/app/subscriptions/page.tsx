@@ -2,125 +2,120 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
+  CheckCircle2,
+  Sparkles,
   CreditCard,
   Building2,
-  CheckCircle2,
   ShieldCheck,
-  Zap,
+  MessageCircle,
   HelpCircle,
-  ExternalLink,
-  Copy,
-  Check,
-  X
+  ArrowRight
 } from "lucide-react";
-import Button from "@/components/ui/button";
 import { mockSubscriptionTiers } from "@/data/advanced-data";
 import { SubscriptionTier } from "@/types/advanced";
 
 export default function SubscriptionsPage() {
+  const [tiers] = useState<SubscriptionTier[]>(mockSubscriptionTiers);
   const [selectedTier, setSelectedTier] = useState<SubscriptionTier | null>(null);
-  const [paymentMode, setPaymentMode] = useState<"paystack" | "bank">("paystack");
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<"PAYSTACK" | "BANK">("PAYSTACK");
   const [isProcessing, setIsProcessing] = useState(false);
-  const [paymentSuccess, setPaymentSuccess] = useState(false);
-  const [copiedBank, setCopiedBank] = useState(false);
 
-  const handleOpenCheckout = (tier: SubscriptionTier) => {
+  const handleSelectPlan = (tier: SubscriptionTier) => {
     setSelectedTier(tier);
-    setPaymentSuccess(false);
+    setShowPaymentModal(true);
   };
 
-  const handlePaystackPay = () => {
+  const handleProcessPayment = () => {
     setIsProcessing(true);
     setTimeout(() => {
       setIsProcessing(false);
-      setPaymentSuccess(true);
-    }, 2000);
-  };
-
-  const handleCopyAccount = () => {
-    navigator.clipboard.writeText("1018892341");
-    setCopiedBank(true);
-    setTimeout(() => setCopiedBank(false), 2000);
+      setShowPaymentModal(false);
+      alert(`Payment of ₦${selectedTier?.priceNaira.toLocaleString()} confirmed! Welcome to the BEMS Tech Community. Redirecting to WhatsApp...`);
+      window.open("https://chat.whatsapp.com/BEMS-FutureSkills-2026", "_blank");
+    }, 1500);
   };
 
   return (
-    <div className="min-h-screen bg-brand-light/30 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto space-y-12">
-        {/* Header */}
-        <div className="text-center max-w-3xl mx-auto space-y-4">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-brand-purple/10 border border-brand-purple/20 text-brand-purple text-xs font-bold uppercase tracking-wider">
-            <Zap className="w-3.5 h-3.5" />
-            <span>October 2026 Cohort Admissions</span>
+    <div className="min-h-screen flex flex-col bg-[#FAF8FF]">
+      <Navbar />
+
+      {/* Header */}
+      <div className="bg-[#18143D] text-white py-14 border-b border-white/10 text-center">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6">
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <Badge variant="purple">PHASE 5 SUBSCRIPTION ENGINE</Badge>
+            <Badge variant="gold">FLEXIBLE TUITION</Badge>
           </div>
-          <h1 className="text-3xl md:text-5xl font-black text-brand-dark tracking-tight">
-            Transparent Tuition & Learning Plans
+          <h1 className="text-3xl sm:text-5xl font-black tracking-tight mb-4">
+            Invest in High-Income Tech Skills
           </h1>
-          <p className="text-base text-gray-600 leading-relaxed">
-            Invest in practical, in-demand technical capabilities. All plans include hands-on lab workstations in Umuahia, industry mentorship, verified credentials, and WhatsApp VIP network access.
+          <p className="text-sm sm:text-base text-[#A5A0C8] max-w-2xl mx-auto leading-relaxed">
+            Choose the full 3-month cohort accelerator, the monthly All-Access Pass across all 4 tracks, or ongoing Alumni Mastermind support.
           </p>
         </div>
+      </div>
 
-        {/* Pricing Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {mockSubscriptionTiers.map((tier) => (
+      {/* Pricing Cards Grid */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 flex-1 w-full space-y-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+          {tiers.map((tier) => (
             <div
               key={tier.id}
-              className={`rounded-3xl p-8 bg-white border transition-all flex flex-col justify-between relative shadow-sm hover:shadow-xl ${
+              className={`rounded-3xl p-8 flex flex-col justify-between transition-all duration-300 relative ${
                 tier.isPopular
-                  ? "border-2 border-brand-purple ring-4 ring-brand-purple/10 scale-102"
-                  : "border-gray-200"
+                  ? "bg-white border-2 border-[#7928CA] shadow-2xl ring-4 ring-[#7928CA]/10 -translate-y-2"
+                  : "bg-white border border-[#E6E1F5] shadow-xs hover:border-[#7928CA]/40"
               }`}
             >
-              {tier.isPopular && (
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-brand-purple text-white text-[11px] font-bold uppercase tracking-wider px-4 py-1 rounded-full shadow-md">
-                  Most Popular Choice
+              {tier.badge && (
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+                  <span className="px-4 py-1 rounded-full bg-[#7928CA] text-white text-[11px] font-black uppercase tracking-wider shadow-sm">
+                    {tier.badge}
+                  </span>
                 </div>
               )}
 
-              <div className="space-y-6">
-                <div>
-                  {tier.badge && (
-                    <span className="text-[11px] font-bold uppercase text-brand-purple tracking-wider block mb-1">
-                      {tier.badge}
-                    </span>
-                  )}
-                  <h3 className="text-xl font-bold text-brand-dark">{tier.name}</h3>
-                  <p className="text-xs text-gray-500 mt-2 leading-relaxed">{tier.description}</p>
+              <div>
+                <div className="mb-4">
+                  <h3 className="text-xl font-black text-[#18143D]">{tier.name}</h3>
+                  <p className="text-xs text-[#645F80] mt-1">{tier.description}</p>
                 </div>
 
-                <div className="border-t border-b border-gray-100 py-4">
-                  <div className="flex items-baseline space-x-1">
-                    <span className="text-3xl md:text-4xl font-black text-brand-dark">
+                <div className="py-4 border-y border-[#F0EDF9] mb-6">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-3xl sm:text-4xl font-black text-[#18143D]">
                       ₦{tier.priceNaira.toLocaleString()}
                     </span>
-                    <span className="text-xs text-gray-500 font-semibold">/ {tier.billingPeriod}</span>
+                    <span className="text-xs text-[#8580A3] font-bold">
+                      / {tier.billingPeriod}
+                    </span>
                   </div>
-                  <p className="text-[11px] text-emerald-600 font-medium mt-1">
-                    Includes Lab 1 workstation & backup power
-                  </p>
                 </div>
 
-                <div className="space-y-3">
-                  <p className="text-xs font-bold text-brand-dark uppercase tracking-wider">
-                    Everything Included:
-                  </p>
-                  <ul className="space-y-2.5">
-                    {tier.features.map((feat, idx) => (
-                      <li key={idx} className="text-xs text-gray-600 flex items-start space-x-2">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-                        <span>{feat}</span>
-                      </li>
-                    ))}
-                  </ul>
+                <div className="space-y-3 mb-8">
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#645F80] block">
+                    What&apos;s Included:
+                  </span>
+                  {tier.features.map((feature, fIdx) => (
+                    <div key={fIdx} className="flex items-start gap-2.5 text-xs text-[#4A4568]">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                      <span>{feature}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              <div className="pt-8">
+              <div>
                 <Button
+                  onClick={() => handleSelectPlan(tier)}
                   variant={tier.isPopular ? "purple" : "outline"}
-                  onClick={() => handleOpenCheckout(tier)}
-                  className="w-full py-3 text-sm font-bold shadow-md"
+                  className="w-full py-3 text-xs font-bold shadow-xs"
                 >
                   {tier.ctaText}
                 </Button>
@@ -129,158 +124,123 @@ export default function SubscriptionsPage() {
           ))}
         </div>
 
-        {/* Payment Modal */}
-        {selectedTier && (
-          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white rounded-3xl max-w-lg w-full p-6 md:p-8 shadow-2xl border border-brand-purple/20 relative animate-in fade-in zoom-in-95 duration-200">
-              <button
-                onClick={() => setSelectedTier(null)}
-                className="absolute top-6 right-6 text-gray-400 hover:text-gray-600 p-1 rounded-lg"
-              >
-                <X className="w-5 h-5" />
-              </button>
-
-              {!paymentSuccess ? (
-                <div className="space-y-6">
-                  <div>
-                    <span className="text-xs font-bold text-brand-purple uppercase">Secure Tuition Portal</span>
-                    <h3 className="text-xl font-bold text-brand-dark mt-1">
-                      Checkout: {selectedTier.name}
-                    </h3>
-                    <p className="text-2xl font-black text-brand-navy mt-2">
-                      ₦{selectedTier.priceNaira.toLocaleString()}
-                    </p>
-                  </div>
-
-                  {/* Payment Mode Selector */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      onClick={() => setPaymentMode("paystack")}
-                      className={`p-3.5 rounded-xl border flex items-center justify-center space-x-2 text-xs font-bold transition-all ${
-                        paymentMode === "paystack"
-                          ? "border-brand-purple bg-brand-purple/10 text-brand-dark shadow-xs"
-                          : "border-gray-200 text-gray-600 hover:bg-gray-50"
-                      }`}
-                    >
-                      <CreditCard className="w-4 h-4 text-brand-purple" />
-                      <span>Paystack (Card/USSD)</span>
-                    </button>
-                    <button
-                      onClick={() => setPaymentMode("bank")}
-                      className={`p-3.5 rounded-xl border flex items-center justify-center space-x-2 text-xs font-bold transition-all ${
-                        paymentMode === "bank"
-                          ? "border-brand-purple bg-brand-purple/10 text-brand-dark shadow-xs"
-                          : "border-gray-200 text-gray-600 hover:bg-gray-50"
-                      }`}
-                    >
-                      <Building2 className="w-4 h-4 text-brand-purple" />
-                      <span>Zenith Bank Transfer</span>
-                    </button>
-                  </div>
-
-                  {/* Paystack View */}
-                  {paymentMode === "paystack" && (
-                    <div className="p-5 rounded-2xl bg-gray-50 border border-gray-200 space-y-4">
-                      <div className="flex items-center space-x-2 text-xs text-gray-600">
-                        <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                        <span>Secured with 256-bit encryption via Paystack inline gateway</span>
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        Click below to launch the Paystack payment gateway. After successful payment, you will receive your receipt and be automatically redirected to the WhatsApp VIP Cohort.
-                      </p>
-                      <Button
-                        variant="purple"
-                        onClick={handlePaystackPay}
-                        disabled={isProcessing}
-                        className="w-full py-3"
-                      >
-                        {isProcessing ? "Processing Secure Payment..." : `Pay ₦${selectedTier.priceNaira.toLocaleString()} Now`}
-                      </Button>
-                    </div>
-                  )}
-
-                  {/* Zenith Bank View */}
-                  {paymentMode === "bank" && (
-                    <div className="p-5 rounded-2xl bg-brand-lavender/30 border border-brand-purple/20 space-y-4">
-                      <div className="space-y-1 text-xs">
-                        <p className="font-bold text-brand-dark">Official Institutional Bank Details:</p>
-                        <p className="text-gray-600">Bank: <span className="font-semibold text-brand-dark">Zenith Bank PLC</span></p>
-                        <p className="text-gray-600">Account Name: <span className="font-semibold text-brand-dark">BEMS Institute of Technology & Vocational Studies</span></p>
-                        <div className="flex items-center justify-between bg-white p-2.5 rounded-xl border border-brand-purple/20 mt-2">
-                          <div>
-                            <span className="text-[10px] text-gray-400 block">Account Number</span>
-                            <span className="font-mono font-bold text-brand-dark text-sm">1018892341</span>
-                          </div>
-                          <button
-                            onClick={handleCopyAccount}
-                            className="text-xs text-brand-purple font-semibold hover:text-brand-navy flex items-center space-x-1"
-                          >
-                            {copiedBank ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                            <span>{copiedBank ? "Copied" : "Copy"}</span>
-                          </button>
-                        </div>
-                      </div>
-
-                      <a
-                        href="https://wa.me/2348000000000?text=Hello%20BEMS%20Admissions,%20I%20have%20transferred%20tuition%20to%20Zenith%20Bank"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-full inline-flex items-center justify-center space-x-2 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md"
-                      >
-                        <span>Send Transfer Proof on WhatsApp</span>
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </a>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                /* Success View */
-                <div className="text-center py-6 space-y-4">
-                  <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 mx-auto flex items-center justify-center">
-                    <CheckCircle2 className="w-10 h-10" />
-                  </div>
-                  <h3 className="text-2xl font-black text-brand-dark">Payment Confirmed!</h3>
-                  <p className="text-xs text-gray-600 max-w-sm mx-auto">
-                    Your enrollment in <span className="font-bold text-brand-dark">{selectedTier.name}</span> has been confirmed. Your lab seat in Umuahia is reserved.
-                  </p>
-                  <div className="pt-2">
-                    <a
-                      href="https://chat.whatsapp.com/invite/bems-accelerator"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center space-x-2 px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-lg"
-                    >
-                      <span>Join WhatsApp VIP Cohort Community</span>
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Institutional Guarantee */}
-        <div className="rounded-3xl bg-white p-8 border border-gray-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 rounded-2xl bg-brand-purple/10 flex items-center justify-center text-brand-purple shrink-0">
+        {/* Guarantee Banner */}
+        <div className="bg-white rounded-3xl border border-[#E6E1F5] p-6 sm:p-8 shadow-xs flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
-              <h4 className="font-bold text-brand-dark text-base">Accreditation & Quality Guarantee</h4>
-              <p className="text-xs text-gray-500 mt-0.5">
-                BEMS Institute of Technology ensures 100% practical lab exposure with high-speed internet, dedicated workstation hardware, and verifiable certificates.
+              <h4 className="font-black text-[#18143D] text-base">
+                100% Practical & Verified Certification Guarantee
+              </h4>
+              <p className="text-xs text-[#645F80]">
+                Every student deploys real working projects, guided by senior engineers in Umuahia physical labs and online.
               </p>
             </div>
           </div>
 
-          <Link href="/qr-studio">
-            <Button variant="outline" className="text-xs shrink-0">
-              <span>View Physical Campus QR Codes</span>
+          <a
+            href="https://chat.whatsapp.com/BEMS-FutureSkills-2026"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <Button variant="outline" className="text-xs border-[#25D366] text-[#25D366] hover:bg-[#25D366]/10">
+              <MessageCircle className="w-4 h-4 mr-1.5" /> Speak with Admission Team
             </Button>
-          </Link>
+          </a>
         </div>
       </div>
+
+      {/* Checkout Modal */}
+      {showPaymentModal && selectedTier && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-[#E6E1F5] animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#F0EDF9]">
+              <h3 className="text-lg font-black text-[#18143D]">
+                Confirm Subscription / Enrollment
+              </h3>
+              <button
+                onClick={() => setShowPaymentModal(false)}
+                className="text-[#8580A3] hover:text-[#18143D] text-lg font-bold"
+              >
+                &times;
+              </button>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-[#FAF8FF] border border-[#E6E1F5] mb-4 text-xs space-y-1">
+              <div className="flex justify-between">
+                <span className="text-[#645F80]">Selected Plan:</span>
+                <strong className="text-[#18143D]">{selectedTier.name}</strong>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#645F80]">Tuition Amount:</span>
+                <strong className="text-emerald-700 text-sm">
+                  ₦{selectedTier.priceNaira.toLocaleString()}
+                </strong>
+              </div>
+            </div>
+
+            {/* Payment Method Selector */}
+            <div className="space-y-2 mb-6">
+              <span className="text-xs font-bold text-[#645F80] block">
+                Select Payment Method:
+              </span>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("PAYSTACK")}
+                  className={`p-3 rounded-xl border font-bold flex items-center justify-center gap-2 cursor-pointer transition-all ${
+                    paymentMethod === "PAYSTACK"
+                      ? "border-[#7928CA] bg-purple-50 text-[#7928CA]"
+                      : "border-[#E6E1F5] text-[#645F80]"
+                  }`}
+                >
+                  <CreditCard className="w-4 h-4" /> Paystack Inline
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("BANK")}
+                  className={`p-3 rounded-xl border font-bold flex items-center justify-center gap-2 cursor-pointer transition-all ${
+                    paymentMethod === "BANK"
+                      ? "border-[#7928CA] bg-purple-50 text-[#7928CA]"
+                      : "border-[#E6E1F5] text-[#645F80]"
+                  }`}
+                >
+                  <Building2 className="w-4 h-4" /> Bank Transfer
+                </button>
+              </div>
+            </div>
+
+            {paymentMethod === "BANK" ? (
+              <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-950 mb-6 space-y-1">
+                <strong className="block font-bold">Zenith Bank Plc</strong>
+                <div>Account Name: BEMS Institute of Technology Ltd</div>
+                <div>Account Number: <code className="font-mono font-bold text-sm">1012345678</code></div>
+                <div className="text-[10px] text-amber-800 pt-1">
+                  Once transfer is made, WhatsApp proof to +234 800 000 0000 for instant activation.
+                </div>
+              </div>
+            ) : (
+              <div className="p-4 rounded-xl bg-purple-50 border border-purple-200 text-xs text-purple-950 mb-6">
+                Pay instantly via Debit Card, USSD, or Bank Transfer using Paystack secure gateway.
+              </div>
+            )}
+
+            <Button
+              onClick={handleProcessPayment}
+              disabled={isProcessing}
+              variant="purple"
+              className="w-full py-3 shadow-md text-xs font-bold"
+            >
+              {isProcessing ? "Verifying Transaction..." : `Pay ₦${selectedTier.priceNaira.toLocaleString()}`}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <Footer />
     </div>
   );
 }
+

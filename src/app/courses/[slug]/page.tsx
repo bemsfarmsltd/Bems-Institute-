@@ -3,7 +3,6 @@
 import React, { use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LMS_COURSES } from "@/data/lms-data";
 import { useLMS } from "@/context/LMSContext";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -29,9 +28,17 @@ export default function CourseDetailPage({
 }) {
   const { slug } = use(params);
   const router = useRouter();
-  const { isEnrolled, enrollInCourse, isLessonCompleted, getCourseProgress } = useLMS();
+  const { courses, isHydrated, isEnrolled, enrollInCourse, isLessonCompleted, getCourseProgress } = useLMS();
 
-  const course = LMS_COURSES.find((c) => c.slug === slug);
+  const course = courses.find((c) => c.slug === slug);
+
+  if (!isHydrated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#FAF8FF] text-sm text-[#645F80]">
+        Loading course…
+      </div>
+    );
+  }
 
   if (!course) {
     return (
@@ -53,8 +60,8 @@ export default function CourseDetailPage({
   const firstLessonId = course.modules[0]?.lessons[0]?.id || "les-1";
   const totalLessons = course.modules.reduce((acc, m) => acc + m.lessons.length, 0);
 
-  const handleEnroll = () => {
-    enrollInCourse(course.id);
+  const handleEnroll = async () => {
+    await enrollInCourse(course.id);
     router.push(`/learn/${course.slug}/${firstLessonId}`);
   };
 
@@ -273,7 +280,7 @@ export default function CourseDetailPage({
                     <span>Instant Demo Enroll (Unlock LMS)</span>
                   </Button>
 
-                  <Link href={`http://localhost:3000/enroll?course=${course.id}`} className="block w-full">
+                  <Link href={`/subscriptions?course=${course.id}`} className="block w-full">
                     <Button variant="outline" size="md" className="w-full">
                       Full Checkout & Paystack Portal
                     </Button>
@@ -306,3 +313,4 @@ export default function CourseDetailPage({
     </div>
   );
 }
+

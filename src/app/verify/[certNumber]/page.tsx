@@ -27,7 +27,7 @@ export default function CertificateVerificationPage({
 }) {
   const { certNumber } = use(params);
   const router = useRouter();
-  const { certificates } = useLMS();
+  const { certificates, isHydrated } = useLMS();
 
   const [lookupQuery, setLookupQuery] = useState("");
 
@@ -36,6 +36,14 @@ export default function CertificateVerificationPage({
       c.certNumber.toLowerCase() === certNumber.toLowerCase() ||
       c.id.toLowerCase() === certNumber.toLowerCase()
   );
+
+  if (!isHydrated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#FAF8FF] text-sm text-[#645F80]">
+        Checking registry…
+      </div>
+    );
+  }
 
   const handleLookup = (e: React.FormEvent) => {
     e.preventDefault();
@@ -229,3 +237,4 @@ export default function CertificateVerificationPage({
     </div>
   );
 }
+

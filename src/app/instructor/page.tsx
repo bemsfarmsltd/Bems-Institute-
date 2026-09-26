@@ -7,6 +7,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { RequireRole } from "@/components/RequireRole";
 import {
   Users,
   BookOpen,
@@ -24,7 +25,7 @@ import {
   UserCheck
 } from "lucide-react";
 
-export default function InstructorDashboardPage() {
+function InstructorDashboardContent() {
   const { adminStudents, submissions, adminCourses, user } = useLMS();
 
   const [selectedTutor, setSelectedTutor] = useState<string>("Mr. Victor");
@@ -350,5 +351,13 @@ export default function InstructorDashboardPage() {
 
       <Footer />
     </div>
+  );
+}
+
+export default function InstructorDashboardPage() {
+  return (
+    <RequireRole allow={["INSTRUCTOR", "ADMIN"]}>
+      <InstructorDashboardContent />
+    </RequireRole>
   );
 }

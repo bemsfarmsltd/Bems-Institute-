@@ -1,208 +1,398 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { User, QuizResult, Submission, Certificate, AdminStudent, AdminCourse, AnalyticsSummary } from "@/types/lms";
-import { LMS_COURSES } from "@/data/lms-data";
-import { LMS_QUIZZES } from "@/data/assessment-data";
-import { INITIAL_ADMIN_STUDENTS, INITIAL_ADMIN_COURSES, INITIAL_ANALYTICS } from "@/data/admin-data";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import {
+  User,
+  QuizResult,
+  Submission,
+  Certificate,
+  LMSCourse,
+  Quiz,
+  Assignment,
+  AdminStudent,
+  AdminCourse,
+  AnalyticsSummary
+} from "@/types/lms";
+
+const EMPTY_ANALYTICS: AnalyticsSummary = {
+  totalStudents: 0,
+  targetStudents: 0,
+  totalRevenue: 0,
+  targetRevenue: 0,
+  completionRate: 0,
+  certificatesIssued: 0,
+  trackDistribution: [],
+  deliveryDistribution: [],
+  bannerChannelYield: []
+};
+
+export interface EnrollOptions {
+  source?: string;
+  deliveryMode?: "PHYSICAL_LAB" | "VIRTUAL_ZOOM";
+  paymentPlan?: "full" | "installment";
+  paymentMethod?: "paystack" | "bank";
+}
+
+export interface AuthResult {
+  ok: boolean;
+  error?: string;
+  user?: User;
+}
 
 interface LMSContextType {
   user: User | null;
-  login: (name: string, email: string) => void;
+  isHydrated: boolean;
+  isAdminDataLoaded: boolean;
+  login: (email: string, password: string) => Promise<AuthResult>;
+  signup: (
+    name: string,
+    email: string,
+    password: string,
+    role?: "STUDENT" | "INSTRUCTOR"
+  ) => Promise<AuthResult>;
+  setVerifiedUser: (user: User) => void;
   logout: () => void;
+  // Course catalog — DB-backed, public
+  courses: LMSCourse[];
+  quizzes: Quiz[];
+  assignments: Assignment[];
+  getCourse: (courseId: string) => LMSCourse | undefined;
+  getQuizForCourse: (courseId: string) => Quiz | undefined;
+  getAssignmentForCourse: (courseId: string) => Assignment | undefined;
+  // Enrollment & progress — DB-backed, per user
   enrolledCourseIds: string[];
-  enrollInCourse: (courseId: string) => void;
+  enrollInCourse: (courseId: string, options?: EnrollOptions) => Promise<void>;
   isEnrolled: (courseId: string) => boolean;
   completedLessonIds: string[];
-  toggleLessonComplete: (lessonId: string) => void;
+  toggleLessonComplete: (lessonId: string) => Promise<void>;
   isLessonCompleted: (lessonId: string) => boolean;
   getCourseProgress: (courseId: string) => {
     completed: number;
     total: number;
     percent: number;
   };
-  // Phase 2 Assessment State & Methods
+  // Assessment — DB-backed
   quizResults: Record<string, QuizResult>;
-  submitQuiz: (quizId: string, answers: Record<string, number>) => QuizResult;
+  submitQuiz: (quizId: string, answers: Record<string, number>) => Promise<QuizResult>;
   getQuizResult: (quizId: string) => QuizResult | undefined;
   submissions: Submission[];
   submitAssignment: (
     assignmentId: string,
-    courseId: string,
     githubUrl: string,
     liveDemoUrl: string,
     notes: string
-  ) => Submission;
-  gradeSubmission: (
-    submissionId: string,
-    score: number,
-    feedback: string,
-    gradedBy: string
-  ) => void;
+  ) => Promise<Submission>;
+  gradeSubmission: (submissionId: string, score: number, feedback: string) => Promise<void>;
   certificates: Certificate[];
   getCertificate: (courseId: string) => Certificate | undefined;
-  generateCertificate: (courseId: string, score?: number) => Certificate;
   isCertificateEligible: (courseId: string) => boolean;
-  // Phase 3 Instructor & Admin
+  // Admin roster/analytics — DB-backed, staff only
   adminStudents: AdminStudent[];
   adminCourses: AdminCourse[];
   analytics: AnalyticsSummary;
-  addCourse: (course: AdminCourse) => void;
-  updateCourseStatus: (courseId: string, status: "ACTIVE" | "UPCOMING" | "ARCHIVED") => void;
-  updateStudentPayment: (studentId: string, status: "PAID_FULL" | "PARTIAL", amountPaid: number) => void;
+  addCourse: (course: {
+    title: string;
+    slug: string;
+    tutor: string;
+    tutorRole: string;
+    badge?: string;
+    schedule?: string;
+    delivery?: string;
+    priceFull: number;
+    priceParts: number;
+    deposit: number;
+  }) => Promise<void>;
+  updateCourseStatus: (courseId: string, status: "ACTIVE" | "UPCOMING" | "ARCHIVED") => Promise<void>;
+  updateStudentPayment: (
+    enrollmentId: string,
+    status: "PAID_FULL" | "PARTIAL",
+    amountPaid: number
+  ) => Promise<void>;
 }
 
 const LMSContext = createContext<LMSContextType | undefined>(undefined);
 
-const DEFAULT_USER: User = {
-  id: "usr-bems-001",
-  name: "Chinedu Okeke",
-  email: "chinedu.okeke@mouau.edu.ng",
-  role: "STUDENT"
-};
-
-// Seed initial sample submission for grading demo
-const INITIAL_SUBMISSIONS: Submission[] = [
-  {
-    id: "sub-wd-001",
-    assignmentId: "assign-web-dev",
-    courseId: "web-dev",
-    userId: "usr-bems-001",
-    studentName: "Chinedu Okeke",
-    studentEmail: "chinedu.okeke@mouau.edu.ng",
-    githubUrl: "https://github.com/chinedu-dev/bems-portal-capstone",
-    liveDemoUrl: "https://bems-futureskills.vercel.app",
-    notes: "I built the full responsive portal with semantic HTML5, CSS Flexbox & CSS Grid, and connected dynamic REST APIs. Deployed live on Vercel.",
-    status: "GRADED",
-    score: 95,
-    feedback: "Exceptional code structure and semantic markup, Chinedu! The mobile responsiveness is fluid and the color harmony matches the BEMS logo perfectly.",
-    gradedBy: "Mr. Victor (Lead Web Dev Tutor)",
-    gradedAt: "2026-09-24T18:30:00.000Z",
-    submittedAt: "2026-09-24T12:00:00.000Z"
-  }
-];
-
 export function LMSProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(DEFAULT_USER);
-  const [enrolledCourseIds, setEnrolledCourseIds] = useState<string[]>(["web-dev"]);
-  const [completedLessonIds, setCompletedLessonIds] = useState<string[]>([
-    "les-1", "les-2", "les-3", "les-4", "les-5", "les-6", "les-7", "les-8", "les-9", "les-10", "les-11", "les-12"
-  ]);
+  const [user, setUser] = useState<User | null>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [isAdminDataLoaded, setIsAdminDataLoaded] = useState(false);
 
-  // Phase 2 states
-  const [quizResults, setQuizResults] = useState<Record<string, QuizResult>>({
-    "quiz-web-dev": {
-      quizId: "quiz-web-dev",
-      userId: "usr-bems-001",
-      score: 100,
-      passed: true,
-      selectedAnswers: { "q-wd-1": 2, "q-wd-2": 1, "q-wd-3": 2, "q-wd-4": 2, "q-wd-5": 0 },
-      attemptedAt: "2026-09-24T15:00:00.000Z"
-    }
-  });
-  const [submissions, setSubmissions] = useState<Submission[]>(INITIAL_SUBMISSIONS);
-  const [certificates, setCertificates] = useState<Certificate[]>([
-    {
-      id: "cert-001",
-      certNumber: "BEMS-CERT-2026-WD-8819",
-      userId: "usr-bems-001",
-      studentName: "Chinedu Okeke",
-      courseId: "web-dev",
-      courseTitle: "Web Development",
-      gradeTitle: "Distinction (95%)",
-      finalScore: 95,
-      issuedAt: "2026-09-24T18:35:00.000Z",
-      qrVerifyUrl: "http://localhost:3001/verify/BEMS-CERT-2026-WD-8819"
-    }
-  ]);
+  const [courses, setCourses] = useState<LMSCourse[]>([]);
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [certificates, setCertificates] = useState<Certificate[]>([]);
 
-  // Phase 3 Admin & Instructor State
-  const [adminStudents, setAdminStudents] = useState<AdminStudent[]>(INITIAL_ADMIN_STUDENTS);
-  const [adminCourses, setAdminCourses] = useState<AdminCourse[]>(INITIAL_ADMIN_COURSES);
-  const [analytics, setAnalytics] = useState<AnalyticsSummary>(INITIAL_ANALYTICS);
+  const [enrolledCourseIds, setEnrolledCourseIds] = useState<string[]>([]);
+  const [completedLessonIds, setCompletedLessonIds] = useState<string[]>([]);
+  const [quizResults, setQuizResults] = useState<Record<string, QuizResult>>({});
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
 
-  const addCourse = (newCourse: AdminCourse) => {
-    setAdminCourses((prev) => [newCourse, ...prev]);
-  };
+  // Admin roster/analytics — fetched from the DB only for staff sessions.
+  const [adminStudents, setAdminStudents] = useState<AdminStudent[]>([]);
+  const [adminCourses, setAdminCourses] = useState<AdminCourse[]>([]);
+  const [analytics, setAnalytics] = useState<AnalyticsSummary>(EMPTY_ANALYTICS);
 
-  const updateCourseStatus = (courseId: string, status: "ACTIVE" | "UPCOMING" | "ARCHIVED") => {
-    setAdminCourses((prev) =>
-      prev.map((c) => (c.id === courseId ? { ...c, status } : c))
-    );
-  };
-
-  const updateStudentPayment = (studentId: string, status: "PAID_FULL" | "PARTIAL", amountPaid: number) => {
-    setAdminStudents((prev) =>
-      prev.map((s) => (s.id === studentId ? { ...s, paymentStatus: status, amountPaid } : s))
-    );
-  };
-
-  // Hydrate from localStorage on client mount
-  useEffect(() => {
+  const loadAdminData = useCallback(async () => {
     try {
-      const savedUser = localStorage.getItem("bems_lms_user");
-      const savedEnrolled = localStorage.getItem("bems_lms_enrolled");
-      const savedCompleted = localStorage.getItem("bems_lms_completed");
-      const savedQuizzes = localStorage.getItem("bems_lms_quizzes");
-      const savedSubmissions = localStorage.getItem("bems_lms_submissions");
-      const savedCertificates = localStorage.getItem("bems_lms_certificates");
-
-      if (savedUser) setUser(JSON.parse(savedUser));
-      if (savedEnrolled) setEnrolledCourseIds(JSON.parse(savedEnrolled));
-      if (savedCompleted) setCompletedLessonIds(JSON.parse(savedCompleted));
-      if (savedQuizzes) setQuizResults(JSON.parse(savedQuizzes));
-      if (savedSubmissions) setSubmissions(JSON.parse(savedSubmissions));
-      if (savedCertificates) setCertificates(JSON.parse(savedCertificates));
-    } catch (e) {
-      console.error("Failed to load LMS state:", e);
+      const [rosterRes, coursesRes, analyticsRes] = await Promise.all([
+        fetch("/api/admin/roster"),
+        fetch("/api/admin/courses"),
+        fetch("/api/admin/analytics")
+      ]);
+      if (rosterRes.ok) setAdminStudents((await rosterRes.json()).roster || []);
+      if (coursesRes.ok) setAdminCourses((await coursesRes.json()).courses || []);
+      if (analyticsRes.ok) setAnalytics(await analyticsRes.json());
+    } catch {
+      // admin data unavailable — non-staff users never call this anyway
+    } finally {
+      setIsAdminDataLoaded(true);
     }
   }, []);
 
-  const login = (name: string, email: string) => {
-    const newUser: User = {
-      id: `usr-${Date.now()}`,
-      name,
-      email,
-      role: "STUDENT"
+  const addCourse: LMSContextType["addCourse"] = async (course) => {
+    const res = await fetch("/api/admin/courses", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(course)
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setAdminCourses((prev) => [data.course, ...prev]);
+    }
+  };
+
+  const updateCourseStatus = async (courseId: string, status: "ACTIVE" | "UPCOMING" | "ARCHIVED") => {
+    const res = await fetch(`/api/admin/courses/${courseId}/status`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setAdminCourses((prev) => prev.map((c) => (c.id === courseId ? data.course : c)));
+    }
+  };
+
+  const updateStudentPayment = async (
+    enrollmentId: string,
+    status: "PAID_FULL" | "PARTIAL",
+    amountPaid: number
+  ) => {
+    const res = await fetch(`/api/admin/enrollments/${enrollmentId}/payment`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status, amountPaid })
+    });
+    if (res.ok) {
+      setAdminStudents((prev) =>
+        prev.map((s) => (s.id === enrollmentId ? { ...s, paymentStatus: status, amountPaid } : s))
+      );
+    }
+  };
+
+  // Fetches the signed-in user's own enrollment/progress/quiz/submission
+  // records (plus the admin roster/courses/analytics for staff). Called on
+  // initial mount and again right after login/signup — the LMSProvider
+  // stays mounted across a client-side navigation, so without this a
+  // freshly-logged-in user would keep seeing empty state until a full page
+  // reload.
+  const loadOwnLmsData = useCallback(
+    async (role: User["role"]) => {
+      try {
+        const lmsMeRes = await fetch("/api/lms/me");
+        if (lmsMeRes.ok) {
+          const lmsMe = await lmsMeRes.json();
+          setEnrolledCourseIds(lmsMe.enrolledCourseIds || []);
+          setCompletedLessonIds(lmsMe.completedLessonIds || []);
+          setQuizResults(lmsMe.quizResults || {});
+          setSubmissions(lmsMe.submissions || []);
+        }
+      } catch {
+        // per-user data unavailable — catalog still loaded fine
+      }
+      if (role === "INSTRUCTOR" || role === "ADMIN") {
+        await loadAdminData();
+      }
+    },
+    [loadAdminData]
+  );
+
+  // Load the public catalog (courses/quizzes/assignments/certificates),
+  // then the real server session, then — if signed in — that user's own
+  // enrollment/progress/quiz/submission records. Nothing here is trusted
+  // from localStorage; it's only used to avoid a blank flash of the user's
+  // name while the real fetches resolve.
+  useEffect(() => {
+    let cancelled = false;
+
+    try {
+      const cachedUser = localStorage.getItem("bems_lms_user");
+      if (cachedUser) setUser(JSON.parse(cachedUser));
+    } catch {
+      // ignore malformed cache
+    }
+
+    async function bootstrap() {
+      try {
+        const catalogRes = await fetch("/api/lms/catalog");
+        const catalog = await catalogRes.json();
+        if (cancelled) return;
+        setCourses(catalog.courses || []);
+        setQuizzes(catalog.quizzes || []);
+        setAssignments(catalog.assignments || []);
+        setCertificates(catalog.certificates || []);
+      } catch {
+        // catalog unavailable — leave state empty rather than crash
+      }
+
+      let sessionUser: User | null = null;
+      try {
+        const meRes = await fetch("/api/auth/me");
+        const meData: { user: User | null } = await meRes.json();
+        sessionUser = meData.user;
+      } catch {
+        // no server session reachable
+      }
+
+      if (cancelled) return;
+
+      if (sessionUser) {
+        setUser(sessionUser);
+        localStorage.setItem("bems_lms_user", JSON.stringify(sessionUser));
+        await loadOwnLmsData(sessionUser.role);
+      } else {
+        // No verified session — never trust a cached elevated role.
+        setUser((prev) => {
+          if (prev && (prev.role === "INSTRUCTOR" || prev.role === "ADMIN")) {
+            localStorage.removeItem("bems_lms_user");
+            return null;
+          }
+          return prev;
+        });
+      }
+
+      if (!cancelled) setIsHydrated(true);
+    }
+
+    bootstrap();
+    return () => {
+      cancelled = true;
     };
-    setUser(newUser);
-    localStorage.setItem("bems_lms_user", JSON.stringify(newUser));
+  }, []);
+
+  const login = async (email: string, password: string): Promise<AuthResult> => {
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (res.ok && data.user) {
+        setUser(data.user);
+        localStorage.setItem("bems_lms_user", JSON.stringify(data.user));
+        await loadOwnLmsData(data.user.role);
+        return { ok: true, user: data.user };
+      }
+      return { ok: false, error: data.error || "Sign in failed." };
+    } catch {
+      return { ok: false, error: "Could not reach the server. Please try again." };
+    }
+  };
+
+  const signup = async (
+    name: string,
+    email: string,
+    password: string,
+    role: "STUDENT" | "INSTRUCTOR" = "STUDENT"
+  ): Promise<AuthResult> => {
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password, role })
+      });
+      const data = await res.json();
+      if (res.ok && data.user) {
+        setUser(data.user);
+        localStorage.setItem("bems_lms_user", JSON.stringify(data.user));
+        await loadOwnLmsData(data.user.role);
+        return { ok: true, user: data.user };
+      }
+      return { ok: false, error: data.error || "Could not create account." };
+    } catch {
+      return { ok: false, error: "Could not reach the server. Please try again." };
+    }
+  };
+
+  const setVerifiedUser = (verified: User) => {
+    setUser(verified);
+    localStorage.setItem("bems_lms_user", JSON.stringify(verified));
+    loadOwnLmsData(verified.role);
   };
 
   const logout = () => {
     setUser(null);
+    setEnrolledCourseIds([]);
+    setCompletedLessonIds([]);
+    setQuizResults({});
+    setSubmissions([]);
+    setAdminStudents([]);
+    setAdminCourses([]);
+    setAnalytics(EMPTY_ANALYTICS);
+    setIsAdminDataLoaded(false);
     localStorage.removeItem("bems_lms_user");
+    fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
   };
 
-  const enrollInCourse = (courseId: string) => {
-    if (!enrolledCourseIds.includes(courseId)) {
-      const updated = [...enrolledCourseIds, courseId];
-      setEnrolledCourseIds(updated);
-      localStorage.setItem("bems_lms_enrolled", JSON.stringify(updated));
+  const getCourse = useCallback((courseId: string) => courses.find((c) => c.id === courseId), [courses]);
+  const getQuizForCourse = useCallback(
+    (courseId: string) => quizzes.find((q) => q.courseId === courseId),
+    [quizzes]
+  );
+  const getAssignmentForCourse = useCallback(
+    (courseId: string) => assignments.find((a) => a.courseId === courseId),
+    [assignments]
+  );
+
+  const enrollInCourse = async (courseId: string, options?: EnrollOptions) => {
+    try {
+      const res = await fetch("/api/lms/enroll", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ courseId, ...options })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setEnrolledCourseIds(data.enrolledCourseIds || []);
+      }
+    } catch {
+      // leave state as-is on network failure
     }
   };
 
-  const isEnrolled = (courseId: string) => {
-    return enrolledCourseIds.includes(courseId);
-  };
+  const isEnrolled = (courseId: string) => enrolledCourseIds.includes(courseId);
 
-  const toggleLessonComplete = (lessonId: string) => {
-    let updated: string[];
-    if (completedLessonIds.includes(lessonId)) {
-      updated = completedLessonIds.filter((id) => id !== lessonId);
-    } else {
-      updated = [...completedLessonIds, lessonId];
+  const toggleLessonComplete = async (lessonId: string) => {
+    try {
+      const res = await fetch("/api/lms/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ lessonId })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCompletedLessonIds(data.completedLessonIds || []);
+      }
+    } catch {
+      // leave state as-is on network failure
     }
-    setCompletedLessonIds(updated);
-    localStorage.setItem("bems_lms_completed", JSON.stringify(updated));
   };
 
-  const isLessonCompleted = (lessonId: string) => {
-    return completedLessonIds.includes(lessonId);
-  };
+  const isLessonCompleted = (lessonId: string) => completedLessonIds.includes(lessonId);
 
   const getCourseProgress = (courseId: string) => {
-    const course = LMS_COURSES.find((c) => c.id === courseId);
+    const course = courses.find((c) => c.id === courseId);
     if (!course) return { completed: 0, total: 0, percent: 0 };
 
     const allLessonIds = course.modules.flatMap((m) => m.lessons.map((l) => l.id));
@@ -215,108 +405,68 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
     return { completed, total, percent };
   };
 
-  // Phase 2: Quiz Submission & Scoring
-  const submitQuiz = (quizId: string, answers: Record<string, number>) => {
-    const quiz = LMS_QUIZZES.find((q) => q.id === quizId);
-    if (!quiz) throw new Error("Quiz not found");
-
-    let correctCount = 0;
-    quiz.questions.forEach((q) => {
-      if (answers[q.id] === q.correctOption) {
-        correctCount++;
-      }
+  const submitQuiz = async (quizId: string, answers: Record<string, number>): Promise<QuizResult> => {
+    const res = await fetch("/api/lms/quiz-attempts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ quizId, answers })
     });
-
-    const score = Math.round((correctCount / quiz.questions.length) * 100);
-    const passed = score >= quiz.passingScore;
-
-    const result: QuizResult = {
-      quizId,
-      userId: user?.id || "guest",
-      score,
-      passed,
-      selectedAnswers: answers,
-      attemptedAt: new Date().toISOString()
-    };
-
-    const updated = { ...quizResults, [quizId]: result };
-    setQuizResults(updated);
-    localStorage.setItem("bems_lms_quizzes", JSON.stringify(updated));
-    return result;
+    const data = await res.json();
+    if (!res.ok || !data.result) {
+      throw new Error(data.error || "Could not submit quiz.");
+    }
+    setQuizResults((prev) => ({ ...prev, [quizId]: data.result }));
+    return data.result;
   };
 
-  const getQuizResult = (quizId: string) => {
-    return quizResults[quizId];
-  };
+  const getQuizResult = (quizId: string) => quizResults[quizId];
 
-  // Phase 2: Assignment Submission
-  const submitAssignment = (
+  const submitAssignment = async (
     assignmentId: string,
-    courseId: string,
     githubUrl: string,
     liveDemoUrl: string,
     notes: string
-  ) => {
-    const newSub: Submission = {
-      id: `sub-${Date.now()}`,
-      assignmentId,
-      courseId,
-      userId: user?.id || "guest",
-      studentName: user?.name || "Student",
-      studentEmail: user?.email || "student@example.com",
-      githubUrl,
-      liveDemoUrl,
-      notes,
-      status: "SUBMITTED",
-      submittedAt: new Date().toISOString()
-    };
-
-    const filtered = submissions.filter(
-      (s) => !(s.assignmentId === assignmentId && s.userId === newSub.userId)
-    );
-    const updated = [newSub, ...filtered];
-    setSubmissions(updated);
-    localStorage.setItem("bems_lms_submissions", JSON.stringify(updated));
-    return newSub;
+  ): Promise<Submission> => {
+    const res = await fetch("/api/lms/submissions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ assignmentId, githubUrl, liveDemoUrl, notes })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.submission) {
+      throw new Error(data.error || "Could not submit assignment.");
+    }
+    setSubmissions((prev) => [
+      data.submission,
+      ...prev.filter((s) => s.id !== data.submission.id)
+    ]);
+    return data.submission;
   };
 
-  // Phase 2: Instructor Grading
-  const gradeSubmission = (
-    submissionId: string,
-    score: number,
-    feedback: string,
-    gradedBy: string
-  ) => {
-    const updated = submissions.map((s) => {
-      if (s.id === submissionId) {
-        return {
-          ...s,
-          score,
-          feedback,
-          status: "GRADED" as const,
-          gradedBy,
-          gradedAt: new Date().toISOString()
-        };
-      }
-      return s;
+  const gradeSubmission = async (submissionId: string, score: number, feedback: string) => {
+    const res = await fetch(`/api/lms/submissions/${submissionId}/grade`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ score, feedback })
     });
-
-    setSubmissions(updated);
-    localStorage.setItem("bems_lms_submissions", JSON.stringify(updated));
-
-    // Automatically check certificate eligibility
-    const target = updated.find((s) => s.id === submissionId);
-    if (target && score >= 70) {
-      generateCertificate(target.courseId, score);
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || "Could not grade submission.");
+    }
+    setSubmissions((prev) => prev.map((s) => (s.id === submissionId ? data.submission : s)));
+    if (data.certificate) {
+      setCertificates((prev) => [
+        data.certificate,
+        ...prev.filter((c) => c.id !== data.certificate.id)
+      ]);
     }
   };
 
-  // Phase 2: Certificate Issuance & Verification
   const isCertificateEligible = (courseId: string) => {
     const progress = getCourseProgress(courseId);
     const allDone = progress.percent === 100;
 
-    const quiz = LMS_QUIZZES.find((q) => q.courseId === courseId);
+    const quiz = getQuizForCourse(courseId);
     const quizPassed = quiz ? quizResults[quiz.id]?.passed : true;
 
     const sub = submissions.find(
@@ -326,54 +476,25 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
     return allDone && (quizPassed ?? false) && !!sub;
   };
 
-  const generateCertificate = (courseId: string, score: number = 90) => {
-    const existing = certificates.find((c) => c.courseId === courseId);
-    if (existing) return existing;
-
-    const course = LMS_COURSES.find((c) => c.id === courseId);
-    const randomCode = Math.floor(1000 + Math.random() * 9000);
-    const prefixMap: Record<string, string> = {
-      "web-dev": "WD",
-      "ai-automation": "AI",
-      "product-design": "UX",
-      "cybersecurity": "SEC"
-    };
-    const code = prefixMap[courseId] || "TECH";
-    const certNumber = `BEMS-CERT-2026-${code}-${randomCode}`;
-
-    let gradeTitle = "Pass";
-    if (score >= 90) gradeTitle = "Distinction (90%+)";
-    else if (score >= 75) gradeTitle = "Credit (75%+)";
-
-    const newCert: Certificate = {
-      id: `cert-${Date.now()}`,
-      certNumber,
-      userId: user?.id || "usr-001",
-      studentName: user?.name || "Chinedu Okeke",
-      courseId,
-      courseTitle: course?.title || "Technology Program",
-      gradeTitle,
-      finalScore: score,
-      issuedAt: new Date().toISOString(),
-      qrVerifyUrl: `http://localhost:3001/verify/${certNumber}`
-    };
-
-    const updated = [newCert, ...certificates];
-    setCertificates(updated);
-    localStorage.setItem("bems_lms_certificates", JSON.stringify(updated));
-    return newCert;
-  };
-
-  const getCertificate = (courseId: string) => {
-    return certificates.find((c) => c.courseId === courseId);
-  };
+  const getCertificate = (courseId: string) =>
+    certificates.find((c) => c.courseId === courseId && c.userId === user?.id);
 
   return (
     <LMSContext.Provider
       value={{
         user,
+        isHydrated,
+        isAdminDataLoaded,
         login,
+        signup,
+        setVerifiedUser,
         logout,
+        courses,
+        quizzes,
+        assignments,
+        getCourse,
+        getQuizForCourse,
+        getAssignmentForCourse,
         enrolledCourseIds,
         enrollInCourse,
         isEnrolled,
@@ -389,9 +510,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
         gradeSubmission,
         certificates,
         getCertificate,
-        generateCertificate,
         isCertificateEligible,
-        // Phase 3 values
         adminStudents,
         adminCourses,
         analytics,

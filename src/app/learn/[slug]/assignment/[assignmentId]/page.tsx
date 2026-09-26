@@ -1,10 +1,8 @@
 "use client";
 
-import React, { useState, use } from "react";
+import React, { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LMS_COURSES } from "@/data/lms-data";
-import { LMS_ASSIGNMENTS } from "@/data/assessment-data";
 import { useLMS } from "@/context/LMSContext";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -29,10 +27,11 @@ export default function AssignmentSubmissionPage({
 }) {
   const { slug, assignmentId } = use(params);
   const router = useRouter();
-  const { submissions, submitAssignment, user, getCertificate } = useLMS();
+  const { courses, assignments, isHydrated, submissions, submitAssignment, user, getCertificate } =
+    useLMS();
 
-  const course = LMS_COURSES.find((c) => c.slug === slug);
-  const assignment = LMS_ASSIGNMENTS.find((a) => a.id === assignmentId);
+  const course = courses.find((c) => c.slug === slug);
+  const assignment = assignments.find((a) => a.id === assignmentId);
 
   const existingSubmission = submissions.find(
     (s) => s.assignmentId === assignmentId && s.userId === user?.id
@@ -42,6 +41,26 @@ export default function AssignmentSubmissionPage({
   const [liveDemoUrl, setLiveDemoUrl] = useState(existingSubmission?.liveDemoUrl || "");
   const [notes, setNotes] = useState(existingSubmission?.notes || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // submissions loads asynchronously after mount — sync the form once a
+  // prior submission for this user/assignment shows up.
+  useEffect(() => {
+    if (existingSubmission) {
+      setGithubUrl(existingSubmission.githubUrl);
+      setLiveDemoUrl(existingSubmission.liveDemoUrl);
+      setNotes(existingSubmission.notes);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [existingSubmission?.id, existingSubmission?.submittedAt]);
+
+  if (!isHydrated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#FAF8FF] text-sm text-[#645F80]">
+        Loading assignment…
+      </div>
+    );
+  }
 
   if (!course || !assignment) {
     return (
@@ -60,18 +79,22 @@ export default function AssignmentSubmissionPage({
 
   const certificate = getCertificate(course.id);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!githubUrl || !liveDemoUrl) {
       alert("Please provide both your GitHub Repository URL and Live Hosted Demo URL.");
       return;
     }
+    setError(null);
     setIsSubmitting(true);
-    submitAssignment(assignment.id, course.id, githubUrl, liveDemoUrl, notes);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      await submitAssignment(assignment.id, githubUrl, liveDemoUrl, notes);
       alert("Capstone project submitted successfully! Our lead tutor has been notified.");
-    }, 600);
+    } catch {
+      setError("Could not submit your capstone. Please sign in and try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -103,7 +126,7 @@ export default function AssignmentSubmissionPage({
       </div>
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-12 flex-1 w-full space-y-10">
-        
+
         {/* Graded Status Banner */}
         {existingSubmission?.status === "GRADED" && (
           <div className="bg-[#D1FAE5]/70 border border-[#10B981] rounded-3xl p-6 sm:p-8 shadow-lg text-[#065F46]">
@@ -161,10 +184,10 @@ export default function AssignmentSubmissionPage({
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
+
           {/* Left 7 Cols: Project Brief & Rubric */}
           <div className="lg:col-span-7 space-y-6">
-            
+
             <div className="bg-white border border-[#E6E1F5] rounded-3xl p-6 sm:p-8 shadow-xs">
               <h3 className="text-lg font-black text-[#18143D] mb-3 flex items-center gap-2">
                 <FileCheck className="w-5 h-5 text-[#7928CA]" />
@@ -261,6 +284,12 @@ export default function AssignmentSubmissionPage({
                     className="w-full p-3 rounded-xl border border-[#E6E1F5] text-xs text-[#18143D] focus:outline-none focus:border-[#7928CA] focus:ring-2 focus:ring-[#7928CA]/15"
                   />
                 </div>
+
+                {error && (
+                  <p className="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
+                    {error}
+                  </p>
+                )}
 
                 <Button
                   type="submit"

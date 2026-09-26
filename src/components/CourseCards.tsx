@@ -130,12 +130,12 @@ export function CourseCards() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <Link href={`http://localhost:3000/enroll?course=${course.id}`} className="w-full">
+                  <Link href={`/courses/${course.id}`} className="w-full">
                     <Button variant="outline" className="w-full">
                       View Syllabus
                     </Button>
                   </Link>
-                  <Link href={`http://localhost:3000/enroll?course=${course.id}`} className="w-full">
+                  <Link href={`/subscriptions?course=${course.id}`} className="w-full">
                     <Button className="w-full gap-1.5">
                       <span>Enroll Now</span>
                       <ArrowRight className="w-4 h-4" />

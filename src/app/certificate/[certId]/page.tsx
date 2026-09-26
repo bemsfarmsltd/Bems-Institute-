@@ -23,12 +23,20 @@ export default function CertificateViewPage({
   params: Promise<{ certId: string }>;
 }) {
   const { certId } = use(params);
-  const { certificates, user } = useLMS();
+  const { certificates, user, isHydrated } = useLMS();
 
   // Find certificate by id or certNumber
-  const certificate =
-    certificates.find((c) => c.id === certId || c.certNumber === certId) ||
-    certificates[0]; // fallback to first cert if testing
+  const certificate = certificates.find(
+    (c) => c.id === certId || c.certNumber === certId
+  );
+
+  if (!isHydrated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#FAF8FF] text-sm text-[#645F80]">
+        Loading certificate…
+      </div>
+    );
+  }
 
   if (!certificate) {
     return (
@@ -233,3 +241,4 @@ export default function CertificateViewPage({
     </div>
   );
 }
+
