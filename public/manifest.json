@@ -1,25 +1,25 @@
 {
-  "name": "BEMS FutureSkills Accelerator",
-  "short_name": "BEMS Academy",
-  "description": "Tech Skills & Vocational Training Portal for BEMS Institute of Technology & Vocational Studies",
+  "name": "BEMS Institute of Technology & Vocational Studies",
+  "short_name": "BEMS FutureSkills",
+  "description": "BEMS FutureSkills Accelerator 2026: Hands-on tech training in AI & Automation, Web Development, UI/UX, and Cybersecurity in Umuahia & Online.",
   "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#18143D",
-  "theme_color": "#7928CA",
+  "background_color": "#FAF8FF",
+  "theme_color": "#18143D",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/images/logo.png",
+      "src": "/images/bems-logo.jpg",
       "sizes": "192x192",
-      "type": "image/png",
+      "type": "image/jpeg",
       "purpose": "any maskable"
     },
     {
-      "src": "/images/logo.png",
+      "src": "/images/bems-logo.jpg",
       "sizes": "512x512",
-      "type": "image/png",
+      "type": "image/jpeg",
       "purpose": "any maskable"
     }
-  ],
-  "categories": ["education", "productivity"]
+  ]
 }
+

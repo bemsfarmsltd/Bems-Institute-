@@ -1,307 +1,285 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  Video,
-  Radio,
-  Users,
-  MapPin,
-  Calendar,
-  Clock,
-  ExternalLink,
-  MessageSquare,
-  Send,
-  Hand,
-  CheckCircle,
-  PlayCircle
-} from "lucide-react";
-import Button from "@/components/ui/button";
+import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { mockLiveClasses } from "@/data/advanced-data";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Video,
+  Users,
+  Send,
+  Hand,
+  ExternalLink,
+  Clock,
+  Calendar,
+  Sparkles,
+  PlayCircle,
+  MessageCircle,
+  Radio,
+  CheckCircle2
+} from "lucide-react";
+import { INITIAL_LIVE_CLASSES } from "@/data/advanced-data";
 import { LiveClass } from "@/types/advanced";
 
-export default function LiveClassroomPage() {
-  const [activeClass, setActiveClass] = useState<LiveClass>(mockLiveClasses[0]);
-  const [raisedHand, setRaisedHand] = useState(false);
-  const [chatMessages, setChatMessages] = useState<
-    { id: string; user: string; text: string; time: string; isInstructor?: boolean }[]
-  >([
+export default function LiveClassesPage() {
+  const [liveClasses] = useState<LiveClass[]>(INITIAL_LIVE_CLASSES);
+  const activeClass = liveClasses.find((c) => c.status === "LIVE_NOW") || liveClasses[0];
+
+  const [handRaised, setHandRaised] = useState(false);
+  const [qaInput, setQaInput] = useState("");
+  const [qaStream, setQaStream] = useState([
     {
-      id: "cm-1",
-      user: "Mr. Victor Okeke",
-      text: "Welcome everyone in Umuahia Lab 1 and on Zoom! Open your Next.js project from yesterday.",
-      time: "4:01 PM",
-      isInstructor: true
+      id: "qa-1",
+      sender: "Chinedu Okeke",
+      text: "Mr. Victor, how does `flex-shrink: 0` prevent image distortion in row cards?",
+      time: "2 mins ago",
+      answered: true,
+      answer: "Mr. Victor: `flex-shrink: 0` stops flex items from compressing below their intrinsic size when the parent wraps."
     },
     {
-      id: "cm-2",
-      user: "Chukwudi Nwachukwu",
-      text: "Audio and screen share are crystal clear, sir!",
-      time: "4:03 PM"
-    },
-    {
-      id: "cm-3",
-      user: "Amina Yusuf",
-      text: "Question: Will server actions work with React 19 useActionState hook?",
-      time: "4:05 PM"
+      id: "qa-2",
+      sender: "Ngozi Eze",
+      text: "Is there a difference in performance between media query breakpoints in CSS vs Tailwind?",
+      time: "Just now",
+      answered: false
     }
   ]);
-  const [newChatText, setNewChatText] = useState("");
 
-  const handleSendChat = (e: React.FormEvent) => {
+  const handleSendQa = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newChatText.trim()) return;
+    if (!qaInput.trim()) return;
 
-    setChatMessages((prev) => [
+    setQaStream((prev) => [
       ...prev,
       {
-        id: `cm-${Date.now()}`,
-        user: "You (Cohort Trainee)",
-        text: newChatText.trim(),
-        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+        id: `qa-${Date.now()}`,
+        sender: "You (Student)",
+        text: qaInput,
+        time: "Just now",
+        answered: false
       }
     ]);
-    setNewChatText("");
+    setQaInput("");
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-brand-light/30">
+    <div className="min-h-screen flex flex-col bg-[#FAF8FF]">
       <Navbar />
-      <div className="max-w-7xl mx-auto w-full flex-1 py-8 px-4 sm:px-6 lg:px-8 space-y-8">
-        {/* Top Banner */}
-        <div className="bg-gradient-to-r from-brand-navy via-brand-dark to-purple-900 rounded-3xl p-6 md:p-8 text-white flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl relative overflow-hidden">
-          <div className="relative z-10 space-y-2 max-w-2xl">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-red-500/20 border border-red-500/40 text-red-300 text-xs font-bold uppercase tracking-wider">
-              <span className="w-2 h-2 rounded-full bg-red-500 animate-ping mr-1" />
-              <span>BEMS Live Studio • Physical & Virtual Hybrid</span>
-            </div>
-            <h1 className="text-2xl md:text-4xl font-black tracking-tight">
-              Live Classroom Broadcasts & Clinics
-            </h1>
-            <p className="text-sm md:text-base text-purple-100/90 leading-relaxed">
-              Connect directly with BEMS faculty broadcasting live from Tech Lab 1 (Umuahia) and interactive Zoom rooms. Ask questions, raise your hand, and build production projects together.
-            </p>
-          </div>
 
-          <div className="relative z-10 flex flex-col sm:flex-row items-center gap-3 shrink-0">
-            <a
-              href={activeClass.zoomJoinUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-6 py-3.5 rounded-xl font-bold text-sm bg-brand-purple hover:bg-purple-600 text-white shadow-lg transition-transform hover:-translate-y-0.5"
-            >
-              <Video className="w-4 h-4" />
-              <span>Launch Zoom Video Room</span>
-              <ExternalLink className="w-3.5 h-3.5 ml-1" />
-            </a>
+      {/* Broadcast Header */}
+      <div className="bg-[#18143D] text-white py-8 border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-600 text-white text-xs font-black tracking-wider uppercase animate-pulse">
+                  <Radio className="w-3.5 h-3.5" /> LIVE STREAMING NOW
+                </span>
+                <Badge variant="purple">UMUAHIA LAB 1 + ZOOM HYBRID</Badge>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+                {activeClass.title}
+              </h1>
+              <p className="text-xs sm:text-sm text-[#A5A0C8] mt-1">
+                Instructor: <strong className="text-white">{activeClass.instructor}</strong> ({activeClass.instructorRole}) &middot; {activeClass.location}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <a
+                href={activeClass.zoomJoinUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <Button className="bg-[#2D8CFF] hover:bg-[#1E74E0] text-white font-bold text-xs shadow-md">
+                  <ExternalLink className="w-4 h-4 mr-1.5" /> Launch Native Zoom App
+                </Button>
+              </a>
+              <Link href="/dashboard">
+                <Button variant="outline" className="border-white/20 text-white hover:bg-white/10 text-xs">
+                  Dashboard
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Main Broadcasting Grid */}
+      {/* Main Studio Arena */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Video Player & Class Overview */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-brand-navy rounded-2xl overflow-hidden shadow-xl border border-gray-800">
-              {/* Video Frame */}
-              <div className="relative aspect-video bg-black flex items-center justify-center">
-                {activeClass.status === "LIVE_NOW" ? (
-                  <video
-                    src={activeClass.streamVideoUrl}
-                    controls
-                    autoPlay
-                    muted
-                    loop
-                    className="w-full h-full object-cover"
-                  />
-                ) : activeClass.status === "RECORDED" && activeClass.recordingUrl ? (
-                  <video
-                    src={activeClass.recordingUrl}
-                    controls
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="text-center p-8 space-y-4">
-                    <Clock className="w-12 h-12 text-brand-purple mx-auto animate-pulse" />
-                    <div>
-                      <h3 className="text-lg font-bold text-white">Broadcast Starts {activeClass.startTime}</h3>
-                      <p className="text-xs text-gray-400 mt-1">Instructor will go live from BEMS Tech Lab 1</p>
-                    </div>
-                  </div>
-                )}
+          {/* Main Video Stream & Controls */}
+          <div className="lg:col-span-2 space-y-4">
+            <div className="rounded-3xl overflow-hidden bg-black shadow-2xl border border-[#E6E1F5] aspect-video relative group">
+              <video
+                key={activeClass.streamVideoUrl}
+                controls
+                autoPlay
+                playsInline
+                className="w-full h-full object-cover"
+                poster="/images/hero-classroom.png"
+              >
+                <source src={activeClass.streamVideoUrl} type="video/mp4" />
+                Live video stream is initializing...
+              </video>
 
-                {/* Badge Overlay */}
-                <div className="absolute top-4 left-4 flex items-center space-x-2">
-                  {activeClass.status === "LIVE_NOW" ? (
-                    <span className="flex items-center space-x-1.5 px-3 py-1 rounded-full bg-red-600 text-white text-xs font-bold uppercase tracking-wider shadow-lg">
-                      <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-                      <span>ON AIR</span>
-                    </span>
-                  ) : activeClass.status === "UPCOMING" ? (
-                    <span className="px-3 py-1 rounded-full bg-amber-500/90 text-white text-xs font-bold uppercase">
-                      UPCOMING
-                    </span>
-                  ) : (
-                    <span className="px-3 py-1 rounded-full bg-blue-600 text-white text-xs font-bold uppercase flex items-center space-x-1">
-                      <PlayCircle className="w-3.5 h-3.5 mr-1" />
-                      <span>RECORDING</span>
-                    </span>
-                  )}
-                  <span className="px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-xs font-medium flex items-center space-x-1">
-                    <Users className="w-3.5 h-3.5" />
-                    <span>{activeClass.currentAttendees} watching</span>
-                  </span>
-                </div>
-              </div>
-
-              {/* Broadcast Meta bar */}
-              <div className="p-6 bg-white space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-4">
-                  <div>
-                    <span className="text-xs font-bold text-brand-purple uppercase tracking-wider">
-                      {activeClass.courseTitle}
-                    </span>
-                    <h2 className="text-xl font-black text-brand-dark mt-1">{activeClass.title}</h2>
-                    <p className="text-xs text-gray-500 mt-1 flex items-center space-x-2">
-                      <MapPin className="w-3.5 h-3.5 text-brand-purple" />
-                      <span>{activeClass.location}</span>
-                    </p>
-                  </div>
-
-                  <button
-                    onClick={() => setRaisedHand(!raisedHand)}
-                    className={`px-4 py-2.5 rounded-xl font-bold text-xs flex items-center space-x-2 transition-all shrink-0 ${
-                      raisedHand
-                        ? "bg-amber-500 text-white shadow-md animate-bounce"
-                        : "bg-gray-100 hover:bg-gray-200 text-gray-700"
-                    }`}
-                  >
-                    <Hand className="w-4 h-4" />
-                    <span>{raisedHand ? "Hand Raised (Notified)" : "Raise Hand to Speak"}</span>
-                  </button>
-                </div>
-
-                {/* Session Agenda */}
-                <div>
-                  <h4 className="text-xs font-bold text-brand-dark uppercase tracking-wider mb-2">
-                    Live Session Agenda & Learning Objectives
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {activeClass.agenda.map((item, idx) => (
-                      <div
-                        key={idx}
-                        className="p-3 rounded-xl bg-brand-lavender/30 border border-brand-purple/10 text-xs text-brand-dark flex items-start space-x-2"
-                      >
-                        <CheckCircle className="w-4 h-4 text-brand-purple shrink-0 mt-0.5" />
-                        <span>{item}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+              {/* Live Overlay Badge */}
+              <div className="absolute top-4 left-4 flex items-center gap-2 bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20 text-white text-xs font-bold pointer-events-none">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
+                <span>LIVE BROADCAST</span>
+                <span className="text-[#A5A0C8] border-l border-white/20 pl-2 ml-1 flex items-center gap-1 font-normal">
+                  <Users className="w-3.5 h-3.5" /> {activeClass.currentAttendees} Online
+                </span>
               </div>
             </div>
 
-            {/* Other Classes & Archives */}
-            <div className="bg-white rounded-2xl p-6 border border-gray-200/80 shadow-sm space-y-4">
-              <h3 className="font-bold text-brand-dark text-base flex items-center space-x-2">
-                <Calendar className="w-4 h-4 text-brand-purple" />
-                <span>All Scheduled Sessions & Recordings</span>
-              </h3>
+            {/* Interactive Stream Controls Bar */}
+            <div className="bg-white rounded-2xl p-5 border border-[#E6E1F5] shadow-xs flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <Button
+                  onClick={() => setHandRaised(!handRaised)}
+                  variant={handRaised ? "primary" : "outline"}
+                  className={`text-xs ${
+                    handRaised
+                      ? "bg-amber-500 text-[#18143D] border-amber-600 font-bold"
+                      : "border-[#D1C9EB]"
+                  }`}
+                >
+                  <Hand className="w-4 h-4 mr-1.5" />
+                  {handRaised ? "Hand Raised (Queued #3)" : "Raise Hand to Speak"}
+                </Button>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {mockLiveClasses.map((cls) => (
-                  <div
-                    key={cls.id}
-                    onClick={() => setActiveClass(cls)}
-                    className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between space-y-3 ${
-                      activeClass.id === cls.id
-                        ? "border-brand-purple bg-brand-purple/5 shadow-sm"
-                        : "border-gray-200 hover:border-brand-purple/30 bg-white"
-                    }`}
-                  >
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                            cls.status === "LIVE_NOW"
-                              ? "bg-red-100 text-red-700"
-                              : cls.status === "UPCOMING"
-                              ? "bg-amber-100 text-amber-800"
-                              : "bg-blue-100 text-blue-800"
-                          }`}
-                        >
-                          {cls.status === "LIVE_NOW" ? "LIVE NOW" : cls.status === "UPCOMING" ? "UPCOMING" : "RECORDING"}
-                        </span>
-                        <span className="text-xs text-gray-500 font-medium">{cls.duration}</span>
-                      </div>
-                      <h4 className="text-sm font-bold text-brand-dark mt-2 line-clamp-1">{cls.title}</h4>
-                      <p className="text-xs text-gray-500 mt-0.5">{cls.instructor}</p>
-                    </div>
-
-                    <div className="text-[11px] text-brand-purple font-semibold flex items-center space-x-1">
-                      <Clock className="w-3 h-3" />
-                      <span>{cls.startTime}</span>
-                    </div>
-                  </div>
-                ))}
+                <a
+                  href="https://chat.whatsapp.com/BEMS-FutureSkills-2026"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <Button variant="outline" className="text-xs text-[#25D366] border-[#25D366]/40 hover:bg-[#25D366]/10">
+                    <MessageCircle className="w-4 h-4 mr-1.5" /> WhatsApp Backchannel
+                  </Button>
+                </a>
               </div>
+
+              <div className="flex items-center gap-2 text-xs text-[#645F80]">
+                <Clock className="w-3.5 h-3.5 text-[#7928CA]" /> Session Time: 34:10 / 90:00
+              </div>
+            </div>
+
+            {/* Class Agenda & Key Links */}
+            <div className="bg-white rounded-2xl p-6 border border-[#E6E1F5] shadow-xs space-y-4">
+              <h3 className="text-base font-black text-[#18143D]">
+                Today&apos;s Live Studio Agenda
+              </h3>
+              <ul className="space-y-2 text-xs text-[#4A4568]">
+                {activeClass.agenda.map((item, idx) => (
+                  <li key={idx} className="flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
 
-          {/* Right Column: Live Chat & Classroom Q&A */}
-          <div className="lg:col-span-1 bg-white rounded-2xl border border-gray-200/80 shadow-sm flex flex-col h-[650px] overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <MessageSquare className="w-4 h-4 text-brand-purple" />
-                <h3 className="text-sm font-bold text-brand-dark">Live Q&A Chat</h3>
+          {/* Live Studio Q&A Drawer */}
+          <div className="bg-white rounded-3xl border border-[#E6E1F5] shadow-xs flex flex-col h-[650px] overflow-hidden">
+            <div className="p-4 px-5 bg-[#FAF8FF] border-b border-[#F0EDF9] flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-black text-[#18143D]">
+                  Live Studio Q&A & Code Help
+                </h3>
+                <p className="text-[11px] text-[#645F80]">
+                  Questions answered live by Mr. Victor on screen
+                </p>
               </div>
-              <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                Active
-              </span>
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
             </div>
 
-            {/* Chat Messages */}
-            <div className="flex-1 p-4 overflow-y-auto space-y-3">
-              {chatMessages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`p-3 rounded-xl text-xs space-y-1 ${
-                    msg.isInstructor
-                      ? "bg-purple-50 border border-brand-purple/20 text-brand-dark"
-                      : "bg-gray-50 border border-gray-100 text-gray-700"
-                  }`}
-                >
+            {/* Questions stream */}
+            <div className="flex-1 p-4 overflow-y-auto space-y-3 text-xs">
+              {qaStream.map((qa) => (
+                <div key={qa.id} className="p-3.5 rounded-2xl bg-[#FAF8FF] border border-[#E6E1F5] space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className={`font-bold ${msg.isInstructor ? "text-brand-purple" : "text-brand-navy"}`}>
-                      {msg.user} {msg.isInstructor && "(Instructor)"}
-                    </span>
-                    <span className="text-[10px] text-gray-400">{msg.time}</span>
+                    <span className="font-bold text-[#18143D]">{qa.sender}</span>
+                    <span className="text-[10px] text-[#8580A3]">{qa.time}</span>
                   </div>
-                  <p className="leading-relaxed">{msg.text}</p>
+                  <p className="text-[#4A4568]">{qa.text}</p>
+                  {qa.answered && (
+                    <div className="mt-2 p-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-[11px]">
+                      <strong className="block text-emerald-950 font-bold">Answered Live:</strong>
+                      {qa.answer}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
 
-            {/* Chat Input */}
-            <form onSubmit={handleSendChat} className="p-3 border-t border-gray-100 flex items-center space-x-2">
+            {/* Q&A input form */}
+            <form onSubmit={handleSendQa} className="p-3 border-t border-[#F0EDF9] bg-white flex items-center gap-2">
               <input
                 type="text"
-                value={newChatText}
-                onChange={(e) => setNewChatText(e.target.value)}
-                placeholder="Ask instructor a question..."
-                className="flex-1 px-3 py-2 text-xs rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-purple/30"
+                placeholder="Ask a technical question to the live room..."
+                value={qaInput}
+                onChange={(e) => setQaInput(e.target.value)}
+                className="flex-1 px-3 py-2.5 rounded-xl border border-[#D1C9EB] text-xs text-[#18143D] focus:outline-hidden"
               />
-              <button
-                type="submit"
-                className="p-2.5 rounded-xl bg-brand-purple hover:bg-purple-700 text-white transition-colors"
-              >
+              <Button type="submit" variant="purple" size="sm" className="px-3.5">
                 <Send className="w-3.5 h-3.5" />
-              </button>
+              </Button>
             </form>
           </div>
         </div>
+
+        {/* Upcoming Sessions & Recording Archive */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-black text-[#18143D]">
+            Upcoming Live Classes & Masterclasses
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {liveClasses.filter((c) => c.status !== "LIVE_NOW").map((c) => (
+              <div
+                key={c.id}
+                className="p-5 rounded-2xl border border-[#E6E1F5] bg-white shadow-xs flex flex-col justify-between hover:border-[#7928CA]/40 transition-all space-y-4"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <Badge variant={c.status === "UPCOMING" ? "purple" : "gold"}>
+                      {c.status.replace(/_/g, " ")}
+                    </Badge>
+                    <span className="text-[11px] font-bold text-[#8580A3] flex items-center gap-1">
+                      <Clock className="w-3 h-3" /> {c.duration}
+                    </span>
+                  </div>
+
+                  <h3 className="font-bold text-sm text-[#18143D] mb-1">
+                    {c.title}
+                  </h3>
+                  <p className="text-xs text-[#645F80]">
+                    {c.instructor} &middot; {c.startTime}
+                  </p>
+                </div>
+
+                <div className="pt-3 border-t border-[#F0EDF9] flex items-center justify-between">
+                  <span className="text-[11px] text-[#8580A3]">
+                    {c.location}
+                  </span>
+                  <a href={c.zoomJoinUrl} target="_blank" rel="noreferrer">
+                    <Button variant="outline" size="sm" className="text-xs">
+                      {c.status === "RECORDED" ? "Watch Replay" : "Set Reminder"}
+                    </Button>
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
+
       <Footer />
     </div>
   );
 }
+

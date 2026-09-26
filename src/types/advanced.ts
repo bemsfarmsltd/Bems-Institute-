@@ -8,7 +8,7 @@ export interface LiveClass {
   startTime: string; // ISO date or display string
   duration: string;
   status: "LIVE_NOW" | "UPCOMING" | "RECORDED";
-  location: string;
+  location: "BEMS Hub Lab 1 (Umuahia) + Zoom" | "Virtual Live Zoom";
   zoomJoinUrl: string;
   streamVideoUrl?: string;
   currentAttendees: number;
