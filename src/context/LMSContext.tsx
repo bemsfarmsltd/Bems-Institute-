@@ -13,6 +13,14 @@ import {
   AdminCourse,
   AnalyticsSummary
 } from "@/types/lms";
+import type { LearningProfileSummary } from "@/lib/learning-engine";
+
+const EMPTY_LEARNING_PROFILE: LearningProfileSummary = {
+  strengths: [],
+  weaknesses: [],
+  recommendations: [],
+  learningStreak: 0
+};
 
 const EMPTY_ANALYTICS: AnalyticsSummary = {
   totalStudents: 0,
@@ -86,6 +94,10 @@ interface LMSContextType {
   certificates: Certificate[];
   getCertificate: (courseId: string) => Certificate | undefined;
   isCertificateEligible: (courseId: string) => boolean;
+  // The core personalization loop — strengths/weaknesses/recommendations
+  // computed server-side from real learning events, not client-derived.
+  learningProfile: LearningProfileSummary;
+  refreshLearningProfile: () => Promise<void>;
   // Admin roster/analytics — DB-backed, staff only
   adminStudents: AdminStudent[];
   adminCourses: AdminCourse[];
@@ -126,6 +138,16 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
   const [completedLessonIds, setCompletedLessonIds] = useState<string[]>([]);
   const [quizResults, setQuizResults] = useState<Record<string, QuizResult>>({});
   const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [learningProfile, setLearningProfile] = useState<LearningProfileSummary>(EMPTY_LEARNING_PROFILE);
+
+  const refreshLearningProfile = useCallback(async () => {
+    try {
+      const res = await fetch("/api/learning/profile");
+      if (res.ok) setLearningProfile(await res.json());
+    } catch {
+      // leave whatever was already loaded
+    }
+  }, []);
 
   // Admin roster/analytics — fetched from the DB only for staff sessions.
   const [adminStudents, setAdminStudents] = useState<AdminStudent[]>([]);
@@ -210,11 +232,12 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
       } catch {
         // per-user data unavailable — catalog still loaded fine
       }
+      await refreshLearningProfile();
       if (role === "INSTRUCTOR" || role === "ADMIN") {
         await loadAdminData();
       }
     },
-    [loadAdminData]
+    [loadAdminData, refreshLearningProfile]
   );
 
   // Load the public catalog (courses/quizzes/assignments/certificates),
@@ -341,6 +364,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
     setAdminCourses([]);
     setAnalytics(EMPTY_ANALYTICS);
     setIsAdminDataLoaded(false);
+    setLearningProfile(EMPTY_LEARNING_PROFILE);
     localStorage.removeItem("bems_lms_user");
     fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
   };
@@ -383,6 +407,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
       if (res.ok) {
         const data = await res.json();
         setCompletedLessonIds(data.completedLessonIds || []);
+        refreshLearningProfile();
       }
     } catch {
       // leave state as-is on network failure
@@ -416,6 +441,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
       throw new Error(data.error || "Could not submit quiz.");
     }
     setQuizResults((prev) => ({ ...prev, [quizId]: data.result }));
+    refreshLearningProfile();
     return data.result;
   };
 
@@ -511,6 +537,8 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
         certificates,
         getCertificate,
         isCertificateEligible,
+        learningProfile,
+        refreshLearningProfile,
         adminStudents,
         adminCourses,
         analytics,

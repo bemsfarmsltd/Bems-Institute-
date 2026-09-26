@@ -54,6 +54,10 @@ function AIHubContent() {
     "Explain async/await with a real Paystack API fetch example",
     "What are the requirements to pass the Capstone project?"
   ]);
+  const [ragSources, setRagSources] = useState<
+    { id: string; title: string; sourceType: string; lessonUrl?: string }[]
+  >([]);
+  const [weakConcepts, setWeakConcepts] = useState<string[]>([]);
 
   // 2. Quiz Generator State
   const [quizTopic, setQuizTopic] = useState("Modern JavaScript & ES6");
@@ -129,6 +133,12 @@ function AIHubContent() {
       setTutorMessages((prev) => [...prev, botMsg]);
       if (data.suggestedPrompts && data.suggestedPrompts.length > 0) {
         setSuggestedPrompts(data.suggestedPrompts);
+      }
+      if (Array.isArray(data.ragSources)) {
+        setRagSources(data.ragSources);
+      }
+      if (Array.isArray(data.weakConcepts)) {
+        setWeakConcepts(data.weakConcepts);
       }
     } catch (err) {
       console.error(err);
@@ -473,10 +483,80 @@ function AIHubContent() {
                     <span>{tutorName} is thinking and formulating guidance...</span>
                   </div>
                 )}
+                {ragSources.length > 0 && (
+                  <div className="p-3.5 rounded-xl bg-purple-50/70 border border-brand-purple/20 space-y-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-brand-purple flex items-center gap-1.5">
+                        <BookOpen className="w-3.5 h-3.5" />
+                        Grounded in BEMS Course Material (RAG)
+                      </span>
+                      {weakConcepts.length > 0 && (
+                        <span className="text-[11px] font-semibold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full">
+                          Targeting weak concepts: {weakConcepts.join(", ")}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {ragSources.map((src) =>
+                        src.lessonUrl ? (
+                          <a
+                            key={src.id}
+                            href={src.lessonUrl}
+                            className="text-xs px-2.5 py-1 rounded-lg bg-white border border-brand-purple/20 text-brand-dark hover:border-brand-purple hover:text-brand-purple font-medium transition-colors"
+                          >
+                            📖 {src.title} &rarr;
+                          </a>
+                        ) : (
+                          <span
+                            key={src.id}
+                            className="text-xs px-2.5 py-1 rounded-lg bg-white border border-gray-200 text-gray-700"
+                          >
+                            📝 {src.title}
+                          </span>
+                        )
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Input Box */}
-              <div className="p-4 border-t border-gray-100 bg-white">
+              {/* LearnIQ Pedagogical Quick-Action Pills + Input Box */}
+              <div className="p-4 border-t border-gray-100 bg-white space-y-3">
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+                  {[
+                    {
+                      label: "Explain simpler",
+                      prompt: "Explain that last concept in simpler beginner terms using a real-world analogy."
+                    },
+                    {
+                      label: "Give me an example",
+                      prompt: "Give me a clean, practical code example I can run in the BEMS Sandbox."
+                    },
+                    {
+                      label: "Quiz me",
+                      prompt: "Ask me 1 quick diagnostic question on this concept to test my understanding."
+                    },
+                    {
+                      label: "Give me a hint",
+                      prompt: "Give me a step-by-step hint without revealing the full answer right away."
+                    },
+                    {
+                      label: "Show me where I went wrong",
+                      prompt: "Based on my weak concepts and quiz history, show me where I might be going wrong and how to fix my mental model."
+                    }
+                  ].map((action) => (
+                    <button
+                      key={action.label}
+                      type="button"
+                      disabled={isTutorLoading}
+                      onClick={() => handleSendTutorMessage(action.prompt)}
+                      className="px-3 py-1.5 rounded-full bg-brand-lavender/50 hover:bg-brand-purple hover:text-white border border-brand-purple/20 text-brand-dark text-xs font-semibold transition-colors whitespace-nowrap shrink-0 disabled:opacity-50"
+                    >
+                      {action.label}
+                    </button>
+                  ))}
+                </div>
+
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();

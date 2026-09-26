@@ -3,6 +3,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
 import { LMS_COURSES } from "../src/data/lms-data";
 import { LMS_QUIZZES, LMS_ASSIGNMENTS } from "../src/data/assessment-data";
+import { CONCEPTS, QUESTION_CONCEPTS, LESSON_CONCEPTS } from "./concepts-data";
 
 process.loadEnvFile(".env.local");
 
@@ -214,12 +215,54 @@ async function seedCohort() {
   console.log(`Seeded cohort: ${ACTIVE_COHORT_NAME}`);
 }
 
+async function seedConcepts() {
+  // Two passes: concepts first (parents can be created in any order since
+  // parentId is nullable), then the parent links, then the lesson/question
+  // links which depend on concepts already existing.
+  for (const c of CONCEPTS) {
+    await prisma.concept.upsert({
+      where: { id: c.id },
+      update: { name: c.name, description: c.description, courseId: c.courseId },
+      create: { id: c.id, name: c.name, description: c.description, courseId: c.courseId }
+    });
+  }
+  for (const c of CONCEPTS) {
+    if (c.parentId) {
+      await prisma.concept.update({ where: { id: c.id }, data: { parentConceptId: c.parentId } });
+    }
+  }
+  console.log(`Seeded ${CONCEPTS.length} concepts`);
+
+  for (const [questionId, links] of Object.entries(QUESTION_CONCEPTS)) {
+    for (const link of links) {
+      await prisma.questionConcept.upsert({
+        where: { questionId_conceptId: { questionId, conceptId: link.conceptId } },
+        update: { importance: link.importance ?? 3 },
+        create: { questionId, conceptId: link.conceptId, importance: link.importance ?? 3 }
+      });
+    }
+  }
+  console.log(`Linked ${Object.keys(QUESTION_CONCEPTS).length} questions to concepts`);
+
+  for (const [lessonId, links] of Object.entries(LESSON_CONCEPTS)) {
+    for (const link of links) {
+      await prisma.lessonConcept.upsert({
+        where: { lessonId_conceptId: { lessonId, conceptId: link.conceptId } },
+        update: { importance: link.importance ?? 3 },
+        create: { lessonId, conceptId: link.conceptId, importance: link.importance ?? 3 }
+      });
+    }
+  }
+  console.log(`Linked ${Object.keys(LESSON_CONCEPTS).length} lessons to concepts`);
+}
+
 async function main() {
   await seedUsers();
   await seedCourseContent();
   await seedQuizzes();
   await seedAssignments();
   await seedCohort();
+  await seedConcepts();
 }
 
 main()

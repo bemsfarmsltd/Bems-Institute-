@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/api-auth";
+import { recordLessonCompleted, touchLearningStreak } from "@/lib/learning-engine";
 
 export async function POST(req: NextRequest) {
   const session = await getSessionUser(req);
@@ -14,7 +15,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "lessonId is required." }, { status: 400 });
   }
 
-  const lesson = await prisma.lesson.findUnique({ where: { id: lessonId } });
+  const lesson = await prisma.lesson.findUnique({
+    where: { id: lessonId },
+    include: { module: { select: { courseId: true } } }
+  });
   if (!lesson) {
     return NextResponse.json({ error: "Lesson not found." }, { status: 404 });
   }
@@ -29,6 +33,8 @@ export async function POST(req: NextRequest) {
     await prisma.userProgress.create({
       data: { userId: session.id, lessonId, isCompleted: true }
     });
+    await recordLessonCompleted({ userId: session.id, courseId: lesson.module.courseId, lessonId });
+    await touchLearningStreak(session.id);
   }
 
   const progress = await prisma.userProgress.findMany({

@@ -8,6 +8,7 @@ import { Footer } from "@/components/Footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { RequireRole } from "@/components/RequireRole";
+import { InstructorConceptInsights } from "@/components/InstructorConceptInsights";
 import {
   Users,
   BookOpen,
@@ -93,7 +94,7 @@ function InstructorDashboardContent() {
               <Link href="/admin">
                 <Button
                   variant="outline"
-                  className="border-white/20 text-white hover:bg-white/10"
+                  className="bg-transparent border-white/20 text-white hover:bg-white/10"
                 >
                   Admin Master Console &rarr;
                 </Button>
@@ -201,6 +202,8 @@ function InstructorDashboardContent() {
             </Link>
           </div>
         </div>
+
+        <InstructorConceptInsights courseId={selectedCourseFilter} />
 
         {/* Student Roster Table */}
         <div className="bg-white rounded-2xl border border-[#E6E1F5] shadow-xs overflow-hidden">

@@ -44,6 +44,17 @@ enum PaymentStatus {
   PAID_FULL
 }
 
+enum LearningEventType {
+  LESSON_STARTED
+  LESSON_COMPLETED
+  QUIZ_STARTED
+  QUESTION_ANSWERED
+  QUIZ_COMPLETED
+  ASSIGNMENT_SUBMITTED
+  ASSIGNMENT_GRADED
+  AI_TUTOR_USED
+}
+
 model User {
   id           String         @id @default(cuid())
   clerkId      String?        @unique
@@ -52,13 +63,16 @@ model User {
   passwordHash String
   phone        String?
   role         UserRole       @default(STUDENT)
-  enrollments  Enrollment[]
-  progress     UserProgress[]
-  quizAttempts QuizAttempt[]
-  submissions  Submission[]
-  certificates Certificate[]
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  enrollments      Enrollment[]
+  progress         UserProgress[]
+  quizAttempts     QuizAttempt[]
+  submissions      Submission[]
+  certificates     Certificate[]
+  learningEvents   LearningEvent[]
+  conceptMasteries ConceptMastery[]
+  learningProfile  LearningProfile?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 }
 
 model Course {
@@ -84,6 +98,7 @@ model Course {
   assignments  Assignment[]
   enrollments  Enrollment[]
   certificates Certificate[]
+  concepts     Concept[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 }
@@ -113,6 +128,7 @@ model Lesson {
   moduleId      String
   module        Module         @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   userProgress  UserProgress[]
+  concepts      LessonConcept[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
@@ -210,6 +226,7 @@ model Question {
   options       String[] // Stored as array of strings
   correctOption Int      // Index of correct option (0-based)
   explanation   String?
+  concepts      QuestionConcept[]
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -281,5 +298,126 @@ model Certificate {
 
   @@unique([userId, courseId])
   @@index([certNumber])
+}
+
+// ---------------------------------------------------------------
+// THE CORE PERSONALIZATION LOOP
+//
+// Lessons/Questions teach Concepts (LessonConcept/QuestionConcept) ->
+// a student's real activity (quiz answers, lesson completion) is logged
+// as LearningEvents -> each relevant event recomputes that student's
+// ConceptMastery -> the recommendation engine (src/lib/learning-engine.ts)
+// reads ConceptMastery + LearningEvents to explain, in plain evidence,
+// what to study next. Deliberately rule-based, not ML — see that file's
+// header comment for why.
+// ---------------------------------------------------------------
+
+model Concept {
+  id              String            @id @default(cuid())
+  name            String
+  description     String?
+  courseId        String
+  course          Course            @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  parentConceptId String?
+  parentConcept   Concept?          @relation("ConceptHierarchy", fields: [parentConceptId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  childConcepts   Concept[]         @relation("ConceptHierarchy")
+  lessons         LessonConcept[]
+  questions       QuestionConcept[]
+  masteries       ConceptMastery[]
+  events          LearningEvent[]
+  createdAt       DateTime          @default(now())
+
+  @@index([courseId])
+}
+
+// What a lesson teaches — used to point a weak-concept recommendation at
+// something to (re-)watch. `importance` (1-5) lets a lesson teach several
+// concepts without weighting them all equally.
+model LessonConcept {
+  lessonId   String
+  conceptId  String
+  importance Int     @default(3)
+  lesson     Lesson  @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  concept    Concept @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+
+  @@id([lessonId, conceptId])
+  @@index([conceptId])
+}
+
+// What a quiz question actually tests — this is the ground truth every
+// ConceptMastery score is computed from.
+model QuestionConcept {
+  questionId String
+  conceptId  String
+  importance Int      @default(3)
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  concept    Concept  @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+
+  @@id([questionId, conceptId])
+  @@index([conceptId])
+}
+
+// Append-only activity log — the raw material the personalization loop
+// learns from. Written as a side effect of the existing progress/quiz/
+// submission API routes, never a separate tracking call the client has to
+// remember to make.
+model LearningEvent {
+  id        String            @id @default(cuid())
+  userId    String
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId  String?
+  lessonId  String?
+  conceptId String?
+  concept   Concept?          @relation(fields: [conceptId], references: [id], onDelete: SetNull)
+  eventType LearningEventType
+  metadata  Json?
+  createdAt DateTime          @default(now())
+
+  @@index([userId])
+  @@index([conceptId])
+}
+
+// One row per (student, concept) — recomputed from scratch on every
+// relevant LearningEvent, not incrementally patched, so it can never drift
+// from the events that produced it.
+model ConceptMastery {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conceptId       String
+  concept         Concept   @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+  masteryScore    Float     @default(0) // correctAttempts / attempts
+  confidence      Float     @default(0) // how much to trust masteryScore, from attempt count
+  attempts        Int       @default(0)
+  correctAttempts Int       @default(0)
+  lastPracticedAt DateTime?
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([userId, conceptId])
+  @@index([conceptId])
+}
+
+model LearningProfile {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  learningGoal    String?
+  experienceLevel String    @default("BEGINNER")
+  learningStreak  Int       @default(0)
+  lastActiveAt    DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+// Redemption record for one generated practice-question token (see
+// /api/learning/practice-question). The token itself is a signed, stateless
+// JWT-like blob carrying the correct answer — this table is the one piece of
+// server state needed to make it single-use: answering inserts a row keyed
+// on the token's jti, and a unique-constraint violation on replay is what
+// rejects a second submission of the same token.
+model PracticeAttempt {
+  id        String   @id @default(cuid())
+  jti       String   @unique
+  createdAt DateTime @default(now())
 }
 

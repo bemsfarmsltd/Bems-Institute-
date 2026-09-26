@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/api-auth";
+import { recordQuestionAnswered, recordQuizCompleted, touchLearningStreak } from "@/lib/learning-engine";
 import type { QuizResult } from "@/types/lms";
 
 // Score is computed here from the DB's answer key, never trusted from the
@@ -36,6 +37,19 @@ export async function POST(req: NextRequest) {
   const attempt = await prisma.quizAttempt.create({
     data: { userId: session.id, quizId, score, passed, answers }
   });
+
+  // Feed the personalization loop: one QUESTION_ANSWERED event per question,
+  // each recomputing that concept's mastery from its full attempt history.
+  for (const q of quiz.questions) {
+    await recordQuestionAnswered({
+      userId: session.id,
+      courseId: quiz.courseId,
+      questionId: q.id,
+      correct: answers[q.id] === q.correctOption
+    });
+  }
+  await recordQuizCompleted({ userId: session.id, courseId: quiz.courseId, quizId, score, passed });
+  await touchLearningStreak(session.id);
 
   const result: QuizResult = {
     quizId,

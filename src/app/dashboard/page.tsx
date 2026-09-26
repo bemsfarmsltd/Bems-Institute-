@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { useLMS } from "@/context/LMSContext";
 import { RequireRole } from "@/components/RequireRole";
+import { LearningInsights } from "@/components/LearningInsights";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Badge } from "@/components/ui/badge";
@@ -85,6 +86,8 @@ function StudentDashboardContent() {
 
       {/* Main Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full space-y-10">
+        <LearningInsights />
+
         {/* Enrolled Courses Section */}
         <div>
           <div className="flex items-center justify-between mb-6">

@@ -218,6 +218,91 @@ export async function generateDynamicQuiz(
 }
 
 // ============================================================================
+// 2b. CONCEPT-TARGETED PRACTICE QUESTIONS
+// ============================================================================
+
+export interface PracticeQuestion {
+  prompt: string;
+  options: string[];
+  correctOption: number;
+  explanation: string;
+  source: "ai" | "reference";
+}
+
+interface ReferenceQuestion {
+  prompt: string;
+  options: string[];
+  correctOption: number;
+  explanation: string | null;
+}
+
+/**
+ * One fresh multiple-choice question targeting a specific weak concept, for
+ * the "Generate practice question" action on a PREREQUISITE/REVIEW
+ * recommendation (see src/components/LearningInsights.tsx). Always grounded
+ * in a real, already-authored question for that concept (`referenceQuestions`,
+ * loaded from QuestionConcept) so there's zero hallucination risk even when
+ * Gemini rewrites it — and a clean, honest fallback (serve the reference
+ * question as-is) when no API key is configured.
+ */
+export async function generateConceptPracticeQuestion(params: {
+  conceptName: string;
+  courseTitle: string;
+  referenceQuestions: ReferenceQuestion[];
+}): Promise<PracticeQuestion> {
+  const { conceptName, courseTitle, referenceQuestions } = params;
+  const reference = referenceQuestions[Math.floor(Math.random() * referenceQuestions.length)];
+
+  if (ai && referenceQuestions.length > 0) {
+    try {
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [
+          {
+            role: "user",
+            parts: [
+              {
+                text: `You are writing one NEW multiple-choice practice question for a student in the BEMS FutureSkills "${courseTitle}" course who is struggling with the concept "${conceptName}".
+
+Here is an existing, correct question testing the same concept (do not repeat it verbatim — write a different question that tests the same underlying understanding):
+${JSON.stringify(reference)}
+
+Respond with ONLY a JSON object of this exact shape, no markdown fences, no commentary:
+{"prompt": string, "options": string[4], "correctOption": number (0-3 index into options), "explanation": string}`
+              }
+            ]
+          }
+        ],
+        config: { temperature: 0.6, responseMimeType: "application/json" }
+      });
+
+      const parsed = JSON.parse(response.text || "{}");
+      if (
+        typeof parsed.prompt === "string" &&
+        Array.isArray(parsed.options) &&
+        parsed.options.length >= 2 &&
+        Number.isInteger(parsed.correctOption) &&
+        parsed.correctOption >= 0 &&
+        parsed.correctOption < parsed.options.length &&
+        typeof parsed.explanation === "string"
+      ) {
+        return { ...parsed, source: "ai" };
+      }
+    } catch (err) {
+      console.warn("Gemini practice-question generation failed, serving reference question instead:", err);
+    }
+  }
+
+  return {
+    prompt: reference.prompt,
+    options: reference.options,
+    correctOption: reference.correctOption,
+    explanation: reference.explanation || `This tests your understanding of ${conceptName}.`,
+    source: "reference"
+  };
+}
+
+// ============================================================================
 // 3. AI STUDY ASSISTANT & SCHEDULE BUILDER
 // ============================================================================
 

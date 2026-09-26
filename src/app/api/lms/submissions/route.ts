@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/api-auth";
 import { mapSubmission } from "@/lib/lms-mappers";
+import { recordAssignmentSubmitted, touchLearningStreak } from "@/lib/learning-engine";
 
 export async function POST(req: NextRequest) {
   const session = await getSessionUser(req);
@@ -54,6 +55,13 @@ export async function POST(req: NextRequest) {
       assignment: { select: { courseId: true } }
     }
   });
+
+  await recordAssignmentSubmitted({
+    userId: session.id,
+    courseId: assignment.courseId,
+    assignmentId
+  });
+  await touchLearningStreak(session.id);
 
   return NextResponse.json({ submission: mapSubmission(submission) });
 }
