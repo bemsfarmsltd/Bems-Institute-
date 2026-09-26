@@ -86,7 +86,7 @@ export default function QuizAssessmentPage({
   const handleSubmitQuiz = async (e: React.FormEvent) => {
     e.preventDefault();
     if (Object.keys(selectedAnswers).length < quiz.questions.length) {
-      alert("Please answer all questions before submitting your assessment.");
+      setError("Please answer all questions before submitting your assessment.");
       return;
     }
     setError(null);

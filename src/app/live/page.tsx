@@ -16,6 +16,8 @@ import {
   PlayCircle
 } from "lucide-react";
 import Button from "@/components/ui/button";
+import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 import { mockLiveClasses } from "@/data/advanced-data";
 import { LiveClass } from "@/types/advanced";
 
@@ -64,8 +66,9 @@ export default function LiveClassroomPage() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-light/30 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen flex flex-col bg-brand-light/30">
+      <Navbar />
+      <div className="max-w-7xl mx-auto w-full flex-1 py-8 px-4 sm:px-6 lg:px-8 space-y-8">
         {/* Top Banner */}
         <div className="bg-gradient-to-r from-brand-navy via-brand-dark to-purple-900 rounded-3xl p-6 md:p-8 text-white flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl relative overflow-hidden">
           <div className="relative z-10 space-y-2 max-w-2xl">
@@ -298,6 +301,7 @@ export default function LiveClassroomPage() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

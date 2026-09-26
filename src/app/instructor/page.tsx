@@ -91,14 +91,16 @@ function InstructorDashboardContent() {
                 </Button>
               </Link>
 
-              <Link href="/admin">
-                <Button
-                  variant="outline"
-                  className="bg-transparent border-white/20 text-white hover:bg-white/10"
-                >
-                  Admin Master Console &rarr;
-                </Button>
-              </Link>
+              {user?.role === "ADMIN" && (
+                <Link href="/admin">
+                  <Button
+                    variant="outline"
+                    className="bg-transparent border-white/20 text-white hover:bg-white/10"
+                  >
+                    Admin Master Console &rarr;
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
         </div>

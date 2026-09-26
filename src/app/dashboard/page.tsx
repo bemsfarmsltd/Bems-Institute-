@@ -60,15 +60,25 @@ function StudentDashboardContent() {
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
-              <Link href="/instructor/grading">
+            <div className="flex flex-wrap items-center gap-3">
+              <Link href="/ai">
                 <Button
                   variant="outline"
                   className="border-purple-400/30 text-purple-200 hover:bg-white/10"
                 >
-                  <Sparkles className="w-4 h-4 mr-2" /> Tutor Grading Studio
+                  <Sparkles className="w-4 h-4 mr-2" /> Ask AI Tutor
                 </Button>
               </Link>
+              {(user?.role === "INSTRUCTOR" || user?.role === "ADMIN") && (
+                <Link href="/instructor/grading">
+                  <Button
+                    variant="outline"
+                    className="border-amber-400/30 text-amber-200 hover:bg-white/10"
+                  >
+                    <Award className="w-4 h-4 mr-2" /> Grading Studio
+                  </Button>
+                </Link>
+              )}
               <a
                 href="https://chat.whatsapp.com/BEMS-FutureSkills-2026"
                 target="_blank"

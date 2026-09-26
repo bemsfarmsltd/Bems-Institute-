@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useLMS } from "@/context/LMSContext";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Badge } from "@/components/ui/badge";
@@ -13,32 +15,67 @@ import {
   Building2,
   ShieldCheck,
   MessageCircle,
-  HelpCircle,
-  ArrowRight
+  ArrowRight,
+  BookOpen,
+  PlayCircle
 } from "lucide-react";
 import { mockSubscriptionTiers } from "@/data/advanced-data";
 import { SubscriptionTier } from "@/types/advanced";
 
-export default function SubscriptionsPage() {
+function SubscriptionsContent() {
+  const searchParams = useSearchParams();
+  const courseQuery = searchParams.get("course");
+  const { courses, enrollInCourse, isEnrolled } = useLMS();
+
   const [tiers] = useState<SubscriptionTier[]>(mockSubscriptionTiers);
+  const [selectedCourseId, setSelectedCourseId] = useState<string>(courseQuery || "web-dev");
   const [selectedTier, setSelectedTier] = useState<SubscriptionTier | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"PAYSTACK" | "BANK">("PAYSTACK");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [confirmedEnrollment, setConfirmedEnrollment] = useState<{
+    tierName: string;
+    amount: number;
+    courseTitle: string;
+    courseSlug: string;
+    firstLessonId: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (courseQuery && courses.some((c) => c.id === courseQuery || c.slug === courseQuery)) {
+      const matched = courses.find((c) => c.id === courseQuery || c.slug === courseQuery);
+      if (matched) setSelectedCourseId(matched.id);
+    }
+  }, [courseQuery, courses]);
+
+  const selectedCourse =
+    courses.find((c) => c.id === selectedCourseId || c.slug === selectedCourseId) || courses[0];
 
   const handleSelectPlan = (tier: SubscriptionTier) => {
     setSelectedTier(tier);
     setShowPaymentModal(true);
   };
 
-  const handleProcessPayment = () => {
+  const handleProcessPayment = async () => {
+    if (!selectedTier) return;
     setIsProcessing(true);
-    setTimeout(() => {
-      setIsProcessing(false);
+    try {
+      if (selectedCourse) {
+        await enrollInCourse(selectedCourse.id);
+      }
+      const firstLessonId = selectedCourse?.modules[0]?.lessons[0]?.id || "les-1";
+      setConfirmedEnrollment({
+        tierName: selectedTier.name,
+        amount: selectedTier.priceNaira,
+        courseTitle: selectedCourse?.title || "Full-Stack Web Development",
+        courseSlug: selectedCourse?.slug || "web-development",
+        firstLessonId
+      });
       setShowPaymentModal(false);
-      alert(`Payment of ₦${selectedTier?.priceNaira.toLocaleString()} confirmed! Welcome to the BEMS Tech Community. Redirecting to WhatsApp...`);
-      window.open("https://chat.whatsapp.com/BEMS-FutureSkills-2026", "_blank");
-    }, 1500);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -49,20 +86,116 @@ export default function SubscriptionsPage() {
       <div className="bg-[#18143D] text-white py-14 border-b border-white/10 text-center">
         <div className="max-w-4xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-center gap-2 mb-3">
-            <Badge variant="purple">PHASE 5 SUBSCRIPTION ENGINE</Badge>
+            <Badge variant="purple">OCTOBER 2026 COHORT</Badge>
             <Badge variant="gold">FLEXIBLE TUITION</Badge>
           </div>
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight mb-4">
             Invest in High-Income Tech Skills
           </h1>
           <p className="text-sm sm:text-base text-[#A5A0C8] max-w-2xl mx-auto leading-relaxed">
-            Choose the full 3-month cohort accelerator, the monthly All-Access Pass across all 4 tracks, or ongoing Alumni Mastermind support.
+            Choose your primary accelerator track and select the full 3-month cohort plan, the monthly All-Access Pass across all 4 tracks, or ongoing Alumni Mastermind support.
           </p>
         </div>
       </div>
 
-      {/* Pricing Cards Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 flex-1 w-full space-y-12">
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-1 w-full space-y-10">
+        {/* Inline Confirmation Banner */}
+        {confirmedEnrollment && (
+          <div className="rounded-3xl border-2 border-emerald-500 bg-emerald-50/90 p-6 sm:p-8 shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-6 animate-in fade-in duration-200">
+            <div className="space-y-1.5">
+              <div className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-emerald-800">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <span>Enrollment Confirmed · ₦{confirmedEnrollment.amount.toLocaleString()} ({confirmedEnrollment.tierName})</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-black text-[#18143D]">
+                You&apos;re enrolled in {confirmedEnrollment.courseTitle}!
+              </h2>
+              <p className="text-xs sm:text-sm text-[#4A4568]">
+                Your classroom modules, interactive assessments, and AI Tutor context are now unlocked.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-3 shrink-0">
+              <Link href={`/learn/${confirmedEnrollment.courseSlug}/${confirmedEnrollment.firstLessonId}`}>
+                <Button variant="purple" className="gap-2 text-xs font-bold">
+                  <PlayCircle className="w-4 h-4" />
+                  <span>Start First Lesson</span>
+                </Button>
+              </Link>
+              <Link href="/dashboard">
+                <Button variant="outline" className="text-xs font-bold">
+                  <span>Go to Dashboard</span>
+                  <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* Course Track Selector */}
+        {courses.length > 0 && (
+          <div className="bg-white rounded-3xl border border-[#E6E1F5] p-6 sm:p-8 shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#7928CA] flex items-center gap-1.5">
+                  <BookOpen className="w-3.5 h-3.5" /> Step 1: Choose Your Primary Accelerator Track
+                </span>
+                <h2 className="text-lg sm:text-xl font-black text-[#18143D] mt-0.5">
+                  {selectedCourse ? selectedCourse.title : "Select a Course Track"}
+                </h2>
+              </div>
+              {selectedCourse && isEnrolled(selectedCourse.id) && (
+                <Link
+                  href={`/learn/${selectedCourse.slug}/${selectedCourse.modules[0]?.lessons[0]?.id || "les-1"}`}
+                >
+                  <Badge variant="purple" className="cursor-pointer py-1.5 px-3">
+                    Already Enrolled · Continue Classroom →
+                  </Badge>
+                </Link>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              {courses.map((course) => {
+                const active = selectedCourse?.id === course.id;
+                const enrolled = isEnrolled(course.id);
+                return (
+                  <button
+                    key={course.id}
+                    type="button"
+                    onClick={() => setSelectedCourseId(course.id)}
+                    className={`text-left p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between gap-2 ${
+                      active
+                        ? "border-2 border-[#7928CA] bg-[#FAF8FF] shadow-sm"
+                        : "border-[#E6E1F5] bg-white hover:border-[#7928CA]/40"
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between gap-1 mb-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#7928CA]">
+                          {course.duration}
+                        </span>
+                        {enrolled && (
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                            Enrolled
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-xs font-extrabold text-[#18143D] line-clamp-2">
+                        {course.title}
+                      </div>
+                    </div>
+                    <div className="text-[11px] text-[#645F80]">
+                      Lead: <strong className="text-[#18143D]">{course.tutor}</strong>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Pricing Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
           {tiers.map((tier) => (
             <div
@@ -132,7 +265,7 @@ export default function SubscriptionsPage() {
             </div>
             <div>
               <h4 className="font-black text-[#18143D] text-base">
-                100% Practical & Verified Certification Guarantee
+                100% Practical &amp; Verified Certification Guarantee
               </h4>
               <p className="text-xs text-[#645F80]">
                 Every student deploys real working projects, guided by senior engineers in Umuahia physical labs and online.
@@ -168,7 +301,13 @@ export default function SubscriptionsPage() {
               </button>
             </div>
 
-            <div className="p-4 rounded-2xl bg-[#FAF8FF] border border-[#E6E1F5] mb-4 text-xs space-y-1">
+            <div className="p-4 rounded-2xl bg-[#FAF8FF] border border-[#E6E1F5] mb-4 text-xs space-y-1.5">
+              {selectedCourse && (
+                <div className="flex justify-between">
+                  <span className="text-[#645F80]">Selected Track:</span>
+                  <strong className="text-[#7928CA]">{selectedCourse.title}</strong>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-[#645F80]">Selected Plan:</span>
                 <strong className="text-[#18143D]">{selectedTier.name}</strong>
@@ -218,7 +357,7 @@ export default function SubscriptionsPage() {
                 <div>Account Name: BEMS Institute of Technology Ltd</div>
                 <div>Account Number: <code className="font-mono font-bold text-sm">1012345678</code></div>
                 <div className="text-[10px] text-amber-800 pt-1">
-                  Once transfer is made, WhatsApp proof to +234 800 000 0000 for instant activation.
+                  Once transfer is made, click below to activate your student portal immediately.
                 </div>
               </div>
             ) : (
@@ -233,7 +372,9 @@ export default function SubscriptionsPage() {
               variant="purple"
               className="w-full py-3 shadow-md text-xs font-bold"
             >
-              {isProcessing ? "Verifying Transaction..." : `Pay ₦${selectedTier.priceNaira.toLocaleString()}`}
+              {isProcessing
+                ? "Activating Enrollment..."
+                : `Confirm & Enroll (₦${selectedTier.priceNaira.toLocaleString()})`}
             </Button>
           </div>
         </div>
@@ -243,4 +384,19 @@ export default function SubscriptionsPage() {
     </div>
   );
 }
+
+export default function SubscriptionsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-[#FAF8FF] text-sm text-[#645F80]">
+          Loading subscription plans…
+        </div>
+      }
+    >
+      <SubscriptionsContent />
+    </Suspense>
+  );
+}
+
 

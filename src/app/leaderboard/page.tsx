@@ -2,284 +2,252 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Trophy,
   Flame,
-  Award,
   Zap,
-  Star,
-  Shield,
-  TrendingUp,
+  Award,
+  Crown,
+  Medal,
+  CheckCircle2,
+  Lock,
   ArrowRight,
+  TrendingUp,
   Sparkles
 } from "lucide-react";
-import Button from "@/components/ui/button";
-import { mockGamificationProfile, mockLeaderboard } from "@/data/advanced-data";
-import { LeaderboardStudent } from "@/types/advanced";
+import { INITIAL_GAMIFICATION, LEADERBOARD_STUDENTS } from "@/data/advanced-data";
+import { GamificationProfile, LeaderboardStudent } from "@/types/advanced";
 
 export default function LeaderboardPage() {
-  const [profile] = useState(mockGamificationProfile);
-  const [leaderboard] = useState<LeaderboardStudent[]>(mockLeaderboard);
-  const [filterTrack, setFilterTrack] = useState<string>("ALL");
-
-  const filteredLeaderboard =
-    filterTrack === "ALL"
-      ? leaderboard
-      : leaderboard.filter((s) => s.track.toLowerCase().includes(filterTrack.toLowerCase()));
+  const [profile] = useState<GamificationProfile>(INITIAL_GAMIFICATION);
+  const [leaderboard] = useState<LeaderboardStudent[]>(LEADERBOARD_STUDENTS);
 
   return (
-    <div className="min-h-screen bg-brand-light/30 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Top Hero Banner */}
-        <div className="bg-gradient-to-r from-brand-navy via-brand-dark to-purple-900 rounded-3xl p-6 md:p-8 text-white flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl relative overflow-hidden">
-          <div className="relative z-10 space-y-2 max-w-2xl">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold uppercase tracking-wider">
-              <Trophy className="w-3.5 h-3.5 text-amber-400" />
-              <span>BEMS Gamification • XP & Badges</span>
-            </div>
-            <h1 className="text-2xl md:text-4xl font-black tracking-tight">
-              Cohort Leaderboard & Achievements
-            </h1>
-            <p className="text-sm md:text-base text-purple-100/90 leading-relaxed">
-              Earn XP by watching lessons, completing interactive quizzes, passing capstones, and maintaining daily coding streaks in Umuahia.
-            </p>
-          </div>
+    <div className="min-h-screen flex flex-col bg-[#FAF8FF]">
+      <Navbar />
 
-          <div className="relative z-10 flex items-center space-x-3 shrink-0">
-            <Link href="/sandbox">
-              <Button variant="purple" className="px-5">
-                <Zap className="w-4 h-4 mr-2" />
-                <span>Open Sandbox (+50 XP)</span>
-              </Button>
-            </Link>
-          </div>
-        </div>
-
-        {/* User Stats Card Bar */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs flex items-center space-x-4">
-            <div className="w-12 h-12 rounded-xl bg-purple-100 text-brand-purple flex items-center justify-center shrink-0">
-              <Star className="w-6 h-6" />
-            </div>
+      {/* Hero Banner */}
+      <div className="bg-[#18143D] text-white py-12 border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
-              <span className="text-xs text-gray-400 font-semibold block">Total Experience</span>
-              <span className="text-2xl font-black text-brand-dark">{profile.xpPoints.toLocaleString()} XP</span>
+              <div className="flex items-center gap-2 mb-2">
+                <Badge variant="gold">PHASE 5 GAMIFICATION ENGINE</Badge>
+                <Badge variant="purple">OCTOBER 2026 COHORT</Badge>
+              </div>
+              <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
+                Cohort Leaderboard & Badges
+              </h1>
+              <p className="text-xs sm:text-sm text-[#A5A0C8] mt-1">
+                Earn XP points for completed lessons, maintain study streaks, and unlock verified digital credentials.
+              </p>
             </div>
-          </div>
 
-          <div className="p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs flex items-center space-x-4">
-            <div className="w-12 h-12 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center shrink-0">
-              <Flame className="w-6 h-6" />
-            </div>
-            <div>
-              <span className="text-xs text-gray-400 font-semibold block">Active Code Streak</span>
-              <span className="text-2xl font-black text-brand-dark">{profile.streakDays} Days 🔥</span>
-            </div>
-          </div>
-
-          <div className="p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs flex items-center space-x-4">
-            <div className="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
-              <Shield className="w-6 h-6" />
-            </div>
-            <div>
-              <span className="text-xs text-gray-400 font-semibold block">Mastery Tier</span>
-              <span className="text-xl font-bold text-brand-dark">Level {profile.level}</span>
-              <span className="text-[10px] text-gray-500 block truncate">{profile.levelTitle}</span>
-            </div>
-          </div>
-
-          <div className="p-5 rounded-2xl bg-white border border-gray-200/80 shadow-xs flex items-center space-x-4">
-            <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-              <Award className="w-6 h-6" />
-            </div>
-            <div>
-              <span className="text-xs text-gray-400 font-semibold block">Badges Unlocked</span>
-              <span className="text-2xl font-black text-brand-dark">
-                {profile.badges.filter((b) => b.isUnlocked).length} / {profile.badges.length}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Two-Column Grid: Badges Showcase & Leaderboard Table */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Badges Column */}
-          <div className="lg:col-span-1 space-y-6">
-            <div className="bg-white rounded-2xl p-6 border border-gray-200/80 shadow-sm space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-bold text-brand-dark text-base flex items-center space-x-2">
-                  <Award className="w-4 h-4 text-brand-purple" />
-                  <span>Your Achievement Badges</span>
-                </h3>
-                <span className="text-xs font-semibold text-brand-purple">
-                  {profile.badges.filter((b) => b.isUnlocked).length} Earned
+            <div className="flex items-center gap-4 bg-white/10 p-4 rounded-2xl border border-white/20">
+              <div className="text-center px-3 border-r border-white/20">
+                <span className="text-[10px] text-[#A5A0C8] font-bold block uppercase">Total XP</span>
+                <span className="text-2xl font-black text-amber-300">{profile.xpPoints}</span>
+              </div>
+              <div className="text-center px-3">
+                <span className="text-[10px] text-[#A5A0C8] font-bold block uppercase">Study Streak</span>
+                <span className="text-2xl font-black text-orange-400 flex items-center gap-1">
+                  <Flame className="w-5 h-5" /> {profile.streakDays}d
                 </span>
               </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
-                {profile.badges.map((badge) => (
-                  <div
-                    key={badge.id}
-                    className={`p-3.5 rounded-xl border flex items-start space-x-3 transition-all ${
-                      badge.isUnlocked
-                        ? "bg-brand-lavender/20 border-brand-purple/20 text-brand-dark"
-                        : "bg-gray-50 border-gray-200 text-gray-400 opacity-60"
-                    }`}
-                  >
-                    <div className="text-2xl shrink-0">{badge.icon}</div>
-                    <div className="min-w-0">
-                      <div className="flex items-center space-x-1.5">
-                        <h4 className="text-xs font-bold truncate">{badge.title}</h4>
-                        {badge.isUnlocked && (
-                          <span className="text-[9px] bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded-full font-bold">
-                            Earned
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[11px] text-gray-500 mt-0.5 leading-snug">{badge.description}</p>
-                      {badge.unlockedAt && (
-                        <span className="text-[10px] text-gray-400 block mt-1">Unlocked: {badge.unlockedAt}</span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Weekly Challenge Card */}
-            <div className="rounded-2xl p-5 bg-gradient-to-br from-brand-navy to-purple-900 text-white space-y-3 shadow-md">
-              <div className="flex items-center space-x-2 text-xs font-bold text-amber-300">
-                <Sparkles className="w-4 h-4" />
-                <span>Weekly XP Challenge</span>
-              </div>
-              <h4 className="text-sm font-bold">Deploy Full-Stack Capstone (+500 XP)</h4>
-              <p className="text-xs text-purple-200 leading-relaxed">
-                Submit your verified Vercel production URL and pass with a 70%+ score before Friday 6:00 PM to claim the 500 XP bonus.
-              </p>
-              <Link href="/learn/web-development/assignment/web-assign-1">
-                <Button variant="purple" className="w-full text-xs py-2 bg-brand-purple text-white mt-2">
-                  <span>Go to Capstone Submission</span>
-                  <ArrowRight className="w-3.5 h-3.5 ml-1" />
-                </Button>
-              </Link>
-            </div>
-          </div>
-
-          {/* Leaderboard Table Column */}
-          <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6 space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h3 className="text-lg font-bold text-brand-dark flex items-center space-x-2">
-                  <TrendingUp className="w-5 h-5 text-brand-purple" />
-                  <span>Cohort Performance Rankings</span>
-                </h3>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  Updated hourly based on quiz grades, capstone submissions, and daily participation.
-                </p>
-              </div>
-
-              {/* Filter */}
-              <div className="flex items-center space-x-2 text-xs">
-                <button
-                  onClick={() => setFilterTrack("ALL")}
-                  className={`px-3 py-1.5 rounded-lg font-semibold transition-colors ${
-                    filterTrack === "ALL" ? "bg-brand-navy text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                  }`}
-                >
-                  All Tracks
-                </button>
-                <button
-                  onClick={() => setFilterTrack("Web")}
-                  className={`px-3 py-1.5 rounded-lg font-semibold transition-colors ${
-                    filterTrack === "Web" ? "bg-brand-navy text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                  }`}
-                >
-                  Web Dev
-                </button>
-                <button
-                  onClick={() => setFilterTrack("AI")}
-                  className={`px-3 py-1.5 rounded-lg font-semibold transition-colors ${
-                    filterTrack === "AI" ? "bg-brand-navy text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                  }`}
-                >
-                  AI Prompt
-                </button>
-              </div>
-            </div>
-
-            {/* Leaderboard Rows */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-gray-100 text-gray-400 font-semibold uppercase tracking-wider">
-                    <th className="pb-3 px-2">Rank</th>
-                    <th className="pb-3 px-3">Trainee</th>
-                    <th className="pb-3 px-3">Track</th>
-                    <th className="pb-3 px-3 text-center">Streak</th>
-                    <th className="pb-3 px-3 text-center">Badges</th>
-                    <th className="pb-3 px-3 text-right">XP Points</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {filteredLeaderboard.map((student) => {
-                    const isTop3 = student.rank <= 3;
-                    return (
-                      <tr
-                        key={student.id}
-                        className={`hover:bg-brand-lavender/30 transition-colors ${
-                          student.name.includes("Chukwudi") ? "bg-brand-purple/5 font-bold" : ""
-                        }`}
-                      >
-                        <td className="py-3 px-2">
-                          <span
-                            className={`w-6 h-6 rounded-full inline-flex items-center justify-center font-bold text-xs ${
-                              student.rank === 1
-                                ? "bg-amber-400 text-brand-dark"
-                                : student.rank === 2
-                                ? "bg-gray-300 text-brand-dark"
-                                : student.rank === 3
-                                ? "bg-amber-700 text-white"
-                                : "text-gray-500"
-                            }`}
-                          >
-                            {student.rank}
-                          </span>
-                        </td>
-                        <td className="py-3 px-3">
-                          <div className="flex items-center space-x-2.5">
-                            <div className="w-8 h-8 rounded-full bg-brand-navy text-white font-bold flex items-center justify-center text-xs shrink-0">
-                              {student.avatarText}
-                            </div>
-                            <div>
-                              <p className="font-bold text-brand-dark text-xs">{student.name}</p>
-                              {student.name.includes("Chukwudi") && (
-                                <span className="text-[10px] text-brand-purple font-semibold">You</span>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-3 px-3 text-gray-600 truncate max-w-[150px]">{student.track}</td>
-                        <td className="py-3 px-3 text-center">
-                          <span className="font-semibold text-orange-600 inline-flex items-center">
-                            <Flame className="w-3.5 h-3.5 mr-0.5 inline" />
-                            {student.streakDays}d
-                          </span>
-                        </td>
-                        <td className="py-3 px-3 text-center font-semibold text-gray-700">
-                          {student.badgesCount}
-                        </td>
-                        <td className="py-3 px-3 text-right font-black text-brand-purple text-sm">
-                          {student.xpPoints.toLocaleString()}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Main Grid */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full space-y-10">
+        {/* Top Gamer Profile Widget */}
+        <div className="bg-white rounded-3xl border border-[#E6E1F5] p-6 sm:p-8 shadow-xs">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6">
+            <div>
+              <span className="text-xs uppercase font-bold text-[#7928CA] tracking-wider block mb-1">
+                Your Current Status & Standing
+              </span>
+              <h2 className="text-2xl font-black text-[#18143D]">
+                Level {profile.level}: {profile.levelTitle}
+              </h2>
+              <p className="text-xs text-[#645F80] mt-1">
+                550 XP needed to reach Level 5 (&quot;Full-Stack Engineer Pioneer&quot;)
+              </p>
+            </div>
+
+            <div className="w-full md:w-72">
+              <div className="flex items-center justify-between text-xs font-bold text-[#18143D] mb-1.5">
+                <span>XP Progress</span>
+                <span>{profile.xpPoints} / 2,000 XP</span>
+              </div>
+              <div className="w-full bg-[#E6E1F5] rounded-full h-3 overflow-hidden">
+                <div
+                  className="bg-gradient-to-r from-[#7928CA] to-[#8B5CF6] h-full transition-all duration-500"
+                  style={{ width: `${(profile.xpPoints / 2000) * 100}%` }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Badges Drawer */}
+          <div>
+            <h3 className="text-sm font-black text-[#18143D] mb-3">
+              Unlocked Achievements & Badges ({profile.badges.filter((b) => b.isUnlocked).length} / {profile.badges.length})
+            </h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+              {profile.badges.map((badge) => (
+                <div
+                  key={badge.id}
+                  className={`p-4 rounded-2xl border text-center transition-all ${
+                    badge.isUnlocked
+                      ? "bg-[#FAF8FF] border-[#D1C9EB] shadow-xs"
+                      : "bg-gray-50 border-gray-200 opacity-50"
+                  }`}
+                >
+                  <div className="text-3xl mb-2">{badge.icon}</div>
+                  <h4 className="font-bold text-xs text-[#18143D] mb-1">
+                    {badge.title}
+                  </h4>
+                  <p className="text-[10px] text-[#645F80] leading-snug">
+                    {badge.description}
+                  </p>
+                  {badge.isUnlocked ? (
+                    <span className="inline-block mt-2 text-[9px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                      Unlocked
+                    </span>
+                  ) : (
+                    <span className="inline-block mt-2 text-[9px] font-bold text-gray-500">
+                      Locked
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Cohort Leaderboard Table */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 bg-white rounded-3xl border border-[#E6E1F5] shadow-xs overflow-hidden">
+            <div className="p-6 border-b border-[#F0EDF9] flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-black text-[#18143D]">
+                  Cohort Top Learners
+                </h3>
+                <p className="text-xs text-[#645F80]">
+                  Rankings update in real-time as students complete lessons and pass technical exams.
+                </p>
+              </div>
+              <Trophy className="w-6 h-6 text-amber-500" />
+            </div>
+
+            <div className="divide-y divide-[#F0EDF9]">
+              {leaderboard.map((student) => {
+                let rankIcon = null;
+                if (student.rank === 1) rankIcon = <Crown className="w-5 h-5 text-amber-500" />;
+                else if (student.rank === 2) rankIcon = <Medal className="w-5 h-5 text-gray-400" />;
+                else if (student.rank === 3) rankIcon = <Medal className="w-5 h-5 text-amber-700" />;
+
+                return (
+                  <div
+                    key={student.id}
+                    className={`p-4 px-6 flex items-center justify-between gap-4 transition-colors ${
+                      student.id === "stu-001" ? "bg-purple-50/50" : "hover:bg-[#FAF8FF]"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-8 text-center font-black text-sm text-[#18143D] flex items-center justify-center">
+                        {rankIcon || `#${student.rank}`}
+                      </div>
+
+                      <div className="w-9 h-9 rounded-2xl bg-[#18143D] text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                        {student.avatarText}
+                      </div>
+
+                      <div>
+                        <div className="font-bold text-sm text-[#18143D] flex items-center gap-1.5">
+                          {student.name}
+                          {student.id === "stu-001" && (
+                            <span className="text-[10px] bg-[#7928CA] text-white px-2 py-0.2 rounded-full font-bold">
+                              You
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[11px] text-[#8580A3]">
+                          {student.track}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-6 text-right">
+                      <div className="hidden sm:block">
+                        <span className="text-xs font-bold text-orange-600 flex items-center gap-1">
+                          <Flame className="w-3.5 h-3.5" /> {student.streakDays}d streak
+                        </span>
+                      </div>
+
+                      <div>
+                        <span className="text-sm font-black text-[#18143D] block">
+                          {student.xpPoints.toLocaleString()} XP
+                        </span>
+                        <span className="text-[10px] text-[#8580A3]">
+                          {student.badgesCount} badges
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* XP Rules & How to Level Up */}
+          <div className="space-y-6">
+            <div className="bg-white rounded-3xl border border-[#E6E1F5] p-6 shadow-xs space-y-4">
+              <h3 className="font-black text-base text-[#18143D] flex items-center gap-2">
+                <Zap className="w-5 h-5 text-amber-500" /> How to Earn XP Points
+              </h3>
+
+              <div className="space-y-2.5 text-xs text-[#4A4568]">
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#FAF8FF] border border-[#E6E1F5]">
+                  <span>Complete a Video Lesson:</span>
+                  <strong className="text-[#7928CA] font-black">+50 XP</strong>
+                </div>
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#FAF8FF] border border-[#E6E1F5]">
+                  <span>Pass Technical Assessment Exam:</span>
+                  <strong className="text-[#7928CA] font-black">+150 XP</strong>
+                </div>
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#FAF8FF] border border-[#E6E1F5]">
+                  <span>Submit Live Capstone Project:</span>
+                  <strong className="text-emerald-700 font-black">+500 XP</strong>
+                </div>
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#FAF8FF] border border-[#E6E1F5]">
+                  <span>7-Day Daily Study Streak:</span>
+                  <strong className="text-orange-600 font-black">+200 XP</strong>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-br from-[#18143D] to-[#2E1065] text-white rounded-3xl p-6 shadow-xl space-y-3">
+              <Badge variant="gold">EMPLOYER SHOWCASE</Badge>
+              <h4 className="text-lg font-black">
+                Top 10 Leaderboard Recognition
+              </h4>
+              <p className="text-xs text-[#C4BDE7] leading-relaxed">
+                The top 10 ranked students in each cohort are featured directly in our institutional employer matchmaking portfolio distributed to hiring tech firms in Lagos, Abuja, and abroad.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <Footer />
     </div>
   );
 }
+

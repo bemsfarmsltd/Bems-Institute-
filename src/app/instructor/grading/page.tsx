@@ -29,6 +29,7 @@ function InstructorGradingContent() {
     "Outstanding responsive layout, clean semantic tags, and reliable API consumption. Approved with distinction!"
   );
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isGrading, setIsGrading] = useState(false);
 
   // submissions loads asynchronously — default to the first one once it lands.
@@ -49,10 +50,17 @@ function InstructorGradingContent() {
     e.preventDefault();
     if (!selectedSub) return;
     setError(null);
+    setSuccessMessage(null);
     setIsGrading(true);
     try {
       await gradeSubmission(selectedSub.id, scoreInput, feedbackInput);
-      alert(`Submission graded successfully! Certificate has been generated for ${selectedSub.studentName}.`);
+      setSuccessMessage(
+        `Submission graded (${scoreInput}/100)! ${
+          scoreInput >= 70
+            ? `Verified BEMS Certificate issued for ${selectedSub.studentName}.`
+            : `Recorded for ${selectedSub.studentName}.`
+        }`
+      );
     } catch {
       setError("Could not save this grade. Please try again.");
     } finally {
@@ -80,15 +88,30 @@ function InstructorGradingContent() {
             </p>
           </div>
 
-          <Link href="/dashboard">
+          <Link href="/instructor">
             <Button variant="outline" size="sm" className="bg-white/10 text-white border-white/20 hover:bg-white/20">
-              <ArrowLeft className="w-4 h-4 mr-1.5" /> Back to Student Dashboard
+              <ArrowLeft className="w-4 h-4 mr-1.5" /> Back to Instructor Studio
             </Button>
           </Link>
         </div>
       </div>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full">
+        {successMessage && (
+          <div className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-3.5 text-xs font-bold text-emerald-800 flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              {successMessage}
+            </span>
+            <button
+              type="button"
+              onClick={() => setSuccessMessage(null)}
+              className="text-emerald-600 hover:text-emerald-900 text-xs font-bold"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* Left 4-5 Cols: Submissions List */}

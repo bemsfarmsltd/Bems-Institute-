@@ -14,6 +14,8 @@ import {
   Copy
 } from "lucide-react";
 import Button from "@/components/ui/button";
+import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 
 const DEFAULT_HTML = `<div class="card">
   <div class="badge">BEMS FutureSkills 2026</div>
@@ -174,8 +176,9 @@ export default function SandboxPage() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-light/30 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen flex flex-col bg-brand-light/30">
+      <Navbar />
+      <div className="max-w-7xl mx-auto w-full flex-1 py-8 px-4 sm:px-6 lg:px-8 space-y-6">
         {/* Header */}
         <div className="bg-gradient-to-r from-brand-navy via-brand-dark to-purple-900 rounded-3xl p-6 md:p-8 text-white flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
           <div className="space-y-1">
@@ -333,6 +336,7 @@ export default function SandboxPage() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

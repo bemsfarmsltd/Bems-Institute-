@@ -21,7 +21,7 @@ const DEMO_INSTRUCTOR = { email: "victor.lead@bemsinstitute.ng", password: "demo
 
 function routeForRole(role: string, router: ReturnType<typeof useRouter>) {
   if (role === "ADMIN") router.push("/admin");
-  else if (role === "INSTRUCTOR") router.push("/instructor/grading");
+  else if (role === "INSTRUCTOR") router.push("/instructor");
   else router.push("/dashboard");
 }
 

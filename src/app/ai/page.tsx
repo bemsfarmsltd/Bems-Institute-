@@ -20,6 +20,8 @@ import {
   RefreshCw
 } from "lucide-react";
 import Button from "@/components/ui/button";
+import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 import {
   AIChatMessage,
   GeneratedQuiz,
@@ -31,29 +33,49 @@ import {
 function AIHubContent() {
   const searchParams = useSearchParams();
   const initialTab = searchParams.get("tab") || "tutor";
+  const initialCourse = searchParams.get("courseId") || searchParams.get("course") || "web-dev";
+  const initialLessonTitle = searchParams.get("lessonTitle") || "";
 
   const [activeTab, setActiveTab] = useState<"tutor" | "quiz" | "study-plan" | "feedback" | "recommendations">(
     (initialTab as any) || "tutor"
   );
 
   // 1. AI Tutor State
-  const [tutorName, setTutorName] = useState("Mr. Victor");
-  const [track, setTrack] = useState("web-dev");
+  const [tutorName, setTutorName] = useState(
+    initialCourse === "ai-automation"
+      ? "Dr. Amaka"
+      : initialCourse === "digital-marketing"
+      ? "Mrs. Funke"
+      : initialCourse === "graphic-design"
+      ? "Mr. Tunde"
+      : "Mr. Victor"
+  );
+  const [track, setTrack] = useState(initialCourse);
   const [tutorInput, setTutorInput] = useState("");
   const [tutorMessages, setTutorMessages] = useState<AIChatMessage[]>([
     {
       id: "welcome-1",
       role: "assistant",
-      content: "Hello! I'm Mr. Victor Okeke, Lead Web Development Instructor at BEMS Institute of Technology. What are you building or debugging today? Ask me any question about HTML, CSS, JavaScript, Next.js, or your capstone!",
+      content: initialLessonTitle
+        ? `Hello! I see you're studying "${initialLessonTitle}". Ask me to explain any concept from this lesson, walk through code examples, or test you with a quick question!`
+        : "Hello! I'm Mr. Victor Okeke, Lead Web Development Instructor at BEMS Institute of Technology. What are you building or debugging today? Ask me any question about HTML, CSS, JavaScript, Next.js, or your capstone!",
       timestamp: "Just now"
     }
   ]);
   const [isTutorLoading, setIsTutorLoading] = useState(false);
-  const [suggestedPrompts, setSuggestedPrompts] = useState<string[]>([
-    "How do I center a div using CSS Flexbox vs Grid?",
-    "Explain async/await with a real Paystack API fetch example",
-    "What are the requirements to pass the Capstone project?"
-  ]);
+  const [suggestedPrompts, setSuggestedPrompts] = useState<string[]>(
+    initialLessonTitle
+      ? [
+          `Explain "${initialLessonTitle}" simply with a real-world analogy`,
+          `Give me a practical code example for "${initialLessonTitle}"`,
+          `Quiz me with 1 question on "${initialLessonTitle}"`
+        ]
+      : [
+          "How do I center a div using CSS Flexbox vs Grid?",
+          "Explain async/await with a real Paystack API fetch example",
+          "What are the requirements to pass the Capstone project?"
+        ]
+  );
   const [ragSources, setRagSources] = useState<
     { id: string; title: string; sourceType: string; lessonUrl?: string }[]
   >([]);
@@ -262,8 +284,9 @@ function AIHubContent() {
   };
 
   return (
-    <div className="min-h-screen bg-brand-light/30 py-10 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen flex flex-col bg-brand-light/30">
+      <Navbar />
+      <div className="max-w-7xl mx-auto w-full flex-1 py-10 px-4 sm:px-6 lg:px-8 space-y-8">
         {/* Header Hero */}
         <div className="rounded-3xl bg-gradient-to-r from-brand-navy via-brand-dark to-purple-900 text-white p-8 md:p-12 shadow-xl relative overflow-hidden">
           <div className="absolute -right-16 -top-16 w-80 h-80 bg-brand-purple/20 rounded-full blur-3xl pointer-events-none" />
@@ -1014,6 +1037,7 @@ function AIHubContent() {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 }

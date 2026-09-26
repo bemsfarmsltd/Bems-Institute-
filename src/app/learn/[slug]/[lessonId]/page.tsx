@@ -118,7 +118,18 @@ export default function LessonViewPage({
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <Link
+              href={`/ai?tab=tutor&courseId=${encodeURIComponent(course.id)}&lessonTitle=${encodeURIComponent(currentLesson.title)}`}
+            >
+              <Button
+                variant="purple"
+                size="sm"
+                className="shadow-xs text-xs"
+              >
+                <Sparkles className="w-3.5 h-3.5 mr-1.5" /> Ask AI Tutor
+              </Button>
+            </Link>
             <Link href={`/learn/${slug}/quiz/quiz-${slug}`}>
               <Button
                 variant="outline"

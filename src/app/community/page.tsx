@@ -1,251 +1,207 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
+import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
-  MessageSquare,
   Hash,
   Send,
-  Heart,
-  Code,
-  Share2,
+  Code2,
+  ThumbsUp,
+  MessageCircle,
   Users,
   Search,
   Sparkles,
-  Info
+  Paperclip
 } from "lucide-react";
-import Button from "@/components/ui/button";
-import { mockChannels, mockMessages } from "@/data/advanced-data";
+import { COMMUNITY_CHANNELS, INITIAL_COMMUNITY_MESSAGES } from "@/data/advanced-data";
 import { CommunityChannel, CommunityMessage } from "@/types/advanced";
 
 export default function CommunityPage() {
-  const [selectedChannel, setSelectedChannel] = useState<CommunityChannel>(mockChannels[1]);
-  const [messages, setMessages] = useState<CommunityMessage[]>(mockMessages);
-  const [newMessageText, setNewMessageText] = useState("");
-  const [codeSnippet, setCodeSnippet] = useState("");
+  const [channels] = useState<CommunityChannel[]>(COMMUNITY_CHANNELS);
+  const [activeChannelId, setActiveChannelId] = useState<string>("chan-web-dev");
+  const [messages, setMessages] = useState<CommunityMessage[]>(INITIAL_COMMUNITY_MESSAGES);
+  const [messageText, setMessageText] = useState("");
   const [showCodeInput, setShowCodeInput] = useState(false);
+  const [codeSnippet, setCodeSnippet] = useState("");
 
-  const channelMessages = messages.filter((m) => m.channelId === selectedChannel.id);
+  const activeChannel = channels.find((c) => c.id === activeChannelId) || channels[0];
+  const channelMessages = messages.filter((m) => m.channelId === activeChannelId);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessageText.trim() && !codeSnippet.trim()) return;
+    if (!messageText.trim() && !codeSnippet.trim()) return;
 
     const newMsg: CommunityMessage = {
       id: `msg-${Date.now()}`,
-      channelId: selectedChannel.id,
-      senderName: "Chukwudi Nwachukwu",
+      channelId: activeChannelId,
+      senderName: "Chinedu Okeke",
       senderRole: "STUDENT",
-      content: newMessageText.trim(),
-      codeSnippet: codeSnippet.trim() ? codeSnippet.trim() : undefined,
+      content: messageText,
+      codeSnippet: codeSnippet.trim() ? codeSnippet : undefined,
       likes: 0,
       timestamp: "Just now"
     };
 
     setMessages((prev) => [...prev, newMsg]);
-    setNewMessageText("");
+    setMessageText("");
     setCodeSnippet("");
     setShowCodeInput(false);
   };
 
-  const handleLike = (id: string) => {
+  const handleLike = (msgId: string) => {
     setMessages((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, likes: m.likes + 1 } : m))
+      prev.map((m) => (m.id === msgId ? { ...m, likes: m.likes + 1 } : m))
     );
   };
 
   return (
-    <div className="min-h-screen bg-brand-light/30 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-brand-navy via-brand-dark to-purple-900 rounded-3xl p-6 md:p-8 text-white flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xl">
-          <div className="space-y-1">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-brand-purple/30 border border-brand-purple/40 text-purple-200 text-xs font-semibold uppercase">
-              <Users className="w-3.5 h-3.5" />
-              <span>BEMS Peer Network • October 2026 Cohort</span>
+    <div className="min-h-screen flex flex-col bg-[#FAF8FF]">
+      <Navbar />
+
+      {/* Header Banner */}
+      <div className="bg-[#18143D] text-white py-8 border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <Badge variant="purple">PHASE 5 COMMUNITY & PEER LEARNING</Badge>
+              <Badge variant="gold">OCTOBER 2026 COHORT</Badge>
             </div>
-            <h1 className="text-2xl md:text-3xl font-black">Cohort Community & Peer Exchange</h1>
-            <p className="text-xs md:text-sm text-purple-100/80">
-              Collaborate, debug code snippets, share freelance gigs, and connect with faculty across all accelerator tracks.
+            <h1 className="text-2xl sm:text-3xl font-black">
+              BEMS FutureSkills Community Forum
+            </h1>
+            <p className="text-xs sm:text-sm text-[#A5A0C8]">
+              Collaborate with fellow students, discuss lab code with instructors, and share project wins.
             </p>
           </div>
-          <div className="text-xs bg-white/10 px-4 py-2.5 rounded-xl border border-white/20 text-purple-100 flex items-center space-x-2 shrink-0">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span>128 Trainees & Instructors Active</span>
+
+          <div className="flex items-center gap-3">
+            <a
+              href="https://chat.whatsapp.com/BEMS-FutureSkills-2026"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <Button className="bg-[#25D366] hover:bg-[#20bd5a] text-[#18143D] font-bold text-xs shadow-md">
+                <MessageCircle className="w-4 h-4 mr-1.5" /> WhatsApp Community Link
+              </Button>
+            </a>
           </div>
         </div>
+      </div>
 
-        {/* Community Work Area */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[720px]">
-          {/* Sidebar Channels */}
-          <div className="lg:col-span-1 bg-white rounded-2xl border border-gray-200/80 shadow-sm p-4 flex flex-col justify-between overflow-y-auto">
-            <div className="space-y-6">
-              {/* Campus Hub */}
-              <div>
-                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider px-2 mb-2">
-                  Campus Hub
-                </p>
-                <div className="space-y-1">
-                  {mockChannels
-                    .filter((c) => c.category === "CAMPUS_HUB")
-                    .map((channel) => (
-                      <button
-                        key={channel.id}
-                        onClick={() => setSelectedChannel(channel)}
-                        className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium flex items-center justify-between transition-colors ${
-                          selectedChannel.id === channel.id
-                            ? "bg-brand-purple text-white shadow-xs"
-                            : "text-gray-700 hover:bg-gray-100"
-                        }`}
-                      >
-                        <span className="truncate">{channel.name}</span>
-                        {channel.unreadCount && (
-                          <span className="ml-2 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-red-500 text-white">
-                            {channel.unreadCount}
-                          </span>
-                        )}
-                      </button>
-                    ))}
-                </div>
+      {/* Main Forum Workspace */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 bg-white rounded-3xl border border-[#E6E1F5] shadow-xs overflow-hidden h-[700px]">
+          {/* Left Channels Sidebar */}
+          <div className="p-4 border-r border-[#F0EDF9] bg-[#FAF8FF] flex flex-col justify-between">
+            <div className="space-y-4">
+              <div className="px-2">
+                <span className="text-xs font-black uppercase tracking-wider text-[#645F80]">
+                  Cohort Channels
+                </span>
               </div>
 
-              {/* Class Tracks */}
-              <div>
-                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider px-2 mb-2">
-                  Class Tracks
-                </p>
-                <div className="space-y-1">
-                  {mockChannels
-                    .filter((c) => c.category === "CLASS_TRACKS")
-                    .map((channel) => (
-                      <button
-                        key={channel.id}
-                        onClick={() => setSelectedChannel(channel)}
-                        className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium flex items-center justify-between transition-colors ${
-                          selectedChannel.id === channel.id
-                            ? "bg-brand-purple text-white shadow-xs"
-                            : "text-gray-700 hover:bg-gray-100"
-                        }`}
-                      >
-                        <span className="truncate">{channel.name}</span>
-                        {channel.unreadCount && (
-                          <span className="ml-2 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-red-500 text-white">
-                            {channel.unreadCount}
-                          </span>
-                        )}
-                      </button>
-                    ))}
-                </div>
-              </div>
-
-              {/* Career & Jobs */}
-              <div>
-                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider px-2 mb-2">
-                  Career & Gigs
-                </p>
-                <div className="space-y-1">
-                  {mockChannels
-                    .filter((c) => c.category === "CAREER")
-                    .map((channel) => (
-                      <button
-                        key={channel.id}
-                        onClick={() => setSelectedChannel(channel)}
-                        className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium flex items-center justify-between transition-colors ${
-                          selectedChannel.id === channel.id
-                            ? "bg-brand-purple text-white shadow-xs"
-                            : "text-gray-700 hover:bg-gray-100"
-                        }`}
-                      >
-                        <span className="truncate">{channel.name}</span>
-                        {channel.unreadCount && (
-                          <span className="ml-2 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-red-500 text-white">
-                            {channel.unreadCount}
-                          </span>
-                        )}
-                      </button>
-                    ))}
-                </div>
+              <div className="space-y-1">
+                {channels.map((chan) => (
+                  <button
+                    key={chan.id}
+                    onClick={() => setActiveChannelId(chan.id)}
+                    className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between ${
+                      activeChannelId === chan.id
+                        ? "bg-[#7928CA] text-white shadow-xs"
+                        : "text-[#4A4568] hover:bg-white hover:text-[#18143D]"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 truncate">
+                      <Hash className="w-3.5 h-3.5 flex-shrink-0 opacity-70" />
+                      <span className="truncate">{chan.name}</span>
+                    </div>
+                    {chan.unreadCount ? (
+                      <span className="px-1.5 py-0.2 rounded-full bg-red-500 text-white text-[10px]">
+                        {chan.unreadCount}
+                      </span>
+                    ) : null}
+                  </button>
+                ))}
               </div>
             </div>
 
-            <div className="pt-4 border-t border-gray-100 text-[11px] text-gray-400">
-              BEMS FutureSkills Rules: Be respectful, share reproducible code snippets, and celebrate peer wins!
+            <div className="p-3 bg-white rounded-2xl border border-[#E6E1F5] text-xs space-y-1.5">
+              <span className="font-bold text-[#18143D] block">Physical Lab Support</span>
+              <p className="text-[11px] text-[#645F80]">
+                Umuahia Lab workstations are available weekdays 8 AM - 6 PM.
+              </p>
             </div>
           </div>
 
-          {/* Main Messages Forum */}
-          <div className="lg:col-span-3 bg-white rounded-2xl border border-gray-200/80 shadow-sm flex flex-col h-full overflow-hidden">
+          {/* Right Message Stream */}
+          <div className="lg:col-span-3 flex flex-col justify-between">
             {/* Channel Header */}
-            <div className="px-6 py-3.5 border-b border-gray-100 bg-gray-50/60 flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-bold text-brand-dark flex items-center space-x-1.5">
-                  <Hash className="w-4 h-4 text-brand-purple" />
-                  <span>{selectedChannel.name}</span>
-                </h3>
-                <p className="text-xs text-gray-500 mt-0.5">{selectedChannel.description}</p>
+            <div className="p-4 px-6 border-b border-[#F0EDF9] flex items-center justify-between bg-white">
+              <div className="flex items-center gap-2">
+                <Hash className="w-5 h-5 text-[#7928CA]" />
+                <div>
+                  <h3 className="font-black text-sm text-[#18143D]">
+                    {activeChannel.name}
+                  </h3>
+                  <p className="text-[11px] text-[#645F80]">
+                    {activeChannel.description}
+                  </p>
+                </div>
               </div>
+
+              <Badge variant="purple">Channel Active</Badge>
             </div>
 
             {/* Messages Feed */}
-            <div className="flex-1 p-6 overflow-y-auto space-y-5">
+            <div className="flex-1 p-6 overflow-y-auto space-y-4">
               {channelMessages.length === 0 ? (
-                <div className="text-center py-16 space-y-2">
-                  <MessageSquare className="w-10 h-10 text-gray-300 mx-auto" />
-                  <p className="text-sm font-semibold text-gray-600">No messages in this channel yet</p>
-                  <p className="text-xs text-gray-400">Be the first to share an update, question, or project link!</p>
+                <div className="h-full flex flex-col items-center justify-center text-center text-[#8580A3] space-y-2">
+                  <MessageCircle className="w-10 h-10 opacity-30" />
+                  <p className="text-xs">No messages yet in this channel. Be the first to start the discussion!</p>
                 </div>
               ) : (
                 channelMessages.map((msg) => (
-                  <div key={msg.id} className="p-4 rounded-2xl border border-gray-100 bg-gray-50/40 space-y-3">
+                  <div key={msg.id} className="p-4 rounded-2xl bg-[#FAF8FF] border border-[#E6E1F5] space-y-2.5">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2.5">
-                        <div
-                          className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-[10px] text-white ${
+                      <div className="flex items-center gap-2">
+                        <span className="w-7 h-7 rounded-full bg-[#18143D] text-white flex items-center justify-center text-xs font-bold">
+                          {msg.senderName.substring(0, 2)}
+                        </span>
+                        <span className="font-bold text-xs text-[#18143D]">
+                          {msg.senderName}
+                        </span>
+                        <span
+                          className={`text-[10px] px-2 py-0.2 rounded-full font-bold ${
                             msg.senderRole === "INSTRUCTOR"
-                              ? "bg-brand-purple"
-                              : msg.senderRole === "ALUMNI"
-                              ? "bg-emerald-600"
-                              : "bg-brand-navy"
+                              ? "bg-purple-100 text-[#7928CA]"
+                              : "bg-blue-100 text-blue-800"
                           }`}
                         >
-                          {msg.senderName.substring(0, 2).toUpperCase()}
-                        </div>
-                        <div>
-                          <span className="text-xs font-bold text-brand-dark">{msg.senderName}</span>
-                          <span
-                            className={`ml-2 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
-                              msg.senderRole === "INSTRUCTOR"
-                                ? "bg-purple-100 text-purple-800"
-                                : msg.senderRole === "ALUMNI"
-                                ? "bg-emerald-100 text-emerald-800"
-                                : "bg-gray-200 text-gray-700"
-                            }`}
-                          >
-                            {msg.senderRole}
-                          </span>
-                        </div>
+                          {msg.senderRole}
+                        </span>
                       </div>
-                      <span className="text-[10px] text-gray-400">{msg.timestamp}</span>
+                      <span className="text-[10px] text-[#8580A3]">{msg.timestamp}</span>
                     </div>
 
-                    <p className="text-xs md:text-sm text-gray-700 leading-relaxed">{msg.content}</p>
+                    <p className="text-xs text-[#4A4568] leading-relaxed">{msg.content}</p>
 
                     {msg.codeSnippet && (
-                      <div className="rounded-xl bg-brand-navy p-3 text-white font-mono text-xs overflow-x-auto shadow-inner">
+                      <div className="bg-[#18143D] text-[#E6E1F5] p-3 rounded-xl font-mono text-[11px] overflow-x-auto">
                         <pre>{msg.codeSnippet}</pre>
                       </div>
                     )}
 
-                    <div className="flex items-center space-x-4 pt-1 text-xs text-gray-500">
+                    <div className="flex items-center gap-2 pt-1">
                       <button
                         onClick={() => handleLike(msg.id)}
-                        className="flex items-center space-x-1.5 hover:text-red-500 transition-colors"
+                        className="inline-flex items-center gap-1 text-[11px] text-[#645F80] hover:text-[#7928CA] font-semibold bg-white px-2.5 py-1 rounded-lg border border-[#E6E1F5] transition-colors cursor-pointer"
                       >
-                        <Heart className="w-3.5 h-3.5" />
+                        <ThumbsUp className="w-3 h-3 text-[#7928CA]" />
                         <span>{msg.likes}</span>
-                      </button>
-                      <button className="flex items-center space-x-1 hover:text-brand-purple transition-colors">
-                        <Share2 className="w-3.5 h-3.5" />
-                        <span>Share</span>
                       </button>
                     </div>
                   </div>
@@ -254,58 +210,55 @@ export default function CommunityPage() {
             </div>
 
             {/* Input Composer */}
-            <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-100 bg-white space-y-3">
+            <form onSubmit={handleSendMessage} className="p-4 border-t border-[#F0EDF9] bg-white space-y-3">
               {showCodeInput && (
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between text-[11px] text-gray-500">
-                    <span className="font-semibold text-brand-purple">Attach Code Snippet:</span>
-                    <button
-                      type="button"
-                      onClick={() => setShowCodeInput(false)}
-                      className="text-gray-400 hover:text-gray-600"
-                    >
-                      Cancel
-                    </button>
-                  </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-[#645F80] mb-1">
+                    Attach Code Snippet
+                  </label>
                   <textarea
-                    rows={4}
+                    rows={3}
+                    placeholder="Paste HTML, CSS, or JavaScript code..."
                     value={codeSnippet}
                     onChange={(e) => setCodeSnippet(e.target.value)}
-                    placeholder="// Paste JavaScript, HTML, CSS, or Python code here..."
-                    className="w-full p-3 rounded-xl border border-gray-200 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-brand-purple/30 bg-gray-50"
+                    className="w-full p-2.5 rounded-xl border border-[#D1C9EB] font-mono text-xs text-[#18143D] focus:outline-hidden"
                   />
                 </div>
               )}
 
-              <div className="flex items-center space-x-2">
-                <input
-                  type="text"
-                  value={newMessageText}
-                  onChange={(e) => setNewMessageText(e.target.value)}
-                  placeholder={`Post message to ${selectedChannel.name}...`}
-                  className="flex-1 px-4 py-2.5 text-xs md:text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-purple/30"
-                />
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setShowCodeInput(!showCodeInput)}
-                  className={`p-2.5 rounded-xl border transition-colors ${
+                  title="Attach code snippet"
+                  className={`p-2 rounded-xl border text-xs font-bold transition-colors ${
                     showCodeInput
-                      ? "bg-brand-purple/10 border-brand-purple text-brand-purple"
-                      : "border-gray-200 text-gray-600 hover:bg-gray-100"
+                      ? "bg-[#7928CA] text-white border-[#7928CA]"
+                      : "border-[#D1C9EB] text-[#645F80] hover:bg-[#FAF8FF]"
                   }`}
-                  title="Attach Code"
                 >
-                  <Code className="w-4 h-4" />
+                  <Code2 className="w-4 h-4" />
                 </button>
-                <Button type="submit" variant="purple" className="shrink-0 px-4 py-2.5 text-xs">
-                  <Send className="w-3.5 h-3.5 mr-1" />
-                  <span>Send</span>
+
+                <input
+                  type="text"
+                  placeholder={`Message #${activeChannel.name}...`}
+                  value={messageText}
+                  onChange={(e) => setMessageText(e.target.value)}
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-[#D1C9EB] text-xs text-[#18143D] focus:border-[#7928CA] focus:outline-hidden"
+                />
+
+                <Button type="submit" variant="purple" size="sm" className="px-4">
+                  <Send className="w-4 h-4" />
                 </Button>
               </div>
             </form>
           </div>
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 }
+

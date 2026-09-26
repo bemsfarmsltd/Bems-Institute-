@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use } from "react";
+import React, { use, useState } from "react";
 import Link from "next/link";
 import { useLMS } from "@/context/LMSContext";
 import { Navbar } from "@/components/Navbar";
@@ -24,6 +24,7 @@ export default function CertificateViewPage({
 }) {
   const { certId } = use(params);
   const { certificates, user, isHydrated } = useLMS();
+  const [copiedUrl, setCopiedUrl] = useState(false);
 
   // Find certificate by id or certNumber
   const certificate = certificates.find(
@@ -71,7 +72,8 @@ export default function CertificateViewPage({
       });
     } else {
       navigator.clipboard.writeText(window.location.href);
-      alert("Certificate URL copied to clipboard for sharing!");
+      setCopiedUrl(true);
+      setTimeout(() => setCopiedUrl(false), 2500);
     }
   };
 
@@ -119,7 +121,15 @@ export default function CertificateViewPage({
               size="sm"
               className="shadow-sm"
             >
-              <Share2 className="w-4 h-4 mr-1.5" /> Share Credential
+              {copiedUrl ? (
+                <>
+                  <CheckCircle2 className="w-4 h-4 mr-1.5" /> Link Copied!
+                </>
+              ) : (
+                <>
+                  <Share2 className="w-4 h-4 mr-1.5" /> Share Credential
+                </>
+              )}
             </Button>
             <Link href={`/verify/${certificate.certNumber}`}>
               <Button

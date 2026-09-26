@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useLMS } from "@/context/LMSContext";
@@ -47,6 +47,14 @@ function AdminDashboardContent() {
   } = useLMS();
 
   const [activeTab, setActiveTab] = useState<string>(initialTab);
+  const [adminNotice, setAdminNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam && tabParam !== activeTab) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams, activeTab]);
 
   // Student filter & search state
   const [studentSearch, setStudentSearch] = useState("");
@@ -80,8 +88,9 @@ function AdminDashboardContent() {
     e.preventDefault();
     if (!newTitle.trim() || !newSlug.trim()) return;
 
+    const createdTitle = newTitle.trim();
     await addCourse({
-      title: newTitle,
+      title: createdTitle,
       slug: newSlug.toLowerCase().replace(/[^a-z0-9]/g, "-"),
       badge: "Newly Added Track",
       tutor: newTutor,
@@ -95,7 +104,7 @@ function AdminDashboardContent() {
     setShowAddCourseModal(false);
     setNewTitle("");
     setNewSlug("");
-    alert(`Course "${newTitle}" successfully added to the BEMS portal catalog!`);
+    setAdminNotice(`Course "${createdTitle}" has been added to the BEMS portal catalog.`);
   };
 
   return (
@@ -175,6 +184,22 @@ function AdminDashboardContent() {
 
       {/* Main Container */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-8">
+        {adminNotice && (
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-3.5 text-xs font-bold text-emerald-800 flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              {adminNotice}
+            </span>
+            <button
+              type="button"
+              onClick={() => setAdminNotice(null)}
+              className="text-emerald-600 hover:text-emerald-900 text-xs font-bold"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
         {/* ========================================================= */}
         {/* TAB 1: EXECUTIVE OVERVIEW                                 */}
         {/* ========================================================= */}
