@@ -22,6 +22,8 @@ import {
 import Button from "@/components/ui/button";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { useLMS } from "@/context/LMSContext";
+import { LearningInsights } from "@/components/LearningInsights";
 import {
   AIChatMessage,
   GeneratedQuiz,
@@ -32,6 +34,7 @@ import {
 
 function AIHubContent() {
   const searchParams = useSearchParams();
+  const { user, getCourseProgress } = useLMS();
   const initialTab = searchParams.get("tab") || "tutor";
   const initialCourse = searchParams.get("courseId") || searchParams.get("course") || "web-dev";
   const initialLessonTitle = searchParams.get("lessonTitle") || "";
@@ -90,15 +93,21 @@ function AIHubContent() {
   const [isQuizLoading, setIsQuizLoading] = useState(false);
 
   // 3. Study Plan State
-  const [studentName, setStudentName] = useState("Chukwudi Nwachukwu");
+  const [studentName, setStudentName] = useState(user?.name || "Chinedu Okeke");
   const [studyHours, setStudyHours] = useState(8);
   const [studyPace, setStudyPace] = useState<"Accelerated" | "Standard" | "Flexible Weekend">("Standard");
   const [studyPlan, setStudyPlan] = useState<AIStudyPlan | null>(null);
   const [isStudyLoading, setIsStudyLoading] = useState(false);
 
+  useEffect(() => {
+    if (user?.name) {
+      setStudentName(user.name);
+    }
+  }, [user?.name]);
+
   // 4. Code Feedback State
   const [codeSubmission, setCodeSubmission] = useState(
-    `// BEMS Capstone Submission\n// GitHub: https://github.com/chukwudi/bems-ecommerce\n// Live Demo: https://bems-store.vercel.app\n\nasync function verifyPayment(reference) {\n  const res = await fetch('/api/verify?ref=' + reference);\n  return res.json();\n}`
+    `// BEMS Capstone Submission\n// GitHub: https://github.com/chinedu/bems-ecommerce\n// Live Demo: https://bems-store.vercel.app\n\nasync function verifyPayment(reference) {\n  const res = await fetch('/api/verify?ref=' + reference);\n  return res.json();\n}`
   );
   const [feedbackResult, setFeedbackResult] = useState<AIFeedbackResult | null>(null);
   const [isFeedbackLoading, setIsFeedbackLoading] = useState(false);
@@ -262,14 +271,15 @@ function AIHubContent() {
   const loadRecommendations = async () => {
     setIsRecsLoading(true);
     try {
+      const liveProgress = getCourseProgress(track)?.percent || 50;
       const res = await fetch("/api/ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "recommendations",
           courseId: track,
-          progressPercent: 75,
-          quizScore: 92
+          progressPercent: liveProgress,
+          quizScore: 88
         })
       });
 
@@ -983,11 +993,13 @@ function AIHubContent() {
         {/* TAB 5: PERSONALIZED NEXT STEPS */}
         {/* ========================================================================= */}
         {activeTab === "recommendations" && (
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6 md:p-8 space-y-6">
+          <div className="space-y-6">
+            <LearningInsights />
+            <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6 md:p-8 space-y-6">
             <div className="max-w-2xl space-y-2">
               <h2 className="text-xl font-bold text-brand-dark flex items-center space-x-2">
                 <Award className="w-5 h-5 text-brand-purple" />
-                <span>Personalized Career & Academic Milestones</span>
+                <span>Personalized Career &amp; Academic Milestones</span>
               </h2>
               <p className="text-sm text-gray-600">
                 Tailored recommendations synthesized from your completed modules, exam performance, and career aspirations.
@@ -1034,6 +1046,7 @@ function AIHubContent() {
                 ))}
               </div>
             )}
+            </div>
           </div>
         )}
       </div>

@@ -42,6 +42,7 @@ export default function AssignmentSubmissionPage({
   const [notes, setNotes] = useState(existingSubmission?.notes || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // submissions loads asynchronously after mount — sync the form once a
   // prior submission for this user/assignment shows up.
@@ -82,14 +83,17 @@ export default function AssignmentSubmissionPage({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!githubUrl || !liveDemoUrl) {
-      alert("Please provide both your GitHub Repository URL and Live Hosted Demo URL.");
+      setError("Please provide both your GitHub Repository URL and Live Hosted Demo URL.");
       return;
     }
     setError(null);
+    setSuccessMessage(null);
     setIsSubmitting(true);
     try {
       await submitAssignment(assignment.id, githubUrl, liveDemoUrl, notes);
-      alert("Capstone project submitted successfully! Our lead tutor has been notified.");
+      setSuccessMessage(
+        `Capstone project submitted! Lead instructor ${course.tutor} has been notified for grading.`
+      );
     } catch {
       setError("Could not submit your capstone. Please sign in and try again.");
     } finally {
@@ -126,6 +130,21 @@ export default function AssignmentSubmissionPage({
       </div>
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-12 flex-1 w-full space-y-10">
+        {successMessage && (
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-3.5 text-xs font-bold text-emerald-800 flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              {successMessage}
+            </span>
+            <button
+              type="button"
+              onClick={() => setSuccessMessage(null)}
+              className="text-emerald-600 hover:text-emerald-900 text-xs font-bold"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
 
         {/* Graded Status Banner */}
         {existingSubmission?.status === "GRADED" && (
@@ -137,7 +156,7 @@ export default function AssignmentSubmissionPage({
                 </div>
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="text-xl font-black">Project Graded & Approved!</h3>
+                    <h3 className="text-xl font-black">Project Graded &amp; Approved!</h3>
                     <Badge variant="green">Verified Pass</Badge>
                   </div>
                   <p className="text-xs sm:text-sm opacity-90 mb-3">
@@ -165,7 +184,7 @@ export default function AssignmentSubmissionPage({
 
         {/* Pending Review Banner */}
         {existingSubmission && existingSubmission.status === "SUBMITTED" && (
-          <div className="bg-[#FEF3C7] border border-[#FDE68A] rounded-2xl p-6 text-[#92400E] flex items-center justify-between">
+          <div className="bg-[#FEF3C7] border border-[#FDE68A] rounded-2xl p-6 text-[#92400E] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <Clock className="w-6 h-6 text-[#D97706] shrink-0" />
               <div>
@@ -175,11 +194,13 @@ export default function AssignmentSubmissionPage({
                 </span>
               </div>
             </div>
-            <Link href="/instructor/grading">
-              <Button size="sm" variant="outline" className="text-xs">
-                Switch to Tutor Mode (Grade Now)
-              </Button>
-            </Link>
+            {(user?.role === "INSTRUCTOR" || user?.role === "ADMIN") && (
+              <Link href="/instructor/grading">
+                <Button size="sm" variant="outline" className="text-xs">
+                  Open Grading Studio →
+                </Button>
+              </Link>
+            )}
           </div>
         )}
 
@@ -304,13 +325,21 @@ export default function AssignmentSubmissionPage({
                 </Button>
               </form>
 
-              <div className="mt-6 pt-6 border-t border-[#E6E1F5] text-center">
-                <Link
-                  href="/instructor/grading"
-                  className="text-xs font-bold text-[#7928CA] hover:underline"
-                >
-                  Tutor Demo: Open Grading Dashboard →
+              <div className="mt-6 pt-5 border-t border-[#E6E1F5] space-y-2.5 text-center">
+                <Link href="/ai?tab=feedback" className="block">
+                  <Button variant="outline" size="sm" className="w-full text-xs gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-[#7928CA]" />
+                    <span>Pre-Audit Code with AI Before Submitting</span>
+                  </Button>
                 </Link>
+                {(user?.role === "INSTRUCTOR" || user?.role === "ADMIN") && (
+                  <Link
+                    href="/instructor/grading"
+                    className="inline-block text-xs font-bold text-[#7928CA] hover:underline pt-1"
+                  >
+                    Open Instructor Grading Studio →
+                  </Link>
+                )}
               </div>
             </div>
           </div>

@@ -38,6 +38,15 @@ export async function recordAttempt(key: string, success: boolean): Promise<void
   await prisma.authAttempt.create({ data: { key, success } });
 }
 
+/**
+ * Wipes a key's failure history — called after a successful password reset
+ * so a legitimately-locked-out student isn't still stuck waiting out the
+ * window right after proving their identity via the reset link.
+ */
+export async function clearAttempts(key: string): Promise<void> {
+  await prisma.authAttempt.deleteMany({ where: { key } });
+}
+
 export function rateLimitMessage(retryAfterSeconds: number): string {
   const minutes = Math.ceil(retryAfterSeconds / 60);
   return `Too many failed attempts. Try again in ${minutes} minute${minutes === 1 ? "" : "s"}.`;

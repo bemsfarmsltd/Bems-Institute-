@@ -6,6 +6,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useLMS } from "@/context/LMSContext";
 import {
   Hash,
   Send,
@@ -21,6 +22,7 @@ import { COMMUNITY_CHANNELS, INITIAL_COMMUNITY_MESSAGES } from "@/data/advanced-
 import { CommunityChannel, CommunityMessage } from "@/types/advanced";
 
 export default function CommunityPage() {
+  const { user } = useLMS();
   const [channels] = useState<CommunityChannel[]>(COMMUNITY_CHANNELS);
   const [activeChannelId, setActiveChannelId] = useState<string>("chan-web-dev");
   const [messages, setMessages] = useState<CommunityMessage[]>(INITIAL_COMMUNITY_MESSAGES);
@@ -38,8 +40,8 @@ export default function CommunityPage() {
     const newMsg: CommunityMessage = {
       id: `msg-${Date.now()}`,
       channelId: activeChannelId,
-      senderName: "Chinedu Okeke",
-      senderRole: "STUDENT",
+      senderName: user?.name || "Chinedu Okeke",
+      senderRole: user?.role === "INSTRUCTOR" ? "INSTRUCTOR" : "STUDENT",
       content: messageText,
       codeSnippet: codeSnippet.trim() ? codeSnippet : undefined,
       likes: 0,

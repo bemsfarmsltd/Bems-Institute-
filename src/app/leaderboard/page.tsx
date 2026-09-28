@@ -6,6 +6,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useLMS } from "@/context/LMSContext";
 import {
   Trophy,
   Flame,
@@ -23,8 +24,12 @@ import { INITIAL_GAMIFICATION, LEADERBOARD_STUDENTS } from "@/data/advanced-data
 import { GamificationProfile, LeaderboardStudent } from "@/types/advanced";
 
 export default function LeaderboardPage() {
+  const { user, learningProfile, completedLessonIds } = useLMS();
   const [profile] = useState<GamificationProfile>(INITIAL_GAMIFICATION);
   const [leaderboard] = useState<LeaderboardStudent[]>(LEADERBOARD_STUDENTS);
+
+  const activeStreak = learningProfile.learningStreak > 0 ? learningProfile.learningStreak : profile.streakDays;
+  const dynamicXp = profile.xpPoints + completedLessonIds.length * 50;
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF8FF]">
@@ -40,7 +45,7 @@ export default function LeaderboardPage() {
                 <Badge variant="purple">OCTOBER 2026 COHORT</Badge>
               </div>
               <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
-                Cohort Leaderboard & Badges
+                Cohort Leaderboard &amp; Badges
               </h1>
               <p className="text-xs sm:text-sm text-[#A5A0C8] mt-1">
                 Earn XP points for completed lessons, maintain study streaks, and unlock verified digital credentials.
@@ -50,12 +55,12 @@ export default function LeaderboardPage() {
             <div className="flex items-center gap-4 bg-white/10 p-4 rounded-2xl border border-white/20">
               <div className="text-center px-3 border-r border-white/20">
                 <span className="text-[10px] text-[#A5A0C8] font-bold block uppercase">Total XP</span>
-                <span className="text-2xl font-black text-amber-300">{profile.xpPoints}</span>
+                <span className="text-2xl font-black text-amber-300">{dynamicXp}</span>
               </div>
               <div className="text-center px-3">
                 <span className="text-[10px] text-[#A5A0C8] font-bold block uppercase">Study Streak</span>
                 <span className="text-2xl font-black text-orange-400 flex items-center gap-1">
-                  <Flame className="w-5 h-5" /> {profile.streakDays}d
+                  <Flame className="w-5 h-5" /> {activeStreak}d
                 </span>
               </div>
             </div>
@@ -153,11 +158,15 @@ export default function LeaderboardPage() {
                 else if (student.rank === 2) rankIcon = <Medal className="w-5 h-5 text-gray-400" />;
                 else if (student.rank === 3) rankIcon = <Medal className="w-5 h-5 text-amber-700" />;
 
+                const isCurrentUser = user?.name
+                  ? student.name.toLowerCase() === user.name.toLowerCase()
+                  : student.id === "stu-001";
+
                 return (
                   <div
                     key={student.id}
                     className={`p-4 px-6 flex items-center justify-between gap-4 transition-colors ${
-                      student.id === "stu-001" ? "bg-purple-50/50" : "hover:bg-[#FAF8FF]"
+                      isCurrentUser ? "bg-purple-50/50" : "hover:bg-[#FAF8FF]"
                     }`}
                   >
                     <div className="flex items-center gap-3.5">
@@ -172,7 +181,7 @@ export default function LeaderboardPage() {
                       <div>
                         <div className="font-bold text-sm text-[#18143D] flex items-center gap-1.5">
                           {student.name}
-                          {student.id === "stu-001" && (
+                          {isCurrentUser && (
                             <span className="text-[10px] bg-[#7928CA] text-white px-2 py-0.2 rounded-full font-bold">
                               You
                             </span>
@@ -187,13 +196,13 @@ export default function LeaderboardPage() {
                     <div className="flex items-center gap-6 text-right">
                       <div className="hidden sm:block">
                         <span className="text-xs font-bold text-orange-600 flex items-center gap-1">
-                          <Flame className="w-3.5 h-3.5" /> {student.streakDays}d streak
+                          <Flame className="w-3.5 h-3.5" /> {isCurrentUser ? activeStreak : student.streakDays}d streak
                         </span>
                       </div>
 
                       <div>
                         <span className="text-sm font-black text-[#18143D] block">
-                          {student.xpPoints.toLocaleString()} XP
+                          {(isCurrentUser ? dynamicXp : student.xpPoints).toLocaleString()} XP
                         </span>
                         <span className="text-[10px] text-[#8580A3]">
                           {student.badgesCount} badges
@@ -241,6 +250,12 @@ export default function LeaderboardPage() {
               <p className="text-xs text-[#C4BDE7] leading-relaxed">
                 The top 10 ranked students in each cohort are featured directly in our institutional employer matchmaking portfolio distributed to hiring tech firms in Lagos, Abuja, and abroad.
               </p>
+              <Link href="/learn/web-dev/assignment/assign-web-dev" className="block pt-1">
+                <Button variant="purple" size="sm" className="w-full text-xs gap-1.5">
+                  <span>Submit Capstone Project (+500 XP)</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Button>
+              </Link>
             </div>
           </div>
         </div>

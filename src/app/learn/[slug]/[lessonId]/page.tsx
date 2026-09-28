@@ -18,8 +18,11 @@ import {
   Award,
   Clock,
   Sparkles,
-  FileCheck
+  FileCheck,
+  Target,
+  Bot
 } from "lucide-react";
+import { CONCEPTS, LESSON_CONCEPTS } from "../../../../../prisma/concepts-data";
 
 export default function LessonViewPage({
   params
@@ -35,7 +38,8 @@ export default function LessonViewPage({
     completedLessonIds,
     toggleLessonComplete,
     isLessonCompleted,
-    getCourseProgress
+    getCourseProgress,
+    learningProfile
   } = useLMS();
 
   const course = courses.find((c) => c.slug === slug);
@@ -77,6 +81,17 @@ export default function LessonViewPage({
 
   const isCompleted = isLessonCompleted(currentLesson.id);
   const progress = getCourseProgress(course.id);
+
+  // Resolve concepts taught in this lesson + student's live mastery score from learningProfile
+  const allMastery = [...learningProfile.strengths, ...learningProfile.weaknesses];
+  const rawLinks = LESSON_CONCEPTS[currentLesson.id] ?? [];
+  const mappedConcepts = rawLinks
+    .map((link) => CONCEPTS.find((c) => c.id === link.conceptId))
+    .filter((c): c is NonNullable<typeof c> => Boolean(c));
+  const lessonConcepts =
+    mappedConcepts.length > 0
+      ? mappedConcepts
+      : CONCEPTS.filter((c) => c.courseId === course.id).slice(0, 2);
 
   const handleNextOrFinish = async () => {
     if (!isCompleted) {
@@ -225,7 +240,7 @@ export default function LessonViewPage({
               </div>
 
               {/* Lesson Overview & Notes */}
-              <div className="pt-4 space-y-4">
+              <div className="pt-4 space-y-5">
                 <div>
                   <h3 className="text-xs font-bold uppercase tracking-wider text-[#645F80] mb-2">
                     Lesson Overview & Objectives
@@ -234,6 +249,73 @@ export default function LessonViewPage({
                     {currentLesson.description}
                   </p>
                 </div>
+
+                {/* Knowledge Concepts Covered in This Lesson */}
+                {lessonConcepts.length > 0 && (
+                  <div className="pt-3 border-t border-[#F0EDF9]">
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                      <h3 className="text-xs font-bold uppercase tracking-wider text-[#645F80] flex items-center gap-1.5">
+                        <Target className="w-3.5 h-3.5 text-[#7928CA]" /> Knowledge Concepts in This Lesson
+                      </h3>
+                      <span className="text-[11px] font-semibold text-[#7928CA]">
+                        Tracked by LearnIQ Engine
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {lessonConcepts.map((concept) => {
+                        const masteryRecord = allMastery.find(
+                          (m) => m.conceptId === concept.id
+                        );
+                        const masteryPct = masteryRecord
+                          ? Math.round(masteryRecord.masteryScore * 100)
+                          : null;
+                        const isStrong = masteryPct !== null && masteryPct >= 75;
+                        return (
+                          <div
+                            key={concept.id}
+                            className="p-3.5 rounded-xl bg-[#FAF8FF] border border-[#E6E1F5] flex flex-col justify-between gap-2.5"
+                          >
+                            <div>
+                              <div className="flex items-center justify-between gap-2 mb-1">
+                                <span className="text-xs font-bold text-[#18143D]">
+                                  {concept.name}
+                                </span>
+                                {masteryPct !== null ? (
+                                  <span
+                                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                      isStrong
+                                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                        : "bg-amber-50 text-amber-700 border border-amber-200"
+                                    }`}
+                                  >
+                                    {masteryPct}% Mastery
+                                  </span>
+                                ) : (
+                                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white text-[#645F80] border border-[#E6E1F5]">
+                                    Untested
+                                  </span>
+                                )}
+                              </div>
+                              {concept.description && (
+                                <p className="text-xs text-[#645F80] leading-relaxed">
+                                  {concept.description}
+                                </p>
+                              )}
+                            </div>
+                            <div className="flex items-center justify-between pt-1">
+                              <Link
+                                href={`/ai?tab=tutor&courseId=${encodeURIComponent(course.id)}&lessonTitle=${encodeURIComponent(`${currentLesson.title} — ${concept.name}`)}`}
+                                className="inline-flex items-center gap-1 text-xs font-bold text-[#7928CA] hover:text-[#5B189A] transition-colors"
+                              >
+                                <Bot className="w-3.5 h-3.5" /> Explain {concept.name} with AI →
+                              </Link>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 <div className="p-4 rounded-xl bg-[#FAF8FF] border border-[#E6E1F5] flex items-center justify-between">
                   <div className="flex items-center gap-3">

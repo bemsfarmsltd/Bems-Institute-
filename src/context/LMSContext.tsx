@@ -60,6 +60,8 @@ interface LMSContextType {
   ) => Promise<AuthResult>;
   setVerifiedUser: (user: User) => void;
   logout: () => void;
+  requestPasswordReset: (email: string) => Promise<{ ok: boolean; message: string }>;
+  resetPassword: (token: string, password: string) => Promise<AuthResult>;
   // Course catalog — DB-backed, public
   courses: LMSCourse[];
   quizzes: Quiz[];
@@ -348,6 +350,43 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const requestPasswordReset = async (email: string): Promise<{ ok: boolean; message: string }> => {
+    try {
+      const res = await fetch("/api/auth/request-reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      return {
+        ok: res.ok,
+        message: data.message || data.error || "Something went wrong."
+      };
+    } catch {
+      return { ok: false, message: "Could not reach the server. Please try again." };
+    }
+  };
+
+  const resetPassword = async (token: string, password: string): Promise<AuthResult> => {
+    try {
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, password })
+      });
+      const data = await res.json();
+      if (res.ok && data.user) {
+        setUser(data.user);
+        localStorage.setItem("bems_lms_user", JSON.stringify(data.user));
+        await loadOwnLmsData(data.user.role);
+        return { ok: true, user: data.user };
+      }
+      return { ok: false, error: data.error || "Could not reset password." };
+    } catch {
+      return { ok: false, error: "Could not reach the server. Please try again." };
+    }
+  };
+
   const setVerifiedUser = (verified: User) => {
     setUser(verified);
     localStorage.setItem("bems_lms_user", JSON.stringify(verified));
@@ -515,6 +554,8 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
         signup,
         setVerifiedUser,
         logout,
+        requestPasswordReset,
+        resetPassword,
         courses,
         quizzes,
         assignments,

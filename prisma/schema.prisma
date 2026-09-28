@@ -71,6 +71,7 @@ model User {
   learningEvents   LearningEvent[]
   conceptMasteries ConceptMastery[]
   learningProfile  LearningProfile?
+  passwordResetTokens PasswordResetToken[]
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 }
@@ -421,6 +422,23 @@ model AuthAttempt {
   createdAt DateTime @default(now())
 
   @@index([key, createdAt])
+}
+
+// A password-reset link's server-side half. Only tokenHash (SHA-256 of the
+// random token actually emailed/logged to the user) is ever stored, so a
+// database leak alone can't be used to reset anyone's password. Single-use
+// via usedAt, and short-lived via expiresAt — see /api/auth/request-reset
+// and /api/auth/reset-password.
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
 }
 
 // Redemption record for one generated practice-question token (see

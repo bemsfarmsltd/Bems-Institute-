@@ -60,18 +60,37 @@ export const QUESTION_CONCEPTS: Record<string, ConceptLinkSeed[]> = {
 // Which lesson(s) teach which concept(s) — used so a weak-concept
 // recommendation can point at something concrete to (re-)watch.
 export const LESSON_CONCEPTS: Record<string, ConceptLinkSeed[]> = {
+  "les-1": [
+    { conceptId: "concept-semantic-html", importance: 3 },
+    { conceptId: "concept-git", importance: 3 }
+  ], // welcome & dev environment setup
   "les-2": [{ conceptId: "concept-semantic-html", importance: 5 }], // semantic-html5
   "les-3": [{ conceptId: "concept-semantic-html", importance: 3 }], // html5-forms
-  "les-4": [{ conceptId: "concept-flexbox", importance: 5 }], // flexbox-layouts
-  "les-5": [{ conceptId: "concept-css-grid", importance: 5 }], // css-grid-mastery
-  "les-7": [{ conceptId: "concept-array-methods", importance: 3 }], // js-fundamentals
+  "les-4": [
+    { conceptId: "concept-css-layout", importance: 4 },
+    { conceptId: "concept-flexbox", importance: 5 }
+  ], // flexbox-layouts
+  "les-5": [
+    { conceptId: "concept-css-layout", importance: 4 },
+    { conceptId: "concept-css-grid", importance: 5 }
+  ], // css-grid-mastery
+  "les-6": [
+    { conceptId: "concept-css-layout", importance: 5 },
+    { conceptId: "concept-flexbox", importance: 3 }
+  ], // mobile-first media queries
+  "les-7": [{ conceptId: "concept-array-methods", importance: 4 }], // js-fundamentals
   "les-8": [{ conceptId: "concept-dom", importance: 5 }], // dom-manipulation
   "les-9": [{ conceptId: "concept-async-js", importance: 5 }], // fetch-api-async
   "les-10": [{ conceptId: "concept-git", importance: 5 }], // git-version-control
+  "les-11": [{ conceptId: "concept-async-js", importance: 4 }], // connecting third-party APIs
+  "les-12": [{ conceptId: "concept-git", importance: 4 }], // capstone deployment
+  "les-ai-1": [{ conceptId: "concept-prompt-engineering", importance: 4 }],
   "les-ai-2": [{ conceptId: "concept-prompt-engineering", importance: 5 }],
   "les-ai-3": [{ conceptId: "concept-webhooks", importance: 4 }],
   "les-pd-1": [{ conceptId: "concept-design-thinking", importance: 5 }],
-  "les-pd-4": [{ conceptId: "concept-accessibility", importance: 3 }],
+  "les-pd-2": [{ conceptId: "concept-design-thinking", importance: 4 }],
+  "les-pd-3": [{ conceptId: "concept-accessibility", importance: 4 }],
+  "les-pd-4": [{ conceptId: "concept-accessibility", importance: 5 }],
   "les-cs-1": [{ conceptId: "concept-osi-model", importance: 5 }],
-  "les-cs-2": [{ conceptId: "concept-sql-injection", importance: 3 }]
+  "les-cs-2": [{ conceptId: "concept-sql-injection", importance: 5 }]
 };

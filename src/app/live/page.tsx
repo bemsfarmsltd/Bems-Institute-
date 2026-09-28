@@ -6,6 +6,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useLMS } from "@/context/LMSContext";
 import {
   Video,
   Users,
@@ -24,6 +25,7 @@ import { INITIAL_LIVE_CLASSES } from "@/data/advanced-data";
 import { LiveClass } from "@/types/advanced";
 
 export default function LiveClassesPage() {
+  const { user } = useLMS();
   const [liveClasses] = useState<LiveClass[]>(INITIAL_LIVE_CLASSES);
   const activeClass = liveClasses.find((c) => c.status === "LIVE_NOW") || liveClasses[0];
 
@@ -55,7 +57,7 @@ export default function LiveClassesPage() {
       ...prev,
       {
         id: `qa-${Date.now()}`,
-        sender: "You (Student)",
+        sender: user?.name ? `${user.name} (${user.role === "INSTRUCTOR" ? "Instructor" : "Student"})` : "You (Student)",
         text: qaInput,
         time: "Just now",
         answered: false

@@ -183,9 +183,42 @@ export function LearningInsights() {
   const { strengths, weaknesses, recommendations, learningStreak } = learningProfile;
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  // Nothing to show yet — no quiz attempts logged. Don't show an empty shell.
+  // When no quiz attempts are logged yet, guide the student to calibrate their LearnIQ profile
   if (strengths.length === 0 && weaknesses.length === 0 && recommendations.length === 0) {
-    return null;
+    return (
+      <div className="bg-white rounded-2xl border border-[#E6E1F5] p-6 sm:p-8 shadow-xs">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-2 max-w-xl">
+            <div className="flex items-center gap-2">
+              <Badge variant="purple">LEARNIQ PERSONALIZATION LOOP</Badge>
+              {learningStreak > 0 && (
+                <Badge variant="gold">
+                  <Flame className="w-3.5 h-3.5 text-orange-500" /> {learningStreak} day streak
+                </Badge>
+              )}
+            </div>
+            <h2 className="text-xl sm:text-2xl font-black text-[#18143D]">
+              Calibrate Your LearnIQ Personalization Profile
+            </h2>
+            <p className="text-sm text-[#645F80] leading-relaxed">
+              Your adaptive concept mastery scores, weak-spot diagnostics, and 1-question AI practice drills unlock automatically as soon as you complete your first module assessment or practice quiz.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
+            <Link href="/learn/web-dev/quiz/quiz-web-dev">
+              <Button variant="purple" size="sm" className="shadow-xs">
+                <Target className="w-4 h-4 mr-1.5" /> Take Diagnostic Quiz
+              </Button>
+            </Link>
+            <Link href="/ai?tab=tutor">
+              <Button variant="outline" size="sm" className="border-[#D1C9EB] text-[#7928CA]">
+                <Bot className="w-4 h-4 mr-1.5" /> Ask AI Tutor
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
