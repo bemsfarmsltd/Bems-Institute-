@@ -11,7 +11,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
     "db:migrate": "prisma migrate dev",
-    "db:deploy": "prisma migrate deploy && tsx prisma/seed.ts",
+    "db:deploy": "tsx prisma/migrate.ts && tsx prisma/seed.ts",
     "postgres:start": "\"C:\\Users\\hp\\AppData\\Local\\bems-postgres\\pgsql\\bin\\pg_ctl.exe\" -D \"C:\\Users\\hp\\AppData\\Local\\bems-postgres\\data\" -l \"C:\\Users\\hp\\AppData\\Local\\bems-postgres\\pg.log\" -o \"-p 5433 -c listen_addresses=localhost\" start",
     "postgres:stop": "\"C:\\Users\\hp\\AppData\\Local\\bems-postgres\\pgsql\\bin\\pg_ctl.exe\" -D \"C:\\Users\\hp\\AppData\\Local\\bems-postgres\\data\" stop"
   },
