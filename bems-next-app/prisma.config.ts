@@ -1,13 +1,14 @@
-import { defineConfig, env } from "prisma/config";
+import { existsSync } from "node:fs";
+import { defineConfig } from "prisma/config";
 
-// The Prisma CLI doesn't read Next.js's .env.local automatically, so load it
-// explicitly (this is only for `prisma` CLI commands — the Next app itself
-// already picks up .env.local on its own).
-process.loadEnvFile(".env.local");
+// Load .env.local in local development; on Vercel/CI, env vars are injected directly.
+if (existsSync(".env.local")) {
+  process.loadEnvFile(".env.local");
+}
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
   datasource: {
-    url: env("DATABASE_URL")
+    url: process.env.DATABASE_URL ?? "postgresql://postgres:postgres@localhost:5432/bems_lms"
   }
 });
