@@ -1,0 +1,51 @@
+{
+  "name": "bems-next-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:studio": "prisma studio",
+    "db:migrate": "prisma migrate dev",
+    "postgres:start": "\"C:\\Users\\hp\\AppData\\Local\\bems-postgres\\pgsql\\bin\\pg_ctl.exe\" -D \"C:\\Users\\hp\\AppData\\Local\\bems-postgres\\data\" -l \"C:\\Users\\hp\\AppData\\Local\\bems-postgres\\pg.log\" -o \"-p 5433 -c listen_addresses=localhost\" start",
+    "postgres:stop": "\"C:\\Users\\hp\\AppData\\Local\\bems-postgres\\pgsql\\bin\\pg_ctl.exe\" -D \"C:\\Users\\hp\\AppData\\Local\\bems-postgres\\data\" stop"
+  },
+  "dependencies": {
+    "@google/genai": "^2.24.0",
+    "@prisma/adapter-pg": "^7.10.0",
+    "@prisma/client": "^7.10.0",
+    "@types/qrcode": "^1.5.6",
+    "bcryptjs": "^3.0.3",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.48.0",
+    "next": "16.3.6",
+    "prisma": "^7.10.0",
+    "qrcode": "^1.5.4",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "tailwind-merge": "^3.7.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.6",
+    "tailwindcss": "^4",
+    "tsx": "^4.23.15",
+    "typescript": "^5"
+  },
+  "allowScripts": {
+    "@prisma/engines@7.10.0": true,
+    "prisma@7.10.0": true,
+    "protobufjs@7.6.6": true,
+    "unrs-resolver@1.12.2": true,
+    "@google/genai@2.24.0": true,
+    "esbuild@0.28.2": true
+  }
+}
