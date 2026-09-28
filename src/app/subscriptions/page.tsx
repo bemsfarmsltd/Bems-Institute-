@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useLMS } from "@/context/LMSContext";
@@ -25,6 +25,7 @@ import { SubscriptionTier } from "@/types/advanced";
 function SubscriptionsContent() {
   const searchParams = useSearchParams();
   const courseQuery = searchParams.get("course");
+  const sourceQuery = searchParams.get("source");
   const { courses, enrollInCourse, isEnrolled } = useLMS();
 
   const [tiers] = useState<SubscriptionTier[]>(mockSubscriptionTiers);
@@ -48,6 +49,24 @@ function SubscriptionsContent() {
     }
   }, [courseQuery, courses]);
 
+  // Logs the banner/QR landing regardless of whether it converts, so the
+  // admin analytics dashboard can compute real scan-to-registration yield
+  // per source (see bannerChannelYield in /api/admin/analytics). Only fires
+  // for tagged landings — plain in-site navigation to this page has no
+  // `source` param and isn't a banner scan.
+  const scanTracked = useRef(false);
+  useEffect(() => {
+    if (!sourceQuery || scanTracked.current) return;
+    scanTracked.current = true;
+    fetch("/api/lms/track-scan", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ source: sourceQuery, courseId: courseQuery || null })
+    }).catch(() => {
+      // best-effort — a lost scan log shouldn't block the visitor
+    });
+  }, [sourceQuery, courseQuery]);
+
   const selectedCourse =
     courses.find((c) => c.id === selectedCourseId || c.slug === selectedCourseId) || courses[0];
 
@@ -61,7 +80,10 @@ function SubscriptionsContent() {
     setIsProcessing(true);
     try {
       if (selectedCourse) {
-        await enrollInCourse(selectedCourse.id);
+        await enrollInCourse(selectedCourse.id, {
+          source: sourceQuery || undefined,
+          paymentMethod: paymentMethod === "PAYSTACK" ? "paystack" : "bank"
+        });
       }
       const firstLessonId = selectedCourse?.modules[0]?.lessons[0]?.id || "les-1";
       setConfirmedEnrollment({

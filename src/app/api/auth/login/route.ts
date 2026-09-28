@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword } from "@/lib/password";
 import { createSessionToken, SESSION_COOKIE, SESSION_COOKIE_OPTIONS } from "@/lib/session";
+import { checkRateLimit, recordAttempt, rateLimitMessage } from "@/lib/rate-limit";
 
 // Real credential check against the database — role comes from the stored
 // user record, never from the request body, so a client can no longer just
@@ -15,8 +16,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Email and password are required." }, { status: 400 });
   }
 
+  const rateLimitKey = `login:${email}`;
+  const limit = await checkRateLimit(rateLimitKey);
+  if (limit.blocked) {
+    return NextResponse.json({ error: rateLimitMessage(limit.retryAfterSeconds!) }, { status: 429 });
+  }
+
   const user = await prisma.user.findUnique({ where: { email } });
   const valid = user ? await verifyPassword(password, user.passwordHash) : false;
+  await recordAttempt(rateLimitKey, valid);
 
   if (!user || !valid) {
     // Deliberately generic — don't reveal whether the email exists.

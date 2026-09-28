@@ -409,6 +409,20 @@ model LearningProfile {
   updatedAt       DateTime  @updatedAt
 }
 
+// Append-only log backing rate-limiting on password/code-guessing endpoints
+// (see src/lib/rate-limit.ts). `key` namespaces which limiter it belongs to,
+// e.g. "login:<email>" for /api/auth/login or a fixed key for the shared
+// admin access code — a Postgres table rather than an in-memory counter so
+// the lockout survives a dev-server restart and isn't per-instance.
+model AuthAttempt {
+  id        String   @id @default(cuid())
+  key       String
+  success   Boolean
+  createdAt DateTime @default(now())
+
+  @@index([key, createdAt])
+}
+
 // Redemption record for one generated practice-question token (see
 // /api/learning/practice-question). The token itself is a signed, stateless
 // JWT-like blob carrying the correct answer — this table is the one piece of

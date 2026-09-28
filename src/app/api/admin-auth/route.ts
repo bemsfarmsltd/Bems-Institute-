@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashPassword, isPasswordStrongEnough } from "@/lib/password";
 import { createSessionToken, SESSION_COOKIE, SESSION_COOKIE_OPTIONS } from "@/lib/session";
+import { checkRateLimit, recordAttempt, rateLimitMessage } from "@/lib/rate-limit";
+
+// One shared key, not per-email: the secret being guessed here is the single
+// ADMIN_ACCESS_CODE, not a per-account password, so failed attempts against
+// any email still count toward the same lockout.
+const RATE_LIMIT_KEY = "admin-register-code";
 
 // The ONLY path that can ever create an ADMIN account. The staff code is
 // checked server-side against ADMIN_ACCESS_CODE (never sent to the browser)
@@ -23,7 +29,14 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
-  if (!code || code !== expected) {
+  const limit = await checkRateLimit(RATE_LIMIT_KEY);
+  if (limit.blocked) {
+    return NextResponse.json({ error: rateLimitMessage(limit.retryAfterSeconds!) }, { status: 429 });
+  }
+
+  const codeValid = !!code && code === expected;
+  await recordAttempt(RATE_LIMIT_KEY, codeValid);
+  if (!codeValid) {
     return NextResponse.json({ error: "Incorrect staff access code." }, { status: 401 });
   }
   if (!name || !email) {
