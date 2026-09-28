@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/api-auth";
 import { recordQuestionAnswered, recordQuizCompleted, touchLearningStreak } from "@/lib/learning-engine";
+import { createNotification } from "@/lib/notifications";
 import type { QuizResult } from "@/types/lms";
 
 // Score is computed here from the DB's answer key, never trusted from the
@@ -21,7 +22,7 @@ export async function POST(req: NextRequest) {
 
   const quiz = await prisma.quiz.findUnique({
     where: { id: quizId },
-    include: { questions: true }
+    include: { questions: true, course: { select: { slug: true } } }
   });
   if (!quiz) {
     return NextResponse.json({ error: "Quiz not found." }, { status: 404 });
@@ -38,8 +39,6 @@ export async function POST(req: NextRequest) {
     data: { userId: session.id, quizId, score, passed, answers }
   });
 
-  // Feed the personalization loop: one QUESTION_ANSWERED event per question,
-  // each recomputing that concept's mastery from its full attempt history.
   for (const q of quiz.questions) {
     await recordQuestionAnswered({
       userId: session.id,
@@ -50,6 +49,18 @@ export async function POST(req: NextRequest) {
   }
   await recordQuizCompleted({ userId: session.id, courseId: quiz.courseId, quizId, score, passed });
   await touchLearningStreak(session.id);
+
+  await createNotification({
+    userId: session.id,
+    title: passed
+      ? `Quiz Passed (${score}%): ${quiz.title}`
+      : `Quiz Completed (${score}%): ${quiz.title}`,
+    message: passed
+      ? "Your LearnIQ Concept Mastery scores and study recommendations have been updated."
+      : `Passing score is ${quiz.passingScore}%. Check your LearnIQ Insights for targeted review lessons.`,
+    category: "GAMIFICATION",
+    linkUrl: "/dashboard"
+  });
 
   const result: QuizResult = {
     quizId,

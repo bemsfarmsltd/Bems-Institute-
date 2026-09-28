@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/api-auth";
 import { mapSubmission } from "@/lib/lms-mappers";
 import { recordAssignmentSubmitted, touchLearningStreak } from "@/lib/learning-engine";
+import { createNotification, notifyStaff } from "@/lib/notifications";
 
 export async function POST(req: NextRequest) {
   const session = await getSessionUser(req);
@@ -23,13 +24,14 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const assignment = await prisma.assignment.findUnique({ where: { id: assignmentId } });
+  const assignment = await prisma.assignment.findUnique({
+    where: { id: assignmentId },
+    include: { course: { select: { slug: true, title: true } } }
+  });
   if (!assignment) {
     return NextResponse.json({ error: "Assignment not found." }, { status: 404 });
   }
 
-  // Resubmitting resets it back to SUBMITTED — a fresh resubmission needs
-  // re-grading, it shouldn't keep a stale score/feedback from a prior pass.
   const submission = await prisma.submission.upsert({
     where: { assignmentId_userId: { assignmentId, userId: session.id } },
     update: {
@@ -62,6 +64,21 @@ export async function POST(req: NextRequest) {
     assignmentId
   });
   await touchLearningStreak(session.id);
+
+  await createNotification({
+    userId: session.id,
+    title: `Capstone Submitted: ${assignment.title}`,
+    message: "Your repository has been placed in the instructor grading queue.",
+    category: "GRADING",
+    linkUrl: `/learn/${assignment.course.slug}/assignment/${assignmentId}`
+  });
+
+  await notifyStaff({
+    title: `New Capstone Submission — ${session.name}`,
+    message: `${session.name} submitted "${assignment.title}" (${assignment.course.title}) for review.`,
+    category: "GRADING",
+    linkUrl: "/instructor/grading"
+  });
 
   return NextResponse.json({ submission: mapSubmission(submission) });
 }

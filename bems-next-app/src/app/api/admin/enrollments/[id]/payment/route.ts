@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser, isAdmin } from "@/lib/api-auth";
+import { createNotification } from "@/lib/notifications";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await getSessionUser(req);
@@ -22,7 +23,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const enrollment = await prisma.enrollment.update({
     where: { id },
-    data: { paymentStatus: status, amountPaid }
+    data: { paymentStatus: status, amountPaid },
+    include: { course: { select: { title: true, slug: true } } }
+  });
+
+  await createNotification({
+    userId: enrollment.userId,
+    title: `Payment Confirmed: ${enrollment.course.title}`,
+    message: `BEMS Admissions verified ₦${amountPaid.toLocaleString()} (${status === "PAID_FULL" ? "Paid in Full" : "Installment Deposit"}).`,
+    category: "PAYMENT",
+    linkUrl: "/dashboard"
   });
 
   return NextResponse.json({ enrollment });

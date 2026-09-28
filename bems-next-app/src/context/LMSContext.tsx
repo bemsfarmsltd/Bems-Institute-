@@ -14,6 +14,7 @@ import {
   AnalyticsSummary
 } from "@/types/lms";
 import type { LearningProfileSummary } from "@/lib/learning-engine";
+import type { AppNotification } from "@/types/advanced";
 
 const EMPTY_LEARNING_PROFILE: LearningProfileSummary = {
   strengths: [],
@@ -100,6 +101,10 @@ interface LMSContextType {
   // computed server-side from real learning events, not client-derived.
   learningProfile: LearningProfileSummary;
   refreshLearningProfile: () => Promise<void>;
+  // Real DB-backed notifications
+  notifications: AppNotification[];
+  refreshNotifications: () => Promise<void>;
+  markNotificationRead: (id?: string) => Promise<void>;
   // Admin roster/analytics — DB-backed, staff only
   adminStudents: AdminStudent[];
   adminCourses: AdminCourse[];
@@ -141,6 +146,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
   const [quizResults, setQuizResults] = useState<Record<string, QuizResult>>({});
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [learningProfile, setLearningProfile] = useState<LearningProfileSummary>(EMPTY_LEARNING_PROFILE);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
 
   const refreshLearningProfile = useCallback(async () => {
     try {
@@ -148,6 +154,37 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
       if (res.ok) setLearningProfile(await res.json());
     } catch {
       // leave whatever was already loaded
+    }
+  }, []);
+
+  const refreshNotifications = useCallback(async () => {
+    try {
+      const res = await fetch("/api/lms/notifications");
+      if (res.ok) {
+        const data = await res.json();
+        setNotifications(data.notifications || []);
+      }
+    } catch {
+      // leave whatever was already loaded
+    }
+  }, []);
+
+  const markNotificationRead = useCallback(async (id?: string) => {
+    setNotifications((prev) =>
+      prev.map((n) => (!id || n.id === id ? { ...n, read: true } : n))
+    );
+    try {
+      const res = await fetch("/api/lms/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(id ? { id } : { markAllRead: true })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setNotifications(data.notifications || []);
+      }
+    } catch {
+      // keep optimistic update
     }
   }, []);
 
@@ -234,12 +271,12 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
       } catch {
         // per-user data unavailable — catalog still loaded fine
       }
-      await refreshLearningProfile();
+      await Promise.all([refreshLearningProfile(), refreshNotifications()]);
       if (role === "INSTRUCTOR" || role === "ADMIN") {
         await loadAdminData();
       }
     },
-    [loadAdminData, refreshLearningProfile]
+    [loadAdminData, refreshLearningProfile, refreshNotifications]
   );
 
   // Load the public catalog (courses/quizzes/assignments/certificates),
@@ -399,6 +436,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
     setCompletedLessonIds([]);
     setQuizResults({});
     setSubmissions([]);
+    setNotifications([]);
     setAdminStudents([]);
     setAdminCourses([]);
     setAnalytics(EMPTY_ANALYTICS);
@@ -428,6 +466,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
       if (res.ok) {
         const data = await res.json();
         setEnrolledCourseIds(data.enrolledCourseIds || []);
+        refreshNotifications();
       }
     } catch {
       // leave state as-is on network failure
@@ -481,6 +520,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
     }
     setQuizResults((prev) => ({ ...prev, [quizId]: data.result }));
     refreshLearningProfile();
+    refreshNotifications();
     return data.result;
   };
 
@@ -505,6 +545,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
       data.submission,
       ...prev.filter((s) => s.id !== data.submission.id)
     ]);
+    refreshNotifications();
     return data.submission;
   };
 
@@ -525,6 +566,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
         ...prev.filter((c) => c.id !== data.certificate.id)
       ]);
     }
+    refreshNotifications();
   };
 
   const isCertificateEligible = (courseId: string) => {
@@ -580,6 +622,9 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
         isCertificateEligible,
         learningProfile,
         refreshLearningProfile,
+        notifications,
+        refreshNotifications,
+        markNotificationRead,
         adminStudents,
         adminCourses,
         analytics,

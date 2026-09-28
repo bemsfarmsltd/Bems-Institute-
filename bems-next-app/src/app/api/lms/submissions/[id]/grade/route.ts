@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/api-auth";
 import { mapSubmission, mapCertificate } from "@/lib/lms-mappers";
+import { createNotification } from "@/lib/notifications";
 
 const CERT_PREFIX_BY_COURSE: Record<string, string> = {
   "web-dev": "WD",
@@ -33,7 +34,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const existing = await prisma.submission.findUnique({
     where: { id },
-    include: { assignment: { select: { courseId: true } } }
+    include: {
+      assignment: {
+        select: { id: true, title: true, courseId: true, course: { select: { slug: true, title: true } } }
+      }
+    }
   });
   if (!existing) {
     return NextResponse.json({ error: "Submission not found." }, { status: 404 });
@@ -52,6 +57,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       user: { select: { name: true, email: true } },
       assignment: { select: { courseId: true } }
     }
+  });
+
+  await createNotification({
+    userId: existing.userId,
+    title: `Capstone Graded: ${score}/100`,
+    message: feedback
+      ? `${session.name}: "${feedback}"`
+      : `${session.name} graded "${existing.assignment.title}" (${score}/100).`,
+    category: "GRADING",
+    linkUrl: `/learn/${existing.assignment.course.slug}/assignment/${existing.assignment.id}`
   });
 
   let certificate = null;
@@ -78,6 +93,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       }
     });
     certificate = mapCertificate(cert);
+
+    await createNotification({
+      userId: existing.userId,
+      title: `Certificate Issued: ${cert.course.title}`,
+      message: `Congratulations! Credential ${cert.certNumber} (${cert.gradeTitle}) is ready to view and download.`,
+      category: "GRADING",
+      linkUrl: `/certificate/${cert.id}`
+    });
   }
 
   return NextResponse.json({ submission: mapSubmission(updated), certificate });

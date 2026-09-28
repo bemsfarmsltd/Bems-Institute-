@@ -55,6 +55,13 @@ enum LearningEventType {
   AI_TUTOR_USED
 }
 
+enum NotificationCategory {
+  CLASS
+  GRADING
+  PAYMENT
+  GAMIFICATION
+}
+
 model User {
   id           String         @id @default(cuid())
   clerkId      String?        @unique
@@ -72,6 +79,7 @@ model User {
   conceptMasteries ConceptMastery[]
   learningProfile  LearningProfile?
   passwordResetTokens PasswordResetToken[]
+  notifications    Notification[]
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 }
@@ -451,5 +459,19 @@ model PracticeAttempt {
   id        String   @id @default(cuid())
   jti       String   @unique
   createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        String               @id @default(cuid())
+  userId    String
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String               @db.Text
+  category  NotificationCategory @default(CLASS)
+  linkUrl   String?
+  read      Boolean              @default(false)
+  createdAt DateTime             @default(now())
+
+  @@index([userId, createdAt])
 }
 
