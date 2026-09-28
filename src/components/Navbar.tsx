@@ -42,7 +42,7 @@ export function Navbar() {
   };
 
   const navLinkClass = (href: string) =>
-    `inline-flex items-center gap-1.5 transition-colors ${
+    `inline-flex items-center gap-1 transition-colors ${
       isActive(href)
         ? "text-[#7928CA] font-extrabold"
         : "text-[#18143D] hover:text-[#7928CA]"
@@ -73,54 +73,54 @@ export function Navbar() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-5 text-xs font-bold">
+          <nav className="hidden lg:flex items-center gap-3 xl:gap-4 text-xs font-bold whitespace-nowrap">
             <Link href="/#courses" className="text-[#18143D] hover:text-[#7928CA] transition-colors">
               Courses
             </Link>
 
             {(!user || user.role === "STUDENT" || user.role === "ADMIN") && (
               <Link href="/dashboard" className={navLinkClass("/dashboard")}>
-                <LayoutDashboard className="w-3.5 h-3.5" />
+                <LayoutDashboard className="w-3.5 h-3.5 shrink-0" />
                 <span>Dashboard</span>
               </Link>
             )}
 
             {(user?.role === "INSTRUCTOR" || user?.role === "ADMIN") && (
               <Link href="/instructor" className={navLinkClass("/instructor")}>
-                <GraduationCap className="w-3.5 h-3.5" />
-                <span>Instructor Studio</span>
+                <GraduationCap className="w-3.5 h-3.5 shrink-0" />
+                <span>Instructor</span>
               </Link>
             )}
 
             {user?.role === "ADMIN" && (
               <Link href="/admin" className={navLinkClass("/admin")}>
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Admin Portal</span>
+                <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+                <span>Admin</span>
               </Link>
             )}
 
             <Link href="/ai" className={navLinkClass("/ai")}>
-              <Bot className="w-3.5 h-3.5 text-[#7928CA]" />
+              <Bot className="w-3.5 h-3.5 shrink-0 text-[#7928CA]" />
               <span>AI Tutor</span>
             </Link>
 
             <Link href="/sandbox" className={navLinkClass("/sandbox")}>
-              <Code2 className="w-3.5 h-3.5" />
+              <Code2 className="w-3.5 h-3.5 shrink-0" />
               <span>Sandbox</span>
             </Link>
 
             <Link href="/live" className={navLinkClass("/live")}>
-              <Video className="w-3.5 h-3.5" />
-              <span>Live Classes</span>
+              <Video className="w-3.5 h-3.5 shrink-0" />
+              <span>Live</span>
             </Link>
 
             <Link href="/community" className={navLinkClass("/community")}>
-              <MessageSquare className="w-3.5 h-3.5" />
+              <MessageSquare className="w-3.5 h-3.5 shrink-0" />
               <span>Community</span>
             </Link>
 
             <Link href="/leaderboard" className={navLinkClass("/leaderboard")}>
-              <Trophy className="w-3.5 h-3.5" />
+              <Trophy className="w-3.5 h-3.5 shrink-0" />
               <span>Leaderboard</span>
             </Link>
           </nav>
@@ -173,7 +173,7 @@ export function Navbar() {
                   </Button>
                 </Link>
                 <Link href="/qr-studio" target="_blank">
-                  <Button variant="outline" size="sm" className="hidden md:inline-flex gap-1.5 text-xs">
+                  <Button variant="outline" size="sm" className="hidden xl:inline-flex gap-1.5 text-xs">
                     <QrCode className="w-3.5 h-3.5 text-[#7928CA]" />
                     <span>QR Studio</span>
                   </Button>
