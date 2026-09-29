@@ -492,27 +492,26 @@ export function CourseCards() {
           <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
             <div className="max-w-2xl">
               <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2">
-                Join the October 2026 Cohort — or Partner as an Instructor!
+                Become an Instructor!
               </h3>
               <p className="text-sm sm:text-base text-white/90 leading-relaxed">
-                Train in our physical Umuahia Innovation Hub or live via Zoom. Pay in full for 12% off, split tuition into 3 installments, or register on the spot via our campus QR banners.
+                Share your engineering, design, or AI expertise with cohorts at the BEMS Innovation Hub in Umuahia—or enroll in our October 2026 batch with flexible 3-part tuition.
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-3 shrink-0">
               <Link
-                href="/subscriptions"
-                className="inline-flex items-center gap-2 rounded-lg border-2 border-[#F7C32E] bg-[#F7C32E] text-[#24292D] hover:bg-transparent hover:text-[#F7C32E] font-bold text-sm px-6 py-3 transition-colors"
+                href="/instructor"
+                className="inline-flex items-center gap-2 rounded-lg border-2 border-[#F7C32E] bg-transparent hover:bg-[#F7C32E] text-[#F7C32E] hover:text-[#24292D] font-bold text-sm px-6 py-3 transition-colors"
               >
-                <span>Start Registration</span>
-                <ArrowRight className="w-4 h-4" />
+                <span>Start Teaching Today</span>
               </Link>
               <Link
-                href="/qr-studio"
-                className="inline-flex items-center gap-2 rounded-lg border border-white/40 bg-white/10 hover:bg-white/20 text-white font-semibold text-sm px-5 py-3 transition-colors"
+                href="/subscriptions"
+                className="inline-flex items-center gap-2 rounded-lg bg-white text-[#139EB2] hover:bg-white/90 font-bold text-sm px-5 py-3 transition-colors"
               >
-                <QrCode className="w-4 h-4" />
-                <span>QR Banner Studio</span>
+                <span>Apply as Student</span>
+                <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
           </div>
