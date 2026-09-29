@@ -7,6 +7,7 @@ import { useLMS } from "@/context/LMSContext";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { apiFetch } from "@/lib/api-client";
+import { readAttributionParam, persistAttribution, getStoredAttribution } from "@/lib/attribution";
 import {
   AlertCircle,
   X,
@@ -46,7 +47,12 @@ const DEFAULT_ORDER_ITEMS: OrderItem[] = [
 export function EduportCheckoutView() {
   const searchParams = useSearchParams();
   const courseQuery = searchParams.get("course");
-  const sourceQuery = searchParams.get("source");
+  // The checkout page can be reached two ways: a direct deep-link flyer QR
+  // (carries ?utm_source= or ?source= right here) or an outdoor banner that
+  // landed the visitor on the homepage first (see AttributionCapture) — in
+  // that second case there's no param on THIS page load, so fall back to
+  // whatever was persisted there instead of losing the attribution.
+  const sourceParam = readAttributionParam(searchParams);
   const { user, courses, enrollInCourse } = useLMS();
 
   const [showAccountBanner, setShowAccountBanner] = useState(true);
@@ -87,20 +93,35 @@ export function EduportCheckoutView() {
     totalPaid: number;
   } | null>(null);
 
-  // Preserve QR / Banner scan tracking for BEMS analytics
+  // The source actually used for enrollment attribution: a fresh param on
+  // this page wins; otherwise fall back to what AttributionCapture stored
+  // when the visitor first landed (e.g. via an outdoor banner -> homepage).
+  const [effectiveSource, setEffectiveSource] = useState<string | null>(null);
+  useEffect(() => {
+    if (sourceParam) {
+      persistAttribution(sourceParam);
+      setEffectiveSource(sourceParam);
+    } else {
+      setEffectiveSource(getStoredAttribution());
+    }
+  }, [sourceParam]);
+
+  // Preserve QR / Banner scan tracking for BEMS analytics — only fires for a
+  // FRESH param on this exact page load; a scan carried forward from the
+  // homepage was already logged there by AttributionCapture.
   const scanTracked = useRef(false);
   useEffect(() => {
-    if (!sourceQuery || scanTracked.current) return;
+    if (!sourceParam || scanTracked.current) return;
     scanTracked.current = true;
     apiFetch("/api/lms/track-scan", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        source: sourceQuery,
+        source: sourceParam,
         courseId: courseQuery || null,
       }),
     }).catch(() => {});
-  }, [sourceQuery, courseQuery]);
+  }, [sourceParam, courseQuery]);
 
   const originalPrice = orderItems.reduce((sum, item) => sum + item.price, 0);
   const finalTotal = Math.max(0, originalPrice - couponDiscount);
@@ -122,7 +143,7 @@ export function EduportCheckoutView() {
 
       if (matchedCourse) {
         await enrollInCourse(matchedCourse.id, {
-          source: sourceQuery || undefined,
+          source: effectiveSource || undefined,
           paymentMethod: paymentMethod === "card" ? "paystack" : "bank",
         });
       }
