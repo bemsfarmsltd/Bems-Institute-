@@ -128,7 +128,7 @@ export function Footer() {
             <h4 className="text-base font-bold text-[#24292D] mb-4">Teaching</h4>
             <ul className="space-y-2.5 text-xs sm:text-sm">
               <li>
-                <Link href="/instructor" className="hover:text-[#066AC9] transition-colors">
+                <Link href="/become-instructor" className="hover:text-[#066AC9] transition-colors">
                   Become a Tutor
                 </Link>
               </li>

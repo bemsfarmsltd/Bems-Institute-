@@ -501,7 +501,7 @@ export function CourseCards() {
 
             <div className="flex flex-wrap items-center gap-3 shrink-0">
               <Link
-                href="/instructor"
+                href="/become-instructor"
                 className="inline-flex items-center gap-2 rounded-lg border-2 border-[#F7C32E] bg-transparent hover:bg-[#F7C32E] text-[#F7C32E] hover:text-[#24292D] font-bold text-sm px-6 py-3 transition-colors"
               >
                 <span>Start Teaching Today</span>
