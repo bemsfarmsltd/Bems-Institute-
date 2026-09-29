@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useLMS } from "@/context/LMSContext";
+import { apiFetch } from "@/lib/api-client";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Badge } from "@/components/ui/badge";
@@ -74,7 +75,7 @@ export function AdminGate({ children }: { children: React.ReactNode }) {
     setError(null);
     setSubmitting(true);
     try {
-      const res = await fetch("/api/admin-auth", {
+      const res = await apiFetch("/api/admin-auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code, name, email, password })

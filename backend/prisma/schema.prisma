@@ -1,0 +1,477 @@
+// BEMS Institute of Technology & Vocational Studies
+// Core LMS Prisma Schema (PostgreSQL) - Phase 1 & 2: Core + Assessment
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  STUDENT
+  INSTRUCTOR
+  ADMIN
+}
+
+enum EnrollmentStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+}
+
+enum SubmissionStatus {
+  SUBMITTED
+  GRADED
+  RESUBMISSION_REQUESTED
+}
+
+enum CourseStatus {
+  ACTIVE
+  UPCOMING
+  ARCHIVED
+}
+
+enum DeliveryMode {
+  PHYSICAL_LAB
+  VIRTUAL_ZOOM
+}
+
+enum PaymentStatus {
+  PENDING
+  PARTIAL
+  PAID_FULL
+}
+
+enum LearningEventType {
+  LESSON_STARTED
+  LESSON_COMPLETED
+  QUIZ_STARTED
+  QUESTION_ANSWERED
+  QUIZ_COMPLETED
+  ASSIGNMENT_SUBMITTED
+  ASSIGNMENT_GRADED
+  AI_TUTOR_USED
+}
+
+enum NotificationCategory {
+  CLASS
+  GRADING
+  PAYMENT
+  GAMIFICATION
+}
+
+model User {
+  id           String         @id @default(cuid())
+  clerkId      String?        @unique
+  name         String
+  email        String         @unique
+  passwordHash String
+  phone        String?
+  role         UserRole       @default(STUDENT)
+  enrollments      Enrollment[]
+  progress         UserProgress[]
+  quizAttempts     QuizAttempt[]
+  submissions      Submission[]
+  certificates     Certificate[]
+  learningEvents   LearningEvent[]
+  conceptMasteries ConceptMastery[]
+  learningProfile  LearningProfile?
+  passwordResetTokens PasswordResetToken[]
+  notifications    Notification[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+}
+
+model Course {
+  id           String        @id @default(cuid())
+  slug         String        @unique
+  title        String
+  badge        String        @default("")
+  tutor        String
+  tutorRole    String
+  schedule     String        @default("")
+  duration     String        @default("")
+  delivery     String        @default("")
+  tagline      String
+  priceFull    Int
+  priceParts   Int
+  deposit      Int
+  finalProject String
+  isPublished  Boolean       @default(true)
+  status       CourseStatus  @default(ACTIVE)
+  color        String        @default("#7928CA") // for analytics chart display
+  modules      Module[]
+  quizzes      Quiz[]
+  assignments  Assignment[]
+  enrollments  Enrollment[]
+  certificates Certificate[]
+  concepts     Concept[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Module {
+  id        String   @id @default(cuid())
+  title     String
+  order     Int
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons   Lesson[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([courseId])
+}
+
+model Lesson {
+  id            String         @id @default(cuid())
+  title         String
+  slug          String
+  description   String         @db.Text
+  videoUrl      String?        // Mux playback ID or Cloudflare R2 stream URL
+  duration      String         @default("15:00")
+  order         Int
+  isFreePreview Boolean        @default(false)
+  moduleId      String
+  module        Module         @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  userProgress  UserProgress[]
+  concepts      LessonConcept[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([moduleId])
+}
+
+model Enrollment {
+  id               String           @id @default(cuid())
+  userId           String
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId         String
+  course           Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  status           EnrollmentStatus @default(ACTIVE)
+  paymentPlan      String           @default("full") // "full" or "installment"
+  amountPaid       Int              @default(0)
+  totalDue         Int              @default(0)
+  paymentStatus    PaymentStatus    @default(PENDING)
+  deliveryMode     DeliveryMode     @default(PHYSICAL_LAB)
+  paymentReference String?
+  source           String?          @default("website") // banner/QR label — free text, see QrScan
+  cohortId         String?
+  cohort           Cohort?          @relation(fields: [cohortId], references: [id])
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@unique([userId, courseId])
+  @@index([courseId])
+}
+
+// One admissions intake round (e.g. "October 2026"). Enrollments link to
+// whichever cohort is active when they're created; targets here drive the
+// admin analytics dashboard's goal-vs-actual figures.
+model Cohort {
+  id             String       @id @default(cuid())
+  name           String
+  startDate      DateTime
+  endDate        DateTime
+  targetStudents Int          @default(80)
+  targetRevenue  Int          @default(0)
+  enrollments    Enrollment[]
+  createdAt      DateTime     @default(now())
+}
+
+// Append-only log of banner/QR landing-page visits (see /subscriptions and
+// the QR Studio), independent of whether the visit converted to an
+// enrollment. Aggregated by `source` for the admin banner-yield dashboard —
+// registrations are the subset of a source's scans whose visitor enrolled.
+model QrScan {
+  id        String   @id @default(cuid())
+  source    String
+  courseId  String?
+  createdAt DateTime @default(now())
+
+  @@index([source])
+}
+
+model UserProgress {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId    String
+  lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  isCompleted Boolean  @default(false)
+  completedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, lessonId])
+  @@index([lessonId])
+}
+
+// ---------------------------------------------
+// PHASE 2 — ASSESSMENT MODELS
+// ---------------------------------------------
+
+model Quiz {
+  id           String        @id @default(cuid())
+  title        String
+  description  String
+  passingScore Int           @default(70) // Percentage required to pass
+  courseId     String
+  course       Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  questions    Question[]
+  attempts     QuizAttempt[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([courseId])
+}
+
+model Question {
+  id            String   @id @default(cuid())
+  quizId        String
+  quiz          Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  prompt        String
+  options       String[] // Stored as array of strings
+  correctOption Int      // Index of correct option (0-based)
+  explanation   String?
+  concepts      QuestionConcept[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([quizId])
+}
+
+model QuizAttempt {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quizId    String
+  quiz      Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  score     Int      // Percentage scored (0-100)
+  passed    Boolean
+  answers   Json     // Map of questionId -> selectedOptionIndex
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([quizId])
+}
+
+model Assignment {
+  id           String       @id @default(cuid())
+  title        String
+  brief        String       @db.Text
+  requirements String[]
+  rubric       Json         // [{ criteria: string, points: number }]
+  courseId     String
+  course       Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  submissions  Submission[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([courseId])
+}
+
+model Submission {
+  id           String           @id @default(cuid())
+  assignmentId String
+  assignment   Assignment       @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  githubUrl    String
+  liveDemoUrl  String?
+  notes        String?          @db.Text
+  status       SubmissionStatus @default(SUBMITTED)
+  score        Int?             // Out of 100
+  feedback     String?          @db.Text
+  gradedBy     String?          // Instructor name / ID
+  gradedAt     DateTime?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@unique([assignmentId, userId])
+  @@index([userId])
+}
+
+model Certificate {
+  id           String   @id @default(cuid())
+  certNumber   String   @unique // e.g. BEMS-CERT-2026-WD-8819
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId     String
+  course       Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  gradeTitle   String   @default("Distinction") // e.g. Distinction, Honors, Merit
+  finalScore   Int      // Composite score out of 100
+  qrVerifyUrl  String
+  issuedAt     DateTime @default(now())
+
+  @@unique([userId, courseId])
+  @@index([certNumber])
+}
+
+// ---------------------------------------------------------------
+// THE CORE PERSONALIZATION LOOP
+//
+// Lessons/Questions teach Concepts (LessonConcept/QuestionConcept) ->
+// a student's real activity (quiz answers, lesson completion) is logged
+// as LearningEvents -> each relevant event recomputes that student's
+// ConceptMastery -> the recommendation engine (src/lib/learning-engine.ts)
+// reads ConceptMastery + LearningEvents to explain, in plain evidence,
+// what to study next. Deliberately rule-based, not ML — see that file's
+// header comment for why.
+// ---------------------------------------------------------------
+
+model Concept {
+  id              String            @id @default(cuid())
+  name            String
+  description     String?
+  courseId        String
+  course          Course            @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  parentConceptId String?
+  parentConcept   Concept?          @relation("ConceptHierarchy", fields: [parentConceptId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  childConcepts   Concept[]         @relation("ConceptHierarchy")
+  lessons         LessonConcept[]
+  questions       QuestionConcept[]
+  masteries       ConceptMastery[]
+  events          LearningEvent[]
+  createdAt       DateTime          @default(now())
+
+  @@index([courseId])
+}
+
+// What a lesson teaches — used to point a weak-concept recommendation at
+// something to (re-)watch. `importance` (1-5) lets a lesson teach several
+// concepts without weighting them all equally.
+model LessonConcept {
+  lessonId   String
+  conceptId  String
+  importance Int     @default(3)
+  lesson     Lesson  @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  concept    Concept @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+
+  @@id([lessonId, conceptId])
+  @@index([conceptId])
+}
+
+// What a quiz question actually tests — this is the ground truth every
+// ConceptMastery score is computed from.
+model QuestionConcept {
+  questionId String
+  conceptId  String
+  importance Int      @default(3)
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  concept    Concept  @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+
+  @@id([questionId, conceptId])
+  @@index([conceptId])
+}
+
+// Append-only activity log — the raw material the personalization loop
+// learns from. Written as a side effect of the existing progress/quiz/
+// submission API routes, never a separate tracking call the client has to
+// remember to make.
+model LearningEvent {
+  id        String            @id @default(cuid())
+  userId    String
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId  String?
+  lessonId  String?
+  conceptId String?
+  concept   Concept?          @relation(fields: [conceptId], references: [id], onDelete: SetNull)
+  eventType LearningEventType
+  metadata  Json?
+  createdAt DateTime          @default(now())
+
+  @@index([userId])
+  @@index([conceptId])
+}
+
+// One row per (student, concept) — recomputed from scratch on every
+// relevant LearningEvent, not incrementally patched, so it can never drift
+// from the events that produced it.
+model ConceptMastery {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conceptId       String
+  concept         Concept   @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+  masteryScore    Float     @default(0) // correctAttempts / attempts
+  confidence      Float     @default(0) // how much to trust masteryScore, from attempt count
+  attempts        Int       @default(0)
+  correctAttempts Int       @default(0)
+  lastPracticedAt DateTime?
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([userId, conceptId])
+  @@index([conceptId])
+}
+
+model LearningProfile {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  learningGoal    String?
+  experienceLevel String    @default("BEGINNER")
+  learningStreak  Int       @default(0)
+  lastActiveAt    DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+// Append-only log backing rate-limiting on password/code-guessing endpoints
+// (see src/lib/rate-limit.ts). `key` namespaces which limiter it belongs to,
+// e.g. "login:<email>" for /api/auth/login or a fixed key for the shared
+// admin access code — a Postgres table rather than an in-memory counter so
+// the lockout survives a dev-server restart and isn't per-instance.
+model AuthAttempt {
+  id        String   @id @default(cuid())
+  key       String
+  success   Boolean
+  createdAt DateTime @default(now())
+
+  @@index([key, createdAt])
+}
+
+// A password-reset link's server-side half. Only tokenHash (SHA-256 of the
+// random token actually emailed/logged to the user) is ever stored, so a
+// database leak alone can't be used to reset anyone's password. Single-use
+// via usedAt, and short-lived via expiresAt — see /api/auth/request-reset
+// and /api/auth/reset-password.
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+// Redemption record for one generated practice-question token (see
+// /api/learning/practice-question). The token itself is a signed, stateless
+// JWT-like blob carrying the correct answer — this table is the one piece of
+// server state needed to make it single-use: answering inserts a row keyed
+// on the token's jti, and a unique-constraint violation on replay is what
+// rejects a second submission of the same token.
+model PracticeAttempt {
+  id        String   @id @default(cuid())
+  jti       String   @unique
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        String               @id @default(cuid())
+  userId    String
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String               @db.Text
+  category  NotificationCategory @default(CLASS)
+  linkUrl   String?
+  read      Boolean              @default(false)
+  createdAt DateTime             @default(now())
+
+  @@index([userId, createdAt])
+}
+

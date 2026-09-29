@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { mockSubscriptionTiers } from "@/data/advanced-data";
 import { SubscriptionTier } from "@/types/advanced";
+import { apiFetch } from "@/lib/api-client";
 
 function SubscriptionsContent() {
   const searchParams = useSearchParams();
@@ -58,7 +59,7 @@ function SubscriptionsContent() {
   useEffect(() => {
     if (!sourceQuery || scanTracked.current) return;
     scanTracked.current = true;
-    fetch("/api/lms/track-scan", {
+    apiFetch("/api/lms/track-scan", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ source: sourceQuery, courseId: courseQuery || null })

@@ -15,6 +15,7 @@ import {
 } from "@/types/lms";
 import type { LearningProfileSummary } from "@/lib/learning-engine";
 import type { AppNotification } from "@/types/advanced";
+import { apiFetch } from "@/lib/api-client";
 
 const EMPTY_LEARNING_PROFILE: LearningProfileSummary = {
   strengths: [],
@@ -150,7 +151,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
 
   const refreshLearningProfile = useCallback(async () => {
     try {
-      const res = await fetch("/api/learning/profile");
+      const res = await apiFetch("/api/learning/profile");
       if (res.ok) setLearningProfile(await res.json());
     } catch {
       // leave whatever was already loaded
@@ -159,7 +160,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
 
   const refreshNotifications = useCallback(async () => {
     try {
-      const res = await fetch("/api/lms/notifications");
+      const res = await apiFetch("/api/lms/notifications");
       if (res.ok) {
         const data = await res.json();
         setNotifications(data.notifications || []);
@@ -174,7 +175,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
       prev.map((n) => (!id || n.id === id ? { ...n, read: true } : n))
     );
     try {
-      const res = await fetch("/api/lms/notifications", {
+      const res = await apiFetch("/api/lms/notifications", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(id ? { id } : { markAllRead: true })
@@ -196,9 +197,9 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
   const loadAdminData = useCallback(async () => {
     try {
       const [rosterRes, coursesRes, analyticsRes] = await Promise.all([
-        fetch("/api/admin/roster"),
-        fetch("/api/admin/courses"),
-        fetch("/api/admin/analytics")
+        apiFetch("/api/admin/roster"),
+        apiFetch("/api/admin/courses"),
+        apiFetch("/api/admin/analytics")
       ]);
       if (rosterRes.ok) setAdminStudents((await rosterRes.json()).roster || []);
       if (coursesRes.ok) setAdminCourses((await coursesRes.json()).courses || []);
@@ -211,7 +212,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const addCourse: LMSContextType["addCourse"] = async (course) => {
-    const res = await fetch("/api/admin/courses", {
+    const res = await apiFetch("/api/admin/courses", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(course)
@@ -223,7 +224,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateCourseStatus = async (courseId: string, status: "ACTIVE" | "UPCOMING" | "ARCHIVED") => {
-    const res = await fetch(`/api/admin/courses/${courseId}/status`, {
+    const res = await apiFetch(`/api/admin/courses/${courseId}/status`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status })
@@ -239,7 +240,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
     status: "PAID_FULL" | "PARTIAL",
     amountPaid: number
   ) => {
-    const res = await fetch(`/api/admin/enrollments/${enrollmentId}/payment`, {
+    const res = await apiFetch(`/api/admin/enrollments/${enrollmentId}/payment`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status, amountPaid })
@@ -260,7 +261,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
   const loadOwnLmsData = useCallback(
     async (role: User["role"]) => {
       try {
-        const lmsMeRes = await fetch("/api/lms/me");
+        const lmsMeRes = await apiFetch("/api/lms/me");
         if (lmsMeRes.ok) {
           const lmsMe = await lmsMeRes.json();
           setEnrolledCourseIds(lmsMe.enrolledCourseIds || []);
@@ -296,7 +297,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
 
     async function bootstrap() {
       try {
-        const catalogRes = await fetch("/api/lms/catalog");
+        const catalogRes = await apiFetch("/api/lms/catalog");
         const catalog = await catalogRes.json();
         if (cancelled) return;
         setCourses(catalog.courses || []);
@@ -309,7 +310,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
 
       let sessionUser: User | null = null;
       try {
-        const meRes = await fetch("/api/auth/me");
+        const meRes = await apiFetch("/api/auth/me");
         const meData: { user: User | null } = await meRes.json();
         sessionUser = meData.user;
       } catch {
@@ -344,7 +345,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string): Promise<AuthResult> => {
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await apiFetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })
@@ -369,7 +370,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
     role: "STUDENT" | "INSTRUCTOR" = "STUDENT"
   ): Promise<AuthResult> => {
     try {
-      const res = await fetch("/api/auth/signup", {
+      const res = await apiFetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password, role })
@@ -389,7 +390,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
 
   const requestPasswordReset = async (email: string): Promise<{ ok: boolean; message: string }> => {
     try {
-      const res = await fetch("/api/auth/request-reset", {
+      const res = await apiFetch("/api/auth/request-reset", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email })
@@ -406,7 +407,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
 
   const resetPassword = async (token: string, password: string): Promise<AuthResult> => {
     try {
-      const res = await fetch("/api/auth/reset-password", {
+      const res = await apiFetch("/api/auth/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token, password })
@@ -443,7 +444,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
     setIsAdminDataLoaded(false);
     setLearningProfile(EMPTY_LEARNING_PROFILE);
     localStorage.removeItem("bems_lms_user");
-    fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+    apiFetch("/api/auth/logout", { method: "POST" }).catch(() => {});
   };
 
   const getCourse = useCallback((courseId: string) => courses.find((c) => c.id === courseId), [courses]);
@@ -458,7 +459,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
 
   const enrollInCourse = async (courseId: string, options?: EnrollOptions) => {
     try {
-      const res = await fetch("/api/lms/enroll", {
+      const res = await apiFetch("/api/lms/enroll", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ courseId, ...options })
@@ -477,7 +478,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
 
   const toggleLessonComplete = async (lessonId: string) => {
     try {
-      const res = await fetch("/api/lms/progress", {
+      const res = await apiFetch("/api/lms/progress", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ lessonId })
@@ -509,7 +510,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
   };
 
   const submitQuiz = async (quizId: string, answers: Record<string, number>): Promise<QuizResult> => {
-    const res = await fetch("/api/lms/quiz-attempts", {
+    const res = await apiFetch("/api/lms/quiz-attempts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ quizId, answers })
@@ -532,7 +533,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
     liveDemoUrl: string,
     notes: string
   ): Promise<Submission> => {
-    const res = await fetch("/api/lms/submissions", {
+    const res = await apiFetch("/api/lms/submissions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ assignmentId, githubUrl, liveDemoUrl, notes })
@@ -550,7 +551,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
   };
 
   const gradeSubmission = async (submissionId: string, score: number, feedback: string) => {
-    const res = await fetch(`/api/lms/submissions/${submissionId}/grade`, {
+    const res = await apiFetch(`/api/lms/submissions/${submissionId}/grade`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ score, feedback })

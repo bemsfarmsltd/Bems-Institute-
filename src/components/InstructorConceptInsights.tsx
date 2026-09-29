@@ -2,7 +2,19 @@
 
 import React, { useEffect, useState } from "react";
 import { AlertTriangle, TrendingDown } from "lucide-react";
-import type { ConceptStruggleRow } from "@/app/api/instructor/concept-analytics/route";
+import { apiFetch } from "@/lib/api-client";
+
+export interface ConceptStruggleRow {
+  conceptId: string;
+  conceptName: string;
+  courseId: string;
+  courseTitle: string;
+  totalStudents: number;
+  strugglingStudents: number;
+  strugglePercent: number;
+  avgMasteryPercent: number;
+  smallSample: boolean;
+}
 
 export function InstructorConceptInsights({ courseId }: { courseId?: string }) {
   const [rows, setRows] = useState<ConceptStruggleRow[] | null>(null);
@@ -11,7 +23,7 @@ export function InstructorConceptInsights({ courseId }: { courseId?: string }) {
     let cancelled = false;
     setRows(null);
     const qs = courseId && courseId !== "all" ? `?courseId=${encodeURIComponent(courseId)}` : "";
-    fetch(`/api/instructor/concept-analytics${qs}`)
+    apiFetch(`/api/instructor/concept-analytics${qs}`)
       .then((res) => (res.ok ? res.json() : { rows: [] }))
       .then((data) => {
         if (!cancelled) setRows(data.rows || []);

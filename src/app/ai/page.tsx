@@ -24,6 +24,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useLMS } from "@/context/LMSContext";
 import { LearningInsights } from "@/components/LearningInsights";
+import { apiFetch } from "@/lib/api-client";
 import {
   AIChatMessage,
   GeneratedQuiz,
@@ -139,7 +140,7 @@ function AIHubContent() {
     setIsTutorLoading(true);
 
     try {
-      const res = await fetch("/api/ai", {
+      const res = await apiFetch("/api/ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -195,7 +196,7 @@ function AIHubContent() {
     setShowQuizResults(false);
 
     try {
-      const res = await fetch("/api/ai", {
+      const res = await apiFetch("/api/ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -221,7 +222,7 @@ function AIHubContent() {
   const handleGenerateStudyPlan = async () => {
     setIsStudyLoading(true);
     try {
-      const res = await fetch("/api/ai", {
+      const res = await apiFetch("/api/ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -247,7 +248,7 @@ function AIHubContent() {
   const handleEvaluateCode = async () => {
     setIsFeedbackLoading(true);
     try {
-      const res = await fetch("/api/ai", {
+      const res = await apiFetch("/api/ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -272,7 +273,7 @@ function AIHubContent() {
     setIsRecsLoading(true);
     try {
       const liveProgress = getCourseProgress(track)?.percent || 50;
-      const res = await fetch("/api/ai", {
+      const res = await apiFetch("/api/ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

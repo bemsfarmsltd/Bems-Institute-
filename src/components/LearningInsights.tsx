@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useLMS } from "@/context/LMSContext";
+import { apiFetch } from "@/lib/api-client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -49,7 +50,7 @@ function PracticeQuestionPanel({ conceptId }: { conceptId: string }) {
     setResult(null);
     setSelected(null);
     try {
-      const res = await fetch("/api/learning/practice-question", {
+      const res = await apiFetch("/api/learning/practice-question", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ conceptId })
@@ -68,7 +69,7 @@ function PracticeQuestionPanel({ conceptId }: { conceptId: string }) {
     if (!question || status === "answered") return;
     setSelected(optionIndex);
     try {
-      const res = await fetch("/api/learning/practice-question/answer", {
+      const res = await apiFetch("/api/learning/practice-question/answer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: question.token, selectedOption: optionIndex })
