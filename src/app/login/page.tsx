@@ -4,258 +4,525 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLMS } from "@/context/LMSContext";
-import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  GraduationCap,
-  ArrowRight,
-  UserCheck
-} from "lucide-react";
+import type { UserRole } from "@/types/lms";
+import EduportAuthSplitLayout from "@/components/EduportAuthSplitLayout";
 
-type Mode = "signin" | "signup";
+function EnvelopeIcon() {
+  return (
+    <svg className="w-4 h-4 text-[#94A3B8] shrink-0" fill="currentColor" viewBox="0 0 20 20">
+      <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+      <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+    </svg>
+  );
+}
 
-const DEMO_STUDENT = { email: "chinedu.okeke@mouau.edu.ng", password: "demo1234" };
-const DEMO_INSTRUCTOR = { email: "victor.lead@bemsinstitute.ng", password: "demo1234" };
+function LockIcon() {
+  return (
+    <svg className="w-4 h-4 text-[#94A3B8] shrink-0" fill="currentColor" viewBox="0 0 20 20">
+      <path
+        fillRule="evenodd"
+        d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+}
 
-function routeForRole(role: string, router: ReturnType<typeof useRouter>) {
-  if (role === "ADMIN") router.push("/admin");
-  else if (role === "INSTRUCTOR") router.push("/instructor");
-  else router.push("/dashboard");
+function UserIcon() {
+  return (
+    <svg className="w-4 h-4 text-[#94A3B8] shrink-0" fill="currentColor" viewBox="0 0 20 20">
+      <path
+        fillRule="evenodd"
+        d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
 }
 
 export default function LoginPage() {
   const router = useRouter();
   const { login, signup } = useLMS();
 
-  const [mode, setMode] = useState<Mode>("signin");
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("mode") === "signup") {
+        setMode("signup");
+      }
+    }
+  }, []);
+  const [role, setRole] = useState<UserRole>("STUDENT");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<"STUDENT" | "INSTRUCTOR">("STUDENT");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
+  const [agreeTerms, setAgreeTerms] = useState(true);
+  const [institution, setInstitution] = useState<"MOUAU" | "Global">("MOUAU");
+  const [matricNumber, setMatricNumber] = useState("");
+  const [department, setDepartment] = useState("Computer Engineering");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const routeForRole = (userRole: UserRole) => {
+    if (userRole === "INSTRUCTOR" || userRole === "ADMIN") {
+      router.push("/instructor");
+    } else {
+      router.push("/dashboard");
+    }
+  };
+
+  const handleQuickDemo = async (demoRole: "student" | "instructor") => {
+    setError(null);
+    setSubmitting(true);
+    const demoEmail =
+      demoRole === "instructor"
+        ? "victor.lead@bemsinstitute.ng"
+        : "chinedu.okeke@mouau.edu.ng";
+
+    const result = await login(demoEmail, "demo1234");
+    setSubmitting(false);
+    if (!result.ok || !result.user) {
+      setError(result.error ?? "Unable to sign into demo account.");
+      return;
+    }
+    routeForRole(result.user.role);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    if (mode === "signup") {
+      if (password.length < 8) {
+        setError("Your password must be at least 8 characters long.");
+        return;
+      }
+      if (password !== confirmPassword) {
+        setError("Passwords do not match.");
+        return;
+      }
+      if (!agreeTerms) {
+        setError("Please agree to the terms of service to continue.");
+        return;
+      }
+    }
+
     setSubmitting(true);
-    const result =
-      mode === "signin"
-        ? await login(email, password)
-        : await signup(name, email, password, role);
+
+    if (mode === "signin") {
+      const result = await login(email, password);
+      setSubmitting(false);
+      if (!result.ok || !result.user) {
+        setError(result.error ?? "Invalid email or password.");
+        return;
+      }
+      routeForRole(result.user.role);
+      return;
+    }
+
+    const result = await signup(
+      name,
+      email,
+      password,
+      role === "INSTRUCTOR" ? "INSTRUCTOR" : "STUDENT"
+    );
     setSubmitting(false);
 
     if (!result.ok || !result.user) {
-      setError(result.error || "Something went wrong.");
+      setError(result.error ?? "Could not create your account.");
       return;
     }
-    routeForRole(result.user.role, router);
-  };
-
-  const handleDemo = async (creds: typeof DEMO_STUDENT) => {
-    setError(null);
-    setSubmitting(true);
-    const result = await login(creds.email, creds.password);
-    setSubmitting(false);
-    if (!result.ok || !result.user) {
-      setError(result.error || "Demo sign-in failed.");
-      return;
-    }
-    routeForRole(result.user.role, router);
+    routeForRole(result.user.role);
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAF8FF]">
-      <Navbar />
+    <EduportAuthSplitLayout>
+      {mode === "signin" ? (
+        /* ================= LOGIN MODE ================= */
+        <div>
+          <span className="text-[36px] leading-none block mb-3 select-none" aria-hidden="true">
+            👋
+          </span>
+          <h1 className="font-display text-[30px] sm:text-[36px] font-extrabold text-[#1D2026] tracking-tight leading-[1.15] mb-2">
+            Login into BEMS!
+          </h1>
+          <p className="text-[#64748B] text-[15px] mb-7">
+            Nice to see you! Please log in with your account.
+          </p>
 
-      <div className="flex-1 flex items-center justify-center py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full bg-white rounded-3xl border border-[#E6E1F5] p-8 sm:p-10 shadow-lg">
-          <div className="text-center mb-8">
-            <div className="w-14 h-14 rounded-2xl bg-[#7928CA]/10 text-[#7928CA] flex items-center justify-center mx-auto mb-4 font-black text-xl">
-              B
+          {error && (
+            <div className="mb-5 p-3.5 rounded-lg bg-[#FBE9EB] border border-[#D6293E]/25 text-[#D6293E] text-[13px] font-semibold">
+              {error}
             </div>
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Badge variant="purple">CORE LMS AUTH</Badge>
-            </div>
-            <h1 className="text-2xl font-black text-[#18143D]">
-              {mode === "signin" ? "Sign in to BEMS LMS" : "Create your BEMS account"}
-            </h1>
-            <p className="text-xs sm:text-sm text-[#645F80] mt-1">
-              {mode === "signin"
-                ? "Enter your email and password, or try a demo account below."
-                : "Set a password so your progress is saved to your own account."}
-            </p>
-          </div>
+          )}
 
-          {/* Mode toggle */}
-          <div className="grid grid-cols-2 gap-2 mb-6 p-1 rounded-2xl bg-[#FAF8FF] border border-[#E6E1F5]">
-            <button
-              type="button"
-              onClick={() => {
-                setMode("signin");
-                setError(null);
-              }}
-              className={`py-2 rounded-xl text-xs font-bold transition-colors ${
-                mode === "signin" ? "bg-white shadow-sm text-[#7928CA]" : "text-[#645F80]"
-              }`}
-            >
-              Sign In
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setMode("signup");
-                setError(null);
-              }}
-              className={`py-2 rounded-xl text-xs font-bold transition-colors ${
-                mode === "signup" ? "bg-white shadow-sm text-[#7928CA]" : "text-[#645F80]"
-              }`}
-            >
-              Create Account
-            </button>
-          </div>
-
-          {mode === "signin" && (
-            <div className="space-y-2 mb-6 p-4 rounded-2xl bg-[#FAF8FF] border border-[#E6E1F5]">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#645F80] block text-center mb-2">
-                ⚡ Try a Demo Account
-              </span>
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleDemo(DEMO_STUDENT)}
-                  disabled={submitting}
-                  className="text-xs border-[#D1C9EB] hover:border-[#7928CA] hover:text-[#7928CA]"
-                >
-                  <GraduationCap className="w-3.5 h-3.5 mr-1 text-[#7928CA]" /> Student Demo
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleDemo(DEMO_INSTRUCTOR)}
-                  disabled={submitting}
-                  className="text-xs border-[#D1C9EB] hover:border-[#7928CA] hover:text-[#7928CA]"
-                >
-                  <UserCheck className="w-3.5 h-3.5 mr-1 text-amber-600" /> Tutor Demo
-                </Button>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Email Address */}
+            <div>
+              <label className="block text-[13.5px] font-medium text-[#475569] mb-2">
+                Email address *
+              </label>
+              <div className="flex items-center gap-3 bg-[#F3F5F7] rounded-lg px-4 py-3 border border-transparent focus-within:border-[#066AC9] focus-within:bg-white transition-colors">
+                <EnvelopeIcon />
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="E-mail"
+                  className="w-full bg-transparent text-[14px] text-[#1D2026] placeholder:text-[#94A3B8] focus:outline-none"
+                />
               </div>
+            </div>
+
+            {/* Password */}
+            <div>
+              <label className="block text-[13.5px] font-medium text-[#475569] mb-2">
+                Password *
+              </label>
+              <div className="flex items-center gap-3 bg-[#F3F5F7] rounded-lg px-4 py-3 border border-transparent focus-within:border-[#066AC9] focus-within:bg-white transition-colors">
+                <LockIcon />
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="*********"
+                  className="w-full bg-transparent text-[14px] text-[#1D2026] placeholder:text-[#94A3B8] focus:outline-none"
+                />
+              </div>
+              <p className="text-[12px] text-[#94A3B8] mt-1.5">
+                Your password must be 8 characters at least
+              </p>
+            </div>
+
+            {/* Remember Me & Forgot Password */}
+            <div className="flex items-center justify-between text-[13.5px]">
+              <label className="inline-flex items-center gap-2 text-[#64748B] cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-4 h-4 rounded border-[#CBD5E1] text-[#066AC9] focus:ring-[#066AC9]"
+                />
+                <span>Remember me</span>
+              </label>
+              <Link
+                href="/forgot-password"
+                className="text-[#64748B] hover:text-[#066AC9] underline underline-offset-2 transition-colors"
+              >
+                Forgot password?
+              </Link>
+            </div>
+
+            {/* Login Button */}
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full py-3 rounded-lg bg-[#066AC9] hover:bg-[#0556A5] text-white font-semibold text-[15px] shadow-sm transition-colors disabled:opacity-60 cursor-pointer"
+            >
+              {submitting ? "Logging in..." : "Login"}
+            </button>
+          </form>
+
+          {/* Instant Demo Access */}
+          <div className="mt-5 pt-4 border-t border-slate-100">
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <span className="text-[11.5px] font-semibold uppercase tracking-wider text-[#94A3B8]">
+                Instant Demo Access
+              </span>
+              <span className="text-[11px] text-[#64748B]">One-click sign in</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2.5">
+              <button
+                type="button"
+                disabled={submitting}
+                onClick={() => handleQuickDemo("student")}
+                className="py-2 px-3 rounded-lg bg-[#E7EFF7] hover:bg-[#D8E6F3] text-[#066AC9] font-semibold text-[12.5px] transition-colors cursor-pointer"
+              >
+                Student Demo
+              </button>
+              <button
+                type="button"
+                disabled={submitting}
+                onClick={() => handleQuickDemo("instructor")}
+                className="py-2 px-3 rounded-lg bg-[#E8F8F3] hover:bg-[#D5F2E9] text-[#0F6E56] font-semibold text-[12.5px] transition-colors cursor-pointer"
+              >
+                Instructor Demo
+              </button>
+            </div>
+          </div>
+
+          {/* Divider Or */}
+          <div className="relative my-6 flex items-center justify-center">
+            <div className="w-full border-t border-slate-200" />
+            <span className="bg-white px-4 text-[13px] text-[#94A3B8] font-medium">
+              Or
+            </span>
+            <div className="w-full border-t border-slate-200" />
+          </div>
+
+          {/* Social Buttons */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => handleQuickDemo("student")}
+              className="w-full py-2.5 px-4 rounded-lg bg-[#3C7FF0] hover:bg-[#316FD8] text-white text-[13.5px] font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+            >
+              <span className="font-display font-black text-[15px]">G</span>
+              <span>Login with Google</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleQuickDemo("student")}
+              className="w-full py-2.5 px-4 rounded-lg bg-[#5D82D1] hover:bg-[#4E71BE] text-white text-[13.5px] font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+            >
+              <span className="font-display font-black text-[15px]">f</span>
+              <span>Login with Facebook</span>
+            </button>
+          </div>
+
+          {/* Switch to Sign Up */}
+          <p className="mt-7 text-center text-[14px] text-[#64748B]">
+            Don&apos;t have an account?{" "}
+            <button
+              type="button"
+              onClick={() => {
+                setError(null);
+                setMode("signup");
+              }}
+              className="text-[#066AC9] font-semibold hover:underline cursor-pointer"
+            >
+              Signup here
+            </button>
+          </p>
+        </div>
+      ) : (
+        /* ================= SIGN UP MODE ================= */
+        <div>
+          <span className="text-[36px] leading-none block mb-3 select-none" aria-hidden="true">
+            🙌
+          </span>
+          <h1 className="font-display text-[30px] sm:text-[36px] font-extrabold text-[#1D2026] tracking-tight leading-[1.15] mb-2">
+            Sign up for your account!
+          </h1>
+          <p className="text-[#64748B] text-[15px] mb-6">
+            Nice to see you! Please Sign up with your account.
+          </p>
+
+          {error && (
+            <div className="mb-5 p-3.5 rounded-lg bg-[#FBE9EB] border border-[#D6293E]/25 text-[#D6293E] text-[13px] font-semibold">
+              {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {mode === "signup" && (
-              <div>
-                <label className="block text-xs font-bold text-[#18143D] mb-1.5">
-                  Full Name
-                </label>
+            {/* Full Name */}
+            <div>
+              <label className="block text-[13.5px] font-medium text-[#475569] mb-1.5">
+                Full Name *
+              </label>
+              <div className="flex items-center gap-3 bg-[#F3F5F7] rounded-lg px-4 py-2.5 border border-transparent focus-within:border-[#066AC9] focus-within:bg-white transition-colors">
+                <UserIcon />
                 <input
                   type="text"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Chinedu Okeke"
-                  className="w-full px-4 py-3 rounded-xl border border-[#D1C9EB] focus:border-[#7928CA] focus:outline-hidden text-sm text-[#18143D] bg-white"
+                  placeholder="Full name"
+                  className="w-full bg-transparent text-[14px] text-[#1D2026] placeholder:text-[#94A3B8] focus:outline-none"
                 />
               </div>
-            )}
+            </div>
 
+            {/* Email address */}
             <div>
-              <label className="block text-xs font-bold text-[#18143D] mb-1.5">
-                Email Address
+              <label className="block text-[13.5px] font-medium text-[#475569] mb-1.5">
+                Email address *
               </label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="chinedu.okeke@mouau.edu.ng"
-                className="w-full px-4 py-3 rounded-xl border border-[#D1C9EB] focus:border-[#7928CA] focus:outline-hidden text-sm text-[#18143D] bg-white"
-              />
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-bold text-[#18143D]">
-                  Password
-                </label>
-                {mode === "signin" && (
-                  <Link
-                    href="/forgot-password"
-                    className="text-[11px] font-bold text-[#7928CA] hover:underline"
-                  >
-                    Forgot password?
-                  </Link>
-                )}
+              <div className="flex items-center gap-3 bg-[#F3F5F7] rounded-lg px-4 py-2.5 border border-transparent focus-within:border-[#066AC9] focus-within:bg-white transition-colors">
+                <EnvelopeIcon />
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="E-mail"
+                  className="w-full bg-transparent text-[14px] text-[#1D2026] placeholder:text-[#94A3B8] focus:outline-none"
+                />
               </div>
-              <input
-                type="password"
-                required
-                minLength={8}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full px-4 py-3 rounded-xl border border-[#D1C9EB] focus:border-[#7928CA] focus:outline-hidden text-sm text-[#18143D] bg-white"
-              />
-              {mode === "signup" && (
-                <p className="text-[11px] text-[#8580A3] mt-1">At least 8 characters.</p>
-              )}
             </div>
 
-            {mode === "signup" && (
+            {/* Role & Campus Stream Row */}
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-[#18143D] mb-1.5">
-                  I am a…
+                <label className="block text-[13px] font-medium text-[#475569] mb-1.5">
+                  Account Type
                 </label>
                 <select
                   value={role}
-                  onChange={(e) => setRole(e.target.value as "STUDENT" | "INSTRUCTOR")}
-                  className="w-full px-4 py-3 rounded-xl border border-[#D1C9EB] focus:border-[#7928CA] focus:outline-hidden text-sm text-[#18143D] bg-white font-medium"
+                  onChange={(e) => setRole(e.target.value as UserRole)}
+                  className="w-full bg-[#F3F5F7] rounded-lg px-3.5 py-2.5 text-[13.5px] text-[#1D2026] focus:outline-none focus:ring-1 focus:ring-[#066AC9]"
                 >
                   <option value="STUDENT">Student</option>
-                  <option value="INSTRUCTOR">Instructor / Tutor</option>
+                  <option value="INSTRUCTOR">Instructor</option>
                 </select>
+              </div>
+              <div>
+                <label className="block text-[13px] font-medium text-[#475569] mb-1.5">
+                  Campus Stream
+                </label>
+                <select
+                  value={institution}
+                  onChange={(e) => setInstitution(e.target.value as "MOUAU" | "Global")}
+                  className="w-full bg-[#F3F5F7] rounded-lg px-3.5 py-2.5 text-[13.5px] text-[#1D2026] focus:outline-none focus:ring-1 focus:ring-[#066AC9]"
+                >
+                  <option value="MOUAU">MOUAU Campus</option>
+                  <option value="Global">Global Learner</option>
+                </select>
+              </div>
+            </div>
+
+            {institution === "MOUAU" && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[13px] font-medium text-[#475569] mb-1.5">
+                    Matric Number
+                  </label>
+                  <input
+                    type="text"
+                    value={matricNumber}
+                    onChange={(e) => setMatricNumber(e.target.value)}
+                    placeholder="MOUAU/CME/22/..."
+                    className="w-full bg-[#F3F5F7] rounded-lg px-3.5 py-2.5 text-[13.5px] text-[#1D2026] placeholder:text-[#94A3B8] focus:outline-none focus:ring-1 focus:ring-[#066AC9]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[13px] font-medium text-[#475569] mb-1.5">
+                    Department
+                  </label>
+                  <input
+                    type="text"
+                    value={department}
+                    onChange={(e) => setDepartment(e.target.value)}
+                    placeholder="Computer Engineering"
+                    className="w-full bg-[#F3F5F7] rounded-lg px-3.5 py-2.5 text-[13.5px] text-[#1D2026] placeholder:text-[#94A3B8] focus:outline-none focus:ring-1 focus:ring-[#066AC9]"
+                  />
+                </div>
               </div>
             )}
 
-            {error && (
-              <p className="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
-                {error}
-              </p>
-            )}
+            {/* Password */}
+            <div>
+              <label className="block text-[13.5px] font-medium text-[#475569] mb-1.5">
+                Password *
+              </label>
+              <div className="flex items-center gap-3 bg-[#F3F5F7] rounded-lg px-4 py-2.5 border border-transparent focus-within:border-[#066AC9] focus-within:bg-white transition-colors">
+                <LockIcon />
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="*********"
+                  className="w-full bg-transparent text-[14px] text-[#1D2026] placeholder:text-[#94A3B8] focus:outline-none"
+                />
+              </div>
+            </div>
 
-            <Button
+            {/* Confirm Password */}
+            <div>
+              <label className="block text-[13.5px] font-medium text-[#475569] mb-1.5">
+                Confirm Password *
+              </label>
+              <div className="flex items-center gap-3 bg-[#F3F5F7] rounded-lg px-4 py-2.5 border border-transparent focus-within:border-[#066AC9] focus-within:bg-white transition-colors">
+                <LockIcon />
+                <input
+                  type="password"
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="*********"
+                  className="w-full bg-transparent text-[14px] text-[#1D2026] placeholder:text-[#94A3B8] focus:outline-none"
+                />
+              </div>
+            </div>
+
+            {/* Terms Checkbox */}
+            <label className="inline-flex items-center gap-2.5 text-[13.5px] text-[#64748B] cursor-pointer select-none pt-1">
+              <input
+                type="checkbox"
+                checked={agreeTerms}
+                onChange={(e) => setAgreeTerms(e.target.checked)}
+                className="w-4 h-4 rounded border-[#CBD5E1] text-[#066AC9] focus:ring-[#066AC9]"
+              />
+              <span>
+                By signing up, you agree to the{" "}
+                <Link href="/legal/terms" className="text-[#066AC9] underline hover:text-[#0556A5]">
+                  terms of service
+                </Link>
+              </span>
+            </label>
+
+            {/* Sign Up Button */}
+            <button
               type="submit"
-              variant="purple"
-              size="lg"
               disabled={submitting}
-              className="w-full shadow-md mt-2 font-bold"
+              className="w-full py-3 rounded-lg bg-[#066AC9] hover:bg-[#0556A5] text-white font-semibold text-[15px] shadow-sm transition-colors disabled:opacity-60 cursor-pointer"
             >
-              {submitting
-                ? "Please wait…"
-                : mode === "signin"
-                ? "Sign In to Learning Portal"
-                : "Create Account"}
-              <ArrowRight className="w-4 h-4 ml-1.5" />
-            </Button>
+              {submitting ? "Creating account..." : "Sign Up"}
+            </button>
           </form>
 
-          <div className="mt-6 pt-4 border-t border-[#F0EDF9] text-center">
-            <Link
-              href="/"
-              className="text-xs text-[#645F80] hover:text-[#18143D] font-semibold"
-            >
-              &larr; Back to BEMS Public Landing Page
-            </Link>
+          {/* Divider Or */}
+          <div className="relative my-6 flex items-center justify-center">
+            <div className="w-full border-t border-slate-200" />
+            <span className="bg-white px-4 text-[13px] text-[#94A3B8] font-medium">
+              Or
+            </span>
+            <div className="w-full border-t border-slate-200" />
           </div>
-        </div>
-      </div>
 
-      <Footer />
-    </div>
+          {/* Social Buttons */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => handleQuickDemo("student")}
+              className="w-full py-2.5 px-4 rounded-lg bg-[#3C7FF0] hover:bg-[#316FD8] text-white text-[13.5px] font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+            >
+              <span className="font-display font-black text-[15px]">G</span>
+              <span>Signup with Google</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleQuickDemo("student")}
+              className="w-full py-2.5 px-4 rounded-lg bg-[#5D82D1] hover:bg-[#4E71BE] text-white text-[13.5px] font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+            >
+              <span className="font-display font-black text-[15px]">f</span>
+              <span>Signup with Facebook</span>
+            </button>
+          </div>
+
+          {/* Switch to Sign In */}
+          <p className="mt-6 text-center text-[14px] text-[#64748B]">
+            Already have an account?{" "}
+            <button
+              type="button"
+              onClick={() => {
+                setError(null);
+                setMode("signin");
+              }}
+              className="text-[#066AC9] font-semibold hover:underline cursor-pointer"
+            >
+              Sign in here
+            </button>
+          </p>
+        </div>
+      )}
+    </EduportAuthSplitLayout>
   );
 }

@@ -3,92 +3,97 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useLMS } from "@/context/LMSContext";
-import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { KeyRound, ArrowRight, CheckCircle2 } from "lucide-react";
+import EduportAuthSplitLayout from "@/components/EduportAuthSplitLayout";
 
 export default function ForgotPasswordPage() {
   const { requestPasswordReset } = useLMS();
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+    setMessage(null);
     setSubmitting(true);
+
     const res = await requestPasswordReset(email);
     setSubmitting(false);
-    setResult(res);
+
+    if (!res.ok) {
+      setError(res.message || "Unable to process password reset request.");
+      return;
+    }
+
+    setMessage(
+      res.message ||
+        "If an account exists for that email address, a password reset link has been generated."
+    );
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAF8FF]">
-      <Navbar />
+    <EduportAuthSplitLayout>
+      <div>
+        <span className="text-[36px] leading-none block mb-3 select-none" aria-hidden="true">
+          🤔
+        </span>
+        <h1 className="font-display text-[30px] sm:text-[36px] font-extrabold text-[#1D2026] tracking-tight leading-[1.15] mb-2">
+          Forgot Password?
+        </h1>
+        <p className="text-[#64748B] text-[15px] mb-7">
+          To receive a new password, enter your email address below.
+        </p>
 
-      <div className="flex-1 flex items-center justify-center py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full bg-white rounded-3xl border border-[#E6E1F5] p-8 sm:p-10 shadow-lg">
-          <div className="text-center mb-8">
-            <div className="w-14 h-14 rounded-2xl bg-[#7928CA]/10 text-[#7928CA] flex items-center justify-center mx-auto mb-4">
-              <KeyRound className="w-6 h-6" />
+        {error && (
+          <div className="mb-5 p-3.5 rounded-lg bg-[#FBE9EB] border border-[#D6293E]/25 text-[#D6293E] text-[13px] font-semibold">
+            {error}
+          </div>
+        )}
+
+        {message && (
+          <div className="mb-5 p-4 rounded-lg bg-[#E8F8F3] border border-[#0CBC87]/25 text-[#0F6E56] text-[13.5px] font-medium">
+            <p>{message}</p>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label className="block text-[13.5px] font-medium text-[#475569] mb-2">
+              Email address *
+            </label>
+            <div className="flex items-center gap-3 bg-[#F3F5F7] rounded-lg px-4 py-3 border border-transparent focus-within:border-[#066AC9] focus-within:bg-white transition-colors">
+              <svg className="w-4 h-4 text-[#94A3B8] shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+              </svg>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="E-mail"
+                className="w-full bg-transparent text-[14px] text-[#1D2026] placeholder:text-[#94A3B8] focus:outline-none"
+              />
             </div>
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Badge variant="purple">ACCOUNT RECOVERY</Badge>
-            </div>
-            <h1 className="text-2xl font-black text-[#18143D]">Reset your password</h1>
-            <p className="text-xs sm:text-sm text-[#645F80] mt-1">
-              Enter your account email and we&apos;ll send a link to reset your password.
-            </p>
           </div>
 
-          {result ? (
-            <div className="space-y-4">
-              <div className="flex items-start gap-2.5 p-4 rounded-2xl bg-emerald-50 border border-emerald-200">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
-                <p className="text-xs text-emerald-900 font-medium">{result.message}</p>
-              </div>
-              <p className="text-[11px] text-[#8580A3] text-center">
-                No email service is set up in this environment yet — check the server console for the
-                reset link instead.
-              </p>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-[#18143D] mb-1.5">Email Address</label>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="chinedu.okeke@mouau.edu.ng"
-                  className="w-full px-4 py-3 rounded-xl border border-[#D1C9EB] focus:border-[#7928CA] focus:outline-hidden text-sm text-[#18143D] bg-white"
-                />
-              </div>
+          <button
+            type="submit"
+            disabled={submitting}
+            className="w-full py-3 rounded-lg bg-[#066AC9] hover:bg-[#0556A5] text-white font-semibold text-[15px] shadow-sm transition-colors disabled:opacity-60 cursor-pointer"
+          >
+            {submitting ? "Sending Reset Link..." : "Reset password"}
+          </button>
+        </form>
 
-              <Button
-                type="submit"
-                variant="purple"
-                size="lg"
-                disabled={submitting}
-                className="w-full shadow-md mt-2 font-bold"
-              >
-                {submitting ? "Sending…" : "Send Reset Link"}
-                <ArrowRight className="w-4 h-4 ml-1.5" />
-              </Button>
-            </form>
-          )}
-
-          <div className="mt-6 pt-4 border-t border-[#F0EDF9] text-center">
-            <Link href="/login" className="text-xs text-[#645F80] hover:text-[#18143D] font-semibold">
-              &larr; Back to Sign In
-            </Link>
-          </div>
-        </div>
+        <p className="mt-7 text-center text-[14px] text-[#64748B]">
+          Remembered your password?{" "}
+          <Link href="/login" className="text-[#066AC9] font-semibold hover:underline">
+            Back to Sign In
+          </Link>
+        </p>
       </div>
-
-      <Footer />
-    </div>
+    </EduportAuthSplitLayout>
   );
 }
