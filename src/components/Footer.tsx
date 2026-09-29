@@ -16,7 +16,7 @@ export function Footer() {
               </div>
               <div>
                 <strong className="text-white text-base block leading-none">BEMS INSTITUTE</strong>
-                <span className="text-[10px] text-[#D8B4FE] font-bold uppercase">TECHNOLOGY & VOCATIONAL STUDIES</span>
+                <span className="text-[10px] text-[#D8B4FE] font-bold uppercase">OF TECHNOLOGY & VOCATIONAL STUDIES</span>
               </div>
             </div>
             <p className="text-xs text-[#A5A0C8] leading-relaxed mb-4">

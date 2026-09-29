@@ -53,8 +53,8 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Brand Logo */}
-          <Link href="/" className="flex items-center gap-2 sm:gap-3 min-w-0 shrink mr-2">
-            <div className="relative w-9 h-9 sm:w-11 sm:h-11 rounded-lg overflow-hidden border border-[#E6E1F5] shadow-xs shrink-0">
+          <Link href="/" className="flex items-center gap-1.5 sm:gap-3 min-w-0 shrink lg:shrink-0 mr-1.5">
+            <div className="relative w-8 h-8 sm:w-11 sm:h-11 rounded-lg overflow-hidden border border-[#E6E1F5] shadow-xs shrink-0">
               <Image
                 src="/images/bems-logo.jpg"
                 alt="BEMS Logo"
@@ -67,7 +67,7 @@ export function Navbar() {
                 BEMS INSTITUTE
               </span>
               <span className="text-[8px] sm:text-[10px] font-bold text-[#7928CA] tracking-normal sm:tracking-wider uppercase block truncate">
-                TECHNOLOGY &amp; VOCATIONAL STUDIES
+                OF TECHNOLOGY &amp; VOCATIONAL STUDIES
               </span>
             </div>
           </Link>
@@ -126,7 +126,7 @@ export function Navbar() {
           </nav>
 
           {/* Right Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {isHydrated && user ? (
               <>
                 <NotificationBell />
@@ -168,7 +168,7 @@ export function Navbar() {
             ) : (
               <>
                 <Link href="/login">
-                  <Button variant="outline" size="sm" className="text-xs">
+                  <Button variant="outline" size="sm" className="text-xs px-2.5 sm:px-3.5">
                     Sign In
                   </Button>
                 </Link>

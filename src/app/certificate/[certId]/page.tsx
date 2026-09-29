@@ -225,7 +225,7 @@ export default function CertificateViewPage({
                 Director of Studies
               </div>
               <div className="text-[11px] text-[#645F80]">
-                BEMS Institute of Technology
+                BEMS Institute of Technology &amp; Vocational Studies
               </div>
             </div>
           </div>
