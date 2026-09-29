@@ -39,6 +39,8 @@ import {
   PlusCircle,
   Menu,
   X,
+  Edit3,
+  Trash2,
 } from "lucide-react";
 
 interface EduportStudentCard {
@@ -513,6 +515,133 @@ function AdminDashboardContent() {
 
   const [instructorSearch, setInstructorSearch] = useState("");
   const [instructorViewMode, setInstructorViewMode] = useState<"grid" | "list">("grid");
+
+  // Instructor Requests state (Image 3)
+  const [requestSearch, setRequestSearch] = useState("");
+  const [requestSort, setRequestSort] = useState("default");
+  const [instructorRequests, setInstructorRequests] = useState([
+    {
+      id: "ireq-1",
+      name: "Lori Stevens",
+      subject: "HTML, CSS, Bootstrap",
+      requestedDate: "22 Oct 2021",
+      status: "PENDING" as "PENDING" | "ACCEPTED" | "REJECTED",
+      avatar:
+        "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80",
+    },
+    {
+      id: "ireq-2",
+      name: "Carolyn Ortiz",
+      subject: "Photoshop, Figma, Adobe XD",
+      requestedDate: "06 Sep 2021",
+      status: "PENDING" as "PENDING" | "ACCEPTED" | "REJECTED",
+      avatar:
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+    },
+    {
+      id: "ireq-3",
+      name: "Dennis Barrett",
+      subject: "JavaScript, Java",
+      requestedDate: "21 Jan 2021",
+      status: "ACCEPTED" as "PENDING" | "ACCEPTED" | "REJECTED",
+      avatar:
+        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80",
+    },
+    {
+      id: "ireq-4",
+      name: "Billy Vasquez",
+      subject: "Maths, Chemistry",
+      requestedDate: "25 Dec 2020",
+      status: "REJECTED" as "PENDING" | "ACCEPTED" | "REJECTED",
+      avatar:
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80",
+    },
+    {
+      id: "ireq-5",
+      name: "Jacqueline Miller",
+      subject: "Python, Angular, React Native",
+      requestedDate: "05 June 2020",
+      status: "ACCEPTED" as "PENDING" | "ACCEPTED" | "REJECTED",
+      avatar:
+        "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80",
+    },
+    {
+      id: "ireq-6",
+      name: "Amanda Reed",
+      subject: "After Effects, Premiere Pro",
+      requestedDate: "14 Feb 2020",
+      status: "ACCEPTED" as "PENDING" | "ACCEPTED" | "REJECTED",
+      avatar:
+        "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
+    },
+  ]);
+
+  // Reviews state (Image 5)
+  const [reviewsList, setReviewsList] = useState([
+    {
+      id: "01",
+      studentName: "Lori Stevens",
+      courseName: "Building Scalable APIs with GraphQL",
+      rating: 5,
+      visible: false,
+      avatar:
+        "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80",
+    },
+    {
+      id: "02",
+      studentName: "Carolyn Ortiz",
+      courseName: "Graphic Design Masterclass",
+      rating: 5,
+      visible: false,
+      avatar:
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+    },
+    {
+      id: "03",
+      studentName: "Dennis Barrett",
+      courseName: "JavaScript: Full Understanding",
+      rating: 4,
+      visible: false,
+      avatar:
+        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80",
+    },
+    {
+      id: "04",
+      studentName: "Billy Vasquez",
+      courseName: "Time Management Mastery: Do More, Stress Less",
+      rating: 4,
+      visible: false,
+      avatar:
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80",
+    },
+    {
+      id: "05",
+      studentName: "Jacqueline Miller",
+      courseName: "The complete Digital Marketing Course - 8 Course in 1",
+      rating: 4,
+      visible: false,
+      avatar:
+        "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80",
+    },
+    {
+      id: "06",
+      studentName: "Amanda Reed",
+      courseName: "Microsoft Excel - Excel from Beginner to Advanced",
+      rating: 4,
+      visible: false,
+      avatar:
+        "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
+    },
+    {
+      id: "07",
+      studentName: "Samuel Bishop",
+      courseName: "Behavior, Psychology and Care Training",
+      rating: 4,
+      visible: false,
+      avatar:
+        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80",
+    },
+  ]);
 
   // Add Course Modal State
   const [showAddCourseModal, setShowAddCourseModal] = useState(false);
@@ -1588,19 +1717,14 @@ function AdminDashboardContent() {
           )}
 
           {/* ========================================================= */}
-          {/* VIEW 3: INSTRUCTORS (Matches Image 5)                     */}
+          {/* VIEW 3A: INSTRUCTORS GRID (activeTab === "instructors")   */}
           {/* ========================================================= */}
-          {activeTab.startsWith("instructor") && (
+          {activeTab === "instructors" && (
             <div>
               <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                 <h1 className="font-display text-[28px] sm:text-[32px] font-extrabold text-[#1D2026] tracking-tight">
                   Instructors
                 </h1>
-                {activeTab === "instructor-requests" && (
-                  <span className="px-3.5 py-1.5 rounded-full bg-[#E6F8F3] text-[#0F6E56] text-xs font-bold">
-                    2 Pending Instructor Applications
-                  </span>
-                )}
               </div>
 
               <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] p-6">
@@ -1645,7 +1769,7 @@ function AdminDashboardContent() {
                   </div>
                 </div>
 
-                {/* 3-Column Instructor Cards Grid (Matches Image 5) */}
+                {/* 3-Column Instructor Cards Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                   {filteredInstructors.map((inst) => (
                     <div
@@ -1661,9 +1785,13 @@ function AdminDashboardContent() {
                             className="w-13 h-13 rounded-full object-cover shrink-0"
                           />
                           <div className="min-w-0">
-                            <h3 className="font-display text-[17px] font-extrabold text-[#1D2026] truncate">
+                            <button
+                              type="button"
+                              onClick={() => switchTab("instructor-detail")}
+                              className="font-display text-[17px] font-extrabold text-[#1D2026] hover:text-[#066AC9] transition-colors truncate block text-left cursor-pointer"
+                            >
                               {inst.name}
-                            </h3>
+                            </button>
                             <p className="text-[12.5px] text-[#747579] truncate mt-0.5">
                               {inst.role}
                             </p>
@@ -1672,8 +1800,9 @@ function AdminDashboardContent() {
 
                         <button
                           type="button"
+                          onClick={() => switchTab("instructor-detail")}
                           className="w-9 h-9 rounded-full bg-[#F5F7F9] hover:bg-slate-200 flex items-center justify-center text-[#24292D] shrink-0 cursor-pointer"
-                          title="Instructor options"
+                          title="View Instructor Detail"
                         >
                           <MoreHorizontal className="w-4 h-4" />
                         </button>
@@ -1727,16 +1856,619 @@ function AdminDashboardContent() {
                           ))}
                         </div>
 
-                        <Link
-                          href="/instructor"
-                          className="text-[#747579] hover:text-[#066AC9] transition-colors"
+                        <button
+                          type="button"
+                          onClick={() => switchTab("instructor-detail")}
+                          className="text-[#747579] hover:text-[#066AC9] transition-colors cursor-pointer"
                           title="Contact Instructor"
                         >
                           <Mail className="w-4 h-4" />
-                        </Link>
+                        </button>
                       </div>
                     </div>
                   ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================= */}
+          {/* VIEW 3B: INSTRUCTOR DETAIL (Matches Images 4, 2, & 1)     */}
+          {/* ========================================================= */}
+          {activeTab === "instructor-detail" && (
+            <div className="space-y-7">
+              <h1 className="font-display text-[28px] sm:text-[32px] font-extrabold text-[#1D2026] tracking-tight">
+                Instructor detail
+              </h1>
+
+              {/* Top Row: Personal Information (7 cols) + Active Students & New Enrollment (5 cols) */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                {/* Personal Information Card */}
+                <div className="lg:col-span-7 bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
+                  <div className="bg-[#F8F9FA] px-6 py-4 border-b border-slate-200/80">
+                    <h2 className="font-display text-[19px] font-extrabold text-[#1D2026]">
+                      Personal Information
+                    </h2>
+                  </div>
+
+                  <div className="p-6">
+                    <div className="mb-6">
+                      <img
+                        src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=240&q=80"
+                        alt="Louis Ferguson"
+                        className="w-20 h-20 rounded-full object-cover shadow-md"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6 text-[14px]">
+                      <div>
+                        <span className="text-[#747579]">Title: </span>
+                        <strong className="text-[#1D2026] font-bold">Mr.</strong>
+                      </div>
+                      <div>
+                        <span className="text-[#747579]">Email ID: </span>
+                        <strong className="text-[#1D2026] font-bold">example@gmail.com</strong>
+                      </div>
+                      <div>
+                        <span className="text-[#747579]">Full Name: </span>
+                        <strong className="text-[#1D2026] font-bold">Louis Ferguson</strong>
+                      </div>
+                      <div>
+                        <span className="text-[#747579]">Location: </span>
+                        <strong className="text-[#1D2026] font-bold">California</strong>
+                      </div>
+                      <div>
+                        <span className="text-[#747579]">User Name: </span>
+                        <strong className="text-[#1D2026] font-bold">Lousifer</strong>
+                      </div>
+                      <div>
+                        <span className="text-[#747579]">Joining Date: </span>
+                        <strong className="text-[#1D2026] font-bold">29 Aug 2019</strong>
+                      </div>
+                      <div className="sm:col-span-2">
+                        <span className="text-[#747579]">Mobile Number: </span>
+                        <strong className="text-[#1D2026] font-bold">+123 456 789 10</strong>
+                      </div>
+                      <div className="sm:col-span-2">
+                        <span className="text-[#747579]">Education: </span>
+                        <strong className="text-[#1D2026] font-bold">
+                          Bachelor in Computer Graphics, Masters in Computer Graphics
+                        </strong>
+                      </div>
+                      <div className="sm:col-span-2 flex flex-col sm:flex-row sm:items-start gap-2">
+                        <span className="text-[#747579] shrink-0">Description:</span>
+                        <p className="text-[#1D2026] font-bold leading-relaxed text-[13.5px]">
+                          As it so contrasted oh estimating instrument. Size like body someone had. Are conduct viewing boy minutes warrant the expense Tolerably behavior may admit daughters offending her ask own. Praise effect wishes change way and any wanted. Lively use looked latter regard had. Do he it part more last in
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Stacked Sparkline Cards */}
+                <div className="lg:col-span-5 flex flex-col gap-6">
+                  {/* Active Students Card */}
+                  <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden flex-1 flex flex-col justify-between">
+                    <div className="bg-[#F8F9FA] px-6 py-4 border-b border-slate-200/80">
+                      <h2 className="font-display text-[19px] font-extrabold text-[#1D2026]">
+                        Active Students
+                      </h2>
+                    </div>
+
+                    <div className="px-6 pt-5 pb-2 flex items-center justify-between">
+                      <span className="font-display text-[28px] font-extrabold text-[#1D3B53]">
+                        984
+                      </span>
+                      <div className="text-[13px]">
+                        <span className="text-[#0CBC87] font-semibold">0.20% ↑</span>{" "}
+                        <span className="text-[#747579]">vs last Week</span>
+                      </div>
+                    </div>
+
+                    <div className="w-full pt-2">
+                      <svg viewBox="0 0 400 115" className="w-full h-28 block" preserveAspectRatio="none">
+                        <defs>
+                          <linearGradient id="activeStudentsGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#0CBC87" stopOpacity="0.32" />
+                            <stop offset="100%" stopColor="#0CBC87" stopOpacity="0.02" />
+                          </linearGradient>
+                        </defs>
+                        <path
+                          d="M 0 95 C 40 85, 65 78, 95 52 C 125 32, 160 40, 205 42 C 245 44, 270 72, 300 68 C 335 64, 365 25, 400 20 L 400 115 L 0 115 Z"
+                          fill="url(#activeStudentsGrad)"
+                        />
+                        <path
+                          d="M 0 95 C 40 85, 65 78, 95 52 C 125 32, 160 40, 205 42 C 245 44, 270 72, 300 68 C 335 64, 365 25, 400 20"
+                          fill="none"
+                          stroke="#0CBC87"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+
+                  {/* New Enrollment Card */}
+                  <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden flex-1 flex flex-col justify-between">
+                    <div className="bg-[#F8F9FA] px-6 py-4 border-b border-slate-200/80">
+                      <h2 className="font-display text-[19px] font-extrabold text-[#1D2026]">
+                        New Enrollment
+                      </h2>
+                    </div>
+
+                    <div className="px-6 pt-5 pb-2 flex items-center justify-between">
+                      <span className="font-display text-[28px] font-extrabold text-[#1D3B53]">
+                        140
+                      </span>
+                      <div className="text-[13px]">
+                        <span className="text-[#0CBC87] font-semibold">0.35% ↑</span>{" "}
+                        <span className="text-[#747579]">vs last Week</span>
+                      </div>
+                    </div>
+
+                    <div className="w-full pt-2">
+                      <svg viewBox="0 0 400 115" className="w-full h-28 block" preserveAspectRatio="none">
+                        <defs>
+                          <linearGradient id="newEnrollmentGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#6F42C1" stopOpacity="0.32" />
+                            <stop offset="100%" stopColor="#6F42C1" stopOpacity="0.02" />
+                          </linearGradient>
+                        </defs>
+                        <path
+                          d="M 0 102 C 45 92, 95 92, 140 65 C 175 45, 210 28, 235 32 C 260 36, 275 82, 305 78 C 340 74, 370 18, 400 18 L 400 115 L 0 115 Z"
+                          fill="url(#newEnrollmentGrad)"
+                        />
+                        <path
+                          d="M 0 102 C 45 92, 95 92, 140 65 C 175 45, 210 28, 235 32 C 260 36, 275 82, 305 78 C 340 74, 370 18, 400 18"
+                          fill="none"
+                          stroke="#6F42C1"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Middle Card: Courses List (Matches Image 2) */}
+              <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
+                <div className="bg-[#F8F9FA] px-6 py-4 border-b border-slate-200/80">
+                  <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
+                    Courses List
+                  </h2>
+                </div>
+
+                <div className="p-6">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse min-w-[640px]">
+                      <thead>
+                        <tr className="bg-[#24292D] text-white text-[13.5px] font-bold">
+                          <th className="py-3.5 px-5 rounded-l-lg">Course Name</th>
+                          <th className="py-3.5 px-4">Enrolled</th>
+                          <th className="py-3.5 px-4">Status</th>
+                          <th className="py-3.5 px-5 rounded-r-lg">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 text-[14px]">
+                        {[
+                          {
+                            title: "Building Scalable APIs with GraphQL",
+                            enrolled: 412,
+                            status: "Live",
+                            statusStyle: "bg-[#E6F8F3] text-[#0CBC87]",
+                            thumbBg: "bg-[#FDEBC8]",
+                            thumbText: "💎",
+                          },
+                          {
+                            title: "Graphic Design Masterclass",
+                            enrolled: 254,
+                            status: "Live",
+                            statusStyle: "bg-[#E6F8F3] text-[#0CBC87]",
+                            thumbBg: "bg-[#1D3B53] text-[#38BDF8]",
+                            thumbText: "Ps",
+                          },
+                          {
+                            title: "Learn Invision",
+                            enrolled: 0,
+                            status: "Pending",
+                            statusStyle: "bg-[#FEF6E0] text-[#F7C32E]",
+                            thumbBg: "bg-[#D6293E] text-white",
+                            thumbText: "in",
+                          },
+                          {
+                            title: "Deep Learning with React-Native",
+                            enrolled: 98,
+                            status: "Live",
+                            statusStyle: "bg-[#E6F8F3] text-[#0CBC87]",
+                            thumbBg: "bg-[#E0F7FA] text-[#00BCD4]",
+                            thumbText: "⚛",
+                          },
+                          {
+                            title: "Bootstrap 5 From Scratch",
+                            enrolled: 58,
+                            status: "Cancel",
+                            statusStyle: "bg-[#FBE9EB] text-[#D6293E]",
+                            thumbBg: "bg-[#D8C6F7] text-[#6F42C1]",
+                            thumbText: "B",
+                          },
+                        ].map((item) => (
+                          <tr key={item.title} className="hover:bg-slate-50/70">
+                            <td className="py-4 px-5">
+                              <div className="flex items-center gap-3.5">
+                                <div
+                                  className={`w-14 h-10 rounded-md ${item.thumbBg} font-extrabold text-xs flex items-center justify-center shrink-0 shadow-2xs`}
+                                >
+                                  {item.thumbText}
+                                </div>
+                                <span className="font-bold text-[#1D2026]">
+                                  {item.title}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 text-[#747579]">{item.enrolled}</td>
+                            <td className="py-4 px-4">
+                              <span
+                                className={`px-2.5 py-1 rounded-md text-[11.5px] font-bold ${item.statusStyle}`}
+                              >
+                                {item.status}
+                              </span>
+                            </td>
+                            <td className="py-4 px-5">
+                              <Link
+                                href="/courses"
+                                className="inline-flex items-center justify-center px-3.5 py-1.5 rounded-md bg-[#E5F6F8] hover:bg-[#17A2B8] text-[#17A2B8] hover:text-white text-[12.5px] font-bold transition-colors"
+                              >
+                                View
+                              </Link>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Pagination Footer */}
+                  <div className="mt-6 pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-[13.5px] text-[#747579]">
+                    <div>Showing 1 to 8 of 20 entries</div>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] text-[13px] font-bold flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                      >
+                        1
+                      </button>
+                      <button
+                        type="button"
+                        className="w-8 h-8 rounded-md bg-[#066AC9] text-white text-[13px] font-bold flex items-center justify-center cursor-pointer"
+                      >
+                        2
+                      </button>
+                      <button
+                        type="button"
+                        className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] text-[13px] font-bold flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                      >
+                        3
+                      </button>
+                      <button
+                        type="button"
+                        className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Card: All Reviews (Matches Image 1) */}
+              <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
+                <div className="bg-[#F8F9FA] px-6 py-4 border-b border-slate-200/80">
+                  <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
+                    All Reviews
+                  </h2>
+                </div>
+
+                <div className="p-6">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse min-w-[640px]">
+                      <thead>
+                        <tr className="bg-[#24292D] text-white text-[13.5px] font-bold">
+                          <th className="py-3.5 px-5 rounded-l-lg">Student Name</th>
+                          <th className="py-3.5 px-4">Course Name</th>
+                          <th className="py-3.5 px-4">Rating</th>
+                          <th className="py-3.5 px-5 rounded-r-lg">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 text-[14px]">
+                        {[
+                          {
+                            name: "Lori Stevens",
+                            course: "Building Scalable APIs with GraphQL",
+                            stars: 5,
+                            activeRow: true,
+                            avatar:
+                              "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80",
+                          },
+                          {
+                            name: "Carolyn Ortiz",
+                            course: "Graphic Design Masterclass",
+                            stars: 5,
+                            activeRow: false,
+                            avatar:
+                              "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+                          },
+                          {
+                            name: "Dennis Barrett",
+                            course: "Deep Learning with React-Native",
+                            stars: 4,
+                            activeRow: false,
+                            avatar:
+                              "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80",
+                          },
+                          {
+                            name: "Billy Vasquez",
+                            course: "Bootstrap 5 From Scratch",
+                            stars: 4,
+                            activeRow: false,
+                            avatar:
+                              "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80",
+                          },
+                          {
+                            name: "Jacqueline Miller",
+                            course: "Learn Invision",
+                            stars: 4,
+                            activeRow: false,
+                            avatar:
+                              "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80",
+                          },
+                        ].map((rev) => (
+                          <tr
+                            key={rev.name}
+                            className={rev.activeRow ? "bg-[#F2F4F6]" : "hover:bg-slate-50/70"}
+                          >
+                            <td className="py-4 px-5">
+                              <div className="flex items-center gap-3">
+                                <img
+                                  src={rev.avatar}
+                                  alt={rev.name}
+                                  className="w-10 h-10 rounded-full object-cover shrink-0"
+                                />
+                                <span className="font-bold text-[#1D2026]">
+                                  {rev.name}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 font-bold text-[#1D2026]">
+                              {rev.course}
+                            </td>
+                            <td className="py-4 px-4">
+                              <div className="flex items-center gap-1">
+                                {[1, 2, 3, 4, 5].map((s) => (
+                                  <Star
+                                    key={s}
+                                    className={`w-4 h-4 ${
+                                      s <= rev.stars
+                                        ? "text-[#F7C32E] fill-[#F7C32E]"
+                                        : "text-[#F7C32E]"
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                            </td>
+                            <td className="py-4 px-5">
+                              <button
+                                type="button"
+                                onClick={() => switchTab("reviews")}
+                                className={`px-3.5 py-1.5 rounded-md text-[12.5px] font-bold transition-colors cursor-pointer ${
+                                  rev.activeRow
+                                    ? "bg-[#17A2B8] text-white"
+                                    : "bg-[#E5F6F8] text-[#17A2B8] hover:bg-[#17A2B8] hover:text-white"
+                                }`}
+                              >
+                                View
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Pagination Footer */}
+                  <div className="mt-6 pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-[13.5px] text-[#747579]">
+                    <div>Showing 1 to 8 of 20 entries</div>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] text-[13px] font-bold flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                      >
+                        1
+                      </button>
+                      <button
+                        type="button"
+                        className="w-8 h-8 rounded-md bg-[#066AC9] text-white text-[13px] font-bold flex items-center justify-center cursor-pointer"
+                      >
+                        2
+                      </button>
+                      <button
+                        type="button"
+                        className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] text-[13px] font-bold flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                      >
+                        3
+                      </button>
+                      <button
+                        type="button"
+                        className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================= */}
+          {/* VIEW 3C: INSTRUCTOR REQUESTS (Matches Image 3)            */}
+          {/* ========================================================= */}
+          {activeTab === "instructor-requests" && (
+            <div>
+              <h1 className="font-display text-[28px] sm:text-[32px] font-extrabold text-[#1D2026] tracking-tight mb-6">
+                Instructor Requests
+              </h1>
+
+              <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
+                {/* Top Filter Bar */}
+                <div className="bg-[#F8F9FA] px-6 py-4 border-b border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="relative w-full sm:max-w-[540px]">
+                    <input
+                      type="text"
+                      value={requestSearch}
+                      onChange={(e) => setRequestSearch(e.target.value)}
+                      placeholder="Search"
+                      className="w-full bg-white border border-slate-200 rounded-lg pl-4 pr-10 py-2.5 text-[14px] text-[#24292D] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#066AC9]"
+                    />
+                    <Search className="w-4 h-4 text-[#747579] absolute right-3.5 top-1/2 -translate-y-1/2" />
+                  </div>
+
+                  <select
+                    value={requestSort}
+                    onChange={(e) => setRequestSort(e.target.value)}
+                    className="bg-white border border-slate-200 rounded-lg px-4 py-2.5 w-full sm:w-56 text-[13.5px] text-[#747579] focus:outline-none focus:border-[#066AC9]"
+                  >
+                    <option value="default">Sort by</option>
+                    <option value="newest">Newest Requested</option>
+                    <option value="pending">Pending First</option>
+                    <option value="accepted">Accepted First</option>
+                  </select>
+                </div>
+
+                {/* Requests Table */}
+                <div className="p-6">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse min-w-[700px]">
+                      <thead>
+                        <tr className="bg-[#24292D] text-white text-[13.5px] font-bold">
+                          <th className="py-3.5 px-5 rounded-l-lg">Instructor name</th>
+                          <th className="py-3.5 px-4">Subject</th>
+                          <th className="py-3.5 px-4">Requested Date</th>
+                          <th className="py-3.5 px-5 rounded-r-lg">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 text-[14px]">
+                        {instructorRequests
+                          .filter(
+                            (req) =>
+                              req.name
+                                .toLowerCase()
+                                .includes(requestSearch.toLowerCase()) ||
+                              req.subject
+                                .toLowerCase()
+                                .includes(requestSearch.toLowerCase())
+                          )
+                          .map((req) => (
+                            <tr key={req.id} className="hover:bg-slate-50/70">
+                              <td className="py-4 px-5">
+                                <div className="flex items-center gap-3">
+                                  <img
+                                    src={req.avatar}
+                                    alt={req.name}
+                                    className="w-10 h-10 rounded-full object-cover shrink-0"
+                                  />
+                                  <span className="font-bold text-[#1D2026]">
+                                    {req.name}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="py-4 px-4 font-bold text-[#1D2026]">
+                                {req.subject}
+                              </td>
+                              <td className="py-4 px-4 text-[#747579]">
+                                {req.requestedDate}
+                              </td>
+                              <td className="py-4 px-5">
+                                <div className="flex items-center gap-2">
+                                  {req.status === "PENDING" && (
+                                    <>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setInstructorRequests((prev) =>
+                                            prev.map((r) =>
+                                              r.id === req.id
+                                                ? { ...r, status: "ACCEPTED" }
+                                                : r
+                                            )
+                                          );
+                                          setAdminNotice(
+                                            `Accepted ${req.name}'s instructor application.`
+                                          );
+                                        }}
+                                        className="px-3.5 py-1.5 rounded-md bg-[#E6F8F3] hover:bg-[#0CBC87] text-[#0CBC87] hover:text-white text-[12.5px] font-bold transition-colors cursor-pointer"
+                                      >
+                                        Accept
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setInstructorRequests((prev) =>
+                                            prev.map((r) =>
+                                              r.id === req.id
+                                                ? { ...r, status: "REJECTED" }
+                                                : r
+                                            )
+                                          );
+                                          setAdminNotice(
+                                            `Rejected ${req.name}'s instructor application.`
+                                          );
+                                        }}
+                                        className="px-3.5 py-1.5 rounded-md bg-[#F2F4F6] hover:bg-slate-300 text-[#747579] text-[12.5px] font-bold transition-colors cursor-pointer"
+                                      >
+                                        Reject
+                                      </button>
+                                    </>
+                                  )}
+
+                                  {req.status === "ACCEPTED" && (
+                                    <span className="px-3.5 py-1.5 rounded-md bg-[#53D1A8] text-white text-[12.5px] font-bold">
+                                      Accepted
+                                    </span>
+                                  )}
+
+                                  {req.status === "REJECTED" && (
+                                    <span className="px-3.5 py-1.5 rounded-md bg-[#B0B5BA] text-white text-[12.5px] font-bold">
+                                      Rejected
+                                    </span>
+                                  )}
+
+                                  <button
+                                    type="button"
+                                    onClick={() => switchTab("instructor-detail")}
+                                    className="px-3.5 py-1.5 rounded-md bg-[#E7F0FA] hover:bg-[#066AC9] text-[#066AC9] hover:text-white text-[12.5px] font-bold transition-colors cursor-pointer"
+                                  >
+                                    View App
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1852,10 +2584,136 @@ function AdminDashboardContent() {
           )}
 
           {/* ========================================================= */}
-          {/* VIEW 5: REVIEWS / EARNINGS / SETTINGS                     */}
+          {/* VIEW 5: REVIEWS (Matches Image 5)                         */}
           {/* ========================================================= */}
-          {(activeTab === "reviews" ||
-            activeTab === "earnings" ||
+          {activeTab === "reviews" && (
+            <div>
+              <h1 className="font-display text-[28px] sm:text-[32px] font-extrabold text-[#1D2026] tracking-tight mb-6">
+                Reviews
+              </h1>
+
+              <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] p-6">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse min-w-[740px]">
+                    <thead>
+                      <tr className="bg-[#24292D] text-white text-[13.5px] font-bold">
+                        <th className="py-3.5 px-4 rounded-l-lg">#</th>
+                        <th className="py-3.5 px-4">Student Name</th>
+                        <th className="py-3.5 px-4">Course Name</th>
+                        <th className="py-3.5 px-4">Rating</th>
+                        <th className="py-3.5 px-4">Hide/Show</th>
+                        <th className="py-3.5 px-4 rounded-r-lg">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 text-[14px]">
+                      {reviewsList.map((rev) => (
+                        <tr key={rev.id} className="hover:bg-slate-50/70">
+                          <td className="py-4 px-4 text-[#747579] font-medium">
+                            {rev.id}
+                          </td>
+                          <td className="py-4 px-4">
+                            <div className="flex items-center gap-3">
+                              <img
+                                src={rev.avatar}
+                                alt={rev.studentName}
+                                className="w-10 h-10 rounded-full object-cover shrink-0"
+                              />
+                              <span className="font-bold text-[#1D2026]">
+                                {rev.studentName}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="py-4 px-4 font-bold text-[#1D2026]">
+                            {rev.courseName}
+                          </td>
+                          <td className="py-4 px-4">
+                            <div className="flex items-center gap-1">
+                              {[1, 2, 3, 4, 5].map((s) => (
+                                <Star
+                                  key={s}
+                                  className={`w-4 h-4 ${
+                                    s <= rev.rating
+                                      ? "text-[#F7C32E] fill-[#F7C32E]"
+                                      : "text-[#F7C32E]"
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                          </td>
+                          <td className="py-4 px-4">
+                            <button
+                              type="button"
+                              role="switch"
+                              aria-checked={rev.visible}
+                              onClick={() =>
+                                setReviewsList((prev) =>
+                                  prev.map((item) =>
+                                    item.id === rev.id
+                                      ? { ...item, visible: !item.visible }
+                                      : item
+                                  )
+                                )
+                              }
+                              className={`w-10 h-5 rounded-full p-0.5 transition-colors cursor-pointer flex items-center ${
+                                rev.visible
+                                  ? "bg-[#066AC9] justify-end"
+                                  : "bg-[#E2E8F0] justify-start"
+                              }`}
+                            >
+                              <span className="w-4 h-4 rounded-full bg-white shadow-2xs block" />
+                            </button>
+                          </td>
+                          <td className="py-4 px-4">
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setAdminNotice(
+                                    `Opened review editor for ${rev.studentName}.`
+                                  )
+                                }
+                                className="w-8 h-8 rounded-full bg-[#E6F8F3] hover:bg-[#0CBC87] text-[#0CBC87] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                                title="Edit Review"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setReviewsList((prev) =>
+                                    prev.filter((item) => item.id !== rev.id)
+                                  );
+                                  setAdminNotice(
+                                    `Deleted review #${rev.id} from ${rev.studentName}.`
+                                  );
+                                }}
+                                className="w-8 h-8 rounded-full bg-[#FBE9EB] hover:bg-[#D6293E] text-[#D6293E] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                                title="Delete Review"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => switchTab("instructor-detail")}
+                                className="px-3.5 py-1.5 rounded-md bg-[#E5F6F8] hover:bg-[#17A2B8] text-[#17A2B8] hover:text-white text-[12.5px] font-bold transition-colors cursor-pointer"
+                              >
+                                View
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================= */}
+          {/* VIEW 6: EARNINGS / SETTINGS                               */}
+          {/* ========================================================= */}
+          {(activeTab === "earnings" ||
             activeTab === "analytics" ||
             activeTab === "settings") && (
             <div className="space-y-6">
