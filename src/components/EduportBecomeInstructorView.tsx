@@ -76,13 +76,13 @@ export function EduportBecomeInstructorView() {
               <div className="pt-1 flex flex-wrap items-center gap-3">
                 <a
                   href="#apply-instructor-form"
-                  className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-[#066AC9] hover:bg-[#0556A5] text-white text-[14px] font-bold transition-colors shadow-2xs"
+                  className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-[#7928CA] hover:bg-[#671FB0] text-white text-[14px] font-bold transition-colors shadow-2xs"
                 >
                   Start Teaching today
                 </a>
                 <Link
                   href="/instructor"
-                  className="inline-flex items-center justify-center px-5 py-3 rounded-lg bg-white border border-slate-200 hover:border-[#066AC9] text-[#24292D] text-[13.5px] font-bold transition-colors"
+                  className="inline-flex items-center justify-center px-5 py-3 rounded-lg bg-white border border-slate-200 hover:border-[#7928CA] text-[#24292D] text-[13.5px] font-bold transition-colors"
                 >
                   Instructor Dashboard
                 </Link>
@@ -867,7 +867,7 @@ export function EduportBecomeInstructorView() {
               </h2>
 
               {submitted && (
-                <div className="mb-5 rounded-lg bg-[#E6F8F3] border border-[#0CBC87]/30 px-4 py-3 flex items-center justify-between text-xs font-bold text-[#0CBC87]">
+                <div className="mb-5 rounded-lg bg-[#D1FAE5] border border-[#065F46]/30 px-4 py-3 flex items-center justify-between text-xs font-bold text-[#065F46]">
                   <span className="inline-flex items-center gap-1.5">
                     <CheckCircle2 className="w-4 h-4 shrink-0" />
                     Application submitted! Our faculty team will contact you.
@@ -893,7 +893,7 @@ export function EduportBecomeInstructorView() {
                       required
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#24292D] focus:outline-none focus:border-[#066AC9]"
+                      className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#24292D] focus:outline-none focus:border-[#7928CA]"
                     />
                   </div>
 
@@ -906,7 +906,7 @@ export function EduportBecomeInstructorView() {
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#24292D] focus:outline-none focus:border-[#066AC9]"
+                      className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#24292D] focus:outline-none focus:border-[#7928CA]"
                     />
                   </div>
                 </div>
@@ -920,7 +920,7 @@ export function EduportBecomeInstructorView() {
                     required
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#24292D] focus:outline-none focus:border-[#066AC9]"
+                    className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#24292D] focus:outline-none focus:border-[#7928CA]"
                   />
                 </div>
 
@@ -933,14 +933,14 @@ export function EduportBecomeInstructorView() {
                     value={summary}
                     onChange={(e) => setSummary(e.target.value)}
                     placeholder="Enter something..."
-                    className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#24292D] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#066AC9]"
+                    className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#24292D] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#7928CA]"
                   />
                 </div>
 
                 <div>
                   <button
                     type="submit"
-                    className="px-5 py-2.5 rounded-lg bg-[#066AC9] hover:bg-[#0556A5] text-white text-[14px] font-bold transition-colors cursor-pointer"
+                    className="px-5 py-2.5 rounded-lg bg-[#7928CA] hover:bg-[#671FB0] text-white text-[14px] font-bold transition-colors cursor-pointer"
                   >
                     Submit form
                   </button>
@@ -972,8 +972,8 @@ export function EduportBecomeInstructorView() {
                     }
                     className={`px-5 py-2.5 rounded-lg text-[14px] transition-colors cursor-pointer ${
                       isActive
-                        ? "bg-[#066AC9] text-white font-bold"
-                        : "bg-[#E8F1FA] text-[#066AC9] hover:bg-[#066AC9] hover:text-white font-semibold"
+                        ? "bg-[#7928CA] text-white font-bold"
+                        : "bg-[#F0EDF9] text-[#7928CA] hover:bg-[#7928CA] hover:text-white font-semibold"
                     }`}
                   >
                     {tab.label}
@@ -1071,7 +1071,7 @@ export function EduportBecomeInstructorView() {
         type="button"
         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         aria-label="Scroll to top"
-        className="fixed bottom-6 right-6 z-40 w-10 h-10 rounded-lg bg-[#DCE9F8] hover:bg-[#066AC9] text-[#066AC9] hover:text-white flex items-center justify-center shadow-sm transition-colors cursor-pointer"
+        className="fixed bottom-6 right-6 z-40 w-10 h-10 rounded-lg bg-[#DCE9F8] hover:bg-[#7928CA] text-[#7928CA] hover:text-white flex items-center justify-center shadow-sm transition-colors cursor-pointer"
       >
         <ArrowUp className="w-4 h-4" />
       </button>

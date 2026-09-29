@@ -9,7 +9,7 @@ const VERIFIED_MENTORS = [
     name: "Engr. Chidi Okafor",
     role: "Lead Full-Stack Architect",
     initials: "CO",
-    bg: "bg-[#066AC9]"
+    bg: "bg-[#7928CA]"
   },
   {
     name: "Adaeze Nwosu",
@@ -21,7 +21,7 @@ const VERIFIED_MENTORS = [
     name: "Emeka Udoh",
     role: "Principal Product Designer",
     initials: "EU",
-    bg: "bg-[#0CBC87]"
+    bg: "bg-[#7928CA]"
   }
 ];
 
@@ -47,7 +47,7 @@ export function EduportStudentFeedback() {
               <div className="sm:col-span-7 space-y-6">
                 {/* Review Card 1 */}
                 <div className="bg-white rounded-2xl p-6 sm:p-7 shadow-[0_8px_30px_rgba(24,20,61,0.06)] text-center relative">
-                  <div className="w-16 h-16 rounded-full bg-[#E8F1FA] border-4 border-white shadow-md mx-auto mb-4 flex items-center justify-center text-lg font-extrabold text-[#066AC9]">
+                  <div className="w-16 h-16 rounded-full bg-[#F0EDF9] border-4 border-white shadow-md mx-auto mb-4 flex items-center justify-center text-lg font-extrabold text-[#7928CA]">
                     CO
                   </div>
                   <p className="text-xs sm:text-sm text-[#747579] leading-relaxed mb-4">
@@ -96,7 +96,7 @@ export function EduportStudentFeedback() {
               {/* Right Stack (5 cols): Blue Rating Pill + Verified Mentors Card */}
               <div className="sm:col-span-5 space-y-6">
                 {/* Blue Rating Summary Card */}
-                <div className="bg-[#066AC9] text-white rounded-2xl p-5 text-center shadow-lg relative overflow-hidden">
+                <div className="bg-[#7928CA] text-white rounded-2xl p-5 text-center shadow-lg relative overflow-hidden">
                   <div
                     aria-hidden="true"
                     className="pointer-events-none absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-white/10"
@@ -116,7 +116,7 @@ export function EduportStudentFeedback() {
                     <h4 className="text-sm font-extrabold text-[#24292D]">
                       20+ Verified Mentors
                     </h4>
-                    <ShieldCheck className="w-4 h-4 text-[#0CBC87]" />
+                    <ShieldCheck className="w-4 h-4 text-[#7928CA]" />
                   </div>
                   <div className="space-y-3.5">
                     {VERIFIED_MENTORS.map((m) => (
@@ -149,7 +149,7 @@ export function EduportStudentFeedback() {
             <div className="flex flex-wrap items-center gap-3">
               <Link
                 href="/leaderboard"
-                className="inline-flex items-center justify-center rounded-lg bg-[#066AC9] hover:bg-[#0556A5] text-white font-bold text-sm px-6 py-3 transition-colors shadow-xs"
+                className="inline-flex items-center justify-center rounded-lg bg-[#7928CA] hover:bg-[#671FB0] text-white font-bold text-sm px-6 py-3 transition-colors shadow-xs"
               >
                 View Reviews &amp; Leaderboard
               </Link>

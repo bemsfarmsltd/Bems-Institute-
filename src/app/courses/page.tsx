@@ -22,7 +22,7 @@ const CATEGORIES_GRID: EduportCategory[] = [
     id: "data-science",
     title: "Data Science",
     countLabel: "15 Courses",
-    bg: "bg-[#E6F8F3]",
+    bg: "bg-[#F0EDF9]",
     targetSlug: "ai-automation",
     icon: (
       <svg className="w-10 h-10" viewBox="0 0 48 48" fill="none">
@@ -213,7 +213,7 @@ const CATEGORIES_GRID: EduportCategory[] = [
     id: "marketing",
     title: "Marketing",
     countLabel: "30 Courses",
-    bg: "bg-[#E6F8F3]",
+    bg: "bg-[#F0EDF9]",
     targetSlug: "ai-automation",
     icon: (
       <svg className="w-10 h-10" viewBox="0 0 48 48" fill="none">
@@ -229,7 +229,7 @@ const CATEGORIES_GRID: EduportCategory[] = [
     id: "accounting",
     title: "Accounting",
     countLabel: "35 Courses",
-    bg: "bg-[#E8F1FA]",
+    bg: "bg-[#F0EDF9]",
     targetSlug: "cybersecurity",
     icon: (
       <svg className="w-10 h-10" viewBox="0 0 48 48" fill="none">
@@ -399,9 +399,9 @@ export default function CoursesCatalogPage() {
                 <svg className="w-64 h-64" viewBox="0 0 260 260" fill="none">
                   {/* Bookshelf Top-Left */}
                   <rect x="24" y="54" width="66" height="5" rx="2" fill="#24292D" />
-                  <rect x="30" y="26" width="10" height="28" rx="1.5" fill="#0CBC87" />
+                  <rect x="30" y="26" width="10" height="28" rx="1.5" fill="#7928CA" />
                   <rect x="41" y="26" width="10" height="28" rx="1.5" fill="#D6293E" />
-                  <rect x="52" y="26" width="10" height="28" rx="1.5" fill="#066AC9" />
+                  <rect x="52" y="26" width="10" height="28" rx="1.5" fill="#7928CA" />
                   <rect
                     x="65"
                     y="27"
@@ -420,9 +420,9 @@ export default function CoursesCatalogPage() {
                   {/* Blue Chair */}
                   <path
                     d="M68 118C60 118 55 135 58 175H122V150H78L72 118H68Z"
-                    fill="#066AC9"
+                    fill="#7928CA"
                   />
-                  <path d="M65 175L56 242M112 175L120 242M60 212H116" stroke="#066AC9" strokeWidth="4.5" />
+                  <path d="M65 175L56 242M112 175L120 242M60 212H116" stroke="#7928CA" strokeWidth="4.5" />
                   {/* Student Body & Coral Shirt */}
                   <path
                     d="M78 88C64 92 58 116 62 156H122L126 96C116 88 94 86 78 88Z"
@@ -507,7 +507,7 @@ export default function CoursesCatalogPage() {
               <div className="hidden lg:flex lg:col-span-3 justify-center">
                 <svg className="w-64 h-64" viewBox="0 0 260 260" fill="none">
                   {/* Green Wall Clock */}
-                  <circle cx="46" cy="100" r="22" fill="white" stroke="#0CBC87" strokeWidth="4.5" />
+                  <circle cx="46" cy="100" r="22" fill="white" stroke="#7928CA" strokeWidth="4.5" />
                   <path d="M46 100L38 92M46 100L56 94" stroke="#24292D" strokeWidth="2" strokeLinecap="round" />
                   {/* Coral Question Speech Bubble */}
                   <circle cx="212" cy="96" r="15" fill="#FF6B5B" />
@@ -520,18 +520,18 @@ export default function CoursesCatalogPage() {
                   {/* Student Blue Hoodie & White Tee */}
                   <path
                     d="M102 118C92 128 88 156 92 178H186C190 156 184 128 174 118C156 110 120 110 102 118Z"
-                    fill="#066AC9"
+                    fill="#7928CA"
                   />
                   <rect x="122" y="116" width="32" height="55" fill="#E8EEF5" />
                   {/* Student Head, Glasses & Green Headphones */}
                   <circle cx="138" cy="86" r="17" fill="#F4A27E" />
                   <circle cx="144" cy="64" r="9" fill="#24292D" />
-                  <path d="M120 86C120 72 130 64 138 64C146 64 156 72 156 86" stroke="#0CBC87" strokeWidth="4" />
-                  <ellipse cx="155" cy="88" rx="4.5" ry="7" fill="#0CBC87" />
+                  <path d="M120 86C120 72 130 64 138 64C146 64 156 72 156 86" stroke="#7928CA" strokeWidth="4" />
+                  <ellipse cx="155" cy="88" rx="4.5" ry="7" fill="#7928CA" />
                   {/* Green Crossed Legs & Yellow Shoes */}
                   <path
                     d="M84 176C78 190 98 214 138 214C178 214 198 190 192 176C174 170 102 170 84 176Z"
-                    fill="#0CBC87"
+                    fill="#7928CA"
                   />
                   <rect x="96" y="206" width="24" height="12" rx="4" transform="rotate(-25 96 206)" fill="#F7A600" />
                   <rect x="156" y="196" width="24" height="12" rx="4" transform="rotate(25 156 196)" fill="#F7A600" />
@@ -543,7 +543,7 @@ export default function CoursesCatalogPage() {
                   {/* Pink Vase & Green Leaves Bottom-Left */}
                   <ellipse cx="64" cy="228" rx="22" ry="14" fill="#FF6B5B" />
                   <rect x="56" y="206" width="16" height="12" rx="2" fill="#E05344" />
-                  <path d="M64 206C46 196 34 184 32 172C48 176 58 190 64 206Z" fill="#0CBC87" />
+                  <path d="M64 206C46 196 34 184 32 172C48 176 58 190 64 206Z" fill="#7928CA" />
                   <path d="M64 206C68 186 78 172 90 166C88 182 76 196 64 206Z" fill="#099268" />
                 </svg>
               </div>
@@ -556,10 +556,10 @@ export default function CoursesCatalogPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-2xl mx-auto mb-12">
               <h2 className="text-3xl sm:text-4xl font-extrabold text-[#24292D] tracking-tight mb-2.5">
-                Choose a Categories
+                Choose a Track
               </h2>
               <p className="text-sm sm:text-base text-[#747579]">
-                Perceived end knowledge certainly day sweetness why cordially
+                Hands-on, hybrid learning across BEMS&apos;s core FutureSkills tracks
               </p>
             </div>
 
@@ -573,7 +573,7 @@ export default function CoursesCatalogPage() {
                   <div className="w-20 h-20 rounded-full bg-white shadow-2xs mx-auto mb-5 flex items-center justify-center group-hover:scale-105 transition-transform">
                     {cat.icon}
                   </div>
-                  <h3 className="text-lg font-extrabold text-[#24292D] group-hover:text-[#066AC9] transition-colors mb-1">
+                  <h3 className="text-lg font-extrabold text-[#24292D] group-hover:text-[#7928CA] transition-colors mb-1">
                     {cat.title}
                   </h3>
                   <span className="text-xs sm:text-sm font-semibold text-[#24292D]/75">
@@ -604,8 +604,8 @@ export default function CoursesCatalogPage() {
                     onClick={() => setSelectedLang(lang.id)}
                     className={`rounded-xl px-6 py-4 flex items-center gap-4 text-left transition-all cursor-pointer ${
                       isSelected
-                        ? "bg-[#E8F1FA] ring-2 ring-[#066AC9]/30"
-                        : "bg-[#F5F7F9] hover:bg-[#E8F1FA]/60"
+                        ? "bg-[#F0EDF9] ring-2 ring-[#7928CA]/30"
+                        : "bg-[#F5F7F9] hover:bg-[#F0EDF9]/60"
                     }`}
                   >
                     {lang.flag}
@@ -622,7 +622,7 @@ export default function CoursesCatalogPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
               <div>
-                <span className="text-xs font-extrabold uppercase tracking-wider text-[#066AC9] block mb-1">
+                <span className="text-xs font-extrabold uppercase tracking-wider text-[#7928CA] block mb-1">
                   BEMS UMUAHIA &amp; ONLINE COHORT
                 </span>
                 <h2 className="text-2xl sm:text-3xl font-extrabold text-[#24292D]">
@@ -631,7 +631,7 @@ export default function CoursesCatalogPage() {
               </div>
               <Link
                 href="/subscriptions"
-                className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-[#066AC9] hover:underline"
+                className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-[#7928CA] hover:underline"
               >
                 <span>Compare Tuition &amp; 3-Part Installment Plans</span>
                 <ArrowRight className="w-4 h-4" />
@@ -646,17 +646,17 @@ export default function CoursesCatalogPage() {
                 >
                   <div>
                     <div className="flex items-center justify-between gap-2 mb-3">
-                      <span className="text-xs font-bold px-3 py-1 rounded-md bg-[#E8F1FA] text-[#066AC9]">
+                      <span className="text-xs font-bold px-3 py-1 rounded-md bg-[#F0EDF9] text-[#7928CA]">
                         {track.badge}
                       </span>
                       <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#747579]">
-                        <Clock className="w-3.5 h-3.5 text-[#D6293E]" /> {track.duration} ·{" "}
+                        <Clock className="w-3.5 h-3.5 text-[#7928CA]" /> {track.duration} ·{" "}
                         {track.schedule}
                       </span>
                     </div>
 
                     <Link href={`/courses/${track.id}`}>
-                      <h3 className="text-xl font-extrabold text-[#24292D] hover:text-[#066AC9] transition-colors mb-1.5">
+                      <h3 className="text-xl font-extrabold text-[#24292D] hover:text-[#7928CA] transition-colors mb-1.5">
                         {track.title}
                       </h3>
                     </Link>
@@ -665,7 +665,7 @@ export default function CoursesCatalogPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-5">
                       {track.modules.slice(0, 4).map((m, i) => (
                         <div key={i} className="flex items-start gap-1.5 text-xs text-[#24292D]">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-[#0CBC87] shrink-0 mt-0.5" />
+                          <CheckCircle2 className="w-3.5 h-3.5 text-[#7928CA] shrink-0 mt-0.5" />
                           <span className="line-clamp-1">{m}</span>
                         </div>
                       ))}
@@ -684,13 +684,13 @@ export default function CoursesCatalogPage() {
                     <div className="flex items-center gap-2.5">
                       <Link
                         href={`/courses/${track.id}`}
-                        className="text-xs font-bold text-[#24292D] hover:text-[#066AC9] px-3 py-2 rounded-lg border border-slate-200"
+                        className="text-xs font-bold text-[#24292D] hover:text-[#7928CA] px-3 py-2 rounded-lg border border-slate-200"
                       >
                         Syllabus
                       </Link>
                       <Link
                         href={`/subscriptions?course=${track.id}`}
-                        className="text-xs font-bold bg-[#066AC9] hover:bg-[#0556A5] text-white px-4 py-2 rounded-lg transition-colors"
+                        className="text-xs font-bold bg-[#7928CA] hover:bg-[#671FB0] text-white px-4 py-2 rounded-lg transition-colors"
                       >
                         Enroll
                       </Link>

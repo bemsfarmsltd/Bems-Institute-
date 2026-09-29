@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useLMS } from "@/context/LMSContext";
 import {
@@ -72,10 +73,10 @@ interface EduportInstructorCard {
 const EDUPORT_STUDENTS: EduportStudentCard[] = [
   {
     id: "stu-1",
-    name: "Carolyn Ortiz",
+    name: "Blessing Adeyemi",
     location: "Mumbai",
     avatar:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=240&q=80",
+      "https://api.dicebear.com/7.x/initials/svg?seed=Blessing%20Adeyemi&backgroundColor=18143D&textColor=ffffff",
     payments: "$6205",
     totalCourse: 21,
     progress: 85,
@@ -83,10 +84,10 @@ const EDUPORT_STUDENTS: EduportStudentCard[] = [
   },
   {
     id: "stu-2",
-    name: "Billy Vasquez",
+    name: "Tunde Bakare",
     location: "Delhi",
     avatar:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=240&q=80",
+      "https://api.dicebear.com/7.x/initials/svg?seed=Tunde%20Bakare&backgroundColor=671FB0&textColor=ffffff",
     payments: "$1256",
     totalCourse: 16,
     progress: 60,
@@ -94,10 +95,10 @@ const EDUPORT_STUDENTS: EduportStudentCard[] = [
   },
   {
     id: "stu-3",
-    name: "Dennis Barrett",
+    name: "Emeka Nwosu",
     location: "New York",
     avatar:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=240&q=80",
+      "https://api.dicebear.com/7.x/initials/svg?seed=Emeka%20Nwosu&backgroundColor=7928CA&textColor=ffffff",
     payments: "$9256",
     totalCourse: 38,
     progress: 74,
@@ -105,10 +106,10 @@ const EDUPORT_STUDENTS: EduportStudentCard[] = [
   },
   {
     id: "stu-4",
-    name: "Lori Stevens",
+    name: "Ngozi Eze",
     location: "California",
     avatar:
-      "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=240&q=80",
+      "https://api.dicebear.com/7.x/initials/svg?seed=Ngozi%20Eze&backgroundColor=18143D&textColor=ffffff",
     payments: "$10688",
     totalCourse: 7,
     progress: 45,
@@ -116,10 +117,10 @@ const EDUPORT_STUDENTS: EduportStudentCard[] = [
   },
   {
     id: "stu-5",
-    name: "Jacqueline Miller",
+    name: "Chiamaka Nnamdi",
     location: "Chennai",
     avatar:
-      "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=240&q=80",
+      "https://api.dicebear.com/7.x/initials/svg?seed=Chiamaka%20Nnamdi&backgroundColor=671FB0&textColor=ffffff",
     payments: "$856",
     totalCourse: 5,
     progress: 90,
@@ -127,10 +128,10 @@ const EDUPORT_STUDENTS: EduportStudentCard[] = [
   },
   {
     id: "stu-6",
-    name: "Samuel Bishop",
+    name: "Ifeanyi Okafor",
     location: "Canada",
     avatar:
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=240&q=80",
+      "https://api.dicebear.com/7.x/initials/svg?seed=Ifeanyi%20Okafor&backgroundColor=7928CA&textColor=ffffff",
     payments: "$3578",
     totalCourse: 14,
     progress: 30,
@@ -141,10 +142,10 @@ const EDUPORT_STUDENTS: EduportStudentCard[] = [
 const EDUPORT_INSTRUCTORS: EduportInstructorCard[] = [
   {
     id: "inst-1",
-    name: "Lori Stevens",
+    name: "Ngozi Eze",
     role: "Web Designer",
     avatar:
-      "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=240&q=80",
+      "https://api.dicebear.com/7.x/initials/svg?seed=Ngozi%20Eze&backgroundColor=18143D&textColor=ffffff",
     totalStudents: 5354,
     totalCourses: 15,
     rating: 4.5,
@@ -152,10 +153,10 @@ const EDUPORT_INSTRUCTORS: EduportInstructorCard[] = [
   },
   {
     id: "inst-2",
-    name: "Carolyn Ortiz",
+    name: "Blessing Adeyemi",
     role: "Web Developer",
     avatar:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=240&q=80",
+      "https://api.dicebear.com/7.x/initials/svg?seed=Blessing%20Adeyemi&backgroundColor=671FB0&textColor=ffffff",
     totalStudents: 15523,
     totalCourses: 10,
     rating: 4.5,
@@ -163,10 +164,10 @@ const EDUPORT_INSTRUCTORS: EduportInstructorCard[] = [
   },
   {
     id: "inst-3",
-    name: "Dennis Barrett",
+    name: "Emeka Nwosu",
     role: "Developer and Instructor",
     avatar:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=240&q=80",
+      "https://api.dicebear.com/7.x/initials/svg?seed=Emeka%20Nwosu&backgroundColor=7928CA&textColor=ffffff",
     totalStudents: 2546,
     totalCourses: 9,
     rating: 4.5,
@@ -174,10 +175,10 @@ const EDUPORT_INSTRUCTORS: EduportInstructorCard[] = [
   },
   {
     id: "inst-4",
-    name: "Billy Vasquez",
+    name: "Tunde Bakare",
     role: "Full Stack Web Developer",
     avatar:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=240&q=80",
+      "https://api.dicebear.com/7.x/initials/svg?seed=Tunde%20Bakare&backgroundColor=18143D&textColor=ffffff",
     totalStudents: 12786,
     totalCourses: 7,
     rating: 4.5,
@@ -185,10 +186,10 @@ const EDUPORT_INSTRUCTORS: EduportInstructorCard[] = [
   },
   {
     id: "inst-5",
-    name: "Jacqueline Miller",
+    name: "Chiamaka Nnamdi",
     role: "Engineering Architect",
     avatar:
-      "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=240&q=80",
+      "https://api.dicebear.com/7.x/initials/svg?seed=Chiamaka%20Nnamdi&backgroundColor=671FB0&textColor=ffffff",
     totalStudents: 21245,
     totalCourses: 5,
     rating: 4.8,
@@ -196,10 +197,10 @@ const EDUPORT_INSTRUCTORS: EduportInstructorCard[] = [
   },
   {
     id: "inst-6",
-    name: "Amanda Reed",
+    name: "Amarachi Chukwu",
     role: "Medical Science",
     avatar:
-      "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=240&q=80",
+      "https://api.dicebear.com/7.x/initials/svg?seed=Amarachi%20Chukwu&backgroundColor=7928CA&textColor=ffffff",
     totalStudents: 8546,
     totalCourses: 6,
     rating: 4.5,
@@ -209,88 +210,88 @@ const EDUPORT_INSTRUCTORS: EduportInstructorCard[] = [
 
 const TOP_INSTRUCTORS_LIST = [
   {
-    name: "Lori Stevens",
+    name: "Ngozi Eze",
     courses: 25,
     rating: "4.5/5.0",
     verified: true,
     avatar:
-      "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80",
+      "https://api.dicebear.com/7.x/initials/svg?seed=Ngozi%20Eze&backgroundColor=18143D&textColor=ffffff",
   },
   {
-    name: "Dennis Barrett",
+    name: "Emeka Nwosu",
     courses: 18,
     rating: "4.5/5.0",
     verified: false,
     avatar:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80",
+      "https://api.dicebear.com/7.x/initials/svg?seed=Emeka%20Nwosu&backgroundColor=671FB0&textColor=ffffff",
   },
   {
-    name: "Jacqueline Miller",
+    name: "Chiamaka Nnamdi",
     courses: 21,
     rating: "4.8/5.0",
     verified: true,
     avatar:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+      "https://api.dicebear.com/7.x/initials/svg?seed=Blessing%20Adeyemi&backgroundColor=7928CA&textColor=ffffff",
   },
   {
-    name: "Billy Vasquez",
+    name: "Tunde Bakare",
     courses: 15,
     rating: "4.5/5.0",
     verified: false,
     avatar:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80",
+      "https://api.dicebear.com/7.x/initials/svg?seed=Tunde%20Bakare&backgroundColor=18143D&textColor=ffffff",
   },
   {
-    name: "Amanda Reed",
+    name: "Amarachi Chukwu",
     courses: 29,
     rating: "4.5/5.0",
     verified: true,
     avatar:
-      "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80",
+      "https://api.dicebear.com/7.x/initials/svg?seed=Chiamaka%20Nnamdi&backgroundColor=671FB0&textColor=ffffff",
   },
 ];
 
 const SUPPORT_REQUESTS = [
   {
     id: "req-1",
-    name: "Lori Stevens",
+    name: "Ngozi Eze",
     avatar:
-      "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=160&q=80",
+      "https://api.dicebear.com/7.x/initials/svg?seed=Ngozi%20Eze&backgroundColor=7928CA&textColor=ffffff",
     initials: null,
     badgeBg: "",
     badgeText: "",
-    message: "New ticket #759 from Lori Stevens for General Enquiry",
+    message: "New ticket #759 from Ngozi Eze for General Enquiry",
     boldPart: null,
     time: "8 hour ago",
   },
   {
     id: "req-2",
-    name: "Dennis Barrett",
+    name: "Emeka Nwosu",
     avatar: null,
     initials: "DB",
     badgeBg: "bg-[#EFEBF9]",
     badgeText: "text-[#6F42C1]",
-    message: "Comment from Billy Vasquez on ticket #659",
+    message: "Comment from Tunde Bakare on ticket #659",
     boldPart: null,
     time: "8 hour ago",
   },
   {
     id: "req-3",
-    name: "Dennis Barrett",
+    name: "Emeka Nwosu",
     avatar: null,
     initials: "WB",
     badgeBg: "bg-[#FFF2E2]",
     badgeText: "text-[#FD7E14]",
-    message: "assign you a new ticket for Eduport theme",
-    boldPrefix: "StackBros",
-    boldSuffix: "Eduport theme",
+    message: "assign you a new ticket for Cohort Onboarding",
+    boldPrefix: "Admissions Desk",
+    boldSuffix: "Cohort Onboarding",
     time: "5 hour ago",
   },
   {
     id: "req-4",
-    name: "Dennis Barrett",
+    name: "Emeka Nwosu",
     avatar:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=160&q=80",
+      "https://api.dicebear.com/7.x/initials/svg?seed=Tunde%20Bakare&backgroundColor=18143D&textColor=ffffff",
     initials: null,
     badgeBg: "",
     badgeText: "",
@@ -339,8 +340,8 @@ function EarningsLineChart() {
       >
         <defs>
           <linearGradient id="eduportEarningsGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#066AC9" stopOpacity="0.32" />
-            <stop offset="100%" stopColor="#066AC9" stopOpacity="0.03" />
+            <stop offset="0%" stopColor="#7928CA" stopOpacity="0.32" />
+            <stop offset="100%" stopColor="#7928CA" stopOpacity="0.03" />
           </linearGradient>
         </defs>
 
@@ -374,7 +375,7 @@ function EarningsLineChart() {
         {/* Smooth Blue Line */}
         <path
           d={linePath}
-          stroke="#066AC9"
+          stroke="#7928CA"
           strokeWidth="3"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -401,7 +402,7 @@ function EarningsLineChart() {
               width="36"
               height="17"
               rx="3.5"
-              fill="#066AC9"
+              fill="#7928CA"
               stroke="#FFFFFF"
               strokeWidth="1.2"
             />
@@ -429,8 +430,8 @@ function TrafficSourcesDonutChart() {
   const c = 2 * Math.PI * r;
   // Segments: Blue (62%), Green (16%), Yellow (14%), Red (8%)
   const segments = [
-    { color: "#066AC9", pct: 0.62, offset: 0 },
-    { color: "#0CBC87", pct: 0.16, offset: 0.62 },
+    { color: "#7928CA", pct: 0.62, offset: 0 },
+    { color: "#7928CA", pct: 0.16, offset: 0.62 },
     { color: "#F7C32E", pct: 0.14, offset: 0.78 },
     { color: "#D6293E", pct: 0.08, offset: 0.92 },
   ];
@@ -462,11 +463,11 @@ function TrafficSourcesDonutChart() {
 
       <div className="w-full space-y-3 mt-4">
         <div className="flex items-start gap-2.5 text-[13.5px] text-[#747579]">
-          <span className="w-3 h-3 rounded-full bg-[#066AC9] shrink-0 mt-1" />
+          <span className="w-3 h-3 rounded-full bg-[#7928CA] shrink-0 mt-1" />
           <span>Create a Design System in Figma</span>
         </div>
         <div className="flex items-start gap-2.5 text-[13.5px] text-[#747579]">
-          <span className="w-3 h-3 rounded-full bg-[#0CBC87] shrink-0 mt-1" />
+          <span className="w-3 h-3 rounded-full bg-[#7928CA] shrink-0 mt-1" />
           <span>The Complete Digital Marketing Course - 12 Courses in 1</span>
         </div>
         <div className="flex items-start gap-2.5 text-[13.5px] text-[#747579]">
@@ -522,57 +523,57 @@ function AdminDashboardContent() {
   const [instructorRequests, setInstructorRequests] = useState([
     {
       id: "ireq-1",
-      name: "Lori Stevens",
+      name: "Ngozi Eze",
       subject: "HTML, CSS, Bootstrap",
       requestedDate: "22 Oct 2021",
       status: "PENDING" as "PENDING" | "ACCEPTED" | "REJECTED",
       avatar:
-        "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80",
+        "https://api.dicebear.com/7.x/initials/svg?seed=Ngozi%20Eze&backgroundColor=671FB0&textColor=ffffff",
     },
     {
       id: "ireq-2",
-      name: "Carolyn Ortiz",
+      name: "Blessing Adeyemi",
       subject: "Photoshop, Figma, Adobe XD",
       requestedDate: "06 Sep 2021",
       status: "PENDING" as "PENDING" | "ACCEPTED" | "REJECTED",
       avatar:
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+        "https://api.dicebear.com/7.x/initials/svg?seed=Blessing%20Adeyemi&backgroundColor=7928CA&textColor=ffffff",
     },
     {
       id: "ireq-3",
-      name: "Dennis Barrett",
+      name: "Emeka Nwosu",
       subject: "JavaScript, Java",
       requestedDate: "21 Jan 2021",
       status: "ACCEPTED" as "PENDING" | "ACCEPTED" | "REJECTED",
       avatar:
-        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80",
+        "https://api.dicebear.com/7.x/initials/svg?seed=Emeka%20Nwosu&backgroundColor=18143D&textColor=ffffff",
     },
     {
       id: "ireq-4",
-      name: "Billy Vasquez",
+      name: "Tunde Bakare",
       subject: "Maths, Chemistry",
       requestedDate: "25 Dec 2020",
       status: "REJECTED" as "PENDING" | "ACCEPTED" | "REJECTED",
       avatar:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80",
+        "https://api.dicebear.com/7.x/initials/svg?seed=Tunde%20Bakare&backgroundColor=671FB0&textColor=ffffff",
     },
     {
       id: "ireq-5",
-      name: "Jacqueline Miller",
+      name: "Chiamaka Nnamdi",
       subject: "Python, Angular, React Native",
       requestedDate: "05 June 2020",
       status: "ACCEPTED" as "PENDING" | "ACCEPTED" | "REJECTED",
       avatar:
-        "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80",
+        "https://api.dicebear.com/7.x/initials/svg?seed=Chiamaka%20Nnamdi&backgroundColor=7928CA&textColor=ffffff",
     },
     {
       id: "ireq-6",
-      name: "Amanda Reed",
+      name: "Amarachi Chukwu",
       subject: "After Effects, Premiere Pro",
       requestedDate: "14 Feb 2020",
       status: "ACCEPTED" as "PENDING" | "ACCEPTED" | "REJECTED",
       avatar:
-        "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
+        "https://api.dicebear.com/7.x/initials/svg?seed=Amarachi%20Chukwu&backgroundColor=18143D&textColor=ffffff",
     },
   ]);
 
@@ -580,66 +581,66 @@ function AdminDashboardContent() {
   const [reviewsList, setReviewsList] = useState([
     {
       id: "01",
-      studentName: "Lori Stevens",
+      studentName: "Ngozi Eze",
       courseName: "Building Scalable APIs with GraphQL",
       rating: 5,
       visible: false,
       avatar:
-        "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80",
+        "https://api.dicebear.com/7.x/initials/svg?seed=Ngozi%20Eze&backgroundColor=671FB0&textColor=ffffff",
     },
     {
       id: "02",
-      studentName: "Carolyn Ortiz",
+      studentName: "Blessing Adeyemi",
       courseName: "Graphic Design Masterclass",
       rating: 5,
       visible: false,
       avatar:
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+        "https://api.dicebear.com/7.x/initials/svg?seed=Blessing%20Adeyemi&backgroundColor=7928CA&textColor=ffffff",
     },
     {
       id: "03",
-      studentName: "Dennis Barrett",
+      studentName: "Emeka Nwosu",
       courseName: "JavaScript: Full Understanding",
       rating: 4,
       visible: false,
       avatar:
-        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80",
+        "https://api.dicebear.com/7.x/initials/svg?seed=Emeka%20Nwosu&backgroundColor=18143D&textColor=ffffff",
     },
     {
       id: "04",
-      studentName: "Billy Vasquez",
+      studentName: "Tunde Bakare",
       courseName: "Time Management Mastery: Do More, Stress Less",
       rating: 4,
       visible: false,
       avatar:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80",
+        "https://api.dicebear.com/7.x/initials/svg?seed=Tunde%20Bakare&backgroundColor=671FB0&textColor=ffffff",
     },
     {
       id: "05",
-      studentName: "Jacqueline Miller",
+      studentName: "Chiamaka Nnamdi",
       courseName: "The complete Digital Marketing Course - 8 Course in 1",
       rating: 4,
       visible: false,
       avatar:
-        "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80",
+        "https://api.dicebear.com/7.x/initials/svg?seed=Chiamaka%20Nnamdi&backgroundColor=7928CA&textColor=ffffff",
     },
     {
       id: "06",
-      studentName: "Amanda Reed",
+      studentName: "Amarachi Chukwu",
       courseName: "Microsoft Excel - Excel from Beginner to Advanced",
       rating: 4,
       visible: false,
       avatar:
-        "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
+        "https://api.dicebear.com/7.x/initials/svg?seed=Amarachi%20Chukwu&backgroundColor=18143D&textColor=ffffff",
     },
     {
       id: "07",
-      studentName: "Samuel Bishop",
+      studentName: "Ifeanyi Okafor",
       courseName: "Behavior, Psychology and Care Training",
       rating: 4,
       visible: false,
       avatar:
-        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80",
+        "https://api.dicebear.com/7.x/initials/svg?seed=Ifeanyi%20Okafor&backgroundColor=671FB0&textColor=ffffff",
     },
   ]);
 
@@ -727,7 +728,7 @@ function AdminDashboardContent() {
     router.push(`/admin?tab=${tabId}`);
   };
 
-  // Combine Eduport template student cards with live BEMS database students
+  // Combine demo student cards with live BEMS database students
   const liveBemsStudentCards: EduportStudentCard[] = adminStudents.map((stu, idx) => ({
     id: stu.id,
     name: stu.name,
@@ -735,7 +736,7 @@ function AdminDashboardContent() {
       stu.deliveryMode === "Physical Lab (Umuahia)" ? "MOUAU Campus" : "Live Virtual",
     avatar:
       EDUPORT_STUDENTS[idx % EDUPORT_STUDENTS.length]?.avatar ||
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=240&q=80",
+      "https://api.dicebear.com/7.x/initials/svg?seed=Blessing%20Adeyemi&backgroundColor=7928CA&textColor=ffffff",
     payments: `₦${stu.amountPaid.toLocaleString()}`,
     totalCourse: 4,
     progress: stu.progressPercent,
@@ -802,16 +803,14 @@ function AdminDashboardContent() {
       >
         {/* Top Brand + Navigation */}
         <div className="overflow-y-auto flex-1 px-4 pt-6 pb-4">
-          {/* Eduport / BEMS Logo */}
+          {/* BEMS Logo */}
           <div className="flex items-center justify-between px-2 mb-7">
-            <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center shadow-xs">
-                <span className="font-display font-black text-[#24292D] text-[22px] leading-none -rotate-12 select-none">
-                  e
-                </span>
+            <Link href="/" className="flex items-center gap-2.5 group min-w-0">
+              <div className="relative w-9 h-9 rounded-lg overflow-hidden bg-white shrink-0 shadow-xs">
+                <Image src="/images/bems-logo.jpg" alt="BEMS Logo" fill className="object-contain" />
               </div>
-              <span className="font-display font-extrabold text-[23px] tracking-tight text-white">
-                Eduport
+              <span className="font-display font-extrabold text-[17px] leading-tight tracking-tight text-white truncate">
+                BEMS INSTITUTE
               </span>
             </Link>
             <button
@@ -829,7 +828,7 @@ function AdminDashboardContent() {
             onClick={() => switchTab("dashboard")}
             className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
               activeTab === "dashboard"
-                ? "text-[#066AC9]"
+                ? "text-[#7928CA]"
                 : "text-white/90 hover:text-white hover:bg-white/5"
             }`}
           >
@@ -853,7 +852,7 @@ function AdminDashboardContent() {
                 }}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
                   activeTab === "courses"
-                    ? "bg-[#1B2228] text-[#066AC9]"
+                    ? "bg-[#1B2228] text-[#7928CA]"
                     : "text-white/90 hover:text-white hover:bg-white/5"
                 }`}
               >
@@ -875,7 +874,7 @@ function AdminDashboardContent() {
                     onClick={() => switchTab("courses")}
                     className={`w-full text-left py-1.5 font-medium transition-colors cursor-pointer ${
                       activeTab === "courses"
-                        ? "text-[#066AC9]"
+                        ? "text-[#7928CA]"
                         : "text-white/80 hover:text-white"
                     }`}
                   >
@@ -903,7 +902,7 @@ function AdminDashboardContent() {
               onClick={() => switchTab("students")}
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
                 activeTab === "students"
-                  ? "text-[#066AC9]"
+                  ? "text-[#7928CA]"
                   : "text-white/90 hover:text-white hover:bg-white/5"
               }`}
             >
@@ -932,7 +931,7 @@ function AdminDashboardContent() {
                 }}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
                   activeTab.startsWith("instructor")
-                    ? "bg-[#1B2228] text-[#066AC9]"
+                    ? "bg-[#1B2228] text-[#7928CA]"
                     : "text-white/90 hover:text-white hover:bg-white/5"
                 }`}
               >
@@ -954,7 +953,7 @@ function AdminDashboardContent() {
                     onClick={() => switchTab("instructors")}
                     className={`w-full text-left font-medium transition-colors cursor-pointer ${
                       activeTab === "instructors"
-                        ? "text-[#066AC9]"
+                        ? "text-[#7928CA]"
                         : "text-white/85 hover:text-white"
                     }`}
                   >
@@ -965,7 +964,7 @@ function AdminDashboardContent() {
                     onClick={() => switchTab("instructor-detail")}
                     className={`w-full text-left font-medium transition-colors cursor-pointer ${
                       activeTab === "instructor-detail"
-                        ? "text-[#066AC9]"
+                        ? "text-[#7928CA]"
                         : "text-white/85 hover:text-white"
                     }`}
                   >
@@ -976,12 +975,12 @@ function AdminDashboardContent() {
                     onClick={() => switchTab("instructor-requests")}
                     className={`w-full flex items-center justify-between font-medium transition-colors cursor-pointer ${
                       activeTab === "instructor-requests"
-                        ? "text-[#066AC9]"
+                        ? "text-[#7928CA]"
                         : "text-white/85 hover:text-white"
                     }`}
                   >
                     <span>Instructor requests</span>
-                    <span className="w-5 h-5 rounded-full bg-[#0CBC87] text-white text-[11px] font-bold flex items-center justify-center">
+                    <span className="w-5 h-5 rounded-full bg-[#7928CA] text-white text-[11px] font-bold flex items-center justify-center">
                       2
                     </span>
                   </button>
@@ -995,7 +994,7 @@ function AdminDashboardContent() {
               onClick={() => switchTab("reviews")}
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
                 activeTab === "reviews"
-                  ? "text-[#066AC9]"
+                  ? "text-[#7928CA]"
                   : "text-white/90 hover:text-white hover:bg-white/5"
               }`}
             >
@@ -1009,7 +1008,7 @@ function AdminDashboardContent() {
               onClick={() => switchTab("earnings")}
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
                 activeTab === "earnings" || activeTab === "analytics"
-                  ? "text-[#066AC9]"
+                  ? "text-[#7928CA]"
                   : "text-white/90 hover:text-white hover:bg-white/5"
               }`}
             >
@@ -1023,7 +1022,7 @@ function AdminDashboardContent() {
               onClick={() => switchTab("settings")}
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
                 activeTab === "settings"
-                  ? "text-[#066AC9]"
+                  ? "text-[#7928CA]"
                   : "text-white/90 hover:text-white hover:bg-white/5"
               }`}
             >
@@ -1125,9 +1124,9 @@ function AdminDashboardContent() {
                 value={globalSearch}
                 onChange={(e) => setGlobalSearch(e.target.value)}
                 placeholder="Search"
-                className="w-full bg-[#F5F7F9] rounded-lg pl-4 pr-10 py-2 text-[14px] text-[#24292D] placeholder:text-[#8C939A] focus:outline-none focus:ring-1 focus:ring-[#066AC9]"
+                className="w-full bg-[#F5F7F9] rounded-lg pl-4 pr-10 py-2 text-[14px] text-[#24292D] placeholder:text-[#8C939A] focus:outline-none focus:ring-1 focus:ring-[#7928CA]"
               />
-              <Search className="w-4 h-4 text-[#066AC9] absolute right-3.5 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-[#7928CA] absolute right-3.5 top-1/2 -translate-y-1/2" />
             </div>
           </div>
 
@@ -1149,7 +1148,7 @@ function AdminDashboardContent() {
               title={user?.name || "Admin Profile"}
             >
               <img
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"
+                src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user?.name || "Admin")}&backgroundColor=7928CA&textColor=ffffff`}
                 alt="Admin Avatar"
                 className="w-full h-full object-cover"
               />
@@ -1160,15 +1159,15 @@ function AdminDashboardContent() {
         {/* Page Body */}
         <main className="flex-1 p-5 sm:p-8 max-w-[1440px] w-full mx-auto">
           {adminNotice && (
-            <div className="mb-6 rounded-xl border border-[#0CBC87]/30 bg-[#E6F8F3] px-5 py-3.5 text-[13.5px] font-semibold text-[#0F6E56] flex items-center justify-between">
+            <div className="mb-6 rounded-xl border border-[#065F46]/30 bg-[#D1FAE5] px-5 py-3.5 text-[13.5px] font-semibold text-[#065F46] flex items-center justify-between">
               <span className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-[#0CBC87] shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-[#059669] shrink-0" />
                 {adminNotice}
               </span>
               <button
                 type="button"
                 onClick={() => setAdminNotice(null)}
-                className="text-[#0F6E56] hover:underline text-xs font-bold cursor-pointer"
+                className="text-[#065F46] hover:underline text-xs font-bold cursor-pointer"
               >
                 Dismiss
               </button>
@@ -1217,7 +1216,7 @@ function AdminDashboardContent() {
                 </div>
 
                 {/* 3. Course In Progress */}
-                <div className="bg-[#E7F0FA] rounded-xl p-6 flex items-center justify-between">
+                <div className="bg-[#F0EDF9] rounded-xl p-6 flex items-center justify-between">
                   <div>
                     <div className="font-display text-[32px] font-extrabold text-[#1D2026] leading-none mb-2">
                       1235
@@ -1226,13 +1225,13 @@ function AdminDashboardContent() {
                       Course In Progress
                     </div>
                   </div>
-                  <div className="w-14 h-14 rounded-full bg-[#066AC9] text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <div className="w-14 h-14 rounded-full bg-[#7928CA] text-white flex items-center justify-center shrink-0 shadow-xs">
                     <GraduationCap className="w-6 h-6" />
                   </div>
                 </div>
 
                 {/* 4. Total Watch Time */}
-                <div className="bg-[#E6F8F3] rounded-xl p-6 flex items-center justify-between">
+                <div className="bg-[#F0EDF9] rounded-xl p-6 flex items-center justify-between">
                   <div>
                     <div className="font-display text-[32px] font-extrabold text-[#1D2026] leading-none mb-2">
                       845 hrs
@@ -1241,7 +1240,7 @@ function AdminDashboardContent() {
                       Total Watch Time
                     </div>
                   </div>
-                  <div className="w-14 h-14 rounded-full bg-[#0CBC87] text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <div className="w-14 h-14 rounded-full bg-[#7928CA] text-white flex items-center justify-center shrink-0 shadow-xs">
                     <Clock className="w-6 h-6" />
                   </div>
                 </div>
@@ -1268,7 +1267,7 @@ function AdminDashboardContent() {
                     <button
                       type="button"
                       onClick={() => switchTab("reviews")}
-                      className="text-[13px] font-semibold text-[#066AC9] hover:underline cursor-pointer"
+                      className="text-[13px] font-semibold text-[#7928CA] hover:underline cursor-pointer"
                     >
                       View all
                     </button>
@@ -1291,7 +1290,7 @@ function AdminDashboardContent() {
                           </div>
                         )}
                         <div className="min-w-0 flex-1">
-                          <h3 className="text-[14.5px] font-bold text-[#1D2026] hover:text-[#066AC9] transition-colors cursor-pointer">
+                          <h3 className="text-[14.5px] font-bold text-[#1D2026] hover:text-[#7928CA] transition-colors cursor-pointer">
                             {item.name}
                           </h3>
                           {item.boldPrefix ? (
@@ -1326,7 +1325,7 @@ function AdminDashboardContent() {
                     <button
                       type="button"
                       onClick={() => switchTab("instructors")}
-                      className="text-[13px] font-semibold text-[#066AC9] hover:underline cursor-pointer"
+                      className="text-[13px] font-semibold text-[#7928CA] hover:underline cursor-pointer"
                     >
                       View all
                     </button>
@@ -1374,7 +1373,7 @@ function AdminDashboardContent() {
                         <button
                           type="button"
                           onClick={() => switchTab("instructors")}
-                          className="px-3.5 py-1.5 rounded-lg bg-[#F5F7F9] hover:bg-[#066AC9] text-[#24292D] hover:text-white text-[12.5px] font-semibold transition-colors shrink-0 cursor-pointer"
+                          className="px-3.5 py-1.5 rounded-lg bg-[#F5F7F9] hover:bg-[#7928CA] text-[#24292D] hover:text-white text-[12.5px] font-semibold transition-colors shrink-0 cursor-pointer"
                         >
                           View
                         </button>
@@ -1452,14 +1451,14 @@ function AdminDashboardContent() {
                   </div>
 
                   {/* Bottom Mint Banner */}
-                  <div className="mt-6 rounded-lg bg-[#D1F3E8] border border-[#0CBC87]/35 px-4 py-2.5 flex items-center justify-between">
-                    <span className="text-[12.5px] font-semibold text-[#0F6E56]">
+                  <div className="mt-6 rounded-lg bg-[#F0EDF9] border border-[#7928CA]/35 px-4 py-2.5 flex items-center justify-between">
+                    <span className="text-[12.5px] font-semibold text-[#7928CA]">
                       45 more notices listed
                     </span>
                     <button
                       type="button"
                       onClick={() => switchTab("reviews")}
-                      className="px-3 py-1.5 rounded-md bg-[#BCECE0] hover:bg-[#0CBC87] text-[#0F6E56] hover:text-white text-[12px] font-bold transition-colors cursor-pointer"
+                      className="px-3 py-1.5 rounded-md bg-[#E6E1F5] hover:bg-[#7928CA] text-[#7928CA] hover:text-white text-[12px] font-bold transition-colors cursor-pointer"
                     >
                       View all
                     </button>
@@ -1475,7 +1474,7 @@ function AdminDashboardContent() {
                     <button
                       type="button"
                       onClick={() => switchTab("earnings")}
-                      className="text-[13px] font-semibold text-[#066AC9] hover:underline cursor-pointer"
+                      className="text-[13px] font-semibold text-[#7928CA] hover:underline cursor-pointer"
                     >
                       View all
                     </button>
@@ -1505,7 +1504,7 @@ function AdminDashboardContent() {
                       value={studentSearch}
                       onChange={(e) => setStudentSearch(e.target.value)}
                       placeholder="Search"
-                      className="w-full bg-white border border-slate-200 rounded-lg pl-4 pr-10 py-2.5 text-[14px] text-[#24292D] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#066AC9]"
+                      className="w-full bg-white border border-slate-200 rounded-lg pl-4 pr-10 py-2.5 text-[14px] text-[#24292D] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#7928CA]"
                     />
                     <Search className="w-4 h-4 text-[#747579] absolute right-3.5 top-1/2 -translate-y-1/2" />
                   </div>
@@ -1593,7 +1592,7 @@ function AdminDashboardContent() {
                           {/* Payments Row */}
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-full bg-[#E6F8F3] text-[#0CBC87] flex items-center justify-center">
+                              <div className="w-10 h-10 rounded-full bg-[#F0EDF9] text-[#7928CA] flex items-center justify-center">
                                 <DollarSign className="w-4 h-4" />
                               </div>
                               <span className="text-[14px] text-[#475569] font-medium">
@@ -1625,10 +1624,10 @@ function AdminDashboardContent() {
                             <div className="text-[12.5px] font-extrabold text-[#1D2026] mb-1.5">
                               {student.progress}%
                             </div>
-                            <div className="w-full h-1.5 rounded-full bg-[#E7F0FA] overflow-hidden">
+                            <div className="w-full h-1.5 rounded-full bg-[#F0EDF9] overflow-hidden">
                               <div
                                 style={{ width: `${student.progress}%` }}
-                                className="h-full rounded-full bg-[#066AC9]"
+                                className="h-full rounded-full bg-[#7928CA]"
                               />
                             </div>
                           </div>
@@ -1649,7 +1648,7 @@ function AdminDashboardContent() {
                           <div className="flex items-center gap-2.5 text-[#747579]">
                             <button
                               type="button"
-                              className="hover:text-[#066AC9] transition-colors cursor-pointer"
+                              className="hover:text-[#7928CA] transition-colors cursor-pointer"
                               title="Message student"
                             >
                               <Mail className="w-4 h-4" />
@@ -1693,16 +1692,16 @@ function AdminDashboardContent() {
                               <span className="font-bold text-[#1D2026]">{stu.name}</span>
                             </td>
                             <td className="py-3.5 px-4 text-[#747579]">{stu.location}</td>
-                            <td className="py-3.5 px-4 font-bold text-[#0CBC87]">
+                            <td className="py-3.5 px-4 font-bold text-[#7928CA]">
                               {stu.payments}
                             </td>
                             <td className="py-3.5 px-4 text-[#475569]">{stu.totalCourse}</td>
                             <td className="py-3.5 px-4">
                               <div className="flex items-center gap-2">
-                                <div className="w-24 h-1.5 rounded-full bg-[#E7F0FA] overflow-hidden">
+                                <div className="w-24 h-1.5 rounded-full bg-[#F0EDF9] overflow-hidden">
                                   <div
                                     style={{ width: `${stu.progress}%` }}
-                                    className="h-full bg-[#066AC9]"
+                                    className="h-full bg-[#7928CA]"
                                   />
                                 </div>
                                 <span className="text-xs font-bold">{stu.progress}%</span>
@@ -1721,12 +1720,12 @@ function AdminDashboardContent() {
                                     );
                                     setAdminNotice(`Marked ${stu.name} as PAID FULL.`);
                                   }}
-                                  className="px-3 py-1.5 rounded-lg bg-[#066AC9] text-white text-xs font-semibold hover:bg-[#0556A5] cursor-pointer"
+                                  className="px-3 py-1.5 rounded-lg bg-[#7928CA] text-white text-xs font-semibold hover:bg-[#671FB0] cursor-pointer"
                                 >
                                   Mark Paid Full
                                 </button>
                               ) : (
-                                <span className="px-2.5 py-1 rounded-md bg-[#E6F8F3] text-[#0CBC87] text-xs font-bold">
+                                <span className="px-2.5 py-1 rounded-md bg-[#F0EDF9] text-[#7928CA] text-xs font-bold">
                                   Verified
                                 </span>
                               )}
@@ -1745,7 +1744,7 @@ function AdminDashboardContent() {
                     <button
                       type="button"
                       onClick={() => setStudentPage((p) => Math.max(1, p - 1))}
-                      className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                      className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </button>
@@ -1756,8 +1755,8 @@ function AdminDashboardContent() {
                         onClick={() => setStudentPage(p)}
                         className={`w-8 h-8 rounded-md text-[13px] font-bold flex items-center justify-center transition-colors cursor-pointer ${
                           studentPage === p
-                            ? "bg-[#066AC9] text-white"
-                            : "bg-[#E7F0FA] text-[#066AC9] hover:bg-[#066AC9] hover:text-white"
+                            ? "bg-[#7928CA] text-white"
+                            : "bg-[#F0EDF9] text-[#7928CA] hover:bg-[#7928CA] hover:text-white"
                         }`}
                       >
                         {p}
@@ -1766,7 +1765,7 @@ function AdminDashboardContent() {
                     <button
                       type="button"
                       onClick={() => setStudentPage((p) => Math.min(3, p + 1))}
-                      className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                      className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
                     >
                       <ChevronRight className="w-4 h-4" />
                     </button>
@@ -1796,7 +1795,7 @@ function AdminDashboardContent() {
                       value={instructorSearch}
                       onChange={(e) => setInstructorSearch(e.target.value)}
                       placeholder="Search"
-                      className="w-full bg-white border border-slate-200 rounded-lg pl-4 pr-10 py-2.5 text-[14px] text-[#24292D] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#066AC9]"
+                      className="w-full bg-white border border-slate-200 rounded-lg pl-4 pr-10 py-2.5 text-[14px] text-[#24292D] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#7928CA]"
                     />
                     <Search className="w-4 h-4 text-[#747579] absolute right-3.5 top-1/2 -translate-y-1/2" />
                   </div>
@@ -1848,7 +1847,7 @@ function AdminDashboardContent() {
                             <button
                               type="button"
                               onClick={() => switchTab("instructor-detail")}
-                              className="font-display text-[17px] font-extrabold text-[#1D2026] hover:text-[#066AC9] transition-colors truncate block text-left cursor-pointer"
+                              className="font-display text-[17px] font-extrabold text-[#1D2026] hover:text-[#7928CA] transition-colors truncate block text-left cursor-pointer"
                             >
                               {inst.name}
                             </button>
@@ -1919,7 +1918,7 @@ function AdminDashboardContent() {
                         <button
                           type="button"
                           onClick={() => switchTab("instructor-detail")}
-                          className="text-[#747579] hover:text-[#066AC9] transition-colors cursor-pointer"
+                          className="text-[#747579] hover:text-[#7928CA] transition-colors cursor-pointer"
                           title="Contact Instructor"
                         >
                           <Mail className="w-4 h-4" />
@@ -1954,7 +1953,7 @@ function AdminDashboardContent() {
                   <div className="p-6">
                     <div className="mb-6">
                       <img
-                        src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=240&q=80"
+                        src="https://api.dicebear.com/7.x/initials/svg?seed=Emeka%20Nwosu&backgroundColor=18143D&textColor=ffffff"
                         alt="Louis Ferguson"
                         className="w-20 h-20 rounded-full object-cover shadow-md"
                       />
@@ -2020,7 +2019,7 @@ function AdminDashboardContent() {
                         984
                       </span>
                       <div className="text-[13px]">
-                        <span className="text-[#0CBC87] font-semibold">0.20% ↑</span>{" "}
+                        <span className="text-[#7928CA] font-semibold">0.20% ↑</span>{" "}
                         <span className="text-[#747579]">vs last Week</span>
                       </div>
                     </div>
@@ -2029,8 +2028,8 @@ function AdminDashboardContent() {
                       <svg viewBox="0 0 400 115" className="w-full h-28 block" preserveAspectRatio="none">
                         <defs>
                           <linearGradient id="activeStudentsGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#0CBC87" stopOpacity="0.32" />
-                            <stop offset="100%" stopColor="#0CBC87" stopOpacity="0.02" />
+                            <stop offset="0%" stopColor="#7928CA" stopOpacity="0.32" />
+                            <stop offset="100%" stopColor="#7928CA" stopOpacity="0.02" />
                           </linearGradient>
                         </defs>
                         <path
@@ -2040,7 +2039,7 @@ function AdminDashboardContent() {
                         <path
                           d="M 0 95 C 40 85, 65 78, 95 52 C 125 32, 160 40, 205 42 C 245 44, 270 72, 300 68 C 335 64, 365 25, 400 20"
                           fill="none"
-                          stroke="#0CBC87"
+                          stroke="#7928CA"
                           strokeWidth="3"
                           strokeLinecap="round"
                         />
@@ -2061,7 +2060,7 @@ function AdminDashboardContent() {
                         140
                       </span>
                       <div className="text-[13px]">
-                        <span className="text-[#0CBC87] font-semibold">0.35% ↑</span>{" "}
+                        <span className="text-[#7928CA] font-semibold">0.35% ↑</span>{" "}
                         <span className="text-[#747579]">vs last Week</span>
                       </div>
                     </div>
@@ -2116,7 +2115,7 @@ function AdminDashboardContent() {
                             title: "Building Scalable APIs with GraphQL",
                             enrolled: 412,
                             status: "Live",
-                            statusStyle: "bg-[#E6F8F3] text-[#0CBC87]",
+                            statusStyle: "bg-[#F0EDF9] text-[#7928CA]",
                             thumbBg: "bg-[#FDEBC8]",
                             thumbText: "💎",
                           },
@@ -2124,7 +2123,7 @@ function AdminDashboardContent() {
                             title: "Graphic Design Masterclass",
                             enrolled: 254,
                             status: "Live",
-                            statusStyle: "bg-[#E6F8F3] text-[#0CBC87]",
+                            statusStyle: "bg-[#F0EDF9] text-[#7928CA]",
                             thumbBg: "bg-[#1D3B53] text-[#38BDF8]",
                             thumbText: "Ps",
                           },
@@ -2140,7 +2139,7 @@ function AdminDashboardContent() {
                             title: "Deep Learning with React-Native",
                             enrolled: 98,
                             status: "Live",
-                            statusStyle: "bg-[#E6F8F3] text-[#0CBC87]",
+                            statusStyle: "bg-[#F0EDF9] text-[#7928CA]",
                             thumbBg: "bg-[#E0F7FA] text-[#00BCD4]",
                             thumbText: "⚛",
                           },
@@ -2194,31 +2193,31 @@ function AdminDashboardContent() {
                     <div className="flex items-center gap-1.5">
                       <button
                         type="button"
-                        className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                        className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
                       >
                         <ChevronLeft className="w-4 h-4" />
                       </button>
                       <button
                         type="button"
-                        className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] text-[13px] font-bold flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                        className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] text-[13px] font-bold flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
                       >
                         1
                       </button>
                       <button
                         type="button"
-                        className="w-8 h-8 rounded-md bg-[#066AC9] text-white text-[13px] font-bold flex items-center justify-center cursor-pointer"
+                        className="w-8 h-8 rounded-md bg-[#7928CA] text-white text-[13px] font-bold flex items-center justify-center cursor-pointer"
                       >
                         2
                       </button>
                       <button
                         type="button"
-                        className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] text-[13px] font-bold flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                        className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] text-[13px] font-bold flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
                       >
                         3
                       </button>
                       <button
                         type="button"
-                        className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                        className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
                       >
                         <ChevronRight className="w-4 h-4" />
                       </button>
@@ -2249,44 +2248,44 @@ function AdminDashboardContent() {
                       <tbody className="divide-y divide-slate-100 text-[14px]">
                         {[
                           {
-                            name: "Lori Stevens",
+                            name: "Ngozi Eze",
                             course: "Building Scalable APIs with GraphQL",
                             stars: 5,
                             activeRow: true,
                             avatar:
-                              "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80",
+                              "https://api.dicebear.com/7.x/initials/svg?seed=Ngozi%20Eze&backgroundColor=671FB0&textColor=ffffff",
                           },
                           {
-                            name: "Carolyn Ortiz",
+                            name: "Blessing Adeyemi",
                             course: "Graphic Design Masterclass",
                             stars: 5,
                             activeRow: false,
                             avatar:
-                              "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
+                              "https://api.dicebear.com/7.x/initials/svg?seed=Blessing%20Adeyemi&backgroundColor=7928CA&textColor=ffffff",
                           },
                           {
-                            name: "Dennis Barrett",
+                            name: "Emeka Nwosu",
                             course: "Deep Learning with React-Native",
                             stars: 4,
                             activeRow: false,
                             avatar:
-                              "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80",
+                              "https://api.dicebear.com/7.x/initials/svg?seed=Emeka%20Nwosu&backgroundColor=18143D&textColor=ffffff",
                           },
                           {
-                            name: "Billy Vasquez",
+                            name: "Tunde Bakare",
                             course: "Bootstrap 5 From Scratch",
                             stars: 4,
                             activeRow: false,
                             avatar:
-                              "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80",
+                              "https://api.dicebear.com/7.x/initials/svg?seed=Tunde%20Bakare&backgroundColor=671FB0&textColor=ffffff",
                           },
                           {
-                            name: "Jacqueline Miller",
+                            name: "Chiamaka Nnamdi",
                             course: "Learn Invision",
                             stars: 4,
                             activeRow: false,
                             avatar:
-                              "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80",
+                              "https://api.dicebear.com/7.x/initials/svg?seed=Chiamaka%20Nnamdi&backgroundColor=7928CA&textColor=ffffff",
                           },
                         ].map((rev) => (
                           <tr
@@ -2347,31 +2346,31 @@ function AdminDashboardContent() {
                     <div className="flex items-center gap-1.5">
                       <button
                         type="button"
-                        className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                        className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
                       >
                         <ChevronLeft className="w-4 h-4" />
                       </button>
                       <button
                         type="button"
-                        className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] text-[13px] font-bold flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                        className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] text-[13px] font-bold flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
                       >
                         1
                       </button>
                       <button
                         type="button"
-                        className="w-8 h-8 rounded-md bg-[#066AC9] text-white text-[13px] font-bold flex items-center justify-center cursor-pointer"
+                        className="w-8 h-8 rounded-md bg-[#7928CA] text-white text-[13px] font-bold flex items-center justify-center cursor-pointer"
                       >
                         2
                       </button>
                       <button
                         type="button"
-                        className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] text-[13px] font-bold flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                        className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] text-[13px] font-bold flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
                       >
                         3
                       </button>
                       <button
                         type="button"
-                        className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                        className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
                       >
                         <ChevronRight className="w-4 h-4" />
                       </button>
@@ -2400,7 +2399,7 @@ function AdminDashboardContent() {
                       value={requestSearch}
                       onChange={(e) => setRequestSearch(e.target.value)}
                       placeholder="Search"
-                      className="w-full bg-white border border-slate-200 rounded-lg pl-4 pr-10 py-2.5 text-[14px] text-[#24292D] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#066AC9]"
+                      className="w-full bg-white border border-slate-200 rounded-lg pl-4 pr-10 py-2.5 text-[14px] text-[#24292D] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#7928CA]"
                     />
                     <Search className="w-4 h-4 text-[#747579] absolute right-3.5 top-1/2 -translate-y-1/2" />
                   </div>
@@ -2408,7 +2407,7 @@ function AdminDashboardContent() {
                   <select
                     value={requestSort}
                     onChange={(e) => setRequestSort(e.target.value)}
-                    className="bg-white border border-slate-200 rounded-lg px-4 py-2.5 w-full sm:w-56 text-[13.5px] text-[#747579] focus:outline-none focus:border-[#066AC9]"
+                    className="bg-white border border-slate-200 rounded-lg px-4 py-2.5 w-full sm:w-56 text-[13.5px] text-[#747579] focus:outline-none focus:border-[#7928CA]"
                   >
                     <option value="default">Sort by</option>
                     <option value="newest">Newest Requested</option>
@@ -2478,7 +2477,7 @@ function AdminDashboardContent() {
                                             `Accepted ${req.name}'s instructor application.`
                                           );
                                         }}
-                                        className="px-3.5 py-1.5 rounded-md bg-[#E6F8F3] hover:bg-[#0CBC87] text-[#0CBC87] hover:text-white text-[12.5px] font-bold transition-colors cursor-pointer"
+                                        className="px-3.5 py-1.5 rounded-md bg-[#F0EDF9] hover:bg-[#7928CA] text-[#7928CA] hover:text-white text-[12.5px] font-bold transition-colors cursor-pointer"
                                       >
                                         Accept
                                       </button>
@@ -2518,7 +2517,7 @@ function AdminDashboardContent() {
                                   <button
                                     type="button"
                                     onClick={() => switchTab("instructor-detail")}
-                                    className="px-3.5 py-1.5 rounded-md bg-[#E7F0FA] hover:bg-[#066AC9] text-[#066AC9] hover:text-white text-[12.5px] font-bold transition-colors cursor-pointer"
+                                    className="px-3.5 py-1.5 rounded-md bg-[#F0EDF9] hover:bg-[#7928CA] text-[#7928CA] hover:text-white text-[12.5px] font-bold transition-colors cursor-pointer"
                                   >
                                     View App
                                   </button>
@@ -2546,7 +2545,7 @@ function AdminDashboardContent() {
                 <button
                   type="button"
                   onClick={() => setShowAddCourseModal(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#066AC9] hover:bg-[#0556A5] text-white text-[14px] font-semibold shadow-xs transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#7928CA] hover:bg-[#671FB0] text-white text-[14px] font-semibold shadow-xs transition-colors cursor-pointer"
                 >
                   <PlusCircle className="w-4 h-4" />
                   <span>Create New Course</span>
@@ -2579,10 +2578,10 @@ function AdminDashboardContent() {
                   >
                     <div>
                       <div className="flex items-center justify-between gap-2 mb-3">
-                        <span className="px-2.5 py-1 rounded-md bg-[#E7F0FA] text-[#066AC9] text-xs font-bold">
+                        <span className="px-2.5 py-1 rounded-md bg-[#F0EDF9] text-[#7928CA] text-xs font-bold">
                           {course.badge}
                         </span>
-                        <span className="px-2.5 py-1 rounded-md bg-[#E6F8F3] text-[#0CBC87] text-xs font-bold">
+                        <span className="px-2.5 py-1 rounded-md bg-[#F0EDF9] text-[#7928CA] text-xs font-bold">
                           {course.status}
                         </span>
                       </div>
@@ -2602,13 +2601,13 @@ function AdminDashboardContent() {
                         </div>
                         <div>
                           <div className="text-[11px] text-[#747579] uppercase font-bold">Installment</div>
-                          <div className="text-[15px] font-extrabold text-[#066AC9]">
+                          <div className="text-[15px] font-extrabold text-[#7928CA]">
                             ₦{course.priceParts.toLocaleString()}
                           </div>
                         </div>
                         <div>
                           <div className="text-[11px] text-[#747579] uppercase font-bold">Enrolled</div>
-                          <div className="text-[15px] font-extrabold text-[#0CBC87]">
+                          <div className="text-[15px] font-extrabold text-[#7928CA]">
                             {course.enrolledCount} Students
                           </div>
                         </div>
@@ -2618,7 +2617,7 @@ function AdminDashboardContent() {
                     <div className="flex items-center justify-between pt-3 border-t border-slate-100">
                       <Link
                         href={`/courses/${course.slug}`}
-                        className="text-[13px] font-semibold text-[#066AC9] hover:underline"
+                        className="text-[13px] font-semibold text-[#7928CA] hover:underline"
                       >
                         View Course Page →
                       </Link>
@@ -2717,7 +2716,7 @@ function AdminDashboardContent() {
                               }
                               className={`w-10 h-5 rounded-full p-0.5 transition-colors cursor-pointer flex items-center ${
                                 rev.visible
-                                  ? "bg-[#066AC9] justify-end"
+                                  ? "bg-[#7928CA] justify-end"
                                   : "bg-[#E2E8F0] justify-start"
                               }`}
                             >
@@ -2733,7 +2732,7 @@ function AdminDashboardContent() {
                                     `Opened review editor for ${rev.studentName}.`
                                   )
                                 }
-                                className="w-8 h-8 rounded-full bg-[#E6F8F3] hover:bg-[#0CBC87] text-[#0CBC87] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                                className="w-8 h-8 rounded-full bg-[#F0EDF9] hover:bg-[#7928CA] text-[#7928CA] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
                                 title="Edit Review"
                               >
                                 <Edit3 className="w-3.5 h-3.5" />
@@ -2774,31 +2773,31 @@ function AdminDashboardContent() {
                   <div className="flex items-center gap-1.5">
                     <button
                       type="button"
-                      className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                      className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </button>
                     <button
                       type="button"
-                      className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] text-[13px] font-bold flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                      className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] text-[13px] font-bold flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
                     >
                       1
                     </button>
                     <button
                       type="button"
-                      className="w-8 h-8 rounded-md bg-[#066AC9] text-white text-[13px] font-bold flex items-center justify-center cursor-pointer"
+                      className="w-8 h-8 rounded-md bg-[#7928CA] text-white text-[13px] font-bold flex items-center justify-center cursor-pointer"
                     >
                       2
                     </button>
                     <button
                       type="button"
-                      className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] text-[13px] font-bold flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                      className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] text-[13px] font-bold flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
                     >
                       3
                     </button>
                     <button
                       type="button"
-                      className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                      className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
                     >
                       <ChevronRight className="w-4 h-4" />
                     </button>
@@ -2900,7 +2899,7 @@ function AdminDashboardContent() {
                                   <div className="flex items-center gap-1.5">
                                     <button
                                       type="button"
-                                      className="w-8 h-8 rounded-full bg-[#E6F8F3] hover:bg-[#0CBC87] text-[#0CBC87] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                                      className="w-8 h-8 rounded-full bg-[#F0EDF9] hover:bg-[#7928CA] text-[#7928CA] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
                                       title="Edit"
                                     >
                                       <Edit3 className="w-3.5 h-3.5" />
@@ -2933,31 +2932,31 @@ function AdminDashboardContent() {
                       <div className="flex items-center gap-1.5">
                         <button
                           type="button"
-                          className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                          className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
                         >
                           <ChevronLeft className="w-4 h-4" />
                         </button>
                         <button
                           type="button"
-                          className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] text-[13px] font-bold flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                          className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] text-[13px] font-bold flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
                         >
                           1
                         </button>
                         <button
                           type="button"
-                          className="w-8 h-8 rounded-md bg-[#066AC9] text-white text-[13px] font-bold flex items-center justify-center cursor-pointer"
+                          className="w-8 h-8 rounded-md bg-[#7928CA] text-white text-[13px] font-bold flex items-center justify-center cursor-pointer"
                         >
                           2
                         </button>
                         <button
                           type="button"
-                          className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] text-[13px] font-bold flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                          className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] text-[13px] font-bold flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
                         >
                           3
                         </button>
                         <button
                           type="button"
-                          className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                          className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
                         >
                           <ChevronRight className="w-4 h-4" />
                         </button>
@@ -2976,7 +2975,7 @@ function AdminDashboardContent() {
 
                   <div className="p-6 flex-1 flex flex-col justify-between">
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-[#E6F8F3] rounded-lg p-4">
+                      <div className="bg-[#F0EDF9] rounded-lg p-4">
                         <div className="text-[13px] text-[#747579] mb-1">
                           Total Positive Review
                         </div>
@@ -3004,7 +3003,7 @@ function AdminDashboardContent() {
                             cy="80"
                             r="60"
                             fill="transparent"
-                            stroke="#0CBC87"
+                            stroke="#7928CA"
                             strokeWidth="26"
                             strokeDasharray="273 377"
                             strokeDashoffset="0"
@@ -3041,11 +3040,11 @@ function AdminDashboardContent() {
               {/* 3 Pastel Summary Cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-7">
                 {/* Sales this month */}
-                <div className="bg-[#E7F0FA] rounded-xl p-6">
+                <div className="bg-[#F0EDF9] rounded-xl p-6">
                   <div className="text-[14px] font-bold text-[#1D2026] mb-2">
                     Sales this month
                   </div>
-                  <div className="font-display text-[36px] sm:text-[42px] font-extrabold text-[#066AC9] leading-tight">
+                  <div className="font-display text-[36px] sm:text-[42px] font-extrabold text-[#7928CA] leading-tight">
                     $899.95
                   </div>
                 </div>
@@ -3105,7 +3104,7 @@ function AdminDashboardContent() {
                             method: "mastercard",
                             amount: "$3999",
                             status: "Paid",
-                            statusClass: "bg-[#E6F8F3] text-[#0CBC87]",
+                            statusClass: "bg-[#F0EDF9] text-[#7928CA]",
                             highlight: false,
                           },
                           {
@@ -3115,7 +3114,7 @@ function AdminDashboardContent() {
                             method: "paypal",
                             amount: "$4201",
                             status: "Paid",
-                            statusClass: "bg-[#E6F8F3] text-[#0CBC87]",
+                            statusClass: "bg-[#F0EDF9] text-[#7928CA]",
                             highlight: false,
                           },
                           {
@@ -3135,7 +3134,7 @@ function AdminDashboardContent() {
                             method: "mastercard",
                             amount: "$6548",
                             status: "Paid",
-                            statusClass: "bg-[#E6F8F3] text-[#0CBC87]",
+                            statusClass: "bg-[#F0EDF9] text-[#7928CA]",
                             highlight: false,
                           },
                           {
@@ -3175,7 +3174,7 @@ function AdminDashboardContent() {
                             method: "mastercard",
                             amount: "$965",
                             status: "Paid",
-                            statusClass: "bg-[#E6F8F3] text-[#0CBC87]",
+                            statusClass: "bg-[#F0EDF9] text-[#7928CA]",
                             highlight: true,
                           },
                         ].map((inv) => (
@@ -3242,7 +3241,7 @@ function AdminDashboardContent() {
                                 onClick={() =>
                                   setAdminNotice(`Downloaded invoice ${inv.id}.`)
                                 }
-                                className="w-9 h-9 rounded-full bg-[#E7F0FA] hover:bg-[#066AC9] text-[#066AC9] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                                className="w-9 h-9 rounded-full bg-[#F0EDF9] hover:bg-[#7928CA] text-[#7928CA] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
                                 title="Download Invoice"
                               >
                                 <svg
@@ -3272,31 +3271,31 @@ function AdminDashboardContent() {
                     <div className="flex items-center gap-1.5">
                       <button
                         type="button"
-                        className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                        className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
                       >
                         <ChevronLeft className="w-4 h-4" />
                       </button>
                       <button
                         type="button"
-                        className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] text-[13px] font-bold flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                        className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] text-[13px] font-bold flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
                       >
                         1
                       </button>
                       <button
                         type="button"
-                        className="w-8 h-8 rounded-md bg-[#066AC9] text-white text-[13px] font-bold flex items-center justify-center cursor-pointer"
+                        className="w-8 h-8 rounded-md bg-[#7928CA] text-white text-[13px] font-bold flex items-center justify-center cursor-pointer"
                       >
                         2
                       </button>
                       <button
                         type="button"
-                        className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] text-[13px] font-bold flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                        className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] text-[13px] font-bold flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
                       >
                         3
                       </button>
                       <button
                         type="button"
-                        className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                        className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
                       >
                         <ChevronRight className="w-4 h-4" />
                       </button>
@@ -3383,7 +3382,7 @@ function AdminDashboardContent() {
                             <input
                               type="text"
                               placeholder="Site Name"
-                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#066AC9]"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#7928CA]"
                             />
                             <p className="text-[11.5px] text-[#9A9EA4] mt-1.5 leading-snug">
                               Enter Website Name. It Display in Website and Email.
@@ -3397,7 +3396,7 @@ function AdminDashboardContent() {
                             <input
                               type="text"
                               placeholder="Site Copyrights"
-                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#066AC9]"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#7928CA]"
                             />
                             <p className="text-[11.5px] text-[#9A9EA4] mt-1.5 leading-snug">
                               Using for Contact and Send Email.
@@ -3411,7 +3410,7 @@ function AdminDashboardContent() {
                             <input
                               type="email"
                               placeholder="Site Email"
-                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#066AC9]"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#7928CA]"
                             />
                             <p className="text-[11.5px] text-[#9A9EA4] mt-1.5 leading-snug">
                               For Copyrights Text.
@@ -3425,7 +3424,7 @@ function AdminDashboardContent() {
                           </label>
                           <textarea
                             rows={4}
-                            className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#066AC9]"
+                            className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#7928CA]"
                           />
                           <p className="text-[11.5px] text-[#9A9EA4] mt-1.5">
                             For write brief description of your organization, or a Website.
@@ -3440,7 +3439,7 @@ function AdminDashboardContent() {
                             <input
                               type="text"
                               placeholder="Contact Phone"
-                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#066AC9]"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#7928CA]"
                             />
                             <p className="text-[11.5px] text-[#9A9EA4] mt-1.5">
                               Using for Contact and Support.
@@ -3454,7 +3453,7 @@ function AdminDashboardContent() {
                             <input
                               type="email"
                               placeholder="Support Email"
-                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#066AC9]"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#7928CA]"
                             />
                             <p className="text-[11.5px] text-[#9A9EA4] mt-1.5">
                               For Support Email.
@@ -3485,7 +3484,7 @@ function AdminDashboardContent() {
                                       opt.id as "enable" | "disable" | "request"
                                     )
                                   }
-                                  className="w-4 h-4 accent-[#066AC9]"
+                                  className="w-4 h-4 accent-[#7928CA]"
                                 />
                                 <span>{opt.label}</span>
                               </label>
@@ -3500,14 +3499,14 @@ function AdminDashboardContent() {
                           <textarea
                             rows={3}
                             placeholder="Contact Address"
-                            className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#066AC9]"
+                            className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#7928CA]"
                           />
                         </div>
 
                         <div className="flex justify-end pt-2">
                           <button
                             type="submit"
-                            className="px-5 py-2.5 rounded-lg bg-[#066AC9] hover:bg-[#0556A5] text-white text-[14px] font-bold transition-colors cursor-pointer"
+                            className="px-5 py-2.5 rounded-lg bg-[#7928CA] hover:bg-[#671FB0] text-white text-[14px] font-bold transition-colors cursor-pointer"
                           >
                             Update
                           </button>
@@ -3539,7 +3538,7 @@ function AdminDashboardContent() {
                           <input
                             type="text"
                             placeholder="Site URL"
-                            className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#066AC9]"
+                            className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#7928CA]"
                           />
                           <p className="text-[11.5px] text-[#9A9EA4] mt-1.5">
                             Set your main website url.
@@ -3551,7 +3550,7 @@ function AdminDashboardContent() {
                             <label className="block text-[13.5px] font-medium text-[#747579] mb-2">
                               Select Currency
                             </label>
-                            <select className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#747579] bg-white focus:outline-none focus:border-[#066AC9]">
+                            <select className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#747579] bg-white focus:outline-none focus:border-[#7928CA]">
                               <option>Select Currency</option>
                               <option value="USD">USD ($)</option>
                               <option value="NGN">NGN (₦)</option>
@@ -3566,7 +3565,7 @@ function AdminDashboardContent() {
                             <label className="block text-[13.5px] font-medium text-[#747579] mb-2">
                               Select Language
                             </label>
-                            <select className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#747579] bg-white focus:outline-none focus:border-[#066AC9]">
+                            <select className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#747579] bg-white focus:outline-none focus:border-[#7928CA]">
                               <option>Select Language</option>
                               <option value="en">English</option>
                               <option value="fr">French</option>
@@ -3591,7 +3590,7 @@ function AdminDashboardContent() {
                                 onClick={() => setMaintenanceMode((prev) => !prev)}
                                 className={`w-12 h-6 rounded-full p-1 transition-colors cursor-pointer flex items-center ${
                                   maintenanceMode
-                                    ? "bg-[#066AC9] justify-end"
+                                    ? "bg-[#7928CA] justify-end"
                                     : "bg-[#EEF0F3] border border-slate-300 justify-start"
                                 }`}
                               >
@@ -3613,13 +3612,13 @@ function AdminDashboardContent() {
                             </label>
                             <textarea
                               rows={3}
-                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#066AC9]"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#7928CA]"
                             />
                             <p className="text-[12px] text-[#9A9EA4] mt-1.5">
                               Admin login on maintenance mode:{" "}
                               <Link
                                 href="/login"
-                                className="text-[#066AC9] hover:underline ml-1"
+                                className="text-[#7928CA] hover:underline ml-1"
                               >
                                 http://example.xyz/admin/login
                               </Link>
@@ -3630,7 +3629,7 @@ function AdminDashboardContent() {
                         <div className="flex justify-end pt-2">
                           <button
                             type="submit"
-                            className="px-5 py-2.5 rounded-lg bg-[#066AC9] hover:bg-[#0556A5] text-white text-[14px] font-bold transition-colors cursor-pointer"
+                            className="px-5 py-2.5 rounded-lg bg-[#7928CA] hover:bg-[#671FB0] text-white text-[14px] font-bold transition-colors cursor-pointer"
                           >
                             Update
                           </button>
@@ -3693,7 +3692,7 @@ function AdminDashboardContent() {
                                     }
                                     className={`w-10 h-5 rounded-full p-0.5 transition-colors cursor-pointer flex items-center shrink-0 ${
                                       checked
-                                        ? "bg-[#066AC9] justify-end"
+                                        ? "bg-[#7928CA] justify-end"
                                         : "bg-[#EEF0F3] border border-slate-300 justify-start"
                                     }`}
                                   >
@@ -3758,7 +3757,7 @@ function AdminDashboardContent() {
                                     }
                                     className={`w-10 h-5 rounded-full p-0.5 transition-colors cursor-pointer flex items-center shrink-0 ${
                                       checked
-                                        ? "bg-[#066AC9] justify-end"
+                                        ? "bg-[#7928CA] justify-end"
                                         : "bg-[#EEF0F3] border border-slate-300 justify-start"
                                     }`}
                                   >
@@ -3818,7 +3817,7 @@ function AdminDashboardContent() {
                                     }
                                     className={`w-10 h-5 rounded-full p-0.5 transition-colors cursor-pointer flex items-center shrink-0 ${
                                       checked
-                                        ? "bg-[#066AC9] justify-end"
+                                        ? "bg-[#7928CA] justify-end"
                                         : "bg-[#EEF0F3] border border-slate-300 justify-start"
                                     }`}
                                   >
@@ -3860,7 +3859,7 @@ function AdminDashboardContent() {
                           onClick={() => setActivityLogsEnabled((prev) => !prev)}
                           className={`w-11 h-5.5 rounded-full p-0.5 transition-colors cursor-pointer flex items-center shrink-0 ${
                             activityLogsEnabled
-                              ? "bg-[#066AC9] justify-end"
+                              ? "bg-[#7928CA] justify-end"
                               : "bg-[#EEF0F3] border border-slate-300 justify-start"
                           }`}
                         >
@@ -3890,7 +3889,7 @@ function AdminDashboardContent() {
                                 "Password change verification link sent to admin email."
                               )
                             }
-                            className="px-5 py-2.5 rounded-lg bg-[#066AC9] hover:bg-[#0556A5] text-white text-[14px] font-bold transition-colors cursor-pointer"
+                            className="px-5 py-2.5 rounded-lg bg-[#7928CA] hover:bg-[#671FB0] text-white text-[14px] font-bold transition-colors cursor-pointer"
                           >
                             Change Password
                           </button>
@@ -3917,7 +3916,7 @@ function AdminDashboardContent() {
                           onClick={() => setTwoStepEnabled((prev) => !prev)}
                           className={`w-11 h-5.5 rounded-full p-0.5 transition-colors cursor-pointer flex items-center shrink-0 ${
                             twoStepEnabled
-                              ? "bg-[#066AC9] justify-end"
+                              ? "bg-[#7928CA] justify-end"
                               : "bg-[#EEF0F3] border border-slate-300 justify-start"
                           }`}
                         >
@@ -4005,7 +4004,7 @@ function AdminDashboardContent() {
                           onClick={() =>
                             setAdminNotice("Add new social provider modal opened.")
                           }
-                          className="px-3.5 py-1.5 rounded-lg bg-[#066AC9] hover:bg-[#0556A5] text-white text-[12.5px] font-bold transition-colors cursor-pointer"
+                          className="px-3.5 py-1.5 rounded-lg bg-[#7928CA] hover:bg-[#671FB0] text-white text-[12.5px] font-bold transition-colors cursor-pointer"
                         >
                           Add new
                         </button>
@@ -4047,7 +4046,7 @@ function AdminDashboardContent() {
                             </label>
                             <input
                               type="text"
-                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#066AC9]"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#7928CA]"
                             />
                           </div>
 
@@ -4079,7 +4078,7 @@ function AdminDashboardContent() {
                             </label>
                             <input
                               type="text"
-                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#066AC9]"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#7928CA]"
                             />
                           </div>
 
@@ -4093,7 +4092,7 @@ function AdminDashboardContent() {
                             </label>
                             <input
                               type="text"
-                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#066AC9]"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#7928CA]"
                             />
                           </div>
 
@@ -4107,7 +4106,7 @@ function AdminDashboardContent() {
                             </label>
                             <input
                               type="text"
-                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#066AC9]"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#7928CA]"
                             />
                           </div>
                         </div>
@@ -4116,7 +4115,7 @@ function AdminDashboardContent() {
                           <span className="font-bold text-[#4B5563]">
                             In your app set all redirect URL like:
                           </span>{" "}
-                          <u className="text-[#066AC9] cursor-pointer">
+                          <u className="text-[#7928CA] cursor-pointer">
                             https://app.eduport.abc/google/callback
                           </u>
                         </p>
@@ -4124,7 +4123,7 @@ function AdminDashboardContent() {
                         <div className="flex justify-end pt-2">
                           <button
                             type="submit"
-                            className="px-5 py-2.5 rounded-lg bg-[#066AC9] hover:bg-[#0556A5] text-white text-[14px] font-bold transition-colors cursor-pointer"
+                            className="px-5 py-2.5 rounded-lg bg-[#7928CA] hover:bg-[#671FB0] text-white text-[14px] font-bold transition-colors cursor-pointer"
                           >
                             Update
                           </button>
@@ -4173,7 +4172,7 @@ function AdminDashboardContent() {
                                       opt.id as "sendmail" | "smtp" | "mail"
                                     )
                                   }
-                                  className="w-4 h-4 accent-[#066AC9]"
+                                  className="w-4 h-4 accent-[#7928CA]"
                                 />
                                 <span>{opt.label}</span>
                               </label>
@@ -4189,7 +4188,7 @@ function AdminDashboardContent() {
                             </label>
                             <input
                               type="text"
-                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#066AC9]"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#7928CA]"
                             />
                           </div>
 
@@ -4199,7 +4198,7 @@ function AdminDashboardContent() {
                             </label>
                             <input
                               type="text"
-                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#066AC9]"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#7928CA]"
                             />
                           </div>
 
@@ -4209,7 +4208,7 @@ function AdminDashboardContent() {
                             </label>
                             <input
                               type="text"
-                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#066AC9]"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#7928CA]"
                             />
                           </div>
                         </div>
@@ -4222,7 +4221,7 @@ function AdminDashboardContent() {
                             </label>
                             <input
                               type="text"
-                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#066AC9]"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#7928CA]"
                             />
                           </div>
 
@@ -4232,7 +4231,7 @@ function AdminDashboardContent() {
                             </label>
                             <input
                               type="password"
-                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#066AC9]"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#7928CA]"
                             />
                           </div>
                         </div>
@@ -4245,7 +4244,7 @@ function AdminDashboardContent() {
                             </label>
                             <input
                               type="email"
-                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#066AC9]"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#7928CA]"
                             />
                           </div>
 
@@ -4255,7 +4254,7 @@ function AdminDashboardContent() {
                             </label>
                             <input
                               type="text"
-                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#066AC9]"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#7928CA]"
                             />
                           </div>
                         </div>
@@ -4266,7 +4265,7 @@ function AdminDashboardContent() {
                             <label className="block text-[13.5px] font-medium text-[#747579] mb-2">
                               Email Send To
                             </label>
-                            <select className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#747579] bg-white focus:outline-none focus:border-[#066AC9]">
+                            <select className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#747579] bg-white focus:outline-none focus:border-[#7928CA]">
                               <option>Email Send to</option>
                               <option value="all">All Users</option>
                               <option value="instructors">Instructors</option>
@@ -4281,7 +4280,7 @@ function AdminDashboardContent() {
                             </label>
                             <input
                               type="email"
-                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#066AC9]"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#7928CA]"
                             />
                           </div>
                         </div>
@@ -4297,7 +4296,7 @@ function AdminDashboardContent() {
                               onClick={() =>
                                 setAdminNotice("Add email template modal opened.")
                               }
-                              className="px-3.5 py-1.5 rounded-lg bg-[#066AC9] hover:bg-[#0556A5] text-white text-[12.5px] font-bold transition-colors cursor-pointer"
+                              className="px-3.5 py-1.5 rounded-lg bg-[#7928CA] hover:bg-[#671FB0] text-white text-[12.5px] font-bold transition-colors cursor-pointer"
                             >
                               Add Template
                             </button>
@@ -4330,7 +4329,7 @@ function AdminDashboardContent() {
                                   onClick={() =>
                                     setAdminNotice(`Editing template: ${tplTitle}`)
                                   }
-                                  className="w-8 h-8 rounded-full bg-[#24292D] hover:bg-[#066AC9] text-white flex items-center justify-center shrink-0 transition-colors cursor-pointer"
+                                  className="w-8 h-8 rounded-full bg-[#24292D] hover:bg-[#7928CA] text-white flex items-center justify-center shrink-0 transition-colors cursor-pointer"
                                   title={`Edit ${tplTitle}`}
                                 >
                                   <Edit3 className="w-3.5 h-3.5" />
@@ -4343,7 +4342,7 @@ function AdminDashboardContent() {
                         <div className="flex justify-end pt-2">
                           <button
                             type="submit"
-                            className="px-5 py-2.5 rounded-lg bg-[#066AC9] hover:bg-[#0556A5] text-white text-[14px] font-bold transition-colors cursor-pointer"
+                            className="px-5 py-2.5 rounded-lg bg-[#7928CA] hover:bg-[#671FB0] text-white text-[14px] font-bold transition-colors cursor-pointer"
                           >
                             Update
                           </button>
@@ -4393,7 +4392,7 @@ function AdminDashboardContent() {
                       );
                     }}
                     placeholder="e.g., Cloud & DevOps Engineering"
-                    className="w-full px-3.5 py-2.5 rounded-lg bg-[#F5F7F9] text-sm focus:outline-none focus:ring-1 focus:ring-[#066AC9]"
+                    className="w-full px-3.5 py-2.5 rounded-lg bg-[#F5F7F9] text-sm focus:outline-none focus:ring-1 focus:ring-[#7928CA]"
                   />
                 </div>
 
@@ -4432,7 +4431,7 @@ function AdminDashboardContent() {
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 rounded-lg bg-[#066AC9] text-white text-sm font-semibold hover:bg-[#0556A5]"
+                    className="px-5 py-2 rounded-lg bg-[#7928CA] text-white text-sm font-semibold hover:bg-[#671FB0]"
                   >
                     Publish Course
                   </button>

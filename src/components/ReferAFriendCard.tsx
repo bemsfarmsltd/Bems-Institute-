@@ -56,8 +56,8 @@ export function ReferAFriendCard() {
     <div className="bg-white rounded-xl border border-slate-200/90 p-5 sm:p-7">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 mb-5 border-b border-slate-200/80">
         <div className="flex items-center gap-2.5">
-          <div className="w-10 h-10 rounded-lg bg-[#E6F8F3] flex items-center justify-center shrink-0">
-            <Gift className="w-5 h-5 text-[#0CBC87]" />
+          <div className="w-10 h-10 rounded-lg bg-[#F0EDF9] flex items-center justify-center shrink-0">
+            <Gift className="w-5 h-5 text-[#7928CA]" />
           </div>
           <div>
             <h3 className="text-lg font-extrabold text-[#24292D]">Refer a Friend</h3>
@@ -67,7 +67,7 @@ export function ReferAFriendCard() {
           </div>
         </div>
         <div className="text-right shrink-0">
-          <div className="text-2xl font-extrabold text-[#0CBC87]">
+          <div className="text-2xl font-extrabold text-[#7928CA]">
             ₦{data.creditBalanceNaira.toLocaleString()}
           </div>
           <div className="text-[11px] text-[#747579] font-medium">Credit earned</div>
@@ -81,7 +81,7 @@ export function ReferAFriendCard() {
         <button
           type="button"
           onClick={handleCopy}
-          className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-[#066AC9] hover:bg-[#0556A5] text-white text-xs font-bold transition-colors cursor-pointer shrink-0"
+          className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-[#7928CA] hover:bg-[#671FB0] text-white text-xs font-bold transition-colors cursor-pointer shrink-0"
         >
           {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
           <span>{copied ? "Copied!" : "Copy Link"}</span>
@@ -98,7 +98,7 @@ export function ReferAFriendCard() {
               <div key={r.id} className="flex items-center justify-between text-xs sm:text-[13px]">
                 <span className="text-[#24292D] font-medium">{r.refereeName}</span>
                 {r.status === "CREDITED" ? (
-                  <span className="text-[#0CBC87] font-bold">
+                  <span className="text-[#7928CA] font-bold">
                     +₦{r.creditNaira.toLocaleString()} earned
                   </span>
                 ) : (

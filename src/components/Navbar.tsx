@@ -67,8 +67,8 @@ export function Navbar() {
   const navLinkClass = (href: string) =>
     `inline-flex items-center gap-1 transition-colors ${
       isActive(href)
-        ? "text-[#066AC9] font-extrabold"
-        : "text-[#24292D] hover:text-[#066AC9]"
+        ? "text-[#7928CA] font-extrabold"
+        : "text-[#24292D] hover:text-[#7928CA]"
     }`;
 
   return (
@@ -90,7 +90,7 @@ export function Navbar() {
                 <span className="font-extrabold text-[#24292D] text-sm sm:text-lg tracking-tight block leading-tight truncate">
                   BEMS INSTITUTE
                 </span>
-                <span className="text-[8px] sm:text-[10px] font-bold text-[#066AC9] tracking-normal sm:tracking-wider uppercase block truncate">
+                <span className="text-[8px] sm:text-[10px] font-bold text-[#7928CA] tracking-normal sm:tracking-wider uppercase block truncate">
                   OF TECHNOLOGY &amp; VOCATIONAL STUDIES
                 </span>
               </div>
@@ -98,7 +98,7 @@ export function Navbar() {
 
             <Link
               href="/courses"
-              className="hidden xl:inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-[#E8F1FA] text-[#066AC9] hover:bg-[#066AC9] hover:text-white text-xs font-bold transition-colors"
+              className="hidden xl:inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-[#F0EDF9] text-[#7928CA] hover:bg-[#7928CA] hover:text-white text-xs font-bold transition-colors"
             >
               <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
                 <rect x="1" y="1" width="5.5" height="5.5" rx="1" />
@@ -117,7 +117,7 @@ export function Navbar() {
               <button
                 type="button"
                 className={`inline-flex items-center gap-1 font-semibold cursor-pointer ${
-                  pathname === "/" ? "text-[#066AC9]" : "text-[#747579] group-hover:text-[#066AC9]"
+                  pathname === "/" ? "text-[#7928CA]" : "text-[#747579] group-hover:text-[#7928CA]"
                 }`}
               >
                 <span>Demos</span>
@@ -127,31 +127,31 @@ export function Navbar() {
               <div className="invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-150 absolute left-0 top-full w-52 bg-white rounded-xl shadow-[0_10px_40px_rgba(24,20,61,0.12)] border border-slate-100 p-2 z-50">
                 <Link
                   href="/"
-                  className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-semibold text-[#066AC9] bg-[#E8F1FA]/60 hover:bg-[#E8F1FA]"
+                  className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-semibold text-[#7928CA] bg-[#F0EDF9]/60 hover:bg-[#F0EDF9]"
                 >
                   <span>Home Default</span>
                 </Link>
                 <Link
                   href="/courses"
-                  className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#E8F1FA]/50 hover:text-[#066AC9]"
+                  className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#F0EDF9]/50 hover:text-[#7928CA]"
                 >
                   <span>Course Categories</span>
                 </Link>
                 <Link
                   href="/dashboard"
-                  className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#E8F1FA]/50 hover:text-[#066AC9]"
+                  className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#F0EDF9]/50 hover:text-[#7928CA]"
                 >
                   <span>Student Academy</span>
                 </Link>
                 <Link
                   href="/ai"
-                  className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#E8F1FA]/50 hover:text-[#066AC9]"
+                  className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#F0EDF9]/50 hover:text-[#7928CA]"
                 >
                   <span>AI Tutor &amp; RAG Hub</span>
                 </Link>
                 <Link
                   href="/sandbox"
-                  className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#E8F1FA]/50 hover:text-[#066AC9]"
+                  className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#F0EDF9]/50 hover:text-[#7928CA]"
                 >
                   <span>Interactive Code Lab</span>
                 </Link>
@@ -164,8 +164,8 @@ export function Navbar() {
                 type="button"
                 className={`inline-flex items-center gap-1 font-semibold cursor-pointer ${
                   pathname.startsWith("/courses")
-                    ? "text-[#066AC9]"
-                    : "text-[#747579] group-hover:text-[#066AC9]"
+                    ? "text-[#7928CA]"
+                    : "text-[#747579] group-hover:text-[#7928CA]"
                 }`}
               >
                 <span>Pages</span>
@@ -175,44 +175,44 @@ export function Navbar() {
               <div className="invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-150 absolute left-0 top-full w-56 bg-white rounded-xl shadow-[0_10px_40px_rgba(24,20,61,0.12)] border border-slate-100 p-2 z-50">
                 <Link
                   href="/courses"
-                  className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-semibold text-[#066AC9] bg-[#E8F1FA]/60 hover:bg-[#E8F1FA]"
+                  className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-semibold text-[#7928CA] bg-[#F0EDF9]/60 hover:bg-[#F0EDF9]"
                 >
                   <span>Course</span>
                   <span>•••</span>
                 </Link>
                 <Link
                   href="/courses/web-dev"
-                  className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#E8F1FA]/50 hover:text-[#066AC9]"
+                  className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#F0EDF9]/50 hover:text-[#7928CA]"
                 >
                   <span>Full-Stack Web Dev</span>
                 </Link>
                 <Link
                   href="/courses/ai-automation"
-                  className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#E8F1FA]/50 hover:text-[#066AC9]"
+                  className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#F0EDF9]/50 hover:text-[#7928CA]"
                 >
                   <span>AI &amp; Automation</span>
                 </Link>
                 <Link
                   href="/courses/product-design"
-                  className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#E8F1FA]/50 hover:text-[#066AC9]"
+                  className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#F0EDF9]/50 hover:text-[#7928CA]"
                 >
                   <span>Product Design (UI/UX)</span>
                 </Link>
                 <Link
                   href="/courses/cybersecurity"
-                  className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#E8F1FA]/50 hover:text-[#066AC9]"
+                  className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#F0EDF9]/50 hover:text-[#7928CA]"
                 >
                   <span>Cybersecurity Defense</span>
                 </Link>
                 <Link
                   href="/instructor"
-                  className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#E8F1FA]/50 hover:text-[#066AC9]"
+                  className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#F0EDF9]/50 hover:text-[#7928CA]"
                 >
                   <span>Become an Instructor</span>
                 </Link>
                 <Link
                   href="/subscriptions"
-                  className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#E8F1FA]/50 hover:text-[#066AC9]"
+                  className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#F0EDF9]/50 hover:text-[#7928CA]"
                 >
                   <span>Tuition &amp; Admissions</span>
                   <span>•••</span>
@@ -220,7 +220,7 @@ export function Navbar() {
                 <div className="relative group/auth">
                   <Link
                     href="/login"
-                    className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] group-hover/auth:bg-[#E8F1FA] group-hover/auth:text-[#066AC9]"
+                    className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] group-hover/auth:bg-[#F0EDF9] group-hover/auth:text-[#7928CA]"
                   >
                     <span>Authentication</span>
                     <span>•••</span>
@@ -228,19 +228,19 @@ export function Navbar() {
                   <div className="invisible opacity-0 group-hover/auth:visible group-hover/auth:opacity-100 transition-all duration-150 absolute left-full top-0 ml-1.5 w-48 bg-white rounded-xl shadow-[0_10px_40px_rgba(24,20,61,0.14)] border border-slate-100 p-2 z-50">
                     <Link
                       href="/login"
-                      className="flex items-center px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#E8F1FA]/70 hover:text-[#066AC9]"
+                      className="flex items-center px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#F0EDF9]/70 hover:text-[#7928CA]"
                     >
                       Sign In
                     </Link>
                     <Link
                       href="/login?mode=signup"
-                      className="flex items-center px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#E8F1FA]/70 hover:text-[#066AC9]"
+                      className="flex items-center px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#F0EDF9]/70 hover:text-[#7928CA]"
                     >
                       Sign Up
                     </Link>
                     <Link
                       href="/forgot-password"
-                      className="flex items-center px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#E8F1FA]/70 hover:text-[#066AC9]"
+                      className="flex items-center px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#F0EDF9]/70 hover:text-[#7928CA]"
                     >
                       Forgot Password
                     </Link>
@@ -248,7 +248,7 @@ export function Navbar() {
                 </div>
                 <Link
                   href="/qr-studio"
-                  className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#E8F1FA]/50 hover:text-[#066AC9]"
+                  className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#F0EDF9]/50 hover:text-[#7928CA]"
                 >
                   <span>Banner QR Studio</span>
                 </Link>
@@ -263,8 +263,8 @@ export function Navbar() {
                   pathname.startsWith("/dashboard") ||
                   pathname.startsWith("/instructor") ||
                   pathname.startsWith("/admin")
-                    ? "text-[#066AC9]"
-                    : "text-[#747579] group-hover:text-[#066AC9]"
+                    ? "text-[#7928CA]"
+                    : "text-[#747579] group-hover:text-[#7928CA]"
                 }`}
               >
                 <span>Accounts</span>
@@ -277,7 +277,7 @@ export function Navbar() {
                 <div className="relative group/instructor">
                   <Link
                     href="/instructor"
-                    className="flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#747579] group-hover/instructor:bg-[#E8F1FA] group-hover/instructor:text-[#066AC9] transition-colors"
+                    className="flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#747579] group-hover/instructor:bg-[#F0EDF9] group-hover/instructor:text-[#7928CA] transition-colors"
                   >
                     <span className="inline-flex items-center gap-2.5">
                       <UserIcon className="w-4 h-4" />
@@ -290,70 +290,70 @@ export function Navbar() {
                   <div className="invisible opacity-0 group-hover/instructor:visible group-hover/instructor:opacity-100 transition-all duration-150 absolute left-full top-0 ml-1.5 w-56 bg-white rounded-xl shadow-[0_10px_40px_rgba(24,20,61,0.14)] border border-slate-100 p-2 z-50">
                     <Link
                       href="/instructor"
-                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#E8F1FA] hover:text-[#066AC9]"
+                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F0EDF9] hover:text-[#7928CA]"
                     >
                       <LayoutDashboard className="w-3.5 h-3.5" />
                       <span>Dashboard</span>
                     </Link>
                     <Link
                       href="/courses"
-                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#E8F1FA] hover:text-[#066AC9]"
+                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F0EDF9] hover:text-[#7928CA]"
                     >
                       <ShoppingBag className="w-3.5 h-3.5" />
                       <span>Courses</span>
                     </Link>
                     <Link
                       href="/admin/courses"
-                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#E8F1FA] hover:text-[#066AC9]"
+                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F0EDF9] hover:text-[#7928CA]"
                     >
                       <FilePlus className="w-3.5 h-3.5" />
                       <span>Create Course</span>
                     </Link>
                     <Link
                       href="/admin/courses"
-                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#E8F1FA] hover:text-[#066AC9]"
+                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F0EDF9] hover:text-[#7928CA]"
                     >
                       <FileCheck className="w-3.5 h-3.5" />
                       <span>Course Added</span>
                     </Link>
                     <Link
                       href="/learn/web-dev/quiz/quiz-web-dev"
-                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#E8F1FA] hover:text-[#066AC9]"
+                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F0EDF9] hover:text-[#7928CA]"
                     >
                       <HelpCircle className="w-3.5 h-3.5" />
                       <span>Quiz</span>
                     </Link>
                     <Link
                       href="/admin/analytics"
-                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#E8F1FA] hover:text-[#066AC9]"
+                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F0EDF9] hover:text-[#7928CA]"
                     >
                       <TrendingUp className="w-3.5 h-3.5" />
                       <span>Earnings</span>
                     </Link>
                     <Link
                       href="/admin/students"
-                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#E8F1FA] hover:text-[#066AC9]"
+                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F0EDF9] hover:text-[#7928CA]"
                     >
                       <GraduationCap className="w-3.5 h-3.5" />
                       <span>Students</span>
                     </Link>
                     <Link
                       href="/admin/students"
-                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#E8F1FA] hover:text-[#066AC9]"
+                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F0EDF9] hover:text-[#7928CA]"
                     >
                       <ShoppingCart className="w-3.5 h-3.5" />
                       <span>Orders</span>
                     </Link>
                     <Link
                       href="/instructor/grading"
-                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#E8F1FA] hover:text-[#066AC9]"
+                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F0EDF9] hover:text-[#7928CA]"
                     >
                       <Star className="w-3.5 h-3.5" />
                       <span>Reviews</span>
                     </Link>
                     <Link
                       href="/admin/analytics"
-                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#E8F1FA] hover:text-[#066AC9]"
+                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F0EDF9] hover:text-[#7928CA]"
                     >
                       <Wallet className="w-3.5 h-3.5" />
                       <span>Payout</span>
@@ -365,7 +365,7 @@ export function Navbar() {
                 <div className="relative group/student">
                   <Link
                     href="/dashboard"
-                    className="flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#747579] group-hover/student:bg-[#E8F1FA] group-hover/student:text-[#066AC9] transition-colors"
+                    className="flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#747579] group-hover/student:bg-[#F0EDF9] group-hover/student:text-[#7928CA] transition-colors"
                   >
                     <span className="inline-flex items-center gap-2.5">
                       <GraduationCap className="w-4 h-4" />
@@ -378,49 +378,49 @@ export function Navbar() {
                   <div className="invisible opacity-0 group-hover/student:visible group-hover/student:opacity-100 transition-all duration-150 absolute left-full top-0 ml-1.5 w-56 bg-white rounded-xl shadow-[0_10px_40px_rgba(24,20,61,0.14)] border border-slate-100 p-2 z-50">
                     <Link
                       href="/dashboard"
-                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#E8F1FA] hover:text-[#066AC9]"
+                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F0EDF9] hover:text-[#7928CA]"
                     >
                       <LayoutDashboard className="w-3.5 h-3.5" />
                       <span>Dashboard</span>
                     </Link>
                     <Link
                       href="/subscriptions"
-                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#066AC9] bg-[#E8F1FA]/60 hover:bg-[#E8F1FA]"
+                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#7928CA] bg-[#F0EDF9]/60 hover:bg-[#F0EDF9]"
                     >
                       <CreditCard className="w-3.5 h-3.5" />
                       <span>My Subscriptions</span>
                     </Link>
                     <Link
                       href="/dashboard#my-courses-list"
-                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#E8F1FA] hover:text-[#066AC9]"
+                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F0EDF9] hover:text-[#7928CA]"
                     >
                       <ShoppingBag className="w-3.5 h-3.5" />
                       <span>Courses</span>
                     </Link>
                     <Link
                       href="/learn/web-dev/les-1"
-                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#E8F1FA] hover:text-[#066AC9]"
+                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F0EDF9] hover:text-[#7928CA]"
                     >
                       <FileText className="w-3.5 h-3.5" />
                       <span>Course Resume</span>
                     </Link>
                     <Link
                       href="/learn/web-dev/quiz/quiz-web-dev"
-                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#E8F1FA] hover:text-[#066AC9]"
+                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F0EDF9] hover:text-[#7928CA]"
                     >
                       <HelpCircle className="w-3.5 h-3.5" />
                       <span>Quiz</span>
                     </Link>
                     <Link
                       href="/subscriptions"
-                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#E8F1FA] hover:text-[#066AC9]"
+                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F0EDF9] hover:text-[#7928CA]"
                     >
                       <CreditCard className="w-3.5 h-3.5" />
                       <span>Payment Info</span>
                     </Link>
                     <Link
                       href="/courses"
-                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#E8F1FA] hover:text-[#066AC9]"
+                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F0EDF9] hover:text-[#7928CA]"
                     >
                       <ShoppingCart className="w-3.5 h-3.5" />
                       <span>Wishlist</span>
@@ -431,28 +431,28 @@ export function Navbar() {
                 {/* Direct Account Items */}
                 <Link
                   href="/admin"
-                  className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#E8F1FA] hover:text-[#066AC9] transition-colors"
+                  className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F0EDF9] hover:text-[#7928CA] transition-colors"
                 >
                   <ShieldCheck className="w-4 h-4" />
                   <span>Admin</span>
                 </Link>
                 <Link
                   href="/dashboard"
-                  className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#E8F1FA] hover:text-[#066AC9] transition-colors"
+                  className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F0EDF9] hover:text-[#7928CA] transition-colors"
                 >
                   <Edit3 className="w-4 h-4" />
                   <span>Edit Profile</span>
                 </Link>
                 <Link
                   href="/dashboard"
-                  className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#E8F1FA] hover:text-[#066AC9] transition-colors"
+                  className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F0EDF9] hover:text-[#7928CA] transition-colors"
                 >
                   <Settings className="w-4 h-4" />
                   <span>Settings</span>
                 </Link>
                 <Link
                   href="/dashboard"
-                  className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#E8F1FA] hover:text-[#066AC9] transition-colors"
+                  className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F0EDF9] hover:text-[#7928CA] transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
                   <span>Delete Profile</span>
@@ -464,7 +464,7 @@ export function Navbar() {
                 <div className="relative group/levels">
                   <button
                     type="button"
-                    className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#747579] group-hover/levels:bg-[#E8F1FA] group-hover/levels:text-[#066AC9] transition-colors"
+                    className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#747579] group-hover/levels:bg-[#F0EDF9] group-hover/levels:text-[#7928CA] transition-colors"
                   >
                     <span>Dropdown levels</span>
                     <MoreHorizontal className="w-4 h-4" />
@@ -473,35 +473,35 @@ export function Navbar() {
                   <div className="invisible opacity-0 group-hover/levels:visible group-hover/levels:opacity-100 transition-all duration-150 absolute left-full bottom-0 ml-1.5 w-52 bg-white rounded-xl shadow-[0_10px_40px_rgba(24,20,61,0.14)] border border-slate-100 p-2 z-50">
                     <Link
                       href="/ai"
-                      className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#E8F1FA] hover:text-[#066AC9]"
+                      className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F0EDF9] hover:text-[#7928CA]"
                     >
                       <Bot className="w-3.5 h-3.5" />
                       <span>24/7 AI Tutor</span>
                     </Link>
                     <Link
                       href="/sandbox"
-                      className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#E8F1FA] hover:text-[#066AC9]"
+                      className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F0EDF9] hover:text-[#7928CA]"
                     >
                       <Code2 className="w-3.5 h-3.5" />
                       <span>Coding Sandbox</span>
                     </Link>
                     <Link
                       href="/live"
-                      className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#E8F1FA] hover:text-[#066AC9]"
+                      className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F0EDF9] hover:text-[#7928CA]"
                     >
                       <Video className="w-3.5 h-3.5" />
                       <span>Live Classes</span>
                     </Link>
                     <Link
                       href="/community"
-                      className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#E8F1FA] hover:text-[#066AC9]"
+                      className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F0EDF9] hover:text-[#7928CA]"
                     >
                       <MessageSquare className="w-3.5 h-3.5" />
                       <span>Community Chat</span>
                     </Link>
                     <Link
                       href="/leaderboard"
-                      className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#E8F1FA] hover:text-[#066AC9]"
+                      className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F0EDF9] hover:text-[#7928CA]"
                     >
                       <Trophy className="w-3.5 h-3.5" />
                       <span>Leaderboard</span>
@@ -516,7 +516,7 @@ export function Navbar() {
               <button
                 type="button"
                 aria-label="More links"
-                className="inline-flex items-center text-[#747579] group-hover:text-[#066AC9] cursor-pointer"
+                className="inline-flex items-center text-[#747579] group-hover:text-[#7928CA] cursor-pointer"
               >
                 <MoreHorizontal className="w-4 h-4" />
               </button>
@@ -524,33 +524,33 @@ export function Navbar() {
               <div className="invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-150 absolute left-0 top-full w-48 bg-white rounded-xl shadow-[0_10px_40px_rgba(24,20,61,0.12)] border border-slate-100 p-2 z-50">
                 <Link
                   href="/ai"
-                  className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#E8F1FA]/50 hover:text-[#066AC9]"
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#F0EDF9]/50 hover:text-[#7928CA]"
                 >
-                  <Bot className="w-3.5 h-3.5 text-[#066AC9]" /> AI Tutor
+                  <Bot className="w-3.5 h-3.5 text-[#7928CA]" /> AI Tutor
                 </Link>
                 <Link
                   href="/sandbox"
-                  className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#E8F1FA]/50 hover:text-[#066AC9]"
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#F0EDF9]/50 hover:text-[#7928CA]"
                 >
-                  <Code2 className="w-3.5 h-3.5 text-[#066AC9]" /> Sandbox
+                  <Code2 className="w-3.5 h-3.5 text-[#7928CA]" /> Sandbox
                 </Link>
                 <Link
                   href="/live"
-                  className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#E8F1FA]/50 hover:text-[#066AC9]"
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#F0EDF9]/50 hover:text-[#7928CA]"
                 >
-                  <Video className="w-3.5 h-3.5 text-[#066AC9]" /> Live Studio
+                  <Video className="w-3.5 h-3.5 text-[#7928CA]" /> Live Studio
                 </Link>
                 <Link
                   href="/community"
-                  className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#E8F1FA]/50 hover:text-[#066AC9]"
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#F0EDF9]/50 hover:text-[#7928CA]"
                 >
-                  <MessageSquare className="w-3.5 h-3.5 text-[#066AC9]" /> Community
+                  <MessageSquare className="w-3.5 h-3.5 text-[#7928CA]" /> Community
                 </Link>
                 <Link
                   href="/leaderboard"
-                  className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#E8F1FA]/50 hover:text-[#066AC9]"
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#F0EDF9]/50 hover:text-[#7928CA]"
                 >
-                  <Trophy className="w-3.5 h-3.5 text-[#066AC9]" /> Leaderboard
+                  <Trophy className="w-3.5 h-3.5 text-[#7928CA]" /> Leaderboard
                 </Link>
               </div>
             </div>
@@ -566,7 +566,7 @@ export function Navbar() {
             {/* Eduport Navbar Search Input */}
             <form
               onSubmit={handleNavSearch}
-              className="hidden sm:flex items-center bg-white border border-slate-200 rounded-lg px-3.5 py-2 w-44 lg:w-56 focus-within:border-[#066AC9] transition-colors"
+              className="hidden sm:flex items-center bg-white border border-slate-200 rounded-lg px-3.5 py-2 w-44 lg:w-56 focus-within:border-[#7928CA] transition-colors"
             >
               <input
                 type="text"
@@ -578,7 +578,7 @@ export function Navbar() {
               <button
                 type="submit"
                 aria-label="Search courses"
-                className="text-slate-500 hover:text-[#066AC9]"
+                className="text-slate-500 hover:text-[#7928CA]"
               >
                 <Search className="w-4 h-4" />
               </button>
@@ -597,7 +597,7 @@ export function Navbar() {
                         : "/dashboard"
                     }
                     title={`${user.name} (${user.role})`}
-                    className="w-10 h-10 rounded-full bg-gradient-to-br from-[#F7C32E] via-[#FF6B5B] to-[#D6293E] text-white text-xs font-extrabold flex items-center justify-center shadow-xs border-2 border-white ring-1 ring-slate-200 hover:scale-105 transition-transform"
+                    className="w-10 h-10 rounded-full bg-gradient-to-br from-[#7928CA] to-[#18143D] text-white text-xs font-extrabold flex items-center justify-center shadow-xs border-2 border-white ring-1 ring-slate-200 hover:scale-105 transition-transform"
                   >
                     {user.name
                       .split(" ")
@@ -627,7 +627,7 @@ export function Navbar() {
                 <Link href="/subscriptions" className="hidden md:inline-block">
                   <Button
                     size="sm"
-                    className="gap-1.5 text-xs font-bold bg-[#066AC9] hover:bg-[#0556A5]"
+                    className="gap-1.5 text-xs font-bold bg-[#7928CA] hover:bg-[#671FB0]"
                   >
                     <Sparkles className="w-3.5 h-3.5" />
                     <span>Enroll</span>
@@ -654,12 +654,12 @@ export function Navbar() {
             {isHydrated && user && (
               <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-[#F5F7F9] border border-slate-200">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full bg-[#066AC9] text-white text-xs font-bold flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-full bg-[#7928CA] text-white text-xs font-bold flex items-center justify-center">
                     <UserIcon className="w-4 h-4" />
                   </div>
                   <div>
                     <div className="text-xs font-bold text-[#24292D]">{user.name}</div>
-                    <div className="text-[10px] font-bold text-[#066AC9] uppercase">
+                    <div className="text-[10px] font-bold text-[#7928CA] uppercase">
                       {user.role} · {user.email}
                     </div>
                   </div>
@@ -674,89 +674,89 @@ export function Navbar() {
               <Link
                 href="/courses"
                 onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#066AC9] flex items-center gap-1.5"
+                className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#7928CA] flex items-center gap-1.5"
               >
-                <BookOpen className="w-3.5 h-3.5 text-[#066AC9]" /> Course Categories
+                <BookOpen className="w-3.5 h-3.5 text-[#7928CA]" /> Course Categories
               </Link>
               <Link
                 href="/dashboard"
                 onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#066AC9] flex items-center gap-1.5"
+                className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#7928CA] flex items-center gap-1.5"
               >
-                <LayoutDashboard className="w-3.5 h-3.5 text-[#066AC9]" /> Student Dashboard
+                <LayoutDashboard className="w-3.5 h-3.5 text-[#7928CA]" /> Student Dashboard
               </Link>
               <Link
                 href="/ai"
                 onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#066AC9] flex items-center gap-1.5"
+                className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#7928CA] flex items-center gap-1.5"
               >
-                <Bot className="w-3.5 h-3.5 text-[#066AC9]" /> AI Tutor &amp; Hub
+                <Bot className="w-3.5 h-3.5 text-[#7928CA]" /> AI Tutor &amp; Hub
               </Link>
               <Link
                 href="/sandbox"
                 onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#066AC9] flex items-center gap-1.5"
+                className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#7928CA] flex items-center gap-1.5"
               >
-                <Code2 className="w-3.5 h-3.5 text-[#066AC9]" /> Coding Sandbox
+                <Code2 className="w-3.5 h-3.5 text-[#7928CA]" /> Coding Sandbox
               </Link>
               <Link
                 href="/live"
                 onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#066AC9] flex items-center gap-1.5"
+                className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#7928CA] flex items-center gap-1.5"
               >
-                <Video className="w-3.5 h-3.5 text-[#066AC9]" /> Live Classes
+                <Video className="w-3.5 h-3.5 text-[#7928CA]" /> Live Classes
               </Link>
               <Link
                 href="/community"
                 onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#066AC9] flex items-center gap-1.5"
+                className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#7928CA] flex items-center gap-1.5"
               >
-                <MessageSquare className="w-3.5 h-3.5 text-[#066AC9]" /> Community Chat
+                <MessageSquare className="w-3.5 h-3.5 text-[#7928CA]" /> Community Chat
               </Link>
               <Link
                 href="/leaderboard"
                 onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#066AC9] flex items-center gap-1.5"
+                className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#7928CA] flex items-center gap-1.5"
               >
-                <Trophy className="w-3.5 h-3.5 text-[#066AC9]" /> Leaderboard
+                <Trophy className="w-3.5 h-3.5 text-[#7928CA]" /> Leaderboard
               </Link>
               <Link
                 href="/subscriptions"
                 onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#066AC9] flex items-center gap-1.5"
+                className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#7928CA] flex items-center gap-1.5"
               >
-                <Sparkles className="w-3.5 h-3.5 text-[#066AC9]" /> Plans &amp; Enroll
+                <Sparkles className="w-3.5 h-3.5 text-[#7928CA]" /> Plans &amp; Enroll
               </Link>
               <Link
                 href="/login"
                 onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#066AC9] flex items-center gap-1.5"
+                className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#7928CA] flex items-center gap-1.5"
               >
-                <UserIcon className="w-3.5 h-3.5 text-[#066AC9]" /> Login / Signup
+                <UserIcon className="w-3.5 h-3.5 text-[#7928CA]" /> Login / Signup
               </Link>
               <Link
                 href="/qr-studio"
                 onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#066AC9] flex items-center gap-1.5"
+                className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#7928CA] flex items-center gap-1.5"
               >
-                <QrCode className="w-3.5 h-3.5 text-[#066AC9]" /> Banner QR Studio
+                <QrCode className="w-3.5 h-3.5 text-[#7928CA]" /> Banner QR Studio
               </Link>
               {(user?.role === "INSTRUCTOR" || user?.role === "ADMIN" || !user) && (
                 <Link
                   href="/instructor"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#066AC9] flex items-center gap-1.5"
+                  className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#7928CA] flex items-center gap-1.5"
                 >
-                  <GraduationCap className="w-3.5 h-3.5 text-[#066AC9]" /> Instructor Studio
+                  <GraduationCap className="w-3.5 h-3.5 text-[#7928CA]" /> Instructor Studio
                 </Link>
               )}
               {(user?.role === "ADMIN" || !user) && (
                 <Link
                   href="/admin"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#066AC9] flex items-center gap-1.5"
+                  className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#7928CA] flex items-center gap-1.5"
                 >
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#066AC9]" /> Admin Portal
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#7928CA]" /> Admin Portal
                 </Link>
               )}
             </div>

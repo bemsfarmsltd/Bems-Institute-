@@ -304,7 +304,7 @@ export function CourseCards() {
         </div>
 
         {/* Eduport Soft Light-Blue Category Filter Bar */}
-        <div className="bg-[#E8F1FA] rounded-xl py-3 px-4 mb-10 flex flex-wrap items-center justify-center gap-2 sm:gap-5">
+        <div className="bg-[#F0EDF9] rounded-xl py-3 px-4 mb-10 flex flex-wrap items-center justify-center gap-2 sm:gap-5">
           {CATEGORIES.map((cat) => {
             const isActive = activeCategory === cat.key;
             return (
@@ -314,8 +314,8 @@ export function CourseCards() {
                 onClick={() => setActiveCategory(cat.key)}
                 className={`px-4 sm:px-5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                   isActive
-                    ? "bg-[#066AC9] text-white shadow-xs"
-                    : "text-[#066AC9] hover:bg-[#066AC9]/10"
+                    ? "bg-[#7928CA] text-white shadow-xs"
+                    : "text-[#7928CA] hover:bg-[#7928CA]/10"
                 }`}
               >
                 {cat.label}
@@ -382,7 +382,7 @@ export function CourseCards() {
                       <span
                         className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-md ${
                           course.level === "Beginner"
-                            ? "bg-[#E6F8F3] text-[#0CBC87]"
+                            ? "bg-[#F0EDF9] text-[#7928CA]"
                             : "bg-[#F0ECF9] text-[#6F42C1]"
                         }`}
                       >
@@ -405,7 +405,7 @@ export function CourseCards() {
 
                     {/* Course Title */}
                     <Link href={`/courses/${course.courseSlug}`}>
-                      <h3 className="text-[17px] font-bold text-[#24292D] group-hover:text-[#066AC9] transition-colors leading-snug mb-2 line-clamp-2">
+                      <h3 className="text-[17px] font-bold text-[#24292D] group-hover:text-[#7928CA] transition-colors leading-snug mb-2 line-clamp-2">
                         {course.title}
                       </h3>
                     </Link>
@@ -432,7 +432,7 @@ export function CourseCards() {
                           {course.rating.toFixed(1)}/5.0
                         </span>
                       </div>
-                      <span className="text-[11px] font-bold text-[#066AC9]">
+                      <span className="text-[11px] font-bold text-[#7928CA]">
                         {course.priceLabel}
                       </span>
                     </div>
@@ -443,7 +443,7 @@ export function CourseCards() {
                 <div className="px-5 py-3.5 border-t border-slate-100">
                   <div className="flex items-center justify-between text-xs text-[#24292D] mb-2.5">
                     <span className="inline-flex items-center gap-1.5 text-[#747579]">
-                      <Clock className="w-3.5 h-3.5 text-[#D6293E]" />
+                      <Clock className="w-3.5 h-3.5 text-[#7928CA]" />
                       {course.duration}
                     </span>
                     <span className="inline-flex items-center gap-1.5 text-[#747579]">
@@ -461,7 +461,7 @@ export function CourseCards() {
                     </Link>
                     <Link
                       href={`/subscriptions?course=${course.courseSlug}`}
-                      className="inline-flex items-center gap-1 text-[#066AC9] hover:text-[#044F96] transition-colors"
+                      className="inline-flex items-center gap-1 text-[#7928CA] hover:text-[#044F96] transition-colors"
                     >
                       <span>Enroll Now</span>
                       <ArrowRight className="w-3.5 h-3.5" />

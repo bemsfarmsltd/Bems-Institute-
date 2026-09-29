@@ -30,7 +30,7 @@ const TRENDING_COURSES: TrendingCourse[] = [
     id: "trend-design",
     slug: "product-design",
     categoryLabel: "Design",
-    categoryColor: "bg-[#E8F1FA] text-[#066AC9]",
+    categoryColor: "bg-[#F0EDF9] text-[#7928CA]",
     level: "Beginner",
     title: "Complete UI/UX Product Design & Figma Design Systems Bootcamp",
     rating: "4.9",
@@ -40,7 +40,7 @@ const TRENDING_COURSES: TrendingCourse[] = [
     lectures: "32 lectures",
     tutorName: "Emeka Udoh",
     tutorInitials: "EU",
-    tutorAvatarBg: "bg-[#D6293E]",
+    tutorAvatarBg: "bg-[#18143D]",
     price: "₦150,000",
     deposit: "₦60k Deposit",
     headerGradient: "from-[#FFF0F3] via-[#FFD6E0] to-[#FFACC2]",
@@ -50,7 +50,7 @@ const TRENDING_COURSES: TrendingCourse[] = [
     id: "trend-web",
     slug: "web-dev",
     categoryLabel: "Development",
-    categoryColor: "bg-[#E6F8F3] text-[#0CBC87]",
+    categoryColor: "bg-[#F0EDF9] text-[#7928CA]",
     level: "All level",
     title: "Full-Stack Next.js, TypeScript, PostgreSQL & Paystack Engineering",
     rating: "4.9",
@@ -60,7 +60,7 @@ const TRENDING_COURSES: TrendingCourse[] = [
     lectures: "65 lectures",
     tutorName: "Engr. Chidi Okafor",
     tutorInitials: "CO",
-    tutorAvatarBg: "bg-[#066AC9]",
+    tutorAvatarBg: "bg-[#7928CA]",
     price: "₦220,000",
     deposit: "₦100k Deposit",
     headerGradient: "from-[#E6F2FF] via-[#BFE0FF] to-[#8BC5FF]",
@@ -132,11 +132,11 @@ export function EduportTrendingCourses() {
                         type="button"
                         onClick={() => toggleBookmark(item.id)}
                         aria-label="Bookmark course"
-                        className="w-8 h-8 rounded-full bg-white shadow-xs flex items-center justify-center text-[#24292D] hover:text-[#066AC9] transition-colors cursor-pointer"
+                        className="w-8 h-8 rounded-full bg-white shadow-xs flex items-center justify-center text-[#24292D] hover:text-[#7928CA] transition-colors cursor-pointer"
                       >
                         <Bookmark
                           className={`w-4 h-4 ${
-                            isSaved ? "fill-[#066AC9] text-[#066AC9]" : "text-[#24292D]"
+                            isSaved ? "fill-[#7928CA] text-[#7928CA]" : "text-[#24292D]"
                           }`}
                         />
                       </button>
@@ -150,7 +150,7 @@ export function EduportTrendingCourses() {
                       <div className="flex items-center gap-1.5 mb-2">
                         <span className="w-2 h-2 rounded-full bg-[#D6293E]" />
                         <span className="w-2 h-2 rounded-full bg-[#F7C32E]" />
-                        <span className="w-2 h-2 rounded-full bg-[#0CBC87]" />
+                        <span className="w-2 h-2 rounded-full bg-[#7928CA]" />
                         <span className="text-[10px] font-bold text-[#747579] ml-1.5">
                           BEMS Interactive Lab · {item.deposit}
                         </span>
@@ -176,7 +176,7 @@ export function EduportTrendingCourses() {
 
                     {/* Title */}
                     <Link href={`/courses/${item.slug}`}>
-                      <h3 className="text-lg font-bold text-[#24292D] group-hover:text-[#066AC9] transition-colors leading-snug mb-4 line-clamp-2">
+                      <h3 className="text-lg font-bold text-[#24292D] group-hover:text-[#7928CA] transition-colors leading-snug mb-4 line-clamp-2">
                         {item.title}
                       </h3>
                     </Link>
@@ -197,7 +197,7 @@ export function EduportTrendingCourses() {
                     {/* Duration & Lectures Row */}
                     <div className="flex items-center gap-5 text-xs text-[#747579]">
                       <span className="inline-flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5 text-[#D6293E]" />
+                        <Clock className="w-3.5 h-3.5 text-[#7928CA]" />
                         {item.duration}
                       </span>
                       <span className="inline-flex items-center gap-1.5">
@@ -220,12 +220,12 @@ export function EduportTrendingCourses() {
                   </div>
 
                   <div>
-                    <span className="text-lg font-extrabold text-[#0CBC87] group-hover:hidden">
+                    <span className="text-lg font-extrabold text-[#7928CA] group-hover:hidden">
                       {item.price}
                     </span>
                     <Link
                       href={`/subscriptions?course=${item.slug}`}
-                      className="hidden group-hover:inline-flex items-center gap-1.5 bg-[#E6F8F3] hover:bg-[#0CBC87] text-[#0CBC87] hover:text-white text-xs font-bold px-3.5 py-2 rounded-lg transition-colors"
+                      className="hidden group-hover:inline-flex items-center gap-1.5 bg-[#F0EDF9] hover:bg-[#7928CA] text-[#7928CA] hover:text-white text-xs font-bold px-3.5 py-2 rounded-lg transition-colors"
                     >
                       <ShoppingCart className="w-3.5 h-3.5" />
                       <span>Enroll Course</span>

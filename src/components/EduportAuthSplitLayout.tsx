@@ -2,13 +2,9 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 
-const COMMUNITY_AVATARS = [
-  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=160&q=80",
-  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=160&q=80",
-  "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=160&q=80",
-  "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=160&q=80",
-];
+const COMMUNITY_AVATAR_SEEDS = ["Chinedu", "Amarachi", "Tunde", "Ngozi"];
 
 function EduportCommunityIllustration() {
   return (
@@ -255,20 +251,20 @@ export default function EduportAuthSplitLayout({
   return (
     <div className="min-h-screen w-full bg-white grid grid-cols-1 lg:grid-cols-2 font-sans text-[#1D2026]">
       {/* Left 50% Community Panel */}
-      <div className="bg-[#E7EFF7] flex flex-col justify-between items-center px-6 sm:px-12 py-10 lg:py-14 relative overflow-hidden">
+      <div className="bg-[#F0EDF9] flex flex-col justify-between items-center px-6 sm:px-12 py-10 lg:py-14 relative overflow-hidden">
         {/* Top Brand Link */}
         <div className="w-full max-w-[520px] flex items-center justify-between">
           <Link href="/" className="inline-flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-lg bg-[#F7C32E] flex items-center justify-center shadow-sm">
-              <span className="font-display font-black text-[#1D2026] text-base leading-none">B</span>
+            <div className="relative w-8 h-8 rounded-lg overflow-hidden bg-white shadow-sm shrink-0">
+              <Image src="/images/bems-logo.jpg" alt="BEMS Logo" fill className="object-contain" />
             </div>
-            <span className="font-display font-extrabold text-[20px] tracking-tight text-[#1D2026]">
-              BEMS<span className="text-[#066AC9]">.</span>
+            <span className="font-display font-extrabold text-[18px] tracking-tight text-[#1D2026]">
+              BEMS<span className="text-[#7928CA]">.</span>
             </span>
           </Link>
           <Link
             href="/"
-            className="text-[13px] font-semibold text-[#475569] hover:text-[#066AC9] transition-colors lg:hidden"
+            className="text-[13px] font-semibold text-[#475569] hover:text-[#7928CA] transition-colors lg:hidden"
           >
             ← Back to Home
           </Link>
@@ -289,17 +285,17 @@ export default function EduportAuthSplitLayout({
         {/* Bottom Avatar Stack + Community Count */}
         <div className="w-full max-w-[520px] flex flex-wrap items-center justify-center gap-4 pt-2">
           <div className="flex items-center -space-x-2.5">
-            {COMMUNITY_AVATARS.map((src, idx) => (
+            {COMMUNITY_AVATAR_SEEDS.map((seed, idx) => (
               <img
                 key={idx}
-                src={src}
+                src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(seed)}&backgroundColor=7928CA,18143D,671FB0&textColor=ffffff`}
                 alt="BEMS student"
                 className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-sm"
               />
             ))}
           </div>
           <p className="text-[14px] font-medium text-[#1D2026]">
-            <span className="font-bold">4k+</span> Students joined us, now it&apos;s your turn.
+            <span className="font-bold">80+</span> students joining the October 2026 cohort, now it&apos;s your turn.
           </p>
         </div>
       </div>
@@ -309,7 +305,7 @@ export default function EduportAuthSplitLayout({
         <div className="w-full max-w-[460px] mx-auto flex justify-end">
           <Link
             href="/"
-            className="hidden lg:inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#64748B] hover:text-[#066AC9] transition-colors"
+            className="hidden lg:inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#64748B] hover:text-[#7928CA] transition-colors"
           >
             ← Back to Home
           </Link>

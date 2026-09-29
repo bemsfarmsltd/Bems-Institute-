@@ -176,20 +176,20 @@ export function EduportCheckoutView() {
             aria-label="Breadcrumb"
             className="flex items-center justify-center flex-wrap gap-2.5 text-xs sm:text-[13.5px] text-[#747579]"
           >
-            <Link href="/" className="hover:text-[#066AC9] transition-colors">
+            <Link href="/" className="hover:text-[#7928CA] transition-colors">
               Home
             </Link>
             <span className="text-[#9A9EA4]">&bull;</span>
             <Link
               href="/courses"
-              className="hover:text-[#066AC9] transition-colors"
+              className="hover:text-[#7928CA] transition-colors"
             >
               Courses
             </Link>
             <span className="text-[#9A9EA4]">&bull;</span>
             <Link
               href="/courses"
-              className="hover:text-[#066AC9] transition-colors"
+              className="hover:text-[#7928CA] transition-colors"
             >
               Cart
             </Link>
@@ -202,9 +202,9 @@ export function EduportCheckoutView() {
       {/* Optional Enrollment Confirmation Toast */}
       {confirmedCourse && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-4 w-full">
-          <div className="rounded-xl border border-[#0CBC87] bg-[#E6F8F3] p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="rounded-xl border border-[#065F46] bg-[#D1FAE5] p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="space-y-1">
-              <div className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-[#0CBC87]">
+              <div className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-[#065F46]">
                 <CheckCircle2 className="w-4 h-4" />
                 <span>
                   Order Confirmed &middot; ${confirmedCourse.totalPaid} Paid
@@ -217,14 +217,14 @@ export function EduportCheckoutView() {
             <div className="flex flex-wrap items-center gap-3 shrink-0">
               <Link
                 href={`/learn/${confirmedCourse.slug}/${confirmedCourse.firstLessonId}`}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-[#0CBC87] hover:bg-[#0aa374] text-white text-xs font-bold transition-colors"
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-[#059669] hover:bg-[#047857] text-white text-xs font-bold transition-colors"
               >
                 <PlayCircle className="w-4 h-4" />
                 <span>Start First Lesson</span>
               </Link>
               <Link
                 href="/dashboard"
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-white border border-slate-200 text-[#24292D] text-xs font-bold hover:border-[#066AC9] transition-colors"
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-white border border-slate-200 text-[#24292D] text-xs font-bold hover:border-[#7928CA] transition-colors"
               >
                 <span>Go to Dashboard</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -237,7 +237,7 @@ export function EduportCheckoutView() {
       {/* Optional Notice Toast */}
       {notice && (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-2 w-full">
-          <div className="flex items-center justify-between px-4 py-2.5 rounded-lg bg-[#E8F1FA] text-[#066AC9] text-xs sm:text-sm font-semibold">
+          <div className="flex items-center justify-between px-4 py-2.5 rounded-lg bg-[#F0EDF9] text-[#7928CA] text-xs sm:text-sm font-semibold">
             <span>{notice}</span>
             <button
               type="button"
@@ -305,7 +305,7 @@ export function EduportCheckoutView() {
                       type="text"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-lg bg-[#F5F7F9] text-[14px] text-[#24292D] placeholder:text-[#8C939A] focus:outline-none focus:ring-1 focus:ring-[#066AC9]"
+                      className="w-full px-4 py-2.5 rounded-lg bg-[#F5F7F9] text-[14px] text-[#24292D] placeholder:text-[#8C939A] focus:outline-none focus:ring-1 focus:ring-[#7928CA]"
                     />
                   </div>
 
@@ -319,7 +319,7 @@ export function EduportCheckoutView() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="Email"
-                      className="w-full px-4 py-2.5 rounded-lg bg-[#F5F7F9] text-[14px] text-[#24292D] placeholder:text-[#8C939A] focus:outline-none focus:ring-1 focus:ring-[#066AC9]"
+                      className="w-full px-4 py-2.5 rounded-lg bg-[#F5F7F9] text-[14px] text-[#24292D] placeholder:text-[#8C939A] focus:outline-none focus:ring-1 focus:ring-[#7928CA]"
                     />
                   </div>
 
@@ -333,7 +333,7 @@ export function EduportCheckoutView() {
                       value={mobile}
                       onChange={(e) => setMobile(e.target.value)}
                       placeholder="Mobile number"
-                      className="w-full px-4 py-2.5 rounded-lg bg-[#F5F7F9] text-[14px] text-[#24292D] placeholder:text-[#8C939A] focus:outline-none focus:ring-1 focus:ring-[#066AC9]"
+                      className="w-full px-4 py-2.5 rounded-lg bg-[#F5F7F9] text-[14px] text-[#24292D] placeholder:text-[#8C939A] focus:outline-none focus:ring-1 focus:ring-[#7928CA]"
                     />
                   </div>
 
@@ -345,7 +345,7 @@ export function EduportCheckoutView() {
                     <select
                       value={country}
                       onChange={(e) => setCountry(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-white text-[14px] text-[#747579] focus:outline-none focus:border-[#066AC9]"
+                      className="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-white text-[14px] text-[#747579] focus:outline-none focus:border-[#7928CA]"
                     >
                       <option value="">Select country</option>
                       <option value="NG">Nigeria</option>
@@ -363,7 +363,7 @@ export function EduportCheckoutView() {
                     <select
                       value={stateRegion}
                       onChange={(e) => setStateRegion(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-white text-[14px] text-[#747579] focus:outline-none focus:border-[#066AC9]"
+                      className="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-white text-[14px] text-[#747579] focus:outline-none focus:border-[#7928CA]"
                     >
                       <option value="">Select state</option>
                       <option value="Abia">Abia State (Umuahia)</option>
@@ -383,7 +383,7 @@ export function EduportCheckoutView() {
                       value={postalCode}
                       onChange={(e) => setPostalCode(e.target.value)}
                       placeholder="PIN code"
-                      className="w-full px-4 py-2.5 rounded-lg bg-[#F5F7F9] text-[14px] text-[#24292D] placeholder:text-[#8C939A] focus:outline-none focus:ring-1 focus:ring-[#066AC9]"
+                      className="w-full px-4 py-2.5 rounded-lg bg-[#F5F7F9] text-[14px] text-[#24292D] placeholder:text-[#8C939A] focus:outline-none focus:ring-1 focus:ring-[#7928CA]"
                     />
                   </div>
 
@@ -397,7 +397,7 @@ export function EduportCheckoutView() {
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
                       placeholder="Address"
-                      className="w-full px-4 py-2.5 rounded-lg bg-[#F5F7F9] text-[14px] text-[#24292D] placeholder:text-[#8C939A] focus:outline-none focus:ring-1 focus:ring-[#066AC9]"
+                      className="w-full px-4 py-2.5 rounded-lg bg-[#F5F7F9] text-[14px] text-[#24292D] placeholder:text-[#8C939A] focus:outline-none focus:ring-1 focus:ring-[#7928CA]"
                     />
                   </div>
                 </div>
@@ -414,7 +414,7 @@ export function EduportCheckoutView() {
                       onClick={() => setSelectedSavedCard("mastercard")}
                       className={`w-16 h-11 rounded-md border flex items-center justify-center bg-white transition-all cursor-pointer ${
                         selectedSavedCard === "mastercard"
-                          ? "border-[#066AC9] ring-1 ring-[#066AC9]"
+                          ? "border-[#7928CA] ring-1 ring-[#7928CA]"
                           : "border-slate-200 hover:border-slate-300"
                       }`}
                       title="MasterCard"
@@ -431,7 +431,7 @@ export function EduportCheckoutView() {
                       onClick={() => setSelectedSavedCard("visa")}
                       className={`w-16 h-11 rounded-md border flex items-center justify-center bg-white transition-all cursor-pointer ${
                         selectedSavedCard === "visa"
-                          ? "border-[#066AC9] ring-1 ring-[#066AC9]"
+                          ? "border-[#7928CA] ring-1 ring-[#7928CA]"
                           : "border-slate-200 hover:border-slate-300"
                       }`}
                       title="Visa"
@@ -447,7 +447,7 @@ export function EduportCheckoutView() {
                       onClick={() => setSelectedSavedCard("amex")}
                       className={`w-16 h-11 rounded-md border flex items-center justify-center bg-white transition-all cursor-pointer ${
                         selectedSavedCard === "amex"
-                          ? "border-[#066AC9] ring-1 ring-[#066AC9]"
+                          ? "border-[#7928CA] ring-1 ring-[#7928CA]"
                           : "border-slate-200 hover:border-slate-300"
                       }`}
                       title="American Express"
@@ -463,7 +463,7 @@ export function EduportCheckoutView() {
                 <div className="flex justify-end pt-2">
                   <button
                     type="submit"
-                    className="px-5 py-2.5 rounded-lg bg-[#5698D8] hover:bg-[#066AC9] text-white text-[13.5px] font-bold transition-colors cursor-pointer"
+                    className="px-5 py-2.5 rounded-lg bg-[#5698D8] hover:bg-[#7928CA] text-white text-[13.5px] font-bold transition-colors cursor-pointer"
                   >
                     Save changes
                   </button>
@@ -486,7 +486,7 @@ export function EduportCheckoutView() {
                       name="paymentMethod"
                       checked={paymentMethod === "card"}
                       onChange={() => setPaymentMethod("card")}
-                      className="w-4 h-4 accent-[#066AC9]"
+                      className="w-4 h-4 accent-[#7928CA]"
                     />
                     <span className="text-[14px] font-medium text-[#24292D]">
                       Credit or Debit Card
@@ -506,7 +506,7 @@ export function EduportCheckoutView() {
                             value={cardNumber}
                             onChange={(e) => setCardNumber(e.target.value)}
                             placeholder="xxxx xxxx xxxx xxxx"
-                            className="w-full pl-4 pr-16 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#24292D] placeholder:text-[#8C939A] focus:outline-none focus:border-[#066AC9]"
+                            className="w-full pl-4 pr-16 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#24292D] placeholder:text-[#8C939A] focus:outline-none focus:border-[#7928CA]"
                           />
                           <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 font-display italic font-black text-[13px] tracking-tight text-[#1A1F71]">
                             VISA
@@ -527,14 +527,14 @@ export function EduportCheckoutView() {
                               value={expMonth}
                               onChange={(e) => setExpMonth(e.target.value)}
                               placeholder="Month"
-                              className="w-full px-4 py-2.5 rounded-l-lg border border-slate-200 text-[14px] text-[#24292D] placeholder:text-[#8C939A] focus:outline-none focus:border-[#066AC9]"
+                              className="w-full px-4 py-2.5 rounded-l-lg border border-slate-200 text-[14px] text-[#24292D] placeholder:text-[#8C939A] focus:outline-none focus:border-[#7928CA]"
                             />
                             <input
                               type="text"
                               value={expYear}
                               onChange={(e) => setExpYear(e.target.value)}
                               placeholder="Year"
-                              className="w-full px-4 py-2.5 rounded-r-lg border-y border-r border-slate-200 text-[14px] text-[#24292D] placeholder:text-[#8C939A] focus:outline-none focus:border-[#066AC9]"
+                              className="w-full px-4 py-2.5 rounded-r-lg border-y border-r border-slate-200 text-[14px] text-[#24292D] placeholder:text-[#8C939A] focus:outline-none focus:border-[#7928CA]"
                             />
                           </div>
                         </div>
@@ -548,7 +548,7 @@ export function EduportCheckoutView() {
                             value={cvv}
                             onChange={(e) => setCvv(e.target.value)}
                             placeholder="xxx"
-                            className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#24292D] placeholder:text-[#8C939A] focus:outline-none focus:border-[#066AC9]"
+                            className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#24292D] placeholder:text-[#8C939A] focus:outline-none focus:border-[#7928CA]"
                           />
                         </div>
                       </div>
@@ -563,7 +563,7 @@ export function EduportCheckoutView() {
                           value={cardHolderName}
                           onChange={(e) => setCardHolderName(e.target.value)}
                           placeholder="Enter card holder name"
-                          className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#24292D] placeholder:text-[#8C939A] focus:outline-none focus:border-[#066AC9]"
+                          className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#24292D] placeholder:text-[#8C939A] focus:outline-none focus:border-[#7928CA]"
                         />
                       </div>
                     </div>
@@ -578,7 +578,7 @@ export function EduportCheckoutView() {
                       name="paymentMethod"
                       checked={paymentMethod === "netbanking"}
                       onChange={() => setPaymentMethod("netbanking")}
-                      className="w-4 h-4 accent-[#066AC9]"
+                      className="w-4 h-4 accent-[#7928CA]"
                     />
                     <span className="text-[14px] font-medium text-[#24292D]">
                       Pay with Net Banking
@@ -609,11 +609,11 @@ export function EduportCheckoutView() {
                   value={couponCode}
                   onChange={(e) => setCouponCode(e.target.value)}
                   placeholder="COUPON CODE"
-                  className="flex-1 min-w-0 px-3.5 py-2.5 rounded-l-lg border border-r-0 border-slate-200 text-[13px] text-[#24292D] placeholder:text-[#8C939A] focus:outline-none focus:border-[#066AC9]"
+                  className="flex-1 min-w-0 px-3.5 py-2.5 rounded-l-lg border border-r-0 border-slate-200 text-[13px] text-[#24292D] placeholder:text-[#8C939A] focus:outline-none focus:border-[#7928CA]"
                 />
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-r-lg bg-[#066AC9] hover:bg-[#0556A5] text-white text-[13.5px] font-bold transition-colors cursor-pointer shrink-0"
+                  className="px-5 py-2.5 rounded-r-lg bg-[#7928CA] hover:bg-[#671FB0] text-white text-[13.5px] font-bold transition-colors cursor-pointer shrink-0"
                 >
                   Apply
                 </button>
@@ -677,7 +677,7 @@ export function EduportCheckoutView() {
                         {item.title}
                       </h3>
                       <div className="flex items-center justify-between gap-2 mt-2">
-                        <span className="text-[#0CBC87] font-bold text-[15px]">
+                        <span className="text-[#7928CA] font-bold text-[15px]">
                           ${item.price}
                         </span>
                         <div className="flex items-center gap-3 text-[12.5px] text-[#747579]">
@@ -695,7 +695,7 @@ export function EduportCheckoutView() {
                           </button>
                           <Link
                             href="/courses"
-                            className="inline-flex items-center gap-1 hover:text-[#066AC9] transition-colors"
+                            className="inline-flex items-center gap-1 hover:text-[#7928CA] transition-colors"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
                             <span>Edit</span>
@@ -734,7 +734,7 @@ export function EduportCheckoutView() {
                 type="button"
                 disabled={isProcessing}
                 onClick={handlePlaceOrder}
-                className="w-full mt-5 py-3 rounded-lg bg-[#0CBC87] hover:bg-[#0aa374] disabled:opacity-60 text-white font-bold text-[15px] transition-colors cursor-pointer shadow-2xs"
+                className="w-full mt-5 py-3 rounded-lg bg-[#7928CA] hover:bg-[#671FB0] disabled:opacity-60 text-white font-bold text-[15px] transition-colors cursor-pointer shadow-2xs"
               >
                 {isProcessing ? "Processing Order..." : "Place Order"}
               </button>
@@ -743,7 +743,7 @@ export function EduportCheckoutView() {
                 By completing your purchase, you agree to these{" "}
                 <Link
                   href="/courses"
-                  className="text-[#066AC9] font-bold hover:underline"
+                  className="text-[#7928CA] font-bold hover:underline"
                 >
                   Terms of Service
                 </Link>
@@ -826,7 +826,7 @@ export function EduportCheckoutView() {
         type="button"
         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         aria-label="Scroll to top"
-        className="fixed bottom-6 right-6 z-40 w-10 h-10 rounded-lg bg-[#DCE9F8] hover:bg-[#066AC9] text-[#066AC9] hover:text-white flex items-center justify-center shadow-sm transition-colors cursor-pointer"
+        className="fixed bottom-6 right-6 z-40 w-10 h-10 rounded-lg bg-[#DCE9F8] hover:bg-[#7928CA] text-[#7928CA] hover:text-white flex items-center justify-center shadow-sm transition-colors cursor-pointer"
       >
         <ArrowUp className="w-4 h-4" />
       </button>

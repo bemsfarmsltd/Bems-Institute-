@@ -52,7 +52,7 @@ export default function ForgotPasswordPage() {
         )}
 
         {message && (
-          <div className="mb-5 p-4 rounded-lg bg-[#E8F8F3] border border-[#0CBC87]/25 text-[#0F6E56] text-[13.5px] font-medium">
+          <div className="mb-5 p-4 rounded-lg bg-[#D1FAE5] border border-[#059669]/25 text-[#065F46] text-[13.5px] font-medium">
             <p>{message}</p>
           </div>
         )}
@@ -62,7 +62,7 @@ export default function ForgotPasswordPage() {
             <label className="block text-[13.5px] font-medium text-[#475569] mb-2">
               Email address *
             </label>
-            <div className="flex items-center gap-3 bg-[#F3F5F7] rounded-lg px-4 py-3 border border-transparent focus-within:border-[#066AC9] focus-within:bg-white transition-colors">
+            <div className="flex items-center gap-3 bg-[#F3F5F7] rounded-lg px-4 py-3 border border-transparent focus-within:border-[#7928CA] focus-within:bg-white transition-colors">
               <svg className="w-4 h-4 text-[#94A3B8] shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
                 <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
@@ -81,7 +81,7 @@ export default function ForgotPasswordPage() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-3 rounded-lg bg-[#066AC9] hover:bg-[#0556A5] text-white font-semibold text-[15px] shadow-sm transition-colors disabled:opacity-60 cursor-pointer"
+            className="w-full py-3 rounded-lg bg-[#7928CA] hover:bg-[#671FB0] text-white font-semibold text-[15px] shadow-sm transition-colors disabled:opacity-60 cursor-pointer"
           >
             {submitting ? "Sending Reset Link..." : "Reset password"}
           </button>
@@ -89,7 +89,7 @@ export default function ForgotPasswordPage() {
 
         <p className="mt-7 text-center text-[14px] text-[#64748B]">
           Remembered your password?{" "}
-          <Link href="/login" className="text-[#066AC9] font-semibold hover:underline">
+          <Link href="/login" className="text-[#7928CA] font-semibold hover:underline">
             Back to Sign In
           </Link>
         </p>

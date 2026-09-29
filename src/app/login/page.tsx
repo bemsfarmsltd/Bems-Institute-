@@ -178,7 +178,7 @@ export default function LoginPage() {
               <label className="block text-[13.5px] font-medium text-[#475569] mb-2">
                 Email address *
               </label>
-              <div className="flex items-center gap-3 bg-[#F3F5F7] rounded-lg px-4 py-3 border border-transparent focus-within:border-[#066AC9] focus-within:bg-white transition-colors">
+              <div className="flex items-center gap-3 bg-[#F3F5F7] rounded-lg px-4 py-3 border border-transparent focus-within:border-[#7928CA] focus-within:bg-white transition-colors">
                 <EnvelopeIcon />
                 <input
                   type="email"
@@ -196,7 +196,7 @@ export default function LoginPage() {
               <label className="block text-[13.5px] font-medium text-[#475569] mb-2">
                 Password *
               </label>
-              <div className="flex items-center gap-3 bg-[#F3F5F7] rounded-lg px-4 py-3 border border-transparent focus-within:border-[#066AC9] focus-within:bg-white transition-colors">
+              <div className="flex items-center gap-3 bg-[#F3F5F7] rounded-lg px-4 py-3 border border-transparent focus-within:border-[#7928CA] focus-within:bg-white transition-colors">
                 <LockIcon />
                 <input
                   type="password"
@@ -219,13 +219,13 @@ export default function LoginPage() {
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 rounded border-[#CBD5E1] text-[#066AC9] focus:ring-[#066AC9]"
+                  className="w-4 h-4 rounded border-[#CBD5E1] text-[#7928CA] focus:ring-[#7928CA]"
                 />
                 <span>Remember me</span>
               </label>
               <Link
                 href="/forgot-password"
-                className="text-[#64748B] hover:text-[#066AC9] underline underline-offset-2 transition-colors"
+                className="text-[#64748B] hover:text-[#7928CA] underline underline-offset-2 transition-colors"
               >
                 Forgot password?
               </Link>
@@ -235,7 +235,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-3 rounded-lg bg-[#066AC9] hover:bg-[#0556A5] text-white font-semibold text-[15px] shadow-sm transition-colors disabled:opacity-60 cursor-pointer"
+              className="w-full py-3 rounded-lg bg-[#7928CA] hover:bg-[#671FB0] text-white font-semibold text-[15px] shadow-sm transition-colors disabled:opacity-60 cursor-pointer"
             >
               {submitting ? "Logging in..." : "Login"}
             </button>
@@ -254,7 +254,7 @@ export default function LoginPage() {
                 type="button"
                 disabled={submitting}
                 onClick={() => handleQuickDemo("student")}
-                className="py-2 px-3 rounded-lg bg-[#E7EFF7] hover:bg-[#D8E6F3] text-[#066AC9] font-semibold text-[12.5px] transition-colors cursor-pointer"
+                className="py-2 px-3 rounded-lg bg-[#F0EDF9] hover:bg-[#E6E1F5] text-[#7928CA] font-semibold text-[12.5px] transition-colors cursor-pointer"
               >
                 Student Demo
               </button>
@@ -262,7 +262,7 @@ export default function LoginPage() {
                 type="button"
                 disabled={submitting}
                 onClick={() => handleQuickDemo("instructor")}
-                className="py-2 px-3 rounded-lg bg-[#E8F8F3] hover:bg-[#D5F2E9] text-[#0F6E56] font-semibold text-[12.5px] transition-colors cursor-pointer"
+                className="py-2 px-3 rounded-lg bg-[#EDE9F5] hover:bg-[#E6E1F5] text-[#18143D] font-semibold text-[12.5px] transition-colors cursor-pointer"
               >
                 Instructor Demo
               </button>
@@ -307,7 +307,7 @@ export default function LoginPage() {
                 setError(null);
                 setMode("signup");
               }}
-              className="text-[#066AC9] font-semibold hover:underline cursor-pointer"
+              className="text-[#7928CA] font-semibold hover:underline cursor-pointer"
             >
               Signup here
             </button>
@@ -338,7 +338,7 @@ export default function LoginPage() {
               <label className="block text-[13.5px] font-medium text-[#475569] mb-1.5">
                 Full Name *
               </label>
-              <div className="flex items-center gap-3 bg-[#F3F5F7] rounded-lg px-4 py-2.5 border border-transparent focus-within:border-[#066AC9] focus-within:bg-white transition-colors">
+              <div className="flex items-center gap-3 bg-[#F3F5F7] rounded-lg px-4 py-2.5 border border-transparent focus-within:border-[#7928CA] focus-within:bg-white transition-colors">
                 <UserIcon />
                 <input
                   type="text"
@@ -356,7 +356,7 @@ export default function LoginPage() {
               <label className="block text-[13.5px] font-medium text-[#475569] mb-1.5">
                 Email address *
               </label>
-              <div className="flex items-center gap-3 bg-[#F3F5F7] rounded-lg px-4 py-2.5 border border-transparent focus-within:border-[#066AC9] focus-within:bg-white transition-colors">
+              <div className="flex items-center gap-3 bg-[#F3F5F7] rounded-lg px-4 py-2.5 border border-transparent focus-within:border-[#7928CA] focus-within:bg-white transition-colors">
                 <EnvelopeIcon />
                 <input
                   type="email"
@@ -378,7 +378,7 @@ export default function LoginPage() {
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value as UserRole)}
-                  className="w-full bg-[#F3F5F7] rounded-lg px-3.5 py-2.5 text-[13.5px] text-[#1D2026] focus:outline-none focus:ring-1 focus:ring-[#066AC9]"
+                  className="w-full bg-[#F3F5F7] rounded-lg px-3.5 py-2.5 text-[13.5px] text-[#1D2026] focus:outline-none focus:ring-1 focus:ring-[#7928CA]"
                 >
                   <option value="STUDENT">Student</option>
                   <option value="INSTRUCTOR">Instructor</option>
@@ -391,7 +391,7 @@ export default function LoginPage() {
                 <select
                   value={institution}
                   onChange={(e) => setInstitution(e.target.value as "MOUAU" | "Global")}
-                  className="w-full bg-[#F3F5F7] rounded-lg px-3.5 py-2.5 text-[13.5px] text-[#1D2026] focus:outline-none focus:ring-1 focus:ring-[#066AC9]"
+                  className="w-full bg-[#F3F5F7] rounded-lg px-3.5 py-2.5 text-[13.5px] text-[#1D2026] focus:outline-none focus:ring-1 focus:ring-[#7928CA]"
                 >
                   <option value="MOUAU">MOUAU Campus</option>
                   <option value="Global">Global Learner</option>
@@ -410,7 +410,7 @@ export default function LoginPage() {
                     value={matricNumber}
                     onChange={(e) => setMatricNumber(e.target.value)}
                     placeholder="MOUAU/CME/22/..."
-                    className="w-full bg-[#F3F5F7] rounded-lg px-3.5 py-2.5 text-[13.5px] text-[#1D2026] placeholder:text-[#94A3B8] focus:outline-none focus:ring-1 focus:ring-[#066AC9]"
+                    className="w-full bg-[#F3F5F7] rounded-lg px-3.5 py-2.5 text-[13.5px] text-[#1D2026] placeholder:text-[#94A3B8] focus:outline-none focus:ring-1 focus:ring-[#7928CA]"
                   />
                 </div>
                 <div>
@@ -422,7 +422,7 @@ export default function LoginPage() {
                     value={department}
                     onChange={(e) => setDepartment(e.target.value)}
                     placeholder="Computer Engineering"
-                    className="w-full bg-[#F3F5F7] rounded-lg px-3.5 py-2.5 text-[13.5px] text-[#1D2026] placeholder:text-[#94A3B8] focus:outline-none focus:ring-1 focus:ring-[#066AC9]"
+                    className="w-full bg-[#F3F5F7] rounded-lg px-3.5 py-2.5 text-[13.5px] text-[#1D2026] placeholder:text-[#94A3B8] focus:outline-none focus:ring-1 focus:ring-[#7928CA]"
                   />
                 </div>
               </div>
@@ -433,7 +433,7 @@ export default function LoginPage() {
               <label className="block text-[13.5px] font-medium text-[#475569] mb-1.5">
                 Password *
               </label>
-              <div className="flex items-center gap-3 bg-[#F3F5F7] rounded-lg px-4 py-2.5 border border-transparent focus-within:border-[#066AC9] focus-within:bg-white transition-colors">
+              <div className="flex items-center gap-3 bg-[#F3F5F7] rounded-lg px-4 py-2.5 border border-transparent focus-within:border-[#7928CA] focus-within:bg-white transition-colors">
                 <LockIcon />
                 <input
                   type="password"
@@ -451,7 +451,7 @@ export default function LoginPage() {
               <label className="block text-[13.5px] font-medium text-[#475569] mb-1.5">
                 Confirm Password *
               </label>
-              <div className="flex items-center gap-3 bg-[#F3F5F7] rounded-lg px-4 py-2.5 border border-transparent focus-within:border-[#066AC9] focus-within:bg-white transition-colors">
+              <div className="flex items-center gap-3 bg-[#F3F5F7] rounded-lg px-4 py-2.5 border border-transparent focus-within:border-[#7928CA] focus-within:bg-white transition-colors">
                 <LockIcon />
                 <input
                   type="password"
@@ -470,11 +470,11 @@ export default function LoginPage() {
                 type="checkbox"
                 checked={agreeTerms}
                 onChange={(e) => setAgreeTerms(e.target.checked)}
-                className="w-4 h-4 rounded border-[#CBD5E1] text-[#066AC9] focus:ring-[#066AC9]"
+                className="w-4 h-4 rounded border-[#CBD5E1] text-[#7928CA] focus:ring-[#7928CA]"
               />
               <span>
                 By signing up, you agree to the{" "}
-                <Link href="/legal/terms" className="text-[#066AC9] underline hover:text-[#0556A5]">
+                <Link href="/legal/terms" className="text-[#7928CA] underline hover:text-[#671FB0]">
                   terms of service
                 </Link>
               </span>
@@ -484,7 +484,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-3 rounded-lg bg-[#066AC9] hover:bg-[#0556A5] text-white font-semibold text-[15px] shadow-sm transition-colors disabled:opacity-60 cursor-pointer"
+              className="w-full py-3 rounded-lg bg-[#7928CA] hover:bg-[#671FB0] text-white font-semibold text-[15px] shadow-sm transition-colors disabled:opacity-60 cursor-pointer"
             >
               {submitting ? "Creating account..." : "Sign Up"}
             </button>
@@ -528,7 +528,7 @@ export default function LoginPage() {
                 setError(null);
                 setMode("signin");
               }}
-              className="text-[#066AC9] font-semibold hover:underline cursor-pointer"
+              className="text-[#7928CA] font-semibold hover:underline cursor-pointer"
             >
               Sign in here
             </button>

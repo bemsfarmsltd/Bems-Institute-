@@ -87,7 +87,7 @@ export function Hero() {
             {/* Green Starburst Accent */}
             <svg
               aria-hidden="true"
-              className="hidden sm:block absolute -top-8 left-[58%] w-6 h-6 text-[#0CBC87]"
+              className="hidden sm:block absolute -top-8 left-[58%] w-6 h-6 text-[#7928CA]"
               viewBox="0 0 24 24"
               fill="currentColor"
             >
@@ -144,16 +144,16 @@ export function Hero() {
             <div className="flex flex-wrap items-center gap-5">
               <Link
                 href="/subscriptions"
-                className="inline-flex items-center justify-center rounded-lg bg-[#FBE9EB] hover:bg-[#D6293E] text-[#D6293E] hover:text-white font-bold text-sm px-7 py-3.5 transition-all duration-200 shadow-2xs"
+                className="inline-flex items-center justify-center rounded-lg bg-[#7928CA] hover:bg-[#671FB0] text-white font-bold text-sm px-7 py-3.5 transition-all duration-200 shadow-2xs"
               >
                 Get Started
               </Link>
 
               <Link
                 href="#courses"
-                className="inline-flex items-center gap-3.5 group text-sm font-bold text-[#24292D] hover:text-[#066AC9] transition-colors"
+                className="inline-flex items-center gap-3.5 group text-sm font-bold text-[#24292D] hover:text-[#7928CA] transition-colors"
               >
-                <span className="w-12 h-12 rounded-full bg-[#066AC9] text-white flex items-center justify-center ring-8 ring-[#066AC9]/15 group-hover:scale-105 transition-transform">
+                <span className="w-12 h-12 rounded-full bg-[#7928CA] text-white flex items-center justify-center ring-8 ring-[#7928CA]/15 group-hover:scale-105 transition-transform">
                   <Play className="w-4 h-4 fill-white ml-0.5" />
                 </span>
                 <span>Explore Courses</span>
@@ -161,9 +161,9 @@ export function Hero() {
 
               <Link
                 href="/qr-studio"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#747579] hover:text-[#066AC9] transition-colors ml-auto sm:ml-2"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#747579] hover:text-[#7928CA] transition-colors ml-auto sm:ml-2"
               >
-                <QrCode className="w-4 h-4 text-[#066AC9]" />
+                <QrCode className="w-4 h-4 text-[#7928CA]" />
                 <span>Banner QR Studio</span>
               </Link>
             </div>
@@ -283,7 +283,7 @@ export function Hero() {
               </div>
 
               {/* Eduport Green Floating Card: "Our daily new students" */}
-              <div className="absolute top-24 -right-2 sm:-right-8 bg-[#0CBC87] text-white rounded-2xl p-4 shadow-xl w-52 overflow-hidden">
+              <div className="absolute top-24 -right-2 sm:-right-8 bg-[#7928CA] text-white rounded-2xl p-4 shadow-xl w-52 overflow-hidden">
                 {/* Subtle topographic wave pattern */}
                 <svg
                   aria-hidden="true"
@@ -313,7 +313,7 @@ export function Hero() {
                   <div className="w-8 h-8 rounded-full border-2 border-white bg-[#1D3B53] text-white text-[10px] font-extrabold flex items-center justify-center">
                     UI
                   </div>
-                  <div className="w-9 h-9 rounded-full border-2 border-white bg-[#066AC9] text-white text-[10px] font-extrabold flex items-center justify-center">
+                  <div className="w-9 h-9 rounded-full border-2 border-white bg-[#7928CA] text-white text-[10px] font-extrabold flex items-center justify-center">
                     80+
                   </div>
                 </div>
@@ -329,7 +329,7 @@ export function Hero() {
                     <h4 className="text-xs sm:text-sm font-extrabold text-[#24292D]">
                       Congratulations
                     </h4>
-                    <span className="w-4 h-4 rounded-full bg-[#0CBC87] text-white flex items-center justify-center text-[10px] font-bold">
+                    <span className="w-4 h-4 rounded-full bg-[#7928CA] text-white flex items-center justify-center text-[10px] font-bold">
                       ✓
                     </span>
                   </div>
