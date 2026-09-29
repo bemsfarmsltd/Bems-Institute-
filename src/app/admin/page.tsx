@@ -643,7 +643,7 @@ function AdminDashboardContent() {
     },
   ]);
 
-  // Admin Settings state (Images 2 & 5)
+  // Admin Settings state
   const [settingsSubTab, setSettingsSubTab] = useState<
     "website" | "general" | "notification" | "account" | "social" | "email"
   >("website");
@@ -651,6 +651,48 @@ function AdminDashboardContent() {
     "enable" | "disable" | "request"
   >("enable");
   const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [notificationPrefs, setNotificationPrefs] = useState({
+    withdrawalActivity: true,
+    weeklyReport: false,
+    passwordChange: true,
+    playSound: false,
+    joiningNewInstructors: true,
+    instructorAddedCourses: false,
+    instructorUpdateCourses: true,
+    instructorCourseWeeklyReport: false,
+    joiningNewStudent: true,
+    studentPurchaseCourses: false,
+    studentCourseWeeklyReport: false,
+  });
+  const [activityLogsEnabled, setActivityLogsEnabled] = useState(true);
+  const [twoStepEnabled, setTwoStepEnabled] = useState(true);
+  const [activeLogs, setActiveLogs] = useState([
+    {
+      id: "log-1",
+      browser: "Chrome On Window",
+      ip: "173.238.198.108",
+      time: "12 Nov 2021",
+    },
+    {
+      id: "log-2",
+      browser: "Mozilla On Window",
+      ip: "107.222.146.90",
+      time: "08 Nov 2021",
+    },
+    {
+      id: "log-3",
+      browser: "Chrome On iMac",
+      ip: "231.213.125.55",
+      time: "06 Nov 2021",
+    },
+    {
+      id: "log-4",
+      browser: "Mozilla On Window",
+      ip: "37.242.105.138",
+      time: "02 Nov 2021",
+    },
+  ]);
+  const [emailDrive, setEmailDrive] = useState<"sendmail" | "smtp" | "mail">("smtp");
 
   // Add Course Modal State
   const [showAddCourseModal, setShowAddCourseModal] = useState(false);
@@ -3306,11 +3348,11 @@ function AdminDashboardContent() {
                   })}
                 </div>
 
-                {/* Right Settings Content Card */}
-                <div className="lg:col-span-9 bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
+                {/* Right Settings Content Column */}
+                <div className="lg:col-span-9">
                   {settingsSubTab === "website" && (
-                    /* Sub-Tab 1: Website Settings (Matches Image 2) */
-                    <div>
+                    /* Sub-Tab 1: Website Settings */
+                    <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
                       <div className="px-6 py-4 border-b border-slate-100">
                         <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
                           Website Settings
@@ -3465,12 +3507,12 @@ function AdminDashboardContent() {
                     </div>
                   )}
 
-                  {settingsSubTab !== "website" && (
-                    /* Sub-Tab 2+: General Settings (Matches Image 5) */
-                    <div>
+                  {settingsSubTab === "general" && (
+                    /* Sub-Tab 2: General Settings */
+                    <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
                       <div className="px-6 py-4 border-b border-slate-100">
-                        <h2 className="font-display text-[20px] font-extrabold text-[#1D2026] capitalize">
-                          {settingsSubTab} Settings
+                        <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
+                          General Settings
                         </h2>
                       </div>
 
@@ -3573,6 +3615,719 @@ function AdminDashboardContent() {
                                 http://example.xyz/admin/login
                               </Link>
                             </p>
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end pt-2">
+                          <button
+                            type="submit"
+                            className="px-5 py-2.5 rounded-lg bg-[#066AC9] hover:bg-[#0556A5] text-white text-[14px] font-bold transition-colors cursor-pointer"
+                          >
+                            Update
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  )}
+
+                  {settingsSubTab === "notification" && (
+                    /* Sub-Tab 3: Notification Settings (Matches media_1790711498501.png) */
+                    <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
+                      <div className="px-6 py-4 border-b border-slate-100">
+                        <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
+                          Notifications Settings
+                        </h2>
+                      </div>
+
+                      <div className="p-6 space-y-7">
+                        {/* Group 1 */}
+                        <div>
+                          <h3 className="font-display text-[17px] font-extrabold text-[#1D2026] mb-4">
+                            Choose type of notifications you want to receive
+                          </h3>
+                          <div className="space-y-3">
+                            {(
+                              [
+                                {
+                                  key: "withdrawalActivity",
+                                  label: "Withdrawal activity",
+                                },
+                                {
+                                  key: "weeklyReport",
+                                  label: "Weekly report",
+                                },
+                                {
+                                  key: "passwordChange",
+                                  label: "Password change",
+                                },
+                                {
+                                  key: "playSound",
+                                  label: "Play sound on a message",
+                                },
+                              ] as const
+                            ).map((item) => {
+                              const checked = notificationPrefs[item.key];
+                              return (
+                                <div
+                                  key={item.key}
+                                  className="flex items-center gap-3"
+                                >
+                                  <button
+                                    type="button"
+                                    role="switch"
+                                    aria-checked={checked}
+                                    onClick={() =>
+                                      setNotificationPrefs((prev) => ({
+                                        ...prev,
+                                        [item.key]: !prev[item.key],
+                                      }))
+                                    }
+                                    className={`w-10 h-5 rounded-full p-0.5 transition-colors cursor-pointer flex items-center shrink-0 ${
+                                      checked
+                                        ? "bg-[#066AC9] justify-end"
+                                        : "bg-[#EEF0F3] border border-slate-300 justify-start"
+                                    }`}
+                                  >
+                                    <span
+                                      className={`w-3.5 h-3.5 rounded-full block ${
+                                        checked ? "bg-white" : "bg-[#8C939A]"
+                                      }`}
+                                    />
+                                  </button>
+                                  <span className="text-[14px] text-[#747579]">
+                                    {item.label}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Group 2 */}
+                        <div>
+                          <h3 className="font-display text-[17px] font-extrabold text-[#1D2026] mb-4">
+                            Instructor Related Notification
+                          </h3>
+                          <div className="space-y-3">
+                            {(
+                              [
+                                {
+                                  key: "joiningNewInstructors",
+                                  label: "Joining new instructors",
+                                },
+                                {
+                                  key: "instructorAddedCourses",
+                                  label:
+                                    "Notify when the instructorss added new courses",
+                                },
+                                {
+                                  key: "instructorUpdateCourses",
+                                  label:
+                                    "Notify when instructors update courses",
+                                },
+                                {
+                                  key: "instructorCourseWeeklyReport",
+                                  label: "Course weekly report",
+                                },
+                              ] as const
+                            ).map((item) => {
+                              const checked = notificationPrefs[item.key];
+                              return (
+                                <div
+                                  key={item.key}
+                                  className="flex items-center gap-3"
+                                >
+                                  <button
+                                    type="button"
+                                    role="switch"
+                                    aria-checked={checked}
+                                    onClick={() =>
+                                      setNotificationPrefs((prev) => ({
+                                        ...prev,
+                                        [item.key]: !prev[item.key],
+                                      }))
+                                    }
+                                    className={`w-10 h-5 rounded-full p-0.5 transition-colors cursor-pointer flex items-center shrink-0 ${
+                                      checked
+                                        ? "bg-[#066AC9] justify-end"
+                                        : "bg-[#EEF0F3] border border-slate-300 justify-start"
+                                    }`}
+                                  >
+                                    <span
+                                      className={`w-3.5 h-3.5 rounded-full block ${
+                                        checked ? "bg-white" : "bg-[#8C939A]"
+                                      }`}
+                                    />
+                                  </button>
+                                  <span className="text-[14px] text-[#747579]">
+                                    {item.label}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Group 3 */}
+                        <div>
+                          <h3 className="font-display text-[17px] font-extrabold text-[#1D2026] mb-4">
+                            Student Related Notification
+                          </h3>
+                          <div className="space-y-3">
+                            {(
+                              [
+                                {
+                                  key: "joiningNewStudent",
+                                  label: "Joining new student",
+                                },
+                                {
+                                  key: "studentPurchaseCourses",
+                                  label:
+                                    "Notify when students purchase new courses",
+                                },
+                                {
+                                  key: "studentCourseWeeklyReport",
+                                  label: "Course weekly report",
+                                },
+                              ] as const
+                            ).map((item) => {
+                              const checked = notificationPrefs[item.key];
+                              return (
+                                <div
+                                  key={item.key}
+                                  className="flex items-center gap-3"
+                                >
+                                  <button
+                                    type="button"
+                                    role="switch"
+                                    aria-checked={checked}
+                                    onClick={() =>
+                                      setNotificationPrefs((prev) => ({
+                                        ...prev,
+                                        [item.key]: !prev[item.key],
+                                      }))
+                                    }
+                                    className={`w-10 h-5 rounded-full p-0.5 transition-colors cursor-pointer flex items-center shrink-0 ${
+                                      checked
+                                        ? "bg-[#066AC9] justify-end"
+                                        : "bg-[#EEF0F3] border border-slate-300 justify-start"
+                                    }`}
+                                  >
+                                    <span
+                                      className={`w-3.5 h-3.5 rounded-full block ${
+                                        checked ? "bg-white" : "bg-[#8C939A]"
+                                      }`}
+                                    />
+                                  </button>
+                                  <span className="text-[14px] text-[#747579]">
+                                    {item.label}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {settingsSubTab === "account" && (
+                    /* Sub-Tab 4: Account Settings (Matches media_1790711498473.png) */
+                    <div className="space-y-6">
+                      {/* Card 1: Activity Logs */}
+                      <div className="bg-[#F8F9FA] rounded-xl p-6 flex items-center justify-between gap-4">
+                        <div>
+                          <h3 className="font-display text-[20px] font-extrabold text-[#1D2026]">
+                            Activity Logs
+                          </h3>
+                          <p className="text-[14px] text-[#747579] mt-1">
+                            You can save your all activity logs including unusual activity detected.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={activityLogsEnabled}
+                          onClick={() => setActivityLogsEnabled((prev) => !prev)}
+                          className={`w-11 h-5.5 rounded-full p-0.5 transition-colors cursor-pointer flex items-center shrink-0 ${
+                            activityLogsEnabled
+                              ? "bg-[#066AC9] justify-end"
+                              : "bg-[#EEF0F3] border border-slate-300 justify-start"
+                          }`}
+                        >
+                          <span
+                            className={`w-4 h-4 rounded-full block ${
+                              activityLogsEnabled ? "bg-white" : "bg-[#8C939A]"
+                            }`}
+                          />
+                        </button>
+                      </div>
+
+                      {/* Card 2: Change Password */}
+                      <div className="bg-[#F8F9FA] rounded-xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div>
+                          <h3 className="font-display text-[20px] font-extrabold text-[#1D2026]">
+                            Change Password
+                          </h3>
+                          <p className="text-[14px] text-[#747579] mt-1">
+                            Set a unique password to protect your account.
+                          </p>
+                        </div>
+                        <div className="sm:text-right shrink-0">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setAdminNotice(
+                                "Password change verification link sent to admin email."
+                              )
+                            }
+                            className="px-5 py-2.5 rounded-lg bg-[#066AC9] hover:bg-[#0556A5] text-white text-[14px] font-bold transition-colors cursor-pointer"
+                          >
+                            Change Password
+                          </button>
+                          <p className="text-[12px] text-[#747579] mt-1">
+                            Last change 10 Aug 2020
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Card 3: 2 Step Verification */}
+                      <div className="bg-[#F8F9FA] rounded-xl p-6 flex items-center justify-between gap-4">
+                        <div>
+                          <h3 className="font-display text-[20px] font-extrabold text-[#1D2026]">
+                            2 Step Verification
+                          </h3>
+                          <p className="text-[14px] text-[#747579] mt-1 leading-relaxed">
+                            Secure your account with 2 Step security. When it is activated you will need to enter not only your password, but also a special code using app. You can receive this code by in mobile app.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={twoStepEnabled}
+                          onClick={() => setTwoStepEnabled((prev) => !prev)}
+                          className={`w-11 h-5.5 rounded-full p-0.5 transition-colors cursor-pointer flex items-center shrink-0 ${
+                            twoStepEnabled
+                              ? "bg-[#066AC9] justify-end"
+                              : "bg-[#EEF0F3] border border-slate-300 justify-start"
+                          }`}
+                        >
+                          <span
+                            className={`w-4 h-4 rounded-full block ${
+                              twoStepEnabled ? "bg-white" : "bg-[#8C939A]"
+                            }`}
+                          />
+                        </button>
+                      </div>
+
+                      {/* Card 4: Active Logs Table */}
+                      <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
+                        <div className="bg-[#F8F9FA] px-6 py-4 border-b border-slate-200/80">
+                          <h3 className="font-display text-[20px] font-extrabold text-[#1D2026]">
+                            Active Logs
+                          </h3>
+                        </div>
+
+                        <div className="p-6">
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse">
+                              <thead>
+                                <tr className="bg-[#24292D] text-white text-[13.5px] font-bold">
+                                  <th className="py-3.5 px-4 rounded-l-lg">
+                                    Browser
+                                  </th>
+                                  <th className="py-3.5 px-4">IP</th>
+                                  <th className="py-3.5 px-4">Time</th>
+                                  <th className="py-3.5 px-4 rounded-r-lg text-left">
+                                    Action
+                                  </th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-slate-200/70 text-[14px]">
+                                {activeLogs.map((log) => (
+                                  <tr
+                                    key={log.id}
+                                    className="hover:bg-slate-50/60 transition-colors"
+                                  >
+                                    <td className="py-3.5 px-4 font-display font-bold text-[#1D2026]">
+                                      {log.browser}
+                                    </td>
+                                    <td className="py-3.5 px-4 text-[#747579]">
+                                      {log.ip}
+                                    </td>
+                                    <td className="py-3.5 px-4 text-[#747579]">
+                                      {log.time}
+                                    </td>
+                                    <td className="py-3.5 px-4">
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setActiveLogs((prev) =>
+                                            prev.filter((l) => l.id !== log.id)
+                                          );
+                                          setAdminNotice(
+                                            `Signed out session ${log.browser} (${log.ip}).`
+                                          );
+                                        }}
+                                        className="px-3.5 py-1.5 rounded-md bg-[#FBE9EB] text-[#D6293E] hover:bg-[#D6293E] hover:text-white text-[12px] font-bold transition-colors cursor-pointer"
+                                      >
+                                        Sign out
+                                      </button>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {settingsSubTab === "social" && (
+                    /* Sub-Tab 5: Social Media Settings (Matches media_1790711498371.png) */
+                    <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
+                      <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                        <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
+                          Social Media Settings
+                        </h2>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setAdminNotice("Add new social provider modal opened.")
+                          }
+                          className="px-3.5 py-1.5 rounded-lg bg-[#066AC9] hover:bg-[#0556A5] text-white text-[12.5px] font-bold transition-colors cursor-pointer"
+                        >
+                          Add new
+                        </button>
+                      </div>
+
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          setAdminNotice("Social media settings updated successfully.");
+                        }}
+                        className="p-6 space-y-5"
+                      >
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                          {/* Enter google client ID */}
+                          <div>
+                            <label className="flex items-center gap-2 text-[13.5px] font-medium text-[#747579] mb-2">
+                              <svg
+                                className="w-4 h-4 shrink-0"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  fill="#EA4335"
+                                  d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.8C6.2 7.2 8.9 5 12 5z"
+                                />
+                                <path
+                                  fill="#4285F4"
+                                  d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.6l3.7 2.9c2.2-2 3.7-5 3.7-8.7z"
+                                />
+                                <path
+                                  fill="#FBBC05"
+                                  d="M5.3 14.8c-.2-.8-.4-1.6-.4-2.5s.2-1.7.4-2.5L1.6 7C.6 9 0 11.2 0 13.5s.6 4.5 1.6 6.5l3.7-2.9z"
+                                />
+                                <path
+                                  fill="#34A853"
+                                  d="M12 24c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.8-2.1-6.7-5L1.6 17c1.9 3.9 5.8 7 10.4 7z"
+                                />
+                              </svg>
+                              <span>Enter google client ID</span>
+                            </label>
+                            <input
+                              type="text"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#066AC9]"
+                            />
+                          </div>
+
+                          {/* Enter google API */}
+                          <div>
+                            <label className="flex items-center gap-2 text-[13.5px] font-medium text-[#747579] mb-2">
+                              <svg
+                                className="w-4 h-4 shrink-0"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  fill="#EA4335"
+                                  d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.8C6.2 7.2 8.9 5 12 5z"
+                                />
+                                <path
+                                  fill="#4285F4"
+                                  d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.6l3.7 2.9c2.2-2 3.7-5 3.7-8.7z"
+                                />
+                                <path
+                                  fill="#FBBC05"
+                                  d="M5.3 14.8c-.2-.8-.4-1.6-.4-2.5s.2-1.7.4-2.5L1.6 7C.6 9 0 11.2 0 13.5s.6 4.5 1.6 6.5l3.7-2.9z"
+                                />
+                                <path
+                                  fill="#34A853"
+                                  d="M12 24c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.8-2.1-6.7-5L1.6 17c1.9 3.9 5.8 7 10.4 7z"
+                                />
+                              </svg>
+                              <span>Enter google API</span>
+                            </label>
+                            <input
+                              type="text"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#066AC9]"
+                            />
+                          </div>
+
+                          {/* Enter facebook client ID */}
+                          <div>
+                            <label className="flex items-center gap-2 text-[13.5px] font-medium text-[#747579] mb-2">
+                              <span className="w-4 h-4 rounded-full bg-[#1877F2] text-white inline-flex items-center justify-center text-[10px] font-extrabold shrink-0">
+                                f
+                              </span>
+                              <span>Enter facebook client ID</span>
+                            </label>
+                            <input
+                              type="text"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#066AC9]"
+                            />
+                          </div>
+
+                          {/* Enter facebook API */}
+                          <div>
+                            <label className="flex items-center gap-2 text-[13.5px] font-medium text-[#747579] mb-2">
+                              <span className="w-4 h-4 rounded-full bg-[#1877F2] text-white inline-flex items-center justify-center text-[10px] font-extrabold shrink-0">
+                                f
+                              </span>
+                              <span>Enter facebook API</span>
+                            </label>
+                            <input
+                              type="text"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#066AC9]"
+                            />
+                          </div>
+                        </div>
+
+                        <p className="text-[14px] text-[#747579] pt-1">
+                          <span className="font-bold text-[#4B5563]">
+                            In your app set all redirect URL like:
+                          </span>{" "}
+                          <u className="text-[#066AC9] cursor-pointer">
+                            https://app.eduport.abc/google/callback
+                          </u>
+                        </p>
+
+                        <div className="flex justify-end pt-2">
+                          <button
+                            type="submit"
+                            className="px-5 py-2.5 rounded-lg bg-[#066AC9] hover:bg-[#0556A5] text-white text-[14px] font-bold transition-colors cursor-pointer"
+                          >
+                            Update
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  )}
+
+                  {settingsSubTab === "email" && (
+                    /* Sub-Tab 6: Email Settings (Matches media_1790711498381.png & media_1790711515280.png) */
+                    <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
+                      <div className="px-6 py-4 border-b border-slate-100">
+                        <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
+                          Email Settings
+                        </h2>
+                      </div>
+
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          setAdminNotice("Email settings updated successfully.");
+                        }}
+                        className="p-6 space-y-5"
+                      >
+                        {/* Choose Email Drive */}
+                        <div>
+                          <label className="block text-[13.5px] font-medium text-[#747579] mb-2.5">
+                            Choose Email Drive
+                          </label>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-xl text-[14px] text-[#747579]">
+                            {[
+                              { id: "sendmail", label: "Send Mail" },
+                              { id: "smtp", label: "SMTP" },
+                              { id: "mail", label: "Mail" },
+                            ].map((opt) => (
+                              <label
+                                key={opt.id}
+                                className="inline-flex items-center gap-2 cursor-pointer"
+                              >
+                                <input
+                                  type="radio"
+                                  name="emailDrive"
+                                  checked={emailDrive === opt.id}
+                                  onChange={() =>
+                                    setEmailDrive(
+                                      opt.id as "sendmail" | "smtp" | "mail"
+                                    )
+                                  }
+                                  className="w-4 h-4 accent-[#066AC9]"
+                                />
+                                <span>{opt.label}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Row 1: SMTP HOST (col-6), SMTP Port (col-3), SMTP Secure (col-3) */}
+                        <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
+                          <div className="md:col-span-6">
+                            <label className="block text-[13.5px] font-medium text-[#747579] mb-2">
+                              SMTP HOST
+                            </label>
+                            <input
+                              type="text"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#066AC9]"
+                            />
+                          </div>
+
+                          <div className="md:col-span-3">
+                            <label className="block text-[13.5px] font-medium text-[#747579] mb-2">
+                              SMTP Port
+                            </label>
+                            <input
+                              type="text"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#066AC9]"
+                            />
+                          </div>
+
+                          <div className="md:col-span-3">
+                            <label className="block text-[13.5px] font-medium text-[#747579] mb-2">
+                              SMTP Secure
+                            </label>
+                            <input
+                              type="text"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#066AC9]"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Row 2: SMTP Username & SMTP Password */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                          <div>
+                            <label className="block text-[13.5px] font-medium text-[#747579] mb-2">
+                              SMTP Username
+                            </label>
+                            <input
+                              type="text"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#066AC9]"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[13.5px] font-medium text-[#747579] mb-2">
+                              SMTP Password
+                            </label>
+                            <input
+                              type="password"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#066AC9]"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Row 3: Email From Address & Email From Name */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                          <div>
+                            <label className="block text-[13.5px] font-medium text-[#747579] mb-2">
+                              Email From Address
+                            </label>
+                            <input
+                              type="email"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#066AC9]"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[13.5px] font-medium text-[#747579] mb-2">
+                              Email From Name
+                            </label>
+                            <input
+                              type="text"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#066AC9]"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Row 4: Email Send To & Email External Email */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                          <div>
+                            <label className="block text-[13.5px] font-medium text-[#747579] mb-2">
+                              Email Send To
+                            </label>
+                            <select className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#747579] bg-white focus:outline-none focus:border-[#066AC9]">
+                              <option>Email Send to</option>
+                              <option value="all">All Users</option>
+                              <option value="instructors">Instructors</option>
+                              <option value="students">Students</option>
+                              <option value="admins">Admins Only</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="block text-[13.5px] font-medium text-[#747579] mb-2">
+                              Email External Email
+                            </label>
+                            <input
+                              type="email"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#066AC9]"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Edit Email Template Section */}
+                        <div className="pt-3">
+                          <div className="flex items-center justify-between mb-4">
+                            <h3 className="font-display text-[20px] font-extrabold text-[#1D2026]">
+                              Edit Email Template
+                            </h3>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setAdminNotice("Add email template modal opened.")
+                              }
+                              className="px-3.5 py-1.5 rounded-lg bg-[#066AC9] hover:bg-[#0556A5] text-white text-[12.5px] font-bold transition-colors cursor-pointer"
+                            >
+                              Add Template
+                            </button>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {[
+                              "Welcome Email",
+                              "Send Email to User",
+                              "Password Change",
+                              "Unusual Login Email",
+                              "Password Reset Email by Admin",
+                              "KYC Approve Email",
+                              "KYC Reject Email",
+                              "KYC Missing Email",
+                              "KYC Submitted Email",
+                              "Token Purchase - Cancel by User",
+                              "Token Purchase - Order Placed",
+                              "Token Purchase - Order Successfully",
+                            ].map((tplTitle) => (
+                              <div
+                                key={tplTitle}
+                                className="bg-[#F5F7F9] rounded-lg px-4 py-3 flex items-center justify-between gap-3"
+                              >
+                                <span className="font-display text-[14px] font-bold text-[#1D2026] leading-snug">
+                                  {tplTitle}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setAdminNotice(`Editing template: ${tplTitle}`)
+                                  }
+                                  className="w-8 h-8 rounded-full bg-[#24292D] hover:bg-[#066AC9] text-white flex items-center justify-center shrink-0 transition-colors cursor-pointer"
+                                  title={`Edit ${tplTitle}`}
+                                >
+                                  <Edit3 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            ))}
                           </div>
                         </div>
 
