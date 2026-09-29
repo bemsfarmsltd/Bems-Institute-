@@ -53,8 +53,8 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Brand Logo */}
-          <Link href="/" className="flex items-center gap-3 shrink-0">
-            <div className="relative w-11 h-11 rounded-lg overflow-hidden border border-[#E6E1F5] shadow-xs">
+          <Link href="/" className="flex items-center gap-2 sm:gap-3 min-w-0 shrink mr-2">
+            <div className="relative w-9 h-9 sm:w-11 sm:h-11 rounded-lg overflow-hidden border border-[#E6E1F5] shadow-xs shrink-0">
               <Image
                 src="/images/bems-logo.jpg"
                 alt="BEMS Logo"
@@ -62,11 +62,11 @@ export function Navbar() {
                 className="object-contain"
               />
             </div>
-            <div>
-              <span className="font-extrabold text-[#18143D] text-base sm:text-lg tracking-tight block leading-tight">
+            <div className="min-w-0">
+              <span className="font-extrabold text-[#18143D] text-sm sm:text-lg tracking-tight block leading-tight truncate">
                 BEMS INSTITUTE
               </span>
-              <span className="text-[10px] font-bold text-[#7928CA] tracking-wider uppercase block">
+              <span className="text-[8px] sm:text-[10px] font-bold text-[#7928CA] tracking-normal sm:tracking-wider uppercase block truncate">
                 TECHNOLOGY &amp; VOCATIONAL STUDIES
               </span>
             </div>
