@@ -3,7 +3,7 @@
 import React, { Suspense } from "react";
 import { EduportCheckoutView } from "@/components/EduportCheckoutView";
 
-export default function SubscriptionsPage() {
+export default function CheckoutPage() {
   return (
     <Suspense
       fallback={
