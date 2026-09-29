@@ -643,6 +643,15 @@ function AdminDashboardContent() {
     },
   ]);
 
+  // Admin Settings state (Images 2 & 5)
+  const [settingsSubTab, setSettingsSubTab] = useState<
+    "website" | "general" | "notification" | "account" | "social" | "email"
+  >("website");
+  const [allowRegistration, setAllowRegistration] = useState<
+    "enable" | "disable" | "request"
+  >("enable");
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+
   // Add Course Modal State
   const [showAddCourseModal, setShowAddCourseModal] = useState(false);
   const [adminNotice, setAdminNotice] = useState<string | null>(null);
@@ -2584,14 +2593,15 @@ function AdminDashboardContent() {
           )}
 
           {/* ========================================================= */}
-          {/* VIEW 5: REVIEWS (Matches Image 5)                         */}
+          {/* VIEW 5: REVIEWS (Matches Image 5 + Image 3 Bottom Row)    */}
           {/* ========================================================= */}
           {activeTab === "reviews" && (
-            <div>
-              <h1 className="font-display text-[28px] sm:text-[32px] font-extrabold text-[#1D2026] tracking-tight mb-6">
+            <div className="space-y-7">
+              <h1 className="font-display text-[28px] sm:text-[32px] font-extrabold text-[#1D2026] tracking-tight">
                 Reviews
               </h1>
 
+              {/* Top Reviews Table Card */}
               <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] p-6">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse min-w-[740px]">
@@ -2706,26 +2716,878 @@ function AdminDashboardContent() {
                     </tbody>
                   </table>
                 </div>
+
+                {/* Pagination Footer */}
+                <div className="mt-6 pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-[13.5px] text-[#747579]">
+                  <div>Showing 1 to 8 of 20 entries</div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] text-[13px] font-bold flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                    >
+                      1
+                    </button>
+                    <button
+                      type="button"
+                      className="w-8 h-8 rounded-md bg-[#066AC9] text-white text-[13px] font-bold flex items-center justify-center cursor-pointer"
+                    >
+                      2
+                    </button>
+                    <button
+                      type="button"
+                      className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] text-[13px] font-bold flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                    >
+                      3
+                    </button>
+                    <button
+                      type="button"
+                      className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom 2-Column Row: Top Rated Courses (7 cols) + Reviews Analytics (5 cols) */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                {/* Left: Top Rated Courses */}
+                <div className="lg:col-span-7 bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
+                  <div className="bg-[#F8F9FA] px-6 py-4 border-b border-slate-200/80">
+                    <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
+                      Top Rated Courses
+                    </h2>
+                  </div>
+
+                  <div className="p-6">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse min-w-[540px]">
+                        <thead>
+                          <tr className="bg-[#24292D] text-white text-[13.5px] font-bold">
+                            <th className="py-3.5 px-4 rounded-l-lg">Course Name</th>
+                            <th className="py-3.5 px-3">Enrolled</th>
+                            <th className="py-3.5 px-3">Rating</th>
+                            <th className="py-3.5 px-4 rounded-r-lg">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 text-[14px]">
+                          {[
+                            {
+                              title: "Building Scalable APIs with GraphQL",
+                              enrolled: 2568,
+                              stars: 5,
+                              thumbBg: "bg-[#FDEBC8]",
+                              thumbText: "💎",
+                            },
+                            {
+                              title: "Graphic Design Masterclass",
+                              enrolled: 1858,
+                              stars: 5,
+                              thumbBg: "bg-[#1D3B53] text-[#38BDF8]",
+                              thumbText: "Ps",
+                            },
+                            {
+                              title: "Learn Invision",
+                              enrolled: 6845,
+                              stars: 5,
+                              thumbBg: "bg-[#D6293E] text-white",
+                              thumbText: "in",
+                            },
+                            {
+                              title: "Deep Learning with React-Native",
+                              enrolled: 3845,
+                              stars: 4,
+                              thumbBg: "bg-[#E0F7FA] text-[#00BCD4]",
+                              thumbText: "⚛",
+                            },
+                            {
+                              title: "Bootstrap 5 From Scratch",
+                              enrolled: 1458,
+                              stars: 4,
+                              thumbBg: "bg-[#D8C6F7] text-[#6F42C1]",
+                              thumbText: "B",
+                            },
+                          ].map((course) => (
+                            <tr key={course.title} className="hover:bg-slate-50/70">
+                              <td className="py-4 px-4">
+                                <div className="flex items-center gap-3">
+                                  <div
+                                    className={`w-13 h-10 rounded-md ${course.thumbBg} font-extrabold text-xs flex items-center justify-center shrink-0 shadow-2xs`}
+                                  >
+                                    {course.thumbText}
+                                  </div>
+                                  <span className="font-bold text-[#1D2026] leading-snug">
+                                    {course.title}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="py-4 px-3 text-[#747579]">
+                                {course.enrolled}
+                              </td>
+                              <td className="py-4 px-3">
+                                <div className="flex flex-wrap items-center gap-0.5 max-w-[76px]">
+                                  {[1, 2, 3, 4, 5].map((s) => (
+                                    <Star
+                                      key={s}
+                                      className={`w-3.5 h-3.5 ${
+                                        s <= course.stars
+                                          ? "text-[#F7C32E] fill-[#F7C32E]"
+                                          : "text-[#F7C32E]"
+                                      }`}
+                                    />
+                                  ))}
+                                </div>
+                              </td>
+                              <td className="py-4 px-4">
+                                <div className="flex flex-col items-start gap-1.5">
+                                  <div className="flex items-center gap-1.5">
+                                    <button
+                                      type="button"
+                                      className="w-8 h-8 rounded-full bg-[#E6F8F3] hover:bg-[#0CBC87] text-[#0CBC87] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                                      title="Edit"
+                                    >
+                                      <Edit3 className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="w-8 h-8 rounded-full bg-[#FBE9EB] hover:bg-[#D6293E] text-[#D6293E] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                                      title="Delete"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                  <Link
+                                    href="/courses"
+                                    className="px-3.5 py-1 rounded-md bg-[#E5F6F8] hover:bg-[#17A2B8] text-[#17A2B8] hover:text-white text-[12px] font-bold transition-colors"
+                                  >
+                                    View
+                                  </Link>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Pagination Footer */}
+                    <div className="mt-6 pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-[13.5px] text-[#747579]">
+                      <div>Showing 1 to 8 of 20 entries</div>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] text-[13px] font-bold flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                        >
+                          1
+                        </button>
+                        <button
+                          type="button"
+                          className="w-8 h-8 rounded-md bg-[#066AC9] text-white text-[13px] font-bold flex items-center justify-center cursor-pointer"
+                        >
+                          2
+                        </button>
+                        <button
+                          type="button"
+                          className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] text-[13px] font-bold flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                        >
+                          3
+                        </button>
+                        <button
+                          type="button"
+                          className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                        >
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right: Reviews Analytics */}
+                <div className="lg:col-span-5 bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col">
+                  <div className="bg-[#F8F9FA] px-6 py-4 border-b border-slate-200/80">
+                    <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
+                      Reviews Analytics
+                    </h2>
+                  </div>
+
+                  <div className="p-6 flex-1 flex flex-col justify-between">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-[#E6F8F3] rounded-lg p-4">
+                        <div className="text-[13px] text-[#747579] mb-1">
+                          Total Positive Review
+                        </div>
+                        <div className="font-display text-[22px] font-extrabold text-[#1D2026]">
+                          85%
+                        </div>
+                      </div>
+                      <div className="bg-[#FBE9EB] rounded-lg p-4">
+                        <div className="text-[13px] text-[#747579] mb-1">
+                          Total Negative Review
+                        </div>
+                        <div className="font-display text-[22px] font-extrabold text-[#1D2026]">
+                          15%
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 2-Segment Green/Red Donut Chart */}
+                    <div className="my-auto py-8 flex items-center justify-center">
+                      <div className="w-56 h-56 relative">
+                        <svg viewBox="0 0 160 160" className="w-full h-full -rotate-90">
+                          {/* Green 73% visual arc */}
+                          <circle
+                            cx="80"
+                            cy="80"
+                            r="60"
+                            fill="transparent"
+                            stroke="#0CBC87"
+                            strokeWidth="26"
+                            strokeDasharray="273 377"
+                            strokeDashoffset="0"
+                          />
+                          {/* Red 27% visual arc */}
+                          <circle
+                            cx="80"
+                            cy="80"
+                            r="60"
+                            fill="transparent"
+                            stroke="#D6293E"
+                            strokeWidth="26"
+                            strokeDasharray="100 377"
+                            strokeDashoffset="-275"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}
 
           {/* ========================================================= */}
-          {/* VIEW 6: EARNINGS / SETTINGS                               */}
+          {/* VIEW 6: EARNINGS (Matches Images 1 & 4)                   */}
           {/* ========================================================= */}
-          {(activeTab === "earnings" ||
-            activeTab === "analytics" ||
-            activeTab === "settings") && (
-            <div className="space-y-6">
-              <h1 className="font-display text-[28px] sm:text-[32px] font-extrabold text-[#1D2026] tracking-tight capitalize">
-                {activeTab === "settings" ? "Admin Settings" : activeTab}
+          {(activeTab === "earnings" || activeTab === "analytics") && (
+            <div>
+              <h1 className="font-display text-[28px] sm:text-[32px] font-extrabold text-[#1D2026] tracking-tight mb-6">
+                Earnings
               </h1>
 
-              <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] p-6">
-                <h2 className="font-display text-[20px] font-extrabold text-[#1D2026] mb-4">
-                  Monthly Revenue &amp; Enrollment Trajectory
-                </h2>
-                <EarningsLineChart />
+              {/* 3 Pastel Summary Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-7">
+                {/* Sales this month */}
+                <div className="bg-[#E7F0FA] rounded-xl p-6">
+                  <div className="text-[14px] font-bold text-[#1D2026] mb-2">
+                    Sales this month
+                  </div>
+                  <div className="font-display text-[36px] sm:text-[42px] font-extrabold text-[#066AC9] leading-tight">
+                    $899.95
+                  </div>
+                </div>
+
+                {/* To be paid */}
+                <div className="bg-[#EFEBF9] rounded-xl p-6">
+                  <div className="text-[14px] font-bold text-[#1D2026] mb-2 flex items-center gap-1.5">
+                    <span>To be paid</span>
+                    <span className="w-4 h-4 rounded-full bg-[#1D2026] text-white text-[10px] font-black inline-flex items-center justify-center">
+                      i
+                    </span>
+                  </div>
+                  <div className="font-display text-[36px] sm:text-[42px] font-extrabold text-[#6F42C1] leading-tight">
+                    $750.35
+                  </div>
+                </div>
+
+                {/* Lifetime Earnings */}
+                <div className="bg-[#FFF2E2] rounded-xl p-6">
+                  <div className="text-[14px] font-bold text-[#1D2026] mb-2">
+                    Lifetime Earnings
+                  </div>
+                  <div className="font-display text-[36px] sm:text-[42px] font-extrabold text-[#FD7E14] leading-tight">
+                    $4882.65
+                  </div>
+                </div>
+              </div>
+
+              {/* Invoice History Card */}
+              <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
+                <div className="bg-[#F8F9FA] px-6 py-4 border-b border-slate-200/80">
+                  <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
+                    Invoice History
+                  </h2>
+                </div>
+
+                <div className="p-6">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse min-w-[780px]">
+                      <thead>
+                        <tr className="bg-[#24292D] text-white text-[13.5px] font-bold">
+                          <th className="py-3.5 px-4 rounded-l-lg">Invoice ID</th>
+                          <th className="py-3.5 px-4">Course Name</th>
+                          <th className="py-3.5 px-4">Date</th>
+                          <th className="py-3.5 px-4">Payment Method</th>
+                          <th className="py-3.5 px-4">Amount</th>
+                          <th className="py-3.5 px-4">Status</th>
+                          <th className="py-3.5 px-4 rounded-r-lg">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 text-[14px]">
+                        {[
+                          {
+                            id: "#254684",
+                            course: "Create a Design System in Figma",
+                            date: "29 Aug 2021",
+                            method: "mastercard",
+                            amount: "$3999",
+                            status: "Paid",
+                            statusClass: "bg-[#E6F8F3] text-[#0CBC87]",
+                            highlight: false,
+                          },
+                          {
+                            id: "#125464",
+                            course: "Sketch from A to Z: for app designer",
+                            date: "26 Aug 2021",
+                            method: "paypal",
+                            amount: "$4201",
+                            status: "Paid",
+                            statusClass: "bg-[#E6F8F3] text-[#0CBC87]",
+                            highlight: false,
+                          },
+                          {
+                            id: "#123546",
+                            course: "The Complete Web Development in python",
+                            date: "18 July 2021",
+                            method: "paypal",
+                            amount: "$1032",
+                            status: "Pending",
+                            statusClass: "bg-[#FFF2E2] text-[#FD7E14]",
+                            highlight: false,
+                          },
+                          {
+                            id: "#1235698",
+                            course: "Deep Learning with React-Native",
+                            date: "09 July 2021",
+                            method: "mastercard",
+                            amount: "$6548",
+                            status: "Paid",
+                            statusClass: "bg-[#E6F8F3] text-[#0CBC87]",
+                            highlight: false,
+                          },
+                          {
+                            id: "#132456",
+                            course: "Microsoft Excel - Excel from Beginner to Advanced",
+                            date: "21 June 2021",
+                            method: "paypal",
+                            amount: "$2546",
+                            status: "Pending",
+                            statusClass: "bg-[#FFF2E2] text-[#FD7E14]",
+                            highlight: false,
+                          },
+                          {
+                            id: "#145623",
+                            course: "Twitter Marketing & Twitter Ads For Beginners",
+                            date: "05 June 2021",
+                            method: "mastercard",
+                            amount: "$4258",
+                            status: "Cancel",
+                            statusClass: "bg-[#FBE9EB] text-[#D6293E]",
+                            highlight: false,
+                          },
+                          {
+                            id: "#154632",
+                            course: "The Complete Digital Marketing Course - 12 Courses in 1",
+                            date: "15 April 2021",
+                            method: "paypal",
+                            amount: "$854",
+                            status: "Pending",
+                            statusClass: "bg-[#FFF2E2] text-[#FD7E14]",
+                            highlight: false,
+                          },
+                          {
+                            id: "#165423",
+                            course: "Create a Design System in Figma",
+                            date: "02 Jan 2021",
+                            method: "mastercard",
+                            amount: "$965",
+                            status: "Paid",
+                            statusClass: "bg-[#E6F8F3] text-[#0CBC87]",
+                            highlight: true,
+                          },
+                        ].map((inv) => (
+                          <tr
+                            key={inv.id}
+                            className={inv.highlight ? "bg-[#F2F4F6]" : "hover:bg-slate-50/70"}
+                          >
+                            <td
+                              className={`py-4 px-4 ${
+                                inv.highlight
+                                  ? "text-[#1D2026] font-semibold"
+                                  : "text-[#747579]"
+                              }`}
+                            >
+                              {inv.id}
+                            </td>
+                            <td className="py-4 px-4 font-bold text-[#1D2026]">
+                              {inv.course}
+                            </td>
+                            <td
+                              className={`py-4 px-4 ${
+                                inv.highlight
+                                  ? "text-[#1D2026] font-medium"
+                                  : "text-[#747579]"
+                              }`}
+                            >
+                              {inv.date}
+                            </td>
+                            <td className="py-4 px-4">
+                              {inv.method === "mastercard" ? (
+                                <div className="inline-flex items-center relative h-6">
+                                  <span className="w-6 h-6 rounded-full bg-[#EB001B] inline-block" />
+                                  <span className="w-6 h-6 rounded-full bg-[#F79E1B]/90 -ml-2.5 inline-block" />
+                                  <span className="absolute inset-0 flex items-center justify-center text-[7px] font-extrabold text-white tracking-tighter">
+                                    mastercard
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="inline-flex items-center gap-1 font-display font-black italic text-[15px]">
+                                  <span className="text-[#003087]">P</span>
+                                  <span className="text-[#003087]">Pay</span>
+                                  <span className="text-[#0079C1] -ml-1">Pal</span>
+                                </div>
+                              )}
+                            </td>
+                            <td className="py-4 px-4">
+                              <div className="inline-flex items-center gap-1.5 font-medium text-[#475569]">
+                                <span>{inv.amount}</span>
+                                <span className="w-4 h-4 rounded-full bg-[#1D2026] text-white text-[9.5px] font-black inline-flex items-center justify-center">
+                                  i
+                                </span>
+                              </div>
+                            </td>
+                            <td className="py-4 px-4">
+                              <span
+                                className={`px-2.5 py-1 rounded-md text-[11.5px] font-bold ${inv.statusClass}`}
+                              >
+                                {inv.status}
+                              </span>
+                            </td>
+                            <td className="py-4 px-4">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setAdminNotice(`Downloaded invoice ${inv.id}.`)
+                                }
+                                className="w-9 h-9 rounded-full bg-[#E7F0FA] hover:bg-[#066AC9] text-[#066AC9] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                                title="Download Invoice"
+                              >
+                                <svg
+                                  className="w-4 h-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"
+                                  />
+                                </svg>
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Pagination Footer */}
+                  <div className="mt-6 pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-[13.5px] text-[#747579]">
+                    <div>Showing 1 to 8 of 20 entries</div>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] text-[13px] font-bold flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                      >
+                        1
+                      </button>
+                      <button
+                        type="button"
+                        className="w-8 h-8 rounded-md bg-[#066AC9] text-white text-[13px] font-bold flex items-center justify-center cursor-pointer"
+                      >
+                        2
+                      </button>
+                      <button
+                        type="button"
+                        className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] text-[13px] font-bold flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                      >
+                        3
+                      </button>
+                      <button
+                        type="button"
+                        className="w-8 h-8 rounded-md bg-[#E7F0FA] text-[#066AC9] flex items-center justify-center hover:bg-[#066AC9] hover:text-white transition-colors cursor-pointer"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================= */}
+          {/* VIEW 7: ADMIN SETTINGS (Matches Images 2 & 5)             */}
+          {/* ========================================================= */}
+          {activeTab === "settings" && (
+            <div>
+              <h1 className="font-display text-[28px] sm:text-[32px] font-extrabold text-[#1D2026] tracking-tight mb-6">
+                Admin Settings
+              </h1>
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                {/* Left Dark Sub-Sidebar */}
+                <div className="lg:col-span-3 bg-[#24292D] rounded-xl p-4 space-y-1.5">
+                  {[
+                    { id: "website", label: "Website Settings", icon: Globe },
+                    { id: "general", label: "General Settings", icon: Settings },
+                    { id: "notification", label: "Notification Settings", icon: Bell },
+                    { id: "account", label: "Account Settings", icon: UserIcon },
+                    { id: "social", label: "Social Settings", icon: BarChart3 },
+                    { id: "email", label: "Email Settings", icon: Mail },
+                  ].map((item) => {
+                    const Icon = item.icon;
+                    const isSubActive = settingsSubTab === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() =>
+                          setSettingsSubTab(
+                            item.id as
+                              | "website"
+                              | "general"
+                              | "notification"
+                              | "account"
+                              | "social"
+                              | "email"
+                          )
+                        }
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
+                          isSubActive
+                            ? "bg-white text-[#1D2026] shadow-xs"
+                            : "text-white/90 hover:text-white hover:bg-white/5"
+                        }`}
+                      >
+                        <Icon className="w-4 h-4 shrink-0" />
+                        <span>{item.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Right Settings Content Card */}
+                <div className="lg:col-span-9 bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
+                  {settingsSubTab === "website" && (
+                    /* Sub-Tab 1: Website Settings (Matches Image 2) */
+                    <div>
+                      <div className="px-6 py-4 border-b border-slate-100">
+                        <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
+                          Website Settings
+                        </h2>
+                      </div>
+
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          setAdminNotice("Website settings updated successfully.");
+                        }}
+                        className="p-6 space-y-5"
+                      >
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                          <div>
+                            <label className="block text-[13.5px] font-medium text-[#747579] mb-2">
+                              Site Name
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="Site Name"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#066AC9]"
+                            />
+                            <p className="text-[11.5px] text-[#9A9EA4] mt-1.5 leading-snug">
+                              Enter Website Name. It Display in Website and Email.
+                            </p>
+                          </div>
+
+                          <div>
+                            <label className="block text-[13.5px] font-medium text-[#747579] mb-2">
+                              Site Copyrights
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="Site Copyrights"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#066AC9]"
+                            />
+                            <p className="text-[11.5px] text-[#9A9EA4] mt-1.5 leading-snug">
+                              Using for Contact and Send Email.
+                            </p>
+                          </div>
+
+                          <div>
+                            <label className="block text-[13.5px] font-medium text-[#747579] mb-2">
+                              Site Email
+                            </label>
+                            <input
+                              type="email"
+                              placeholder="Site Email"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#066AC9]"
+                            />
+                            <p className="text-[11.5px] text-[#9A9EA4] mt-1.5 leading-snug">
+                              For Copyrights Text.
+                            </p>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-[13.5px] font-medium text-[#747579] mb-2">
+                            Site Description
+                          </label>
+                          <textarea
+                            rows={4}
+                            className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#066AC9]"
+                          />
+                          <p className="text-[11.5px] text-[#9A9EA4] mt-1.5">
+                            For write brief description of your organization, or a Website.
+                          </p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                          <div>
+                            <label className="block text-[13.5px] font-medium text-[#747579] mb-2">
+                              Contact Phone
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="Contact Phone"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#066AC9]"
+                            />
+                            <p className="text-[11.5px] text-[#9A9EA4] mt-1.5">
+                              Using for Contact and Support.
+                            </p>
+                          </div>
+
+                          <div>
+                            <label className="block text-[13.5px] font-medium text-[#747579] mb-2">
+                              Support Email
+                            </label>
+                            <input
+                              type="email"
+                              placeholder="Support Email"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#066AC9]"
+                            />
+                            <p className="text-[11.5px] text-[#9A9EA4] mt-1.5">
+                              For Support Email.
+                            </p>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-[13.5px] font-medium text-[#747579] mb-2.5">
+                            Allow Registration
+                          </label>
+                          <div className="flex flex-wrap items-center gap-6 text-[14px] text-[#747579]">
+                            {[
+                              { id: "enable", label: "Enable" },
+                              { id: "disable", label: "Disable" },
+                              { id: "request", label: "On Request" },
+                            ].map((opt) => (
+                              <label
+                                key={opt.id}
+                                className="inline-flex items-center gap-2 cursor-pointer"
+                              >
+                                <input
+                                  type="radio"
+                                  name="allowRegistration"
+                                  checked={allowRegistration === opt.id}
+                                  onChange={() =>
+                                    setAllowRegistration(
+                                      opt.id as "enable" | "disable" | "request"
+                                    )
+                                  }
+                                  className="w-4 h-4 accent-[#066AC9]"
+                                />
+                                <span>{opt.label}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-[13.5px] font-medium text-[#747579] mb-2">
+                            Contact Address
+                          </label>
+                          <textarea
+                            rows={3}
+                            placeholder="Contact Address"
+                            className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#066AC9]"
+                          />
+                        </div>
+
+                        <div className="flex justify-end pt-2">
+                          <button
+                            type="submit"
+                            className="px-5 py-2.5 rounded-lg bg-[#066AC9] hover:bg-[#0556A5] text-white text-[14px] font-bold transition-colors cursor-pointer"
+                          >
+                            Update
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  )}
+
+                  {settingsSubTab !== "website" && (
+                    /* Sub-Tab 2+: General Settings (Matches Image 5) */
+                    <div>
+                      <div className="px-6 py-4 border-b border-slate-100">
+                        <h2 className="font-display text-[20px] font-extrabold text-[#1D2026] capitalize">
+                          {settingsSubTab} Settings
+                        </h2>
+                      </div>
+
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          setAdminNotice("General settings updated successfully.");
+                        }}
+                        className="p-6 space-y-6"
+                      >
+                        <div>
+                          <label className="block text-[13.5px] font-medium text-[#747579] mb-2">
+                            Main Site URL
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="Site URL"
+                            className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#066AC9]"
+                          />
+                          <p className="text-[11.5px] text-[#9A9EA4] mt-1.5">
+                            Set your main website url.
+                          </p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                          <div>
+                            <label className="block text-[13.5px] font-medium text-[#747579] mb-2">
+                              Select Currency
+                            </label>
+                            <select className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#747579] bg-white focus:outline-none focus:border-[#066AC9]">
+                              <option>Select Currency</option>
+                              <option value="USD">USD ($)</option>
+                              <option value="NGN">NGN (₦)</option>
+                              <option value="EUR">EUR (€)</option>
+                            </select>
+                            <p className="text-[11.5px] text-[#9A9EA4] mt-1.5">
+                              Select currency as per Country.
+                            </p>
+                          </div>
+
+                          <div>
+                            <label className="block text-[13.5px] font-medium text-[#747579] mb-2">
+                              Select Language
+                            </label>
+                            <select className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#747579] bg-white focus:outline-none focus:border-[#066AC9]">
+                              <option>Select Language</option>
+                              <option value="en">English</option>
+                              <option value="fr">French</option>
+                              <option value="es">Spanish</option>
+                            </select>
+                            <p className="text-[11.5px] text-[#9A9EA4] mt-1.5">
+                              Select language as per Country.
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
+                          <div className="md:col-span-4">
+                            <label className="block text-[13.5px] font-medium text-[#747579] mb-2.5">
+                              Maintainance mode
+                            </label>
+                            <div className="flex items-center gap-3">
+                              <button
+                                type="button"
+                                role="switch"
+                                aria-checked={maintenanceMode}
+                                onClick={() => setMaintenanceMode((prev) => !prev)}
+                                className={`w-12 h-6 rounded-full p-1 transition-colors cursor-pointer flex items-center ${
+                                  maintenanceMode
+                                    ? "bg-[#066AC9] justify-end"
+                                    : "bg-[#EEF0F3] border border-slate-300 justify-start"
+                                }`}
+                              >
+                                <span
+                                  className={`w-4 h-4 rounded-full block ${
+                                    maintenanceMode ? "bg-white" : "bg-[#8C939A]"
+                                  }`}
+                                />
+                              </button>
+                              <span className="text-[14px] text-[#747579]">
+                                Make Site Offline
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="md:col-span-8">
+                            <label className="block text-[13.5px] font-medium text-[#747579] mb-2">
+                              Maintainance Text
+                            </label>
+                            <textarea
+                              rows={3}
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#066AC9]"
+                            />
+                            <p className="text-[12px] text-[#9A9EA4] mt-1.5">
+                              Admin login on maintenance mode:{" "}
+                              <Link
+                                href="/login"
+                                className="text-[#066AC9] hover:underline ml-1"
+                              >
+                                http://example.xyz/admin/login
+                              </Link>
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end pt-2">
+                          <button
+                            type="submit"
+                            className="px-5 py-2.5 rounded-lg bg-[#066AC9] hover:bg-[#0556A5] text-white text-[14px] font-bold transition-colors cursor-pointer"
+                          >
+                            Update
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
