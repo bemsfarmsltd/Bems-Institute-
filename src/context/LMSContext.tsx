@@ -58,7 +58,8 @@ interface LMSContextType {
     name: string,
     email: string,
     password: string,
-    role?: "STUDENT" | "INSTRUCTOR"
+    role?: "STUDENT" | "INSTRUCTOR",
+    referralCode?: string
   ) => Promise<AuthResult>;
   setVerifiedUser: (user: User) => void;
   logout: () => void;
@@ -367,13 +368,14 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
     name: string,
     email: string,
     password: string,
-    role: "STUDENT" | "INSTRUCTOR" = "STUDENT"
+    role: "STUDENT" | "INSTRUCTOR" = "STUDENT",
+    referralCode?: string
   ): Promise<AuthResult> => {
     try {
       const res = await apiFetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, role })
+        body: JSON.stringify({ name, email, password, role, referralCode })
       });
       const data = await res.json();
       if (res.ok && data.user) {

@@ -60,6 +60,12 @@ enum NotificationCategory {
   GRADING
   PAYMENT
   GAMIFICATION
+  ATTENDANCE
+}
+
+enum ReferralStatus {
+  SIGNED_UP // referee created an account with this user's code
+  CREDITED  // referee actually paid something -> referrer's credit was granted
 }
 
 model User {
@@ -80,8 +86,82 @@ model User {
   learningProfile  LearningProfile?
   passwordResetTokens PasswordResetToken[]
   notifications    Notification[]
+  // Bring-a-friend (PRD §5.3): every user gets a permanent shareable code;
+  // referredByCode records which code (if any) they signed up with.
+  referralCode        String?   @unique
+  referredByCode       String?
+  creditBalanceNaira   Int       @default(0)
+  referralsMade        Referral[]          @relation("ReferralsMade")
+  attendanceRecords    AttendanceRecord[]
+  graduateOutcomes     GraduateOutcome[]
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
+}
+
+// One row per successful referral signup — created when the referee
+// registers with a code, flipped to CREDITED (and the referrer's balance
+// bumped by creditNaira) the first time the referee's enrollment shows any
+// real payment, so a friend who signs up but never pays doesn't earn credit.
+model Referral {
+  id          String         @id @default(cuid())
+  referrerId  String
+  referrer    User           @relation("ReferralsMade", fields: [referrerId], references: [id], onDelete: Cascade)
+  refereeId   String         @unique
+  refereeName String
+  status      ReferralStatus @default(SIGNED_UP)
+  creditNaira Int            @default(5000)
+  creditedAt  DateTime?
+  createdAt   DateTime       @default(now())
+
+  @@index([referrerId])
+}
+
+// A public, admin-curated "where they are now" entry (PRD §5.3) — never
+// auto-published from a certificate, since putting someone's name/photo on
+// a public marketing page needs their consent, not just a passing grade.
+model GraduateOutcome {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  headline  String
+  company   String?
+  quote     String?  @db.Text
+  photoUrl  String?
+  featured  Boolean  @default(false)
+  published Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([courseId])
+}
+
+// A single scheduled live class (Zoom or physical lab) for a course — the
+// PRD's "miss two classes -> automatic check-in" (§6.2) needs real sessions
+// to be absent FROM, not just lesson-video progress.
+model LiveSession {
+  id          String   @id @default(cuid())
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title       String
+  scheduledAt DateTime
+  createdAt   DateTime @default(now())
+  attendance  AttendanceRecord[]
+
+  @@index([courseId])
+}
+
+model AttendanceRecord {
+  id        String      @id @default(cuid())
+  sessionId String
+  session   LiveSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  present   Boolean
+  markedAt  DateTime    @default(now())
+
+  @@unique([sessionId, userId])
+  @@index([userId])
 }
 
 model Course {
@@ -108,6 +188,8 @@ model Course {
   enrollments  Enrollment[]
   certificates Certificate[]
   concepts     Concept[]
+  liveSessions LiveSession[]
+  graduateOutcomes GraduateOutcome[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 }

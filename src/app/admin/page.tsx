@@ -911,6 +911,15 @@ function AdminDashboardContent() {
               <span>Students</span>
             </button>
 
+            {/* Graduate Outcomes */}
+            <Link
+              href="/admin/graduates"
+              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-[14px] font-semibold text-white/90 hover:text-white hover:bg-white/5 transition-colors"
+            >
+              <Star className="w-4 h-4 shrink-0" />
+              <span>Graduate Outcomes</span>
+            </Link>
+
             {/* Instructors Accordion (Matches Image 5) */}
             <div>
               <button

@@ -120,6 +120,11 @@ export function Footer() {
                   Cohort Leaderboard
                 </Link>
               </li>
+              <li>
+                <Link href="/graduates" className="hover:text-[#066AC9] transition-colors">
+                  Graduate Stories
+                </Link>
+              </li>
             </ul>
           </div>
 

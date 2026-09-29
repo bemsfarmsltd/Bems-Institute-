@@ -4,6 +4,7 @@ import { getSessionUser, isStaff, isAdmin } from "@/lib/api-auth";
 import { computeAdminRoster } from "@/lib/admin-roster";
 import { DELIVERY_MODE_LABEL, mapAdminCourse } from "@/lib/lms-mappers";
 import { createNotification } from "@/lib/notifications";
+import { creditReferralIfEligible } from "@/lib/referrals";
 import type { AnalyticsSummary } from "@/types/lms";
 
 const router = Router();
@@ -222,6 +223,10 @@ router.post("/enrollments/:id/payment", async (req, res) => {
     category: "PAYMENT",
     linkUrl: "/dashboard"
   });
+
+  if (amountPaid > 0) {
+    await creditReferralIfEligible(enrollment.userId);
+  }
 
   return res.json({ enrollment });
 });

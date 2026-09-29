@@ -4,6 +4,7 @@ import { verifyPassword, hashPassword, isPasswordStrongEnough } from "@/lib/pass
 import { createSessionToken, verifySessionToken, SESSION_COOKIE, SESSION_COOKIE_OPTIONS } from "@/lib/session";
 import { checkRateLimit, recordAttempt, rateLimitMessage, clearAttempts } from "@/lib/rate-limit";
 import { createPasswordResetToken, deliverPasswordResetLink, lookupResetToken, consumeResetToken } from "@/lib/password-reset";
+import { recordReferralSignup } from "@/lib/referrals";
 
 const router = Router();
 
@@ -59,6 +60,7 @@ router.post("/signup", async (req, res) => {
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
   const password = typeof body.password === "string" ? body.password : "";
   const role = body.role === "INSTRUCTOR" ? "INSTRUCTOR" : "STUDENT";
+  const referralCode = typeof body.referralCode === "string" ? body.referralCode : "";
 
   if (!name || !email) {
     return res.status(400).json({ error: "Name and email are required." });
@@ -74,6 +76,10 @@ router.post("/signup", async (req, res) => {
 
   const passwordHash = await hashPassword(password);
   const user = await prisma.user.create({ data: { name, email, passwordHash, role } });
+
+  if (referralCode) {
+    await recordReferralSignup(user.id, user.name, referralCode);
+  }
 
   const token = await createSessionToken({ id: user.id, name: user.name, email: user.email, role: user.role });
   res.cookie(SESSION_COOKIE, token, SESSION_COOKIE_OPTIONS);

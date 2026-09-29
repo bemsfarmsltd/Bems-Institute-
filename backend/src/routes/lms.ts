@@ -10,6 +10,7 @@ import {
   touchLearningStreak
 } from "@/lib/learning-engine";
 import { createNotification, notifyStaff, formatRelativeTime } from "@/lib/notifications";
+import { creditReferralIfEligible } from "@/lib/referrals";
 import type { QuizResult } from "@/types/lms";
 import type { NotificationCategory } from "@prisma/client";
 
@@ -137,6 +138,10 @@ router.post("/enroll", async (req, res) => {
     update: baseData,
     create: { userId: session.id, courseId, status: "ACTIVE", ...baseData }
   });
+
+  if (amountPaid && amountPaid > 0) {
+    await creditReferralIfEligible(session.id);
+  }
 
   const firstLessonId = course.modules[0]?.lessons[0]?.id ?? "les-1";
   const paymentSummary =

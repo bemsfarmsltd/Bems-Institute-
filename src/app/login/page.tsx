@@ -45,6 +45,17 @@ export default function LoginPage() {
   const { login, signup } = useLMS();
 
   const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [referralCode, setReferralCode] = useState("");
+
+  // Plain window.location read rather than useSearchParams() — this page
+  // doesn't have a Suspense boundary, and a bare browser API avoids
+  // needing one just to pick up a ?ref= code.
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const ref = new URLSearchParams(window.location.search).get("ref");
+      if (ref) setReferralCode(ref);
+    }
+  }, []);
 
   React.useEffect(() => {
     if (typeof window !== "undefined") {
@@ -128,7 +139,8 @@ export default function LoginPage() {
       name,
       email,
       password,
-      role === "INSTRUCTOR" ? "INSTRUCTOR" : "STUDENT"
+      role === "INSTRUCTOR" ? "INSTRUCTOR" : "STUDENT",
+      referralCode || undefined
     );
     setSubmitting(false);
 
