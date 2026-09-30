@@ -53,7 +53,11 @@ export async function createNotification(input: CreateNotificationInput) {
 }
 
 /**
- * Sends a notification to all staff users (INSTRUCTOR and ADMIN).
+ * Sends a notification to all staff users (INSTRUCTOR and ADMIN) who have
+ * this category enabled in their own notification preferences (admin
+ * console -> Settings -> Notification Settings). A user's own personal
+ * notifications (createNotification above) are never filtered this way —
+ * only these staff-wide broadcasts respect the recipient's preference.
  */
 export async function notifyStaff(
   payload: Omit<CreateNotificationInput, "userId">,
@@ -64,6 +68,7 @@ export async function notifyStaff(
     const staffUsers = await prisma.user.findMany({
       where: {
         role: { in: roles },
+        notifyCategories: { has: payload.category },
         ...(excludeUserId ? { id: { not: excludeUserId } } : {})
       },
       select: { id: true }

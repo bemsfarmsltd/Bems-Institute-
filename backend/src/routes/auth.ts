@@ -69,6 +69,16 @@ router.post("/signup", async (req, res) => {
     return res.status(400).json({ error: "Password must be at least 8 characters." });
   }
 
+  const settings = await prisma.siteSettings.findUnique({ where: { id: "singleton" } });
+  if (settings?.allowRegistration === "disable") {
+    return res.status(403).json({ error: "New registrations are currently closed." });
+  }
+  if (settings?.allowRegistration === "request") {
+    return res.status(403).json({
+      error: "Registration is currently by request only — contact admissions@bemsinstitute.ng to request access."
+    });
+  }
+
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
     return res.status(409).json({ error: "An account with that email already exists. Try signing in instead." });

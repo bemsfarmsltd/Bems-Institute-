@@ -95,8 +95,29 @@ model User {
   attendanceRecords    AttendanceRecord[]
   graduateOutcomes     GraduateOutcome[]
   communityMessages    CommunityMessage[]
+  // Which categories of staff-broadcast notifications (notifyStaff) this
+  // user wants to receive — only affects staff-wide alerts, never a user's
+  // own personal notifications (payment confirmed, submission graded, etc.),
+  // which always send regardless of this preference.
+  notifyCategories     NotificationCategory[] @default([CLASS, GRADING, PAYMENT, GAMIFICATION, ATTENDANCE])
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
+}
+
+// A single site-wide settings row (admin console "Website Settings"). Always
+// read/written by a fixed id so there's exactly one row, no per-tenant needs.
+model SiteSettings {
+  id                String   @id @default("singleton")
+  siteName          String   @default("BEMS Institute of Technology & Vocational Studies")
+  copyrightText     String   @default("")
+  siteEmail         String   @default("")
+  description       String   @default("") @db.Text
+  contactPhone      String   @default("")
+  supportEmail      String   @default("")
+  contactAddress    String   @default("") @db.Text
+  // "enable" | "disable" | "request" — enforced on POST /api/auth/signup.
+  allowRegistration String   @default("enable")
+  updatedAt         DateTime @updatedAt
 }
 
 // One row per successful referral signup — created when the referee

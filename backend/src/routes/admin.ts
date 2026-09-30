@@ -231,4 +231,74 @@ router.post("/enrollments/:id/payment", async (req, res) => {
   return res.json({ enrollment });
 });
 
+const NOTIFICATION_CATEGORIES = ["CLASS", "GRADING", "PAYMENT", "GAMIFICATION", "ATTENDANCE"] as const;
+
+// The one real, persisted slice of the admin Settings screen (site info,
+// registration mode, and the caller's own staff-notification preferences).
+// Everything else the UI shows for Social/Email/General config doesn't tie
+// to any real integration in this app, so it isn't backed by an endpoint.
+router.get("/settings", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!session || !isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
+  }
+
+  const [settings, me] = await Promise.all([
+    prisma.siteSettings.upsert({ where: { id: "singleton" }, update: {}, create: { id: "singleton" } }),
+    prisma.user.findUnique({ where: { id: session.id }, select: { notifyCategories: true } })
+  ]);
+
+  return res.json({ settings, notifyCategories: me?.notifyCategories ?? NOTIFICATION_CATEGORIES });
+});
+
+router.patch("/settings", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
+  }
+
+  const body = req.body ?? {};
+  const allowRegistration = ["enable", "disable", "request"].includes(body.allowRegistration)
+    ? body.allowRegistration
+    : undefined;
+
+  const settings = await prisma.siteSettings.upsert({
+    where: { id: "singleton" },
+    update: {
+      siteName: typeof body.siteName === "string" ? body.siteName.trim() : undefined,
+      copyrightText: typeof body.copyrightText === "string" ? body.copyrightText.trim() : undefined,
+      siteEmail: typeof body.siteEmail === "string" ? body.siteEmail.trim() : undefined,
+      description: typeof body.description === "string" ? body.description : undefined,
+      contactPhone: typeof body.contactPhone === "string" ? body.contactPhone.trim() : undefined,
+      supportEmail: typeof body.supportEmail === "string" ? body.supportEmail.trim() : undefined,
+      contactAddress: typeof body.contactAddress === "string" ? body.contactAddress : undefined,
+      allowRegistration
+    },
+    create: { id: "singleton" }
+  });
+
+  return res.json({ settings });
+});
+
+router.patch("/settings/notifications", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!session || !isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
+  }
+
+  const categories = Array.isArray(req.body?.categories)
+    ? req.body.categories.filter((c: unknown): c is typeof NOTIFICATION_CATEGORIES[number] =>
+        NOTIFICATION_CATEGORIES.includes(c as typeof NOTIFICATION_CATEGORIES[number])
+      )
+    : [];
+
+  const updated = await prisma.user.update({
+    where: { id: session.id },
+    data: { notifyCategories: categories },
+    select: { notifyCategories: true }
+  });
+
+  return res.json({ notifyCategories: updated.notifyCategories });
+});
+
 export default router;
