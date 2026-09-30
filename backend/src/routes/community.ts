@@ -76,21 +76,32 @@ router.post("/messages", async (req, res) => {
   });
 });
 
+// One like per (user, message) — enforced by the CommunityMessageLike
+// unique constraint, not just a bare counter increment, which used to let a
+// single user inflate any message's count arbitrarily by re-calling this.
 router.post("/messages/:id/like", async (req, res) => {
   const session = await getSessionUser(req);
   if (!session) {
     return res.status(401).json({ error: "Not authenticated." });
   }
 
-  const updated = await prisma.communityMessage
-    .update({ where: { id: req.params.id }, data: { likes: { increment: 1 } } })
-    .catch(() => null);
-
-  if (!updated) {
+  const messageId = req.params.id;
+  const message = await prisma.communityMessage.findUnique({ where: { id: messageId }, select: { likes: true } });
+  if (!message) {
     return res.status(404).json({ error: "Message not found." });
   }
 
-  return res.json({ likes: updated.likes });
+  try {
+    const updated = await prisma.$transaction(async (tx) => {
+      await tx.communityMessageLike.create({ data: { messageId, userId: session.id } });
+      return tx.communityMessage.update({ where: { id: messageId }, data: { likes: { increment: 1 } } });
+    });
+    return res.json({ likes: updated.likes, alreadyLiked: false });
+  } catch {
+    // Unique-constraint hit -> this user already liked it; return the
+    // current count unchanged instead of erroring on a double-click.
+    return res.json({ likes: message.likes, alreadyLiked: true });
+  }
 });
 
 export default router;

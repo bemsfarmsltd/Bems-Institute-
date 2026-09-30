@@ -6,10 +6,16 @@ import { checkRateLimit, recordAttempt, rateLimitMessage } from "@/lib/rate-limi
 
 const router = Router();
 
-// One shared key, not per-email: the secret being guessed here is the single
-// ADMIN_ACCESS_CODE, not a per-account password, so failed attempts against
-// any email still count toward the same lockout.
-const RATE_LIMIT_KEY = "admin-register-code";
+// Keyed per-requester (IP), not one global key: a single shared key meant
+// one anonymous attacker sending 5 wrong guesses could lock out every
+// legitimate admin registration attempt server-wide for 15 minutes, and
+// could keep doing it indefinitely — a trivial persistent DoS against staff
+// onboarding. Keying by IP still caps total guesses against the single
+// ADMIN_ACCESS_CODE (each attacker only exhausts their own budget) without
+// letting one bad actor block everyone else.
+function rateLimitKeyFor(req: import("express").Request): string {
+  return `admin-register-code:${req.ip || "unknown"}`;
+}
 
 // The ONLY path that can ever create an ADMIN account. The staff code is
 // checked server-side against ADMIN_ACCESS_CODE (never sent to the browser)
@@ -29,6 +35,7 @@ router.post("/", async (req, res) => {
     return res.status(500).json({ error: "Admin access is not configured on this server." });
   }
 
+  const RATE_LIMIT_KEY = rateLimitKeyFor(req);
   const limit = await checkRateLimit(RATE_LIMIT_KEY);
   if (limit.blocked) {
     return res.status(429).json({ error: rateLimitMessage(limit.retryAfterSeconds!) });

@@ -137,6 +137,9 @@ router.post("/courses", async (req, res) => {
   if (!title || !slug || !tutor) {
     return res.status(400).json({ error: "title, slug, and tutor are required." });
   }
+  if (priceFull < 0 || priceParts < 0 || deposit < 0) {
+    return res.status(400).json({ error: "priceFull, priceParts, and deposit must not be negative." });
+  }
 
   const existing = await prisma.course.findUnique({ where: { slug } });
   if (existing) {
@@ -208,6 +211,23 @@ router.post("/enrollments/:id/payment", async (req, res) => {
   }
   if (!Number.isFinite(amountPaid) || amountPaid < 0) {
     return res.status(400).json({ error: "amountPaid must be a non-negative number." });
+  }
+
+  const existing = await prisma.enrollment.findUnique({ where: { id }, select: { totalDue: true } });
+  if (!existing) {
+    return res.status(404).json({ error: "Enrollment not found." });
+  }
+  // A status has to actually match the amount — without this, a call could
+  // set PAID_FULL with amountPaid: 0 and downstream logic (the "you're paid
+  // up" notification below, referral crediting) would treat it as real money
+  // that never moved.
+  if (status === "PAID_FULL" && amountPaid < existing.totalDue) {
+    return res.status(400).json({
+      error: `amountPaid (₦${amountPaid.toLocaleString()}) is less than the total due (₦${existing.totalDue.toLocaleString()}) for PAID_FULL.`
+    });
+  }
+  if (status === "PARTIAL" && amountPaid <= 0) {
+    return res.status(400).json({ error: "amountPaid must be greater than 0 for a PARTIAL payment." });
   }
 
   const enrollment = await prisma.enrollment.update({

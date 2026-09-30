@@ -2,7 +2,7 @@ import { Router } from "express";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword, hashPassword, isPasswordStrongEnough } from "@/lib/password";
 import { createSessionToken, verifySessionToken, SESSION_COOKIE, SESSION_COOKIE_OPTIONS } from "@/lib/session";
-import { checkRateLimit, recordAttempt, rateLimitMessage, clearAttempts } from "@/lib/rate-limit";
+import { checkRateLimit, recordAttempt, rateLimitMessage, clearAttempts, checkUsageQuota } from "@/lib/rate-limit";
 import { createPasswordResetToken, deliverPasswordResetLink, lookupResetToken, consumeResetToken } from "@/lib/password-reset";
 import { recordReferralSignup } from "@/lib/referrals";
 
@@ -68,6 +68,18 @@ router.post("/signup", async (req, res) => {
   if (!isPasswordStrongEnough(password)) {
     return res.status(400).json({ error: "Password must be at least 8 characters." });
   }
+
+  // Per-IP, not per-email — unlike login, every syntactically-valid signup
+  // "succeeds" (creates an account), so there's no failure signal to count
+  // against. Without this, unlimited signups let someone mass-create
+  // accounts or brute-force referral codes (each guess just needs one more
+  // signup with a fresh email).
+  const signupQuotaKey = `signup:${req.ip || "unknown"}`;
+  const signupQuota = await checkUsageQuota(signupQuotaKey, 8, 60 * 60 * 1000);
+  if (signupQuota.blocked) {
+    return res.status(429).json({ error: rateLimitMessage(signupQuota.retryAfterSeconds!) });
+  }
+  await recordAttempt(signupQuotaKey, true);
 
   const settings = await prisma.siteSettings.findUnique({ where: { id: "singleton" } });
   if (settings?.allowRegistration === "disable") {

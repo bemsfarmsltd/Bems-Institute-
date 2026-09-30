@@ -24,6 +24,13 @@ import communityRoutes from "@/routes/community";
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+// Render sits in front of this app as a reverse proxy — without this,
+// req.ip is always the proxy's address for every request, which would
+// silently turn every per-IP rate limit (signup, admin-register-code) back
+// into one shared limit for all traffic. `1` trusts exactly one hop
+// (Render's own proxy), not an arbitrary chain from the client.
+app.set("trust proxy", 1);
+
 // Frontend (Vercel) and backend (Render) are on different origins, so CORS
 // has to name the frontend explicitly — a wildcard origin doesn't work
 // together with credentials: true, and cookies are the whole auth model

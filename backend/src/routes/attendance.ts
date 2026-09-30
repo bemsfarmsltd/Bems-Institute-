@@ -151,14 +151,25 @@ router.post("/sessions/:id/mark", async (req, res) => {
   }
 
   const records = Array.isArray(req.body?.records) ? req.body.records : [];
-  const valid = records.filter(
+  const typeValid = records.filter(
     (r: unknown): r is { userId: string; present: boolean } =>
       !!r && typeof r === "object" && typeof (r as { userId?: unknown }).userId === "string" && typeof (r as { present?: unknown }).present === "boolean"
   );
 
-  if (valid.length === 0) {
+  if (typeValid.length === 0) {
     return res.status(400).json({ error: "records must be a non-empty array of { userId, present }." });
   }
+
+  // Only mark students actually enrolled in this session's course — without
+  // this, any valid user id in the system could get an attendance record
+  // (present or absent) for a course they never enrolled in.
+  const enrolledIds = new Set(
+    (await prisma.enrollment.findMany({ where: { courseId: liveSession.courseId }, select: { userId: true } })).map(
+      (e) => e.userId
+    )
+  );
+  const valid = typeValid.filter((r: { userId: string; present: boolean }) => enrolledIds.has(r.userId));
+  const skipped = typeValid.length - valid.length;
 
   for (const r of valid) {
     await prisma.attendanceRecord.upsert({
@@ -172,7 +183,7 @@ router.post("/sessions/:id/mark", async (req, res) => {
     await checkAndNotifyMissedClasses(r.userId, liveSession.courseId).catch(() => null);
   }
 
-  return res.json({ ok: true, marked: valid.length });
+  return res.json({ ok: true, marked: valid.length, skippedNotEnrolled: skipped });
 });
 
 // A student's own attendance history for a course, for their dashboard.

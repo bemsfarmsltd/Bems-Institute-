@@ -95,6 +95,7 @@ model User {
   attendanceRecords    AttendanceRecord[]
   graduateOutcomes     GraduateOutcome[]
   communityMessages    CommunityMessage[]
+  communityMessageLikes CommunityMessageLike[]
   // Which categories of staff-broadcast notifications (notifyStaff) this
   // user wants to receive — only affects staff-wide alerts, never a user's
   // own personal notifications (payment confirmed, submission graded, etc.),
@@ -187,9 +188,25 @@ model CommunityMessage {
   content     String   @db.Text
   codeSnippet String?  @db.Text
   likes       Int      @default(0)
+  likedBy     CommunityMessageLike[]
   createdAt   DateTime @default(now())
 
   @@index([channelId, createdAt])
+}
+
+// One row per (message, user) like — the `likes` counter above used to be a
+// bare increment with no dedupe, so a single user could inflate any
+// message's count arbitrarily by re-calling the endpoint. The unique
+// constraint here is what actually stops that.
+model CommunityMessageLike {
+  id        String           @id @default(cuid())
+  messageId String
+  message   CommunityMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime         @default(now())
+
+  @@unique([messageId, userId])
 }
 
 model AttendanceRecord {

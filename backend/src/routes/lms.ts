@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { prisma } from "@/lib/prisma";
-import { getSessionUser } from "@/lib/api-auth";
+import { getSessionUser, isEnrolled } from "@/lib/api-auth";
 import { mapCourse, mapQuiz, mapAssignment, mapCertificate, mapSubmission } from "@/lib/lms-mappers";
 import {
   recordLessonCompleted,
@@ -214,6 +214,10 @@ router.post("/progress", async (req, res) => {
     return res.status(404).json({ error: "Lesson not found." });
   }
 
+  if (session.role === "STUDENT" && !(await isEnrolled(session.id, lesson.module.courseId))) {
+    return res.status(403).json({ error: "You must be enrolled in this course to track lesson progress." });
+  }
+
   const existing = await prisma.userProgress.findUnique({ where: { userId_lessonId: { userId: session.id, lessonId } } });
 
   if (existing) {
@@ -246,6 +250,10 @@ router.post("/quiz-attempts", async (req, res) => {
   const quiz = await prisma.quiz.findUnique({ where: { id: quizId }, include: { questions: true, course: { select: { slug: true } } } });
   if (!quiz) {
     return res.status(404).json({ error: "Quiz not found." });
+  }
+
+  if (session.role === "STUDENT" && !(await isEnrolled(session.id, quiz.courseId))) {
+    return res.status(403).json({ error: "You must be enrolled in this course to take its quiz." });
   }
 
   let correctCount = 0;
@@ -309,6 +317,10 @@ router.post("/submissions", async (req, res) => {
   const assignment = await prisma.assignment.findUnique({ where: { id: assignmentId }, include: { course: { select: { slug: true, title: true } } } });
   if (!assignment) {
     return res.status(404).json({ error: "Assignment not found." });
+  }
+
+  if (session.role === "STUDENT" && !(await isEnrolled(session.id, assignment.courseId))) {
+    return res.status(403).json({ error: "You must be enrolled in this course to submit its capstone." });
   }
 
   const submission = await prisma.submission.upsert({
