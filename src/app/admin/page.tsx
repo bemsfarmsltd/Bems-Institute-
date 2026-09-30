@@ -582,7 +582,7 @@ function AdminDashboardContent() {
     {
       id: "01",
       studentName: "Ngozi Eze",
-      courseName: "Building Scalable APIs with GraphQL",
+      courseName: "Web Development",
       rating: 5,
       visible: false,
       avatar:
@@ -591,7 +591,7 @@ function AdminDashboardContent() {
     {
       id: "02",
       studentName: "Blessing Adeyemi",
-      courseName: "Graphic Design Masterclass",
+      courseName: "Product Design (UI/UX)",
       rating: 5,
       visible: false,
       avatar:
@@ -600,7 +600,7 @@ function AdminDashboardContent() {
     {
       id: "03",
       studentName: "Emeka Nwosu",
-      courseName: "JavaScript: Full Understanding",
+      courseName: "Web Development",
       rating: 4,
       visible: false,
       avatar:
@@ -609,7 +609,7 @@ function AdminDashboardContent() {
     {
       id: "04",
       studentName: "Tunde Bakare",
-      courseName: "Time Management Mastery: Do More, Stress Less",
+      courseName: "Cybersecurity",
       rating: 4,
       visible: false,
       avatar:
@@ -618,7 +618,7 @@ function AdminDashboardContent() {
     {
       id: "05",
       studentName: "Chiamaka Nnamdi",
-      courseName: "The complete Digital Marketing Course - 8 Course in 1",
+      courseName: "AI & Automation",
       rating: 4,
       visible: false,
       avatar:
@@ -627,7 +627,7 @@ function AdminDashboardContent() {
     {
       id: "06",
       studentName: "Amarachi Chukwu",
-      courseName: "Microsoft Excel - Excel from Beginner to Advanced",
+      courseName: "Mobile App Engineering",
       rating: 4,
       visible: false,
       avatar:
@@ -636,7 +636,7 @@ function AdminDashboardContent() {
     {
       id: "07",
       studentName: "Ifeanyi Okafor",
-      courseName: "Behavior, Psychology and Care Training",
+      courseName: "AI & Automation",
       rating: 4,
       visible: false,
       avatar:
@@ -2829,39 +2829,39 @@ function AdminDashboardContent() {
                         <tbody className="divide-y divide-slate-100 text-[14px]">
                           {[
                             {
-                              title: "Building Scalable APIs with GraphQL",
-                              enrolled: 2568,
+                              title: "AI & Automation",
+                              enrolled: 22,
                               stars: 5,
-                              thumbBg: "bg-[#FDEBC8]",
-                              thumbText: "💎",
+                              thumbBg: "bg-[#F0EDF9] text-[#7928CA]",
+                              thumbText: "🤖",
                             },
                             {
-                              title: "Graphic Design Masterclass",
-                              enrolled: 1858,
+                              title: "Web Development",
+                              enrolled: 31,
                               stars: 5,
-                              thumbBg: "bg-[#1D3B53] text-[#38BDF8]",
-                              thumbText: "Ps",
+                              thumbBg: "bg-[#18143D] text-white",
+                              thumbText: "</>",
                             },
                             {
-                              title: "Learn Invision",
-                              enrolled: 6845,
+                              title: "Product Design (UI/UX)",
+                              enrolled: 18,
                               stars: 5,
-                              thumbBg: "bg-[#D6293E] text-white",
-                              thumbText: "in",
+                              thumbBg: "bg-[#F0EDF9] text-[#7928CA]",
+                              thumbText: "🎨",
                             },
                             {
-                              title: "Deep Learning with React-Native",
-                              enrolled: 3845,
+                              title: "Cybersecurity",
+                              enrolled: 15,
                               stars: 4,
-                              thumbBg: "bg-[#E0F7FA] text-[#00BCD4]",
-                              thumbText: "⚛",
+                              thumbBg: "bg-[#18143D] text-white",
+                              thumbText: "🔒",
                             },
                             {
-                              title: "Bootstrap 5 From Scratch",
-                              enrolled: 1458,
+                              title: "Mobile App Engineering",
+                              enrolled: 12,
                               stars: 4,
-                              thumbBg: "bg-[#D8C6F7] text-[#6F42C1]",
-                              thumbText: "B",
+                              thumbBg: "bg-[#F0EDF9] text-[#7928CA]",
+                              thumbText: "📱",
                             },
                           ].map((course) => (
                             <tr key={course.title} className="hover:bg-slate-50/70">
