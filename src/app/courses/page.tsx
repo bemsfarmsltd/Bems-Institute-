@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -347,6 +347,18 @@ const LANGUAGES: LanguageItem[] = [
 export default function CoursesCatalogPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLang, setSelectedLang] = useState("en-uk");
+
+  // Plain window.location read rather than useSearchParams() — this page
+  // doesn't have a Suspense boundary, and a bare browser API avoids needing
+  // one just to pick up the navbar search box's ?q= handoff.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const q = new URLSearchParams(window.location.search).get("q");
+    if (q) {
+      setSearchQuery(q);
+      document.getElementById("categories-section")?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, []);
 
   const filteredCategories = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();

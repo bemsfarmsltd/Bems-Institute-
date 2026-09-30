@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useLMS } from "@/context/LMSContext";
 import {
   CheckCircle2,
   Play,
@@ -14,14 +15,10 @@ import {
   QrCode
 } from "lucide-react";
 
-const STATS = [
-  {
-    value: "4 Tracks",
-    label: "Hands-On Tech Courses",
-    bg: "bg-[#FEF6E0]",
-    iconColor: "text-[#F7C32E]",
-    Icon: Monitor
-  },
+// Track count comes from the real catalog (useLMS) so this card never goes
+// stale again as courses are added or removed; everything else in STATS
+// stays static marketing copy.
+const OTHER_STATS = [
   {
     value: "20+",
     label: "Expert Tutors & Mentors",
@@ -46,6 +43,16 @@ const STATS = [
 ];
 
 export function Hero() {
+  const { courses } = useLMS();
+  const trackStat = {
+    value: `${courses.length || 5} Tracks`,
+    label: "Hands-On Tech Courses",
+    bg: "bg-[#FEF6E0]",
+    iconColor: "text-[#F7C32E]",
+    Icon: Monitor
+  };
+  const STATS = [trackStat, ...OTHER_STATS];
+
   return (
     <section className="relative overflow-hidden bg-white pt-8 pb-16 md:pt-14 md:pb-20">
       {/* Decorative Eduport Top-Left Peach Circle */}
@@ -213,7 +220,7 @@ export function Hero() {
               </div>
 
               {/* Floating Tech Icon 1: React / Atom (Left) */}
-              <div className="absolute top-1/3 -left-2 sm:-left-6 bg-white rounded-xl p-3 shadow-lg border border-slate-100 flex items-center justify-center">
+              <div aria-hidden="true" className="absolute top-1/3 -left-2 sm:-left-6 bg-white rounded-xl p-3 shadow-lg border border-slate-100 flex items-center justify-center">
                 <svg className="w-7 h-7 text-[#2B2848]" viewBox="0 0 24 24" fill="none">
                   <circle cx="12" cy="12" r="2.2" fill="currentColor" />
                   <ellipse
@@ -246,7 +253,7 @@ export function Hero() {
               </div>
 
               {/* Floating Tech Icon 2: Code / Shield (Top-Right) */}
-              <div className="absolute -top-2 right-4 sm:right-6 bg-white rounded-xl p-2.5 shadow-lg border border-slate-100 flex items-center justify-center">
+              <div aria-hidden="true" className="absolute -top-2 right-4 sm:right-6 bg-white rounded-xl p-2.5 shadow-lg border border-slate-100 flex items-center justify-center">
                 <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
                   <path
                     d="M12 2L3 5.2L4.4 17.2L12 21.5L19.6 17.2L21 5.2L12 2Z"
@@ -260,7 +267,7 @@ export function Hero() {
               </div>
 
               {/* Floating Tech Icon 3: Figma (Bottom-Right) */}
-              <div className="absolute bottom-20 -right-1 sm:-right-4 bg-white rounded-xl p-2.5 shadow-lg border border-slate-100 flex items-center justify-center">
+              <div aria-hidden="true" className="absolute bottom-20 -right-1 sm:-right-4 bg-white rounded-xl p-2.5 shadow-lg border border-slate-100 flex items-center justify-center">
                 <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
                   <path
                     d="M8.5 2C6.8 2 5.5 3.3 5.5 5C5.5 6.7 6.8 8 8.5 8H11.5V2H8.5Z"
@@ -282,7 +289,7 @@ export function Hero() {
                 </svg>
               </div>
 
-              {/* Eduport Green Floating Card: "Our daily new students" */}
+              {/* Floating card: October 2026 cohort avatar stack */}
               <div className="absolute top-24 -right-2 sm:-right-8 bg-[#7928CA] text-white rounded-2xl p-4 shadow-xl w-52 overflow-hidden">
                 {/* Subtle topographic wave pattern */}
                 <svg

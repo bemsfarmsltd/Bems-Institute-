@@ -1,101 +1,34 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
-import { Bookmark, Clock, Table2, Star, ShoppingCart } from "lucide-react";
+import { Bookmark, Clock, Table2, ShoppingCart } from "lucide-react";
+import { useLMS } from "@/context/LMSContext";
+import { useLocalStorageRecord } from "@/hooks/useLocalStorageRecord";
 
-interface TrendingCourse {
-  id: string;
-  slug: string;
-  categoryLabel: string;
-  categoryColor: string;
-  level: string;
-  title: string;
-  rating: string;
-  reviews: number;
-  students: number;
-  duration: string;
-  lectures: string;
-  tutorName: string;
-  tutorInitials: string;
-  tutorAvatarBg: string;
-  price: string;
-  deposit: string;
-  headerGradient: string;
-  badgeText: string;
-}
-
-const TRENDING_COURSES: TrendingCourse[] = [
-  {
-    id: "trend-design",
-    slug: "product-design",
-    categoryLabel: "Design",
-    categoryColor: "bg-[#F0EDF9] text-[#7928CA]",
-    level: "Beginner",
-    title: "Complete UI/UX Product Design & Figma Design Systems Bootcamp",
-    rating: "4.9",
-    reviews: 142,
-    students: 280,
-    duration: "12 Weeks",
-    lectures: "32 lectures",
-    tutorName: "Emeka Udoh",
-    tutorInitials: "EU",
-    tutorAvatarBg: "bg-[#18143D]",
-    price: "₦150,000",
-    deposit: "₦60k Deposit",
-    headerGradient: "from-[#FFF0F3] via-[#FFD6E0] to-[#FFACC2]",
-    badgeText: "Portfolio Capstone"
-  },
-  {
-    id: "trend-web",
-    slug: "web-dev",
-    categoryLabel: "Development",
-    categoryColor: "bg-[#F0EDF9] text-[#7928CA]",
-    level: "All level",
-    title: "Full-Stack Next.js, TypeScript, PostgreSQL & Paystack Engineering",
-    rating: "4.9",
-    reviews: 215,
-    students: 410,
-    duration: "12 Weeks",
-    lectures: "65 lectures",
-    tutorName: "Engr. Chidi Okafor",
-    tutorInitials: "CO",
-    tutorAvatarBg: "bg-[#7928CA]",
-    price: "₦220,000",
-    deposit: "₦100k Deposit",
-    headerGradient: "from-[#E6F2FF] via-[#BFE0FF] to-[#8BC5FF]",
-    badgeText: "Most Popular"
-  },
-  {
-    id: "trend-ai",
-    slug: "ai-automation",
-    categoryLabel: "AI & Automation",
-    categoryColor: "bg-[#F0ECF9] text-[#6F42C1]",
-    level: "All level",
-    title: "Applied AI Agents, Prompt Engineering & Business Workflow Automation",
-    rating: "5.0",
-    reviews: 189,
-    students: 340,
-    duration: "12 Weeks",
-    lectures: "48 lectures",
-    tutorName: "Adaeze Nwosu",
-    tutorInitials: "AN",
-    tutorAvatarBg: "bg-[#6F42C1]",
-    price: "₦220,000",
-    deposit: "₦100k Deposit",
-    headerGradient: "from-[#FFF6E5] via-[#FFE2B3] to-[#FFC978]",
-    badgeText: "High Demand"
-  }
+const HEADER_GRADIENTS = [
+  "from-[#FFF0F3] via-[#FFD6E0] to-[#FFACC2]",
+  "from-[#E6F2FF] via-[#BFE0FF] to-[#8BC5FF]",
+  "from-[#FFF6E5] via-[#FFE2B3] to-[#FFC978]",
+  "from-[#E8F9F1] via-[#BEEED6] to-[#8FDFB8]",
+  "from-[#F5EDFF] via-[#E2CCFF] to-[#C7A3FF]"
 ];
 
-export function EduportTrendingCourses() {
-  const [bookmarked, setBookmarked] = useState<Record<string, boolean>>({
-    "trend-web": true
-  });
+function initials(name: string): string {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .filter(Boolean)
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
 
-  const toggleBookmark = (id: string) => {
-    setBookmarked((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
+export function EduportTrendingCourses() {
+  const { courses } = useLMS();
+  const [bookmarked, toggleBookmark] = useLocalStorageRecord("bems_course_bookmarks");
+
+  if (courses.length === 0) return null;
 
   return (
     <section className="py-14 md:py-20 bg-white">
@@ -103,34 +36,36 @@ export function EduportTrendingCourses() {
         {/* Section Heading */}
         <div className="text-center max-w-2xl mx-auto mb-12">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[#24292D] tracking-tight mb-2.5">
-            Our Trending Courses
+            Our Career Tracks
           </h2>
           <p className="text-[#747579] text-sm sm:text-base">
-            Check out the most in-demand career accelerators in the market right now
+            Hands-on, employer-audited certification tracks taught by BEMS specialist engineers
           </p>
         </div>
 
-        {/* 3-Column Eduport Trending Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
-          {TRENDING_COURSES.map((item) => {
-            const isSaved = !!bookmarked[item.id];
+          {courses.map((course, idx) => {
+            const isSaved = !!bookmarked[course.id];
+            const lectureCount = course.modules.reduce((sum, m) => sum + m.lessons.length, 0);
+            const headerGradient = HEADER_GRADIENTS[idx % HEADER_GRADIENTS.length];
+
             return (
               <div
-                key={item.id}
+                key={course.id}
                 className="group bg-white rounded-2xl border border-slate-200/80 shadow-[0_4px_20px_rgba(24,20,61,0.05)] hover:shadow-[0_12px_32px_rgba(24,20,61,0.10)] transition-all duration-300 overflow-hidden flex flex-col justify-between"
               >
                 <div>
                   {/* Card Visual Header */}
                   <div
-                    className={`relative h-52 w-full bg-gradient-to-br ${item.headerGradient} p-5 flex flex-col justify-between overflow-hidden`}
+                    className={`relative h-52 w-full bg-gradient-to-br ${headerGradient} p-5 flex flex-col justify-between overflow-hidden`}
                   >
                     <div className="flex items-center justify-between relative z-10">
                       <span className="bg-[#24292D] text-white text-[11px] font-bold px-3 py-1 rounded-md shadow-xs">
-                        {item.badgeText}
+                        {course.badge}
                       </span>
                       <button
                         type="button"
-                        onClick={() => toggleBookmark(item.id)}
+                        onClick={() => toggleBookmark(course.id)}
                         aria-label="Bookmark course"
                         className="w-8 h-8 rounded-full bg-white shadow-xs flex items-center justify-center text-[#24292D] hover:text-[#7928CA] transition-colors cursor-pointer"
                       >
@@ -142,9 +77,8 @@ export function EduportTrendingCourses() {
                       </button>
                     </div>
 
-                    {/* Decorative Mockup Window inside Banner */}
                     <Link
-                      href={`/courses/${item.slug}`}
+                      href={`/courses/${course.slug}`}
                       className="relative z-10 bg-white/90 backdrop-blur-md rounded-xl p-3.5 shadow-md border border-white/80 group-hover:-translate-y-1 transition-transform duration-300 block"
                     >
                       <div className="flex items-center gap-1.5 mb-2">
@@ -152,7 +86,7 @@ export function EduportTrendingCourses() {
                         <span className="w-2 h-2 rounded-full bg-[#F7C32E]" />
                         <span className="w-2 h-2 rounded-full bg-[#7928CA]" />
                         <span className="text-[10px] font-bold text-[#747579] ml-1.5">
-                          BEMS Interactive Lab · {item.deposit}
+                          BEMS Interactive Lab · ₦{course.deposit.toLocaleString()} deposit
                         </span>
                       </div>
                       <div className="h-2 w-3/4 rounded-full bg-slate-200 mb-1.5" />
@@ -162,69 +96,50 @@ export function EduportTrendingCourses() {
 
                   {/* Card Body */}
                   <div className="p-6 pb-4">
-                    {/* Category & Level Tags */}
                     <div className="flex items-center gap-2 mb-3">
-                      <span
-                        className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-md ${item.categoryColor}`}
-                      >
-                        {item.categoryLabel}
-                      </span>
-                      <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-md bg-[#24292D] text-white">
-                        {item.level}
+                      <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-md bg-[#F0EDF9] text-[#7928CA]">
+                        {course.delivery || "Hybrid"}
                       </span>
                     </div>
 
-                    {/* Title */}
-                    <Link href={`/courses/${item.slug}`}>
+                    <Link href={`/courses/${course.slug}`}>
                       <h3 className="text-lg font-bold text-[#24292D] group-hover:text-[#7928CA] transition-colors leading-snug mb-4 line-clamp-2">
-                        {item.title}
+                        {course.title}
                       </h3>
                     </Link>
 
-                    {/* Rating & Students Row */}
-                    <div className="flex items-center justify-between text-xs text-[#747579] mb-4">
-                      <span className="inline-flex items-center gap-1 font-bold text-[#F7C32E]">
-                        {item.rating}
-                        <Star className="w-3.5 h-3.5 fill-[#F7C32E] text-[#F7C32E]" />
-                        <span className="font-normal text-[#747579]">({item.reviews})</span>
-                      </span>
-                      <span>
-                        <strong className="text-[#24292D]">{item.students}</strong>{" "}
-                        <span className="text-[#747579]">(Student)</span>
-                      </span>
-                    </div>
+                    <p className="text-xs text-[#747579] leading-relaxed line-clamp-2 mb-4">
+                      {course.tagline}
+                    </p>
 
-                    {/* Duration & Lectures Row */}
                     <div className="flex items-center gap-5 text-xs text-[#747579]">
                       <span className="inline-flex items-center gap-1.5">
                         <Clock className="w-3.5 h-3.5 text-[#7928CA]" />
-                        {item.duration}
+                        {course.duration}
                       </span>
                       <span className="inline-flex items-center gap-1.5">
                         <Table2 className="w-3.5 h-3.5 text-[#FD7E14]" />
-                        {item.lectures}
+                        {lectureCount > 0 ? `${lectureCount} lessons` : "Curriculum in progress"}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Card Footer: Tutor Avatar + Price / Hover Enroll Button */}
+                {/* Card Footer: Tutor + Price / Enroll */}
                 <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
-                    <div
-                      className={`w-9 h-9 rounded-lg ${item.tutorAvatarBg} text-white text-xs font-extrabold flex items-center justify-center`}
-                    >
-                      {item.tutorInitials}
+                    <div className="w-9 h-9 rounded-lg bg-[#7928CA] text-white text-xs font-extrabold flex items-center justify-center">
+                      {initials(course.tutor)}
                     </div>
-                    <span className="text-xs font-bold text-[#24292D]">{item.tutorName}</span>
+                    <span className="text-xs font-bold text-[#24292D]">{course.tutor}</span>
                   </div>
 
                   <div>
                     <span className="text-lg font-extrabold text-[#7928CA] group-hover:hidden">
-                      {item.price}
+                      ₦{course.priceFull.toLocaleString()}
                     </span>
                     <Link
-                      href={`/subscriptions?course=${item.slug}`}
+                      href={`/subscriptions?course=${course.slug}`}
                       className="hidden group-hover:inline-flex items-center gap-1.5 bg-[#F0EDF9] hover:bg-[#7928CA] text-[#7928CA] hover:text-white text-xs font-bold px-3.5 py-2 rounded-lg transition-colors"
                     >
                       <ShoppingCart className="w-3.5 h-3.5" />

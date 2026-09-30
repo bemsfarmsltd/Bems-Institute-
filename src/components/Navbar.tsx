@@ -56,7 +56,9 @@ export function Navbar() {
 
   const handleNavSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    router.push("/courses");
+    setMobileMenuOpen(false);
+    const q = navSearch.trim();
+    router.push(q ? `/courses?q=${encodeURIComponent(q)}` : "/courses");
   };
 
   const isActive = (href: string) => {
@@ -110,9 +112,9 @@ export function Navbar() {
             </Link>
           </div>
 
-          {/* Desktop Navigation: Demos ⌄, Pages ⌄, Accounts ⌄ (with nested Instructor/Student flyouts), ••• */}
+          {/* Desktop Navigation: Explore ⌄, Resources ⌄, Accounts ⌄ (with nested Instructor/Student flyouts), More */}
           <nav className="hidden lg:flex items-center gap-6 text-xs sm:text-[13px] font-semibold whitespace-nowrap">
-            {/* 1. "Demos ⌄" Dropdown */}
+            {/* 1. "Explore ⌄" Dropdown */}
             <div className="relative group py-2">
               <button
                 type="button"
@@ -120,7 +122,7 @@ export function Navbar() {
                   pathname === "/" ? "text-[#7928CA]" : "text-[#747579] group-hover:text-[#7928CA]"
                 }`}
               >
-                <span>Demos</span>
+                <span>Explore</span>
                 <ChevronDown className="w-3.5 h-3.5 transition-transform group-hover:rotate-180" />
               </button>
 
@@ -129,7 +131,7 @@ export function Navbar() {
                   href="/"
                   className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-semibold text-[#7928CA] bg-[#F0EDF9]/60 hover:bg-[#F0EDF9]"
                 >
-                  <span>Home Default</span>
+                  <span>Home</span>
                 </Link>
                 <Link
                   href="/courses"
@@ -158,7 +160,7 @@ export function Navbar() {
               </div>
             </div>
 
-            {/* 2. "Pages ⌄" Dropdown */}
+            {/* 2. "Resources ⌄" Dropdown */}
             <div className="relative group py-2">
               <button
                 type="button"
@@ -168,7 +170,7 @@ export function Navbar() {
                     : "text-[#747579] group-hover:text-[#7928CA]"
                 }`}
               >
-                <span>Pages</span>
+                <span>Resources</span>
                 <ChevronDown className="w-3.5 h-3.5 transition-transform group-hover:rotate-180" />
               </button>
 
@@ -178,7 +180,6 @@ export function Navbar() {
                   className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-semibold text-[#7928CA] bg-[#F0EDF9]/60 hover:bg-[#F0EDF9]"
                 >
                   <span>Course</span>
-                  <span>•••</span>
                 </Link>
                 <Link
                   href="/courses/web-dev"
@@ -215,7 +216,6 @@ export function Navbar() {
                   className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#F0EDF9]/50 hover:text-[#7928CA]"
                 >
                   <span>Tuition &amp; Admissions</span>
-                  <span>•••</span>
                 </Link>
                 <div className="relative group/auth">
                   <Link
@@ -223,7 +223,7 @@ export function Navbar() {
                     className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] group-hover/auth:bg-[#F0EDF9] group-hover/auth:text-[#7928CA]"
                   >
                     <span>Authentication</span>
-                    <span>•••</span>
+                    <MoreHorizontal className="w-4 h-4" />
                   </Link>
                   <div className="invisible opacity-0 group-hover/auth:visible group-hover/auth:opacity-100 transition-all duration-150 absolute left-full top-0 ml-1.5 w-48 bg-white rounded-xl shadow-[0_10px_40px_rgba(24,20,61,0.14)] border border-slate-100 p-2 z-50">
                     <Link
@@ -273,7 +273,11 @@ export function Navbar() {
 
               {/* First-Level Accounts Menu */}
               <div className="invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-150 absolute left-0 top-full w-56 bg-white rounded-xl shadow-[0_10px_40px_rgba(24,20,61,0.14)] border border-slate-100 p-2 z-50">
-                {/* Nested Sub-Menu 1: Instructor ••• (Image 2) */}
+                {/* Nested Sub-Menu 1: Instructor ••• (Image 2) — only shown to
+                    instructors/admins or signed-out visitors, matching the
+                    mobile drawer's gate below; a logged-in student has no
+                    reason to see the instructor console in this menu. */}
+                {(user?.role === "INSTRUCTOR" || user?.role === "ADMIN" || !user) && (
                 <div className="relative group/instructor">
                   <Link
                     href="/instructor"
@@ -360,6 +364,7 @@ export function Navbar() {
                     </Link>
                   </div>
                 </div>
+                )}
 
                 {/* Nested Sub-Menu 2: Student ••• (Image 1) */}
                 <div className="relative group/student">
@@ -429,6 +434,7 @@ export function Navbar() {
                 </div>
 
                 {/* Direct Account Items */}
+                {(user?.role === "ADMIN" || !user) && (
                 <Link
                   href="/admin"
                   className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F0EDF9] hover:text-[#7928CA] transition-colors"
@@ -436,6 +442,7 @@ export function Navbar() {
                   <ShieldCheck className="w-4 h-4" />
                   <span>Admin</span>
                 </Link>
+                )}
                 <Link
                   href="/dashboard"
                   className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F0EDF9] hover:text-[#7928CA] transition-colors"
@@ -460,13 +467,13 @@ export function Navbar() {
 
                 <div className="my-1 border-t border-slate-100" />
 
-                {/* Nested Sub-Menu 3: Dropdown levels ••• */}
+                {/* Nested Sub-Menu 3: Learning Tools */}
                 <div className="relative group/levels">
                   <button
                     type="button"
                     className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#747579] group-hover/levels:bg-[#F0EDF9] group-hover/levels:text-[#7928CA] transition-colors"
                   >
-                    <span>Dropdown levels</span>
+                    <span>Learning Tools</span>
                     <MoreHorizontal className="w-4 h-4" />
                   </button>
 
@@ -651,6 +658,29 @@ export function Navbar() {
         {/* Mobile Drawer Menu */}
         {mobileMenuOpen && (
           <div className="lg:hidden py-4 border-t border-slate-200 space-y-3 animate-in fade-in slide-in-from-top-2 duration-150">
+            {/* Search — the desktop search box is hidden below the sm
+                breakpoint, so this is the only search entry point on true
+                mobile widths. */}
+            <form
+              onSubmit={handleNavSearch}
+              className="flex items-center bg-[#F5F7F9] border border-slate-200 rounded-xl px-3.5 py-2.5 focus-within:border-[#7928CA] transition-colors"
+            >
+              <input
+                type="text"
+                value={navSearch}
+                onChange={(e) => setNavSearch(e.target.value)}
+                placeholder="Search courses"
+                className="w-full text-xs text-[#24292D] placeholder:text-slate-400 focus:outline-none bg-transparent"
+              />
+              <button
+                type="submit"
+                aria-label="Search courses"
+                className="text-slate-500 hover:text-[#7928CA]"
+              >
+                <Search className="w-4 h-4" />
+              </button>
+            </form>
+
             {isHydrated && user && (
               <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-[#F5F7F9] border border-slate-200">
                 <div className="flex items-center gap-2.5">
