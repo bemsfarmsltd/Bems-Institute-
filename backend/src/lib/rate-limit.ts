@@ -51,3 +51,25 @@ export function rateLimitMessage(retryAfterSeconds: number): string {
   const minutes = Math.ceil(retryAfterSeconds / 60);
   return `Too many failed attempts. Try again in ${minutes} minute${minutes === 1 ? "" : "s"}.`;
 }
+
+/**
+ * A plain usage quota, separate from the failure-based lockout above — counts
+ * every call in the window regardless of success, for throttling something
+ * that costs money per call (Gemini API requests) rather than guarding a
+ * password/code field. Reuses the same AuthAttempt log table (key/createdAt
+ * is all this needs); callers should record every call with recordAttempt(key, true).
+ */
+export async function checkUsageQuota(key: string, maxCalls: number, windowMs: number): Promise<RateLimitResult> {
+  const since = new Date(Date.now() - windowMs);
+  const recent = await prisma.authAttempt.findMany({
+    where: { key, createdAt: { gt: since } },
+    orderBy: { createdAt: "asc" },
+    select: { createdAt: true }
+  });
+
+  if (recent.length < maxCalls) return { blocked: false };
+
+  const oldest = recent[0].createdAt;
+  const retryAfterMs = windowMs - (Date.now() - oldest.getTime());
+  return { blocked: true, retryAfterSeconds: Math.max(1, Math.ceil(retryAfterMs / 1000)) };
+}

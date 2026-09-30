@@ -1,4 +1,11 @@
 import express from "express";
+// Must be imported immediately after express and before any Router() is
+// created (including in the route files below) — it patches Express so a
+// rejected/thrown promise inside an async handler is forwarded to the error
+// middleware instead of becoming an unhandled rejection that can crash the
+// whole process. Several staff routes (unknown course/user id -> Prisma
+// P2025/P2003) relied on this being true before it actually was.
+import "express-async-errors";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 
@@ -51,7 +58,18 @@ app.use("/api/community", communityRoutes);
 
 app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error("Unhandled error:", err);
+  if (res.headersSent) return;
   res.status(500).json({ error: "Internal server error" });
+});
+
+// Defense-in-depth for anything that rejects outside an Express request
+// context (a stray setTimeout/background call express-async-errors above
+// can't see) — log it instead of letting Node crash the whole process.
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled promise rejection:", reason);
+});
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught exception:", err);
 });
 
 app.listen(PORT, () => {

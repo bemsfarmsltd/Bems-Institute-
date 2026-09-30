@@ -10,10 +10,29 @@ import { retrieveCourseKnowledge } from "@/lib/course-rag";
 import { getSessionUser } from "@/lib/api-auth";
 import { getLearningProfile } from "@/lib/learning-engine";
 import { prisma } from "@/lib/prisma";
+import { checkUsageQuota, recordAttempt, rateLimitMessage } from "@/lib/rate-limit";
 
 const router = Router();
 
+const AI_QUOTA_MAX_CALLS = 30;
+const AI_QUOTA_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
+
 router.post("/", async (req, res) => {
+  // Every action below calls the Gemini API, which costs money per request —
+  // this used to have no session check and no throttle at all, so anyone
+  // could hit it in a loop anonymously. Require login and cap usage per user.
+  const session = await getSessionUser(req);
+  if (!session) {
+    return res.status(401).json({ error: "Not authenticated." });
+  }
+
+  const quotaKey = `ai-usage:${session.id}`;
+  const quota = await checkUsageQuota(quotaKey, AI_QUOTA_MAX_CALLS, AI_QUOTA_WINDOW_MS);
+  if (quota.blocked) {
+    return res.status(429).json({ error: rateLimitMessage(quota.retryAfterSeconds!) });
+  }
+  await recordAttempt(quotaKey, true);
+
   try {
     const body = req.body ?? {};
     const { action } = body;
@@ -27,32 +46,29 @@ router.post("/", async (req, res) => {
 
         const ragSnippets = retrieveCourseKnowledge(prompt, courseTrack, 3);
 
-        const session = await getSessionUser(req).catch(() => null);
         let weakConceptNames: string[] = [];
         let strongConceptNames: string[] = [];
 
-        if (session) {
-          const profile = await getLearningProfile(session.id).catch(() => null);
-          if (profile) {
-            weakConceptNames = profile.weaknesses
-              .filter((w) => w.masteryScore < 0.6)
-              .map((w) => `${w.name} (${Math.round(w.masteryScore * 100)}%)`);
-            strongConceptNames = profile.strengths
-              .filter((s) => s.masteryScore >= 0.7)
-              .map((s) => `${s.name} (${Math.round(s.masteryScore * 100)}%)`);
-          }
-
-          await prisma.learningEvent
-            .create({
-              data: {
-                userId: session.id,
-                courseId: courseTrack || "web-dev",
-                eventType: "AI_TUTOR_USED",
-                metadata: { prompt: String(prompt).slice(0, 200), tutorName }
-              }
-            })
-            .catch(() => null);
+        const profile = await getLearningProfile(session.id).catch(() => null);
+        if (profile) {
+          weakConceptNames = profile.weaknesses
+            .filter((w) => w.masteryScore < 0.6)
+            .map((w) => `${w.name} (${Math.round(w.masteryScore * 100)}%)`);
+          strongConceptNames = profile.strengths
+            .filter((s) => s.masteryScore >= 0.7)
+            .map((s) => `${s.name} (${Math.round(s.masteryScore * 100)}%)`);
         }
+
+        await prisma.learningEvent
+          .create({
+            data: {
+              userId: session.id,
+              courseId: courseTrack || "web-dev",
+              eventType: "AI_TUTOR_USED",
+              metadata: { prompt: String(prompt).slice(0, 200), tutorName }
+            }
+          })
+          .catch(() => null);
 
         const contextBlocks: string[] = [];
         if (weakConceptNames.length > 0) {

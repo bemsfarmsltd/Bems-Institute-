@@ -25,7 +25,11 @@ type CourseWithContent = DbCourse & {
   modules: (DbModule & { lessons: DbLesson[] })[];
 };
 
-export function mapCourse(course: CourseWithContent): LMSCourse {
+// `canSeeFullContent`/`canSeeAnswers` gate real lesson videos and quiz answer
+// keys behind enrollment (or staff) — GET /catalog is intentionally public
+// for browsing course structure/pricing, but a non-enrolled, non-staff
+// caller must never receive paid video URLs or answer keys through it.
+export function mapCourse(course: CourseWithContent, canSeeFullContent: boolean): LMSCourse {
   return {
     id: course.id,
     slug: course.slug,
@@ -43,26 +47,27 @@ export function mapCourse(course: CourseWithContent): LMSCourse {
     finalProject: course.finalProject,
     modules: [...course.modules]
       .sort((a, b) => a.order - b.order)
-      .map(mapModule)
+      .map((m) => mapModule(m, canSeeFullContent))
   };
 }
 
-function mapModule(mod: DbModule & { lessons: DbLesson[] }): LMSModule {
+function mapModule(mod: DbModule & { lessons: DbLesson[] }, canSeeFullContent: boolean): LMSModule {
   return {
     id: mod.id,
     title: mod.title,
     order: mod.order,
-    lessons: [...mod.lessons].sort((a, b) => a.order - b.order).map(mapLesson)
+    lessons: [...mod.lessons].sort((a, b) => a.order - b.order).map((l) => mapLesson(l, canSeeFullContent))
   };
 }
 
-function mapLesson(lesson: DbLesson): LMSLesson {
+function mapLesson(lesson: DbLesson, canSeeFullContent: boolean): LMSLesson {
+  const canSeeVideo = lesson.isFreePreview || canSeeFullContent;
   return {
     id: lesson.id,
     title: lesson.title,
     slug: lesson.slug,
     duration: lesson.duration,
-    videoUrl: lesson.videoUrl || "",
+    videoUrl: canSeeVideo ? (lesson.videoUrl || "") : "",
     description: lesson.description,
     isFreePreview: lesson.isFreePreview
   };
@@ -70,24 +75,26 @@ function mapLesson(lesson: DbLesson): LMSLesson {
 
 type QuizWithQuestions = DbQuiz & { questions: DbQuestion[] };
 
-export function mapQuiz(quiz: QuizWithQuestions): Quiz {
+export function mapQuiz(quiz: QuizWithQuestions, canSeeAnswers: boolean): Quiz {
   return {
     id: quiz.id,
     courseId: quiz.courseId,
     title: quiz.title,
     description: quiz.description,
     passingScore: quiz.passingScore,
-    questions: quiz.questions.map(mapQuestion)
+    questions: quiz.questions.map((q) => mapQuestion(q, canSeeAnswers))
   };
 }
 
-function mapQuestion(q: DbQuestion): QuizQuestion {
+function mapQuestion(q: DbQuestion, canSeeAnswers: boolean): QuizQuestion {
   return {
     id: q.id,
     prompt: q.prompt,
     options: q.options,
-    correctOption: q.correctOption,
-    explanation: q.explanation || ""
+    // -1 never matches a real 0-indexed option, so an ungated client just
+    // sees no highlight instead of the real answer.
+    correctOption: canSeeAnswers ? q.correctOption : -1,
+    explanation: canSeeAnswers ? (q.explanation || "") : ""
   };
 }
 

@@ -20,7 +20,22 @@ const router = Router();
 // Public: course catalog (content, not enrollment-gated) plus the full
 // certificate registry, which is intentionally public — /verify and
 // /certificate let anyone look up a credential by ID without signing in.
-router.get("/catalog", async (_req, res) => {
+// Browsing structure/pricing is public; real lesson videos and quiz answer
+// keys are NOT — those are gated per-course below by enrollment/staff role,
+// computed from the caller's own session (optional here, not required).
+router.get("/catalog", async (req, res) => {
+  const session = await getSessionUser(req).catch(() => null);
+  const isStaff = session?.role === "INSTRUCTOR" || session?.role === "ADMIN";
+
+  let enrolledCourseIds = new Set<string>();
+  if (session && !isStaff) {
+    const enrollments = await prisma.enrollment.findMany({
+      where: { userId: session.id },
+      select: { courseId: true }
+    });
+    enrolledCourseIds = new Set(enrollments.map((e) => e.courseId));
+  }
+
   const [courses, quizzes, assignments, certificates] = await Promise.all([
     prisma.course.findMany({ where: { isPublished: true }, include: { modules: { include: { lessons: true } } } }),
     prisma.quiz.findMany({ include: { questions: true } }),
@@ -28,9 +43,11 @@ router.get("/catalog", async (_req, res) => {
     prisma.certificate.findMany({ include: { user: { select: { name: true } }, course: { select: { title: true } } } })
   ]);
 
+  const canSeeCourse = (courseId: string) => isStaff || enrolledCourseIds.has(courseId);
+
   return res.json({
-    courses: courses.map(mapCourse),
-    quizzes: quizzes.map(mapQuiz),
+    courses: courses.map((c) => mapCourse(c, canSeeCourse(c.id))),
+    quizzes: quizzes.map((q) => mapQuiz(q, canSeeCourse(q.courseId))),
     assignments: assignments.map(mapAssignment),
     certificates: certificates.map(mapCertificate)
   });
@@ -126,10 +143,15 @@ router.post("/enroll", async (req, res) => {
   let amountPaid: number | undefined;
   let paymentStatus: "PENDING" | "PARTIAL" | "PAID_FULL" | undefined;
 
-  if (paymentMethod === "paystack") {
-    amountPaid = paymentPlan === "installment" ? course.deposit : totalDue;
-    paymentStatus = amountPaid >= totalDue ? "PAID_FULL" : "PARTIAL";
-  } else if (paymentMethod === "bank") {
+  // No real payment gateway is wired up yet — there's no Paystack
+  // verification/webhook anywhere in this codebase, so a client-supplied
+  // "paymentMethod: paystack" used to be trusted at face value, which let
+  // anyone mark themselves PAID_FULL (and farm real referral credit off of
+  // it) for free. Every payment method now lands PENDING here; real
+  // confirmation only happens through the staff-gated
+  // POST /admin/enrollments/:id/payment route, same as bank transfers
+  // already worked.
+  if (paymentMethod === "paystack" || paymentMethod === "bank") {
     amountPaid = 0;
     paymentStatus = "PENDING";
   }
@@ -158,8 +180,8 @@ router.post("/enroll", async (req, res) => {
 
   const firstLessonId = course.modules[0]?.lessons[0]?.id ?? "les-1";
   const paymentSummary =
-    paymentMethod === "paystack" && amountPaid
-      ? `Payment of ₦${amountPaid.toLocaleString()} confirmed via Paystack.`
+    paymentMethod === "paystack"
+      ? "Paystack payment logged — pending admin verification."
       : paymentMethod === "bank"
       ? "Bank transfer logged (pending admin verification)."
       : "Your classroom access is now unlocked.";
