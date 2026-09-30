@@ -14,7 +14,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BEMS Institute of Technology & Vocational Studies | FutureSkills Accelerator",
+  title: {
+    default: "BEMS Institute of Technology & Vocational Studies | FutureSkills Accelerator",
+    template: "%s | BEMS Institute of Technology"
+  },
   description: "BEMS FutureSkills Accelerator 2026: Hands-on tech training in AI & Automation, Web Development, UI/UX, and Cybersecurity in Umuahia & Online.",
   manifest: "/manifest.json",
   appleWebApp: {
