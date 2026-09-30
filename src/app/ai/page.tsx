@@ -22,6 +22,7 @@ import {
 import Button from "@/components/ui/button";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { ChatMarkdown } from "@/components/ChatMarkdown";
 import { useLMS } from "@/context/LMSContext";
 import { LearningInsights } from "@/components/LearningInsights";
 import { apiFetch } from "@/lib/api-client";
@@ -503,7 +504,11 @@ function AIHubContent() {
                           : "bg-gray-50 border border-gray-100 text-gray-800 rounded-tl-none"
                       }`}
                     >
-                      <div className="whitespace-pre-wrap font-sans">{msg.content}</div>
+                      {msg.role === "user" ? (
+                        <div className="whitespace-pre-wrap font-sans">{msg.content}</div>
+                      ) : (
+                        <ChatMarkdown content={msg.content} />
+                      )}
                       <span className={`block text-[10px] mt-2 ${msg.role === "user" ? "text-purple-200" : "text-gray-400"}`}>
                         {msg.timestamp}
                       </span>
