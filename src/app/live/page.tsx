@@ -121,7 +121,7 @@ export default function LiveClassesPage() {
                 autoPlay
                 playsInline
                 className="w-full h-full object-cover"
-                poster="/images/hero-classroom.png"
+                poster="/images/eduport-hero-student.jpg"
               >
                 <source src={activeClass.streamVideoUrl} type="video/mp4" />
                 Live video stream is initializing...

@@ -2,6 +2,7 @@
 
 import React, { use, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useLMS } from "@/context/LMSContext";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -111,7 +112,7 @@ export default function CertificateViewPage({
               onClick={handlePrint}
               variant="outline"
               size="sm"
-              className="border-white/20 text-white hover:bg-white/10"
+              className="bg-transparent border-white/20 text-white hover:bg-white/10"
             >
               <Printer className="w-4 h-4 mr-1.5" /> Print / Save PDF
             </Button>
@@ -154,8 +155,8 @@ export default function CertificateViewPage({
 
           {/* Institutional Crest Header */}
           <div className="relative z-10 flex flex-col items-center mb-8">
-            <div className="w-20 h-20 rounded-2xl bg-[#18143D] text-white flex items-center justify-center font-black text-3xl shadow-lg border-2 border-[#7928CA] mb-3">
-              B
+            <div className="relative w-20 h-20 rounded-2xl overflow-hidden bg-white shadow-lg border-2 border-[#7928CA] mb-3">
+              <Image src="/images/bems-logo.jpg" alt="BEMS Logo" fill className="object-contain" />
             </div>
             <h2 className="text-xl sm:text-2xl font-black tracking-widest text-[#18143D] uppercase">
               Bems Institute of Technology

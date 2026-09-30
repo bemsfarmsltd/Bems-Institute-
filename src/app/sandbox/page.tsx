@@ -233,7 +233,7 @@ export default function CodingSandboxPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="border-white/20 text-white hover:bg-white/10 text-xs"
+                className="bg-transparent border-white/20 text-white hover:bg-white/10 text-xs"
               >
                 <Sparkles className="w-3.5 h-3.5 mr-1 text-purple-300" /> Review with AI Tutor
               </Button>
