@@ -69,6 +69,25 @@ export default function LessonViewPage({
 
   // Flatten lessons for linear navigation
   const allLessons = course.modules.flatMap((m) => m.lessons);
+
+  if (allLessons.length === 0) {
+    return (
+      <div className="min-h-screen flex flex-col bg-[#FAF8FF]">
+        <Navbar />
+        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+          <h2 className="text-2xl font-bold text-[#18143D] mb-2">Curriculum Coming Soon</h2>
+          <p className="text-sm text-[#645F80] mb-6 max-w-md">
+            {course.title} doesn&apos;t have any published lessons yet. Check back soon, or explore another track in the meantime.
+          </p>
+          <Link href={`/courses/${course.slug}`}>
+            <Button>Back to {course.title}</Button>
+          </Link>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
   const currentLessonIndex = allLessons.findIndex((l) => l.id === lessonId);
   const currentLesson =
     currentLessonIndex !== -1 ? allLessons[currentLessonIndex] : allLessons[0];

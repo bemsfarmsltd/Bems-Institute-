@@ -28,7 +28,17 @@ export default function CourseDetailPage({
 }) {
   const { slug } = use(params);
   const router = useRouter();
-  const { courses, isHydrated, isEnrolled, enrollInCourse, isLessonCompleted, getCourseProgress } = useLMS();
+  const {
+    courses,
+    isHydrated,
+    isEnrolled,
+    enrollInCourse,
+    isLessonCompleted,
+    getCourseProgress,
+    getQuizForCourse,
+    getAssignmentForCourse,
+    user
+  } = useLMS();
 
   const course = courses.find((c) => c.slug === slug);
 
@@ -59,6 +69,8 @@ export default function CourseDetailPage({
   const progress = getCourseProgress(course.id);
   const firstLessonId = course.modules[0]?.lessons[0]?.id || "les-1";
   const totalLessons = course.modules.reduce((acc, m) => acc + m.lessons.length, 0);
+  const courseQuiz = getQuizForCourse(course.id);
+  const courseAssignment = getAssignmentForCourse(course.id);
 
   const handleEnroll = async () => {
     await enrollInCourse(course.id);
@@ -71,7 +83,7 @@ export default function CourseDetailPage({
 
       <div className="bg-gradient-to-r from-[#18143D] via-[#241E56] to-[#18143D] text-white py-14 border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link href="/#courses" className="inline-flex items-center gap-2 text-xs text-[#D8B4FE] hover:text-white mb-6">
+          <Link href="/courses" className="inline-flex items-center gap-2 text-xs text-[#D8B4FE] hover:text-white mb-6">
             <ArrowLeft className="w-4 h-4" /> Back to Course Catalog
           </Link>
 
@@ -117,6 +129,15 @@ export default function CourseDetailPage({
               </p>
             </div>
 
+            {course.modules.length === 0 ? (
+              <div className="bg-white border border-[#E6E1F5] rounded-2xl p-8 text-center">
+                <BookOpen className="w-8 h-8 text-[#A5A0C8] mx-auto mb-3" />
+                <h3 className="font-bold text-[#18143D] mb-1">Curriculum Coming Soon</h3>
+                <p className="text-sm text-[#645F80]">
+                  Modules and video lessons for this track haven&apos;t been published yet. Check back soon.
+                </p>
+              </div>
+            ) : (
             <div className="space-y-6">
               {course.modules.map((mod) => (
                 <div 
@@ -190,18 +211,21 @@ export default function CourseDetailPage({
                 </div>
               ))}
             </div>
+            )}
 
-            <div className="bg-[#FFFBEB] border border-[#FDE68A] rounded-2xl p-6 flex items-start gap-4">
-              <Award className="w-8 h-8 text-[#D97706] shrink-0" />
-              <div>
-                <h4 className="font-bold text-[#92400E] text-base mb-1">
-                  Mandatory Final Capstone Project (Proof for Employers)
-                </h4>
-                <p className="text-sm text-[#78350F]">
-                  {course.finalProject}
-                </p>
+            {course.modules.length > 0 && (
+              <div className="bg-[#FFFBEB] border border-[#FDE68A] rounded-2xl p-6 flex items-start gap-4">
+                <Award className="w-8 h-8 text-[#D97706] shrink-0" />
+                <div>
+                  <h4 className="font-bold text-[#92400E] text-base mb-1">
+                    Mandatory Final Capstone Project (Proof for Employers)
+                  </h4>
+                  <p className="text-sm text-[#78350F]">
+                    {course.finalProject}
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
 
           </div>
 
@@ -235,16 +259,28 @@ export default function CourseDetailPage({
                   </Link>
 
                   <div className="grid grid-cols-2 gap-2 mb-3">
-                    <Link href={`/learn/${course.slug}/quiz/quiz-${course.id}`}>
-                      <Button variant="outline" size="sm" className="w-full text-xs">
-                        Take Quiz
+                    {courseQuiz ? (
+                      <Link href={`/learn/${course.slug}/quiz/${courseQuiz.id}`}>
+                        <Button variant="outline" size="sm" className="w-full text-xs">
+                          Take Quiz
+                        </Button>
+                      </Link>
+                    ) : (
+                      <Button variant="outline" size="sm" className="w-full text-xs" disabled>
+                        Quiz Coming Soon
                       </Button>
-                    </Link>
-                    <Link href={`/learn/${course.slug}/assignment/assign-${course.id}`}>
-                      <Button variant="outline" size="sm" className="w-full text-xs">
-                        Capstone
+                    )}
+                    {courseAssignment ? (
+                      <Link href={`/learn/${course.slug}/assignment/${courseAssignment.id}`}>
+                        <Button variant="outline" size="sm" className="w-full text-xs">
+                          Capstone
+                        </Button>
+                      </Link>
+                    ) : (
+                      <Button variant="outline" size="sm" className="w-full text-xs" disabled>
+                        Capstone Coming Soon
                       </Button>
-                    </Link>
+                    )}
                   </div>
 
                   <Link href="https://chat.whatsapp.com/BEMSFutureSkills2026Cohort" target="_blank" className="block w-full">
@@ -259,29 +295,32 @@ export default function CourseDetailPage({
                   <span className="text-xs font-bold text-[#7928CA] uppercase tracking-wider block mb-1">
                     Full Course Access
                   </span>
-                  <div className="flex items-baseline gap-2 mb-4">
+                  <div className="mb-1">
                     <span className="text-3xl font-black text-[#18143D]">
                       ₦{course.priceFull.toLocaleString()}
                     </span>
-                    <span className="text-xs text-[#645F80] line-through">
-                      ₦{course.priceParts.toLocaleString()}
-                    </span>
                   </div>
+                  <p className="text-xs text-[#645F80] mb-4">Paid in full, one time</p>
 
                   <div className="bg-[#FAF8FF] border border-[#E6E1F5] rounded-xl p-3.5 mb-6 text-xs text-[#18143D] space-y-1.5">
-                    <div><strong>Pay in Parts Option:</strong> ₦{course.priceParts.toLocaleString()}</div>
+                    <div><strong>Pay in Parts Option:</strong> ₦{course.priceParts.toLocaleString()} total</div>
                     <div className="text-[#7928CA] font-semibold">
                       Start today with ₦{course.deposit.toLocaleString()} deposit
                     </div>
                   </div>
 
-                  <Button onClick={handleEnroll} size="lg" className="w-full gap-2 mb-3">
-                    <Sparkles className="w-4 h-4" />
-                    <span>Instant Demo Enroll (Unlock LMS)</span>
-                  </Button>
+                  {/* Free instant enrollment bypasses payment entirely, so it's
+                      restricted to staff for demoing/QA — a real visitor only
+                      ever sees the paid checkout path below. */}
+                  {(user?.role === "ADMIN" || user?.role === "INSTRUCTOR") && (
+                    <Button onClick={handleEnroll} variant="outline" size="md" className="w-full gap-2 mb-3">
+                      <Sparkles className="w-4 h-4" />
+                      <span>Instant Demo Enroll (Staff Only)</span>
+                    </Button>
+                  )}
 
                   <Link href={`/subscriptions?course=${course.id}`} className="block w-full">
-                    <Button variant="outline" size="md" className="w-full">
+                    <Button size="lg" className="w-full">
                       Full Checkout & Paystack Portal
                     </Button>
                   </Link>
@@ -289,7 +328,9 @@ export default function CourseDetailPage({
                   <ul className="mt-6 pt-6 border-t border-[#E6E1F5] space-y-2.5 text-xs text-[#645F80]">
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
-                      <span>All {totalLessons} HD Video Lessons & Notes</span>
+                      <span>
+                        {totalLessons > 0 ? `All ${totalLessons} HD Video Lessons & Notes` : "HD Video Lessons & Notes (publishing soon)"}
+                      </span>
                     </li>
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
