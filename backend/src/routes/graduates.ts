@@ -4,6 +4,16 @@ import { getSessionUser, isAdmin, isStaff } from "@/lib/api-auth";
 
 const router = Router();
 
+const LIMITS = { headline: 150, company: 100, quote: 500, photoUrl: 500 };
+
+function fieldLengthError(headline?: string, company?: string | null, quote?: string | null, photoUrl?: string | null): string | null {
+  if (headline && headline.length > LIMITS.headline) return `headline must be ${LIMITS.headline} characters or fewer.`;
+  if (company && company.length > LIMITS.company) return `company must be ${LIMITS.company} characters or fewer.`;
+  if (quote && quote.length > LIMITS.quote) return `quote must be ${LIMITS.quote} characters or fewer.`;
+  if (photoUrl && photoUrl.length > LIMITS.photoUrl) return `photoUrl must be ${LIMITS.photoUrl} characters or fewer.`;
+  return null;
+}
+
 // Public: the "where they are now" page (PRD §5.3) — only ever shows
 // entries an admin explicitly published, never auto-generated from a
 // certificate, since a name/photo on public marketing content needs the
@@ -86,6 +96,10 @@ router.post("/", async (req, res) => {
   if (!userId || !courseId || !headline) {
     return res.status(400).json({ error: "userId, courseId, and headline are required." });
   }
+  const lengthError = fieldLengthError(headline, company, quote, photoUrl);
+  if (lengthError) {
+    return res.status(400).json({ error: lengthError });
+  }
 
   const outcome = await prisma.graduateOutcome.create({
     data: { userId, courseId, headline, company, quote, photoUrl }
@@ -109,6 +123,16 @@ router.patch("/:id", async (req, res) => {
   if (typeof body.company === "string") data.company = body.company.trim() || null;
   if (typeof body.quote === "string") data.quote = body.quote.trim() || null;
   if (typeof body.photoUrl === "string") data.photoUrl = body.photoUrl.trim() || null;
+
+  const lengthError = fieldLengthError(
+    data.headline as string | undefined,
+    data.company as string | null | undefined,
+    data.quote as string | null | undefined,
+    data.photoUrl as string | null | undefined
+  );
+  if (lengthError) {
+    return res.status(400).json({ error: lengthError });
+  }
 
   const outcome = await prisma.graduateOutcome.update({ where: { id }, data });
   return res.json({ outcome });

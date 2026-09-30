@@ -3,6 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { hashPassword, isPasswordStrongEnough } from "@/lib/password";
 import { createSessionToken, SESSION_COOKIE, SESSION_COOKIE_OPTIONS } from "@/lib/session";
 import { checkRateLimit, recordAttempt, rateLimitMessage } from "@/lib/rate-limit";
+import { isValidEmail } from "@/lib/validation";
+
+const MAX_NAME_LENGTH = 100;
 
 const router = Router();
 
@@ -50,6 +53,12 @@ router.post("/", async (req, res) => {
   if (!name || !email) {
     return res.status(400).json({ error: "Name and email are required." });
   }
+  if (name.length > MAX_NAME_LENGTH) {
+    return res.status(400).json({ error: `Name must be ${MAX_NAME_LENGTH} characters or fewer.` });
+  }
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ error: "Enter a valid email address." });
+  }
   if (!isPasswordStrongEnough(password)) {
     return res.status(400).json({ error: "Password must be at least 8 characters." });
   }
@@ -62,7 +71,7 @@ router.post("/", async (req, res) => {
   const passwordHash = await hashPassword(password);
   const user = await prisma.user.create({ data: { name, email, passwordHash, role: "ADMIN" } });
 
-  const token = await createSessionToken({ id: user.id, name: user.name, email: user.email, role: user.role });
+  const token = await createSessionToken({ id: user.id, name: user.name, email: user.email, role: user.role, tokenVersion: user.tokenVersion });
   res.cookie(SESSION_COOKIE, token, SESSION_COOKIE_OPTIONS);
   return res.json({ user: { id: user.id, name: user.name, email: user.email, role: user.role } });
 });

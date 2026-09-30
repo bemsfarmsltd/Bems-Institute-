@@ -56,6 +56,12 @@ router.post("/messages", async (req, res) => {
   if (!channelId || (!content && !codeSnippet)) {
     return res.status(400).json({ error: "channelId and content (or a code snippet) are required." });
   }
+  if (content.length > 4000) {
+    return res.status(400).json({ error: "Message is too long (4000 characters max)." });
+  }
+  if (codeSnippet && codeSnippet.length > 8000) {
+    return res.status(400).json({ error: "Code snippet is too long (8000 characters max)." });
+  }
 
   const message = await prisma.communityMessage.create({
     data: { channelId, userId: session.id, content, codeSnippet },

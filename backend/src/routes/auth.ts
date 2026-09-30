@@ -1,10 +1,14 @@
 import { Router } from "express";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword, hashPassword, isPasswordStrongEnough } from "@/lib/password";
-import { createSessionToken, verifySessionToken, SESSION_COOKIE, SESSION_COOKIE_OPTIONS } from "@/lib/session";
+import { createSessionToken, SESSION_COOKIE, SESSION_COOKIE_OPTIONS } from "@/lib/session";
+import { getSessionUser } from "@/lib/api-auth";
 import { checkRateLimit, recordAttempt, rateLimitMessage, clearAttempts, checkUsageQuota } from "@/lib/rate-limit";
 import { createPasswordResetToken, deliverPasswordResetLink, lookupResetToken, consumeResetToken } from "@/lib/password-reset";
 import { recordReferralSignup } from "@/lib/referrals";
+import { isValidEmail } from "@/lib/validation";
+
+const MAX_NAME_LENGTH = 100;
 
 const router = Router();
 
@@ -34,7 +38,7 @@ router.post("/login", async (req, res) => {
     return res.status(401).json({ error: "Invalid email or password." });
   }
 
-  const token = await createSessionToken({ id: user.id, name: user.name, email: user.email, role: user.role });
+  const token = await createSessionToken({ id: user.id, name: user.name, email: user.email, role: user.role, tokenVersion: user.tokenVersion });
   res.cookie(SESSION_COOKIE, token, SESSION_COOKIE_OPTIONS);
   return res.json({ user: { id: user.id, name: user.name, email: user.email, role: user.role } });
 });
@@ -45,8 +49,7 @@ router.post("/logout", async (_req, res) => {
 });
 
 router.get("/me", async (req, res) => {
-  const token = req.cookies?.[SESSION_COOKIE];
-  const session = await verifySessionToken(token);
+  const session = await getSessionUser(req);
   if (!session) return res.json({ user: null });
   const { id, name, email, role } = session;
   return res.json({ user: { id, name, email, role } });
@@ -64,6 +67,12 @@ router.post("/signup", async (req, res) => {
 
   if (!name || !email) {
     return res.status(400).json({ error: "Name and email are required." });
+  }
+  if (name.length > MAX_NAME_LENGTH) {
+    return res.status(400).json({ error: `Name must be ${MAX_NAME_LENGTH} characters or fewer.` });
+  }
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ error: "Enter a valid email address." });
   }
   if (!isPasswordStrongEnough(password)) {
     return res.status(400).json({ error: "Password must be at least 8 characters." });
@@ -103,13 +112,18 @@ router.post("/signup", async (req, res) => {
     await recordReferralSignup(user.id, user.name, referralCode);
   }
 
-  const token = await createSessionToken({ id: user.id, name: user.name, email: user.email, role: user.role });
+  const token = await createSessionToken({ id: user.id, name: user.name, email: user.email, role: user.role, tokenVersion: user.tokenVersion });
   res.cookie(SESSION_COOKIE, token, SESSION_COOKIE_OPTIONS);
   return res.json({ user: { id: user.id, name: user.name, email: user.email, role: user.role } });
 });
 
 const GENERIC_RESET_MESSAGE = "If an account exists for that email, a reset link has been sent.";
 
+// Deliberately asymmetric with /signup's 409 "account already exists":
+// signup has to tell you that, or you'd have no way to know to sign in
+// instead. Password reset has no such need, so it stays silent about
+// whether the address is registered at all — otherwise this endpoint would
+// become a free tool for checking who has a BEMS account.
 router.post("/request-reset", async (req, res) => {
   const body = req.body ?? {};
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
@@ -153,11 +167,19 @@ router.post("/reset-password", async (req, res) => {
   }
 
   const passwordHash = await hashPassword(password);
-  const user = await prisma.user.update({ where: { id: lookup.userId }, data: { passwordHash } });
+  // Bumping tokenVersion here is what actually revokes every other session
+  // — a stolen/lingering cookie from before this reset now fails
+  // getSessionUser's version check on its next use, for the rest of its
+  // 7-day lifetime, instead of staying valid regardless of the password
+  // change.
+  const user = await prisma.user.update({
+    where: { id: lookup.userId },
+    data: { passwordHash, tokenVersion: { increment: 1 } }
+  });
   await consumeResetToken(lookup.tokenId);
   await clearAttempts(`login:${user.email}`);
 
-  const sessionToken = await createSessionToken({ id: user.id, name: user.name, email: user.email, role: user.role });
+  const sessionToken = await createSessionToken({ id: user.id, name: user.name, email: user.email, role: user.role, tokenVersion: user.tokenVersion });
   res.cookie(SESSION_COOKIE, sessionToken, SESSION_COOKIE_OPTIONS);
   return res.json({ user: { id: user.id, name: user.name, email: user.email, role: user.role } });
 });

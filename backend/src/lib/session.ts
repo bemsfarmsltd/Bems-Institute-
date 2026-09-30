@@ -14,6 +14,7 @@ export interface SessionPayload {
   name: string;
   email: string;
   role: UserRole;
+  tokenVersion: number;
   iat: number;
 }
 
