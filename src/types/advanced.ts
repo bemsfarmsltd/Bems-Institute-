@@ -1,3 +1,7 @@
+// Backed by real LiveSession rows (backend/src/routes/attendance.ts GET /live) —
+// status/meetingUrl are the only fields the backend actually has; there's no
+// real video hosting, attendee count, or agenda data, so those don't exist
+// here (see the frontend audit that found the old mock fields for them).
 export interface LiveClass {
   id: string;
   title: string;
@@ -5,15 +9,9 @@ export interface LiveClass {
   courseTitle: string;
   instructor: string;
   instructorRole: string;
-  startTime: string; // ISO date or display string
-  duration: string;
-  status: "LIVE_NOW" | "UPCOMING" | "RECORDED";
-  location: "BEMS Hub Lab 1 (Umuahia) + Zoom" | "BEMS Hub Lab 2 (Umuahia) + Zoom" | "Virtual Live Zoom";
-  zoomJoinUrl: string;
-  streamVideoUrl?: string;
-  currentAttendees: number;
-  agenda: string[];
-  recordingUrl?: string;
+  scheduledAt: string; // ISO date string
+  status: "LIVE_NOW" | "UPCOMING";
+  meetingUrl: string | null;
 }
 
 export interface CommunityChannel {
@@ -21,19 +19,19 @@ export interface CommunityChannel {
   name: string;
   description: string;
   category: "CLASS_TRACKS" | "CAMPUS_HUB" | "CAREER";
-  unreadCount?: number;
 }
 
+// Backed by the real CommunityMessage model — senderRole matches the real
+// Prisma UserRole enum (no "ALUMNI", which was never a real role).
 export interface CommunityMessage {
   id: string;
   channelId: string;
   senderName: string;
-  senderRole: "STUDENT" | "INSTRUCTOR" | "ALUMNI";
-  senderAvatar?: string;
+  senderRole: "STUDENT" | "INSTRUCTOR" | "ADMIN";
   content: string;
-  codeSnippet?: string;
+  codeSnippet?: string | null;
   likes: number;
-  timestamp: string;
+  createdAt: string; // ISO date string
 }
 
 export interface AppNotification {
@@ -46,30 +44,21 @@ export interface AppNotification {
   linkUrl?: string;
 }
 
-export interface GamificationProfile {
-  xpPoints: number;
-  streakDays: number;
-  level: number;
-  levelTitle: string;
-  badges: {
-    id: string;
-    title: string;
-    description: string;
-    icon: string;
-    unlockedAt?: string;
-    isUnlocked: boolean;
-  }[];
-}
-
+// Backed by GET /api/lms/leaderboard (backend/src/lib/leaderboard.ts) — one
+// row per real STUDENT user, XP/level/badges computed from their actual
+// completed lessons, quiz scores, certificates, and learning streak.
 export interface LeaderboardStudent {
   rank: number;
-  id: string;
+  userId: string;
   name: string;
   track: string;
   xpPoints: number;
+  level: number;
+  levelTitle: string;
   streakDays: number;
+  badges: string[];
   badgesCount: number;
-  avatarText: string;
+  isMe: boolean;
 }
 
 export interface SubscriptionTier {

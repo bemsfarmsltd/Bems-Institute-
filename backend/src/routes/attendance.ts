@@ -24,6 +24,7 @@ router.get("/sessions", async (req, res) => {
       courseId: s.courseId,
       title: s.title,
       scheduledAt: s.scheduledAt,
+      meetingUrl: s.meetingUrl,
       markedCount: s._count.attendance
     }))
   });
@@ -39,13 +40,67 @@ router.post("/sessions", async (req, res) => {
   const courseId = typeof body.courseId === "string" ? body.courseId : "";
   const title = typeof body.title === "string" ? body.title.trim() : "";
   const scheduledAt = typeof body.scheduledAt === "string" ? new Date(body.scheduledAt) : null;
+  const meetingUrl = typeof body.meetingUrl === "string" && body.meetingUrl.trim() ? body.meetingUrl.trim() : null;
 
   if (!courseId || !title || !scheduledAt || Number.isNaN(scheduledAt.getTime())) {
     return res.status(400).json({ error: "courseId, title, and a valid scheduledAt are required." });
   }
 
-  const created = await prisma.liveSession.create({ data: { courseId, title, scheduledAt } });
+  const created = await prisma.liveSession.create({ data: { courseId, title, scheduledAt, meetingUrl } });
   return res.json({ session: created });
+});
+
+// Upcoming/live sessions this caller can see — students only see sessions
+// for courses they're enrolled in; staff see everything, since courses
+// aren't assigned to individual instructors in this app.
+router.get("/live", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!session) {
+    return res.status(401).json({ error: "Not authenticated." });
+  }
+
+  let courseIds: string[] | undefined;
+  if (!isStaff(session)) {
+    const enrollments = await prisma.enrollment.findMany({
+      where: { userId: session.id },
+      select: { courseId: true }
+    });
+    courseIds = enrollments.map((e) => e.courseId);
+    if (courseIds.length === 0) {
+      return res.json({ sessions: [] });
+    }
+  }
+
+  const windowStart = new Date(Date.now() - 2 * 60 * 60 * 1000);
+  const sessions = await prisma.liveSession.findMany({
+    where: {
+      scheduledAt: { gte: windowStart },
+      ...(courseIds ? { courseId: { in: courseIds } } : {})
+    },
+    include: { course: { select: { title: true, tutor: true, tutorRole: true } } },
+    orderBy: { scheduledAt: "asc" }
+  });
+
+  const now = Date.now();
+  const LIVE_WINDOW_MS = 90 * 60 * 1000;
+
+  return res.json({
+    sessions: sessions.map((s) => {
+      const scheduledMs = s.scheduledAt.getTime();
+      const isLiveNow = Math.abs(now - scheduledMs) <= LIVE_WINDOW_MS;
+      return {
+        id: s.id,
+        courseId: s.courseId,
+        courseTitle: s.course.title,
+        instructor: s.course.tutor,
+        instructorRole: s.course.tutorRole,
+        title: s.title,
+        scheduledAt: s.scheduledAt,
+        meetingUrl: s.meetingUrl,
+        status: isLiveNow ? "LIVE_NOW" : "UPCOMING"
+      };
+    })
+  });
 });
 
 // The enrolled roster for this session's course, each with their existing

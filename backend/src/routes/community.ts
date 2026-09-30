@@ -1,0 +1,96 @@
+import { Router } from "express";
+import { prisma } from "@/lib/prisma";
+import { getSessionUser } from "@/lib/api-auth";
+
+const router = Router();
+
+// Messages for one channel, oldest first. Channels are a fixed, code-defined
+// list on the frontend (not a DB table) — any non-empty channelId is
+// accepted here, it just won't have any messages if it isn't a real one.
+router.get("/messages", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!session) {
+    return res.status(401).json({ error: "Not authenticated." });
+  }
+
+  const channelId = typeof req.query.channelId === "string" ? req.query.channelId : "";
+  if (!channelId) {
+    return res.status(400).json({ error: "channelId is required." });
+  }
+
+  const messages = await prisma.communityMessage.findMany({
+    where: { channelId },
+    orderBy: { createdAt: "asc" },
+    include: { user: { select: { name: true, role: true } } },
+    take: 200
+  });
+
+  return res.json({
+    messages: messages.map((m) => ({
+      id: m.id,
+      channelId: m.channelId,
+      senderName: m.user.name,
+      senderRole: m.user.role,
+      content: m.content,
+      codeSnippet: m.codeSnippet,
+      likes: m.likes,
+      createdAt: m.createdAt
+    }))
+  });
+});
+
+// Posting requires a real session — there is no anonymous/fallback name path,
+// which is what makes this a structural fix for the old local-state bug that
+// misattributed anonymous posts to a real seeded student's name.
+router.post("/messages", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!session) {
+    return res.status(401).json({ error: "Not authenticated." });
+  }
+
+  const body = req.body ?? {};
+  const channelId = typeof body.channelId === "string" ? body.channelId.trim() : "";
+  const content = typeof body.content === "string" ? body.content.trim() : "";
+  const codeSnippet = typeof body.codeSnippet === "string" && body.codeSnippet.trim() ? body.codeSnippet : null;
+
+  if (!channelId || (!content && !codeSnippet)) {
+    return res.status(400).json({ error: "channelId and content (or a code snippet) are required." });
+  }
+
+  const message = await prisma.communityMessage.create({
+    data: { channelId, userId: session.id, content, codeSnippet },
+    include: { user: { select: { name: true, role: true } } }
+  });
+
+  return res.json({
+    message: {
+      id: message.id,
+      channelId: message.channelId,
+      senderName: message.user.name,
+      senderRole: message.user.role,
+      content: message.content,
+      codeSnippet: message.codeSnippet,
+      likes: message.likes,
+      createdAt: message.createdAt
+    }
+  });
+});
+
+router.post("/messages/:id/like", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!session) {
+    return res.status(401).json({ error: "Not authenticated." });
+  }
+
+  const updated = await prisma.communityMessage
+    .update({ where: { id: req.params.id }, data: { likes: { increment: 1 } } })
+    .catch(() => null);
+
+  if (!updated) {
+    return res.status(404).json({ error: "Message not found." });
+  }
+
+  return res.json({ likes: updated.likes });
+});
+
+export default router;

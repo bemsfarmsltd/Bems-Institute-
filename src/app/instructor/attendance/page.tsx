@@ -36,6 +36,7 @@ function InstructorAttendanceContent() {
 
   const [newTitle, setNewTitle] = useState("");
   const [newScheduledAt, setNewScheduledAt] = useState("");
+  const [newMeetingUrl, setNewMeetingUrl] = useState("");
   const [creating, setCreating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -94,7 +95,8 @@ function InstructorAttendanceContent() {
       body: JSON.stringify({
         courseId,
         title: newTitle,
-        scheduledAt: new Date(newScheduledAt).toISOString()
+        scheduledAt: new Date(newScheduledAt).toISOString(),
+        meetingUrl: newMeetingUrl.trim() || undefined
       })
     });
     setCreating(false);
@@ -104,6 +106,7 @@ function InstructorAttendanceContent() {
     }
     setNewTitle("");
     setNewScheduledAt("");
+    setNewMeetingUrl("");
     await loadSessions(courseId);
   };
 
@@ -193,6 +196,13 @@ function InstructorAttendanceContent() {
                 type="datetime-local"
                 value={newScheduledAt}
                 onChange={(e) => setNewScheduledAt(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E1F5] text-xs focus:outline-none focus:border-[#7928CA]"
+              />
+              <input
+                type="url"
+                value={newMeetingUrl}
+                onChange={(e) => setNewMeetingUrl(e.target.value)}
+                placeholder="Meeting link (Zoom/Meet) — optional"
                 className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E1F5] text-xs focus:outline-none focus:border-[#7928CA]"
               />
               <Button type="submit" size="sm" disabled={creating} className="w-full">

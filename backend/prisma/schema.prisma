@@ -94,6 +94,7 @@ model User {
   referralsMade        Referral[]          @relation("ReferralsMade")
   attendanceRecords    AttendanceRecord[]
   graduateOutcomes     GraduateOutcome[]
+  communityMessages    CommunityMessage[]
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 }
@@ -145,10 +146,29 @@ model LiveSession {
   course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
   title       String
   scheduledAt DateTime
+  // External Zoom/Meet-style join link — this app doesn't host video itself,
+  // it links out, same as most real LMS platforms.
+  meetingUrl  String?
   createdAt   DateTime @default(now())
   attendance  AttendanceRecord[]
 
   @@index([courseId])
+}
+
+// A message in a fixed, code-defined community channel (channels are not a
+// DB table — see COMMUNITY_CHANNELS on the frontend — only messages need
+// real persistence so they survive a refresh and are visible to everyone).
+model CommunityMessage {
+  id          String   @id @default(cuid())
+  channelId   String
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content     String   @db.Text
+  codeSnippet String?  @db.Text
+  likes       Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([channelId, createdAt])
 }
 
 model AttendanceRecord {

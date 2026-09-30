@@ -11,6 +11,7 @@ import {
 } from "@/lib/learning-engine";
 import { createNotification, notifyStaff, formatRelativeTime } from "@/lib/notifications";
 import { creditReferralIfEligible } from "@/lib/referrals";
+import { computeLeaderboard } from "@/lib/leaderboard";
 import type { QuizResult } from "@/types/lms";
 import type { NotificationCategory } from "@prisma/client";
 
@@ -33,6 +34,18 @@ router.get("/catalog", async (_req, res) => {
     assignments: assignments.map(mapAssignment),
     certificates: certificates.map(mapCertificate)
   });
+});
+
+// Auth required, any role: real XP/rank computed from every student's actual
+// completed lessons, quiz scores, certificates, and streak — see
+// computeLeaderboard for the (documented, intentionally simple) formula.
+router.get("/leaderboard", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!session) {
+    return res.status(401).json({ error: "Not authenticated." });
+  }
+  const leaderboard = await computeLeaderboard(session.id);
+  return res.json({ leaderboard });
 });
 
 // Auth required: the current user's own enrollment/progress/quiz state, plus

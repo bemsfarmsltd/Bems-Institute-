@@ -12,6 +12,7 @@ import lmsRoutes from "@/routes/lms";
 import referralsRoutes from "@/routes/referrals";
 import graduatesRoutes from "@/routes/graduates";
 import attendanceRoutes from "@/routes/attendance";
+import communityRoutes from "@/routes/community";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -46,6 +47,7 @@ app.use("/api/lms", lmsRoutes);
 app.use("/api/referrals", referralsRoutes);
 app.use("/api/graduates", graduatesRoutes);
 app.use("/api/attendance", attendanceRoutes);
+app.use("/api/community", communityRoutes);
 
 app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error("Unhandled error:", err);

@@ -1,63 +1,81 @@
 "use client";
 
-import React, { useState } from "react";
-import Link from "next/link";
+import React, { useState, useEffect, useCallback } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useLMS } from "@/context/LMSContext";
+import { apiFetch } from "@/lib/api-client";
 import {
   Hash,
   Send,
   Code2,
   ThumbsUp,
   MessageCircle,
-  Users,
-  Search,
-  Sparkles,
-  Paperclip
+  Lock
 } from "lucide-react";
-import { COMMUNITY_CHANNELS, INITIAL_COMMUNITY_MESSAGES } from "@/data/advanced-data";
+import { COMMUNITY_CHANNELS } from "@/data/advanced-data";
 import { CommunityChannel, CommunityMessage } from "@/types/advanced";
+
+function formatTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+}
 
 export default function CommunityPage() {
   const { user } = useLMS();
   const [channels] = useState<CommunityChannel[]>(COMMUNITY_CHANNELS);
   const [activeChannelId, setActiveChannelId] = useState<string>("chan-web-dev");
-  const [messages, setMessages] = useState<CommunityMessage[]>(INITIAL_COMMUNITY_MESSAGES);
+  const [messages, setMessages] = useState<CommunityMessage[]>([]);
+  const [loading, setLoading] = useState(true);
   const [messageText, setMessageText] = useState("");
   const [showCodeInput, setShowCodeInput] = useState(false);
   const [codeSnippet, setCodeSnippet] = useState("");
+  const [sending, setSending] = useState(false);
 
   const activeChannel = channels.find((c) => c.id === activeChannelId) || channels[0];
-  const channelMessages = messages.filter((m) => m.channelId === activeChannelId);
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const loadMessages = useCallback(async (channelId: string) => {
+    setLoading(true);
+    const res = await apiFetch(`/api/community/messages?channelId=${encodeURIComponent(channelId)}`);
+    if (res.ok) {
+      const data = await res.json();
+      setMessages(data.messages || []);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    loadMessages(activeChannelId);
+  }, [activeChannelId, loadMessages]);
+
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!messageText.trim() && !codeSnippet.trim()) return;
+    if (!user || (!messageText.trim() && !codeSnippet.trim())) return;
 
-    const newMsg: CommunityMessage = {
-      id: `msg-${Date.now()}`,
-      channelId: activeChannelId,
-      senderName: user?.name || "Chinedu Okeke",
-      senderRole: user?.role === "INSTRUCTOR" ? "INSTRUCTOR" : "STUDENT",
-      content: messageText,
-      codeSnippet: codeSnippet.trim() ? codeSnippet : undefined,
-      likes: 0,
-      timestamp: "Just now"
-    };
+    setSending(true);
+    const res = await apiFetch("/api/community/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        channelId: activeChannelId,
+        content: messageText,
+        codeSnippet: codeSnippet.trim() || undefined
+      })
+    });
+    setSending(false);
+    if (!res.ok) return;
 
-    setMessages((prev) => [...prev, newMsg]);
+    const data = await res.json();
+    setMessages((prev) => [...prev, data.message]);
     setMessageText("");
     setCodeSnippet("");
     setShowCodeInput(false);
   };
 
-  const handleLike = (msgId: string) => {
-    setMessages((prev) =>
-      prev.map((m) => (m.id === msgId ? { ...m, likes: m.likes + 1 } : m))
-    );
+  const handleLike = async (msgId: string) => {
+    setMessages((prev) => prev.map((m) => (m.id === msgId ? { ...m, likes: m.likes + 1 } : m)));
+    await apiFetch(`/api/community/messages/${msgId}/like`, { method: "POST" }).catch(() => {});
   };
 
   return (
@@ -69,7 +87,7 @@ export default function CommunityPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <Badge variant="purple">PHASE 5 COMMUNITY & PEER LEARNING</Badge>
+              <Badge variant="purple">COMMUNITY &amp; PEER LEARNING</Badge>
               <Badge variant="gold">OCTOBER 2026 COHORT</Badge>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black">
@@ -111,21 +129,14 @@ export default function CommunityPage() {
                   <button
                     key={chan.id}
                     onClick={() => setActiveChannelId(chan.id)}
-                    className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between ${
+                    className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
                       activeChannelId === chan.id
                         ? "bg-[#7928CA] text-white shadow-xs"
                         : "text-[#4A4568] hover:bg-white hover:text-[#18143D]"
                     }`}
                   >
-                    <div className="flex items-center gap-2 truncate">
-                      <Hash className="w-3.5 h-3.5 flex-shrink-0 opacity-70" />
-                      <span className="truncate">{chan.name}</span>
-                    </div>
-                    {chan.unreadCount ? (
-                      <span className="px-1.5 py-0.2 rounded-full bg-red-500 text-white text-[10px]">
-                        {chan.unreadCount}
-                      </span>
-                    ) : null}
+                    <Hash className="w-3.5 h-3.5 flex-shrink-0 opacity-70" />
+                    <span className="truncate">{chan.name}</span>
                   </button>
                 ))}
               </div>
@@ -140,7 +151,7 @@ export default function CommunityPage() {
           </div>
 
           {/* Right Message Stream */}
-          <div className="lg:col-span-3 flex flex-col justify-between">
+          <div className="lg:col-span-3 flex flex-col justify-between min-h-0">
             {/* Channel Header */}
             <div className="p-4 px-6 border-b border-[#F0EDF9] flex items-center justify-between bg-white">
               <div className="flex items-center gap-2">
@@ -160,25 +171,29 @@ export default function CommunityPage() {
 
             {/* Messages Feed */}
             <div className="flex-1 p-6 overflow-y-auto space-y-4">
-              {channelMessages.length === 0 ? (
+              {loading ? (
+                <div className="h-full flex items-center justify-center text-xs text-[#8580A3]">
+                  Loading messages…
+                </div>
+              ) : messages.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center text-[#8580A3] space-y-2">
                   <MessageCircle className="w-10 h-10 opacity-30" />
                   <p className="text-xs">No messages yet in this channel. Be the first to start the discussion!</p>
                 </div>
               ) : (
-                channelMessages.map((msg) => (
+                messages.map((msg) => (
                   <div key={msg.id} className="p-4 rounded-2xl bg-[#FAF8FF] border border-[#E6E1F5] space-y-2.5">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="w-7 h-7 rounded-full bg-[#18143D] text-white flex items-center justify-center text-xs font-bold">
-                          {msg.senderName.substring(0, 2)}
+                          {msg.senderName.substring(0, 2).toUpperCase()}
                         </span>
                         <span className="font-bold text-xs text-[#18143D]">
                           {msg.senderName}
                         </span>
                         <span
                           className={`text-[10px] px-2 py-0.2 rounded-full font-bold ${
-                            msg.senderRole === "INSTRUCTOR"
+                            msg.senderRole === "INSTRUCTOR" || msg.senderRole === "ADMIN"
                               ? "bg-purple-100 text-[#7928CA]"
                               : "bg-blue-100 text-blue-800"
                           }`}
@@ -186,7 +201,7 @@ export default function CommunityPage() {
                           {msg.senderRole}
                         </span>
                       </div>
-                      <span className="text-[10px] text-[#8580A3]">{msg.timestamp}</span>
+                      <span className="text-[10px] text-[#8580A3]">{formatTime(msg.createdAt)}</span>
                     </div>
 
                     <p className="text-xs text-[#4A4568] leading-relaxed">{msg.content}</p>
@@ -212,49 +227,56 @@ export default function CommunityPage() {
             </div>
 
             {/* Input Composer */}
-            <form onSubmit={handleSendMessage} className="p-4 border-t border-[#F0EDF9] bg-white space-y-3">
-              {showCodeInput && (
-                <div>
-                  <label className="block text-[11px] font-bold text-[#645F80] mb-1">
-                    Attach Code Snippet
-                  </label>
-                  <textarea
-                    rows={3}
-                    placeholder="Paste HTML, CSS, or JavaScript code..."
-                    value={codeSnippet}
-                    onChange={(e) => setCodeSnippet(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-[#D1C9EB] font-mono text-xs text-[#18143D] focus:outline-hidden"
+            {user ? (
+              <form onSubmit={handleSendMessage} className="p-4 border-t border-[#F0EDF9] bg-white space-y-3">
+                {showCodeInput && (
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#645F80] mb-1">
+                      Attach Code Snippet
+                    </label>
+                    <textarea
+                      rows={3}
+                      placeholder="Paste HTML, CSS, or JavaScript code..."
+                      value={codeSnippet}
+                      onChange={(e) => setCodeSnippet(e.target.value)}
+                      className="w-full p-2.5 rounded-xl border border-[#D1C9EB] font-mono text-xs text-[#18143D] focus:outline-hidden"
+                    />
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowCodeInput(!showCodeInput)}
+                    title="Attach code snippet"
+                    className={`p-2 rounded-xl border text-xs font-bold transition-colors ${
+                      showCodeInput
+                        ? "bg-[#7928CA] text-white border-[#7928CA]"
+                        : "border-[#D1C9EB] text-[#645F80] hover:bg-[#FAF8FF]"
+                    }`}
+                  >
+                    <Code2 className="w-4 h-4" />
+                  </button>
+
+                  <input
+                    type="text"
+                    placeholder={`Message #${activeChannel.name}...`}
+                    value={messageText}
+                    onChange={(e) => setMessageText(e.target.value)}
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-[#D1C9EB] text-xs text-[#18143D] focus:border-[#7928CA] focus:outline-hidden"
                   />
+
+                  <Button type="submit" variant="purple" size="sm" className="px-4" disabled={sending}>
+                    <Send className="w-4 h-4" />
+                  </Button>
                 </div>
-              )}
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowCodeInput(!showCodeInput)}
-                  title="Attach code snippet"
-                  className={`p-2 rounded-xl border text-xs font-bold transition-colors ${
-                    showCodeInput
-                      ? "bg-[#7928CA] text-white border-[#7928CA]"
-                      : "border-[#D1C9EB] text-[#645F80] hover:bg-[#FAF8FF]"
-                  }`}
-                >
-                  <Code2 className="w-4 h-4" />
-                </button>
-
-                <input
-                  type="text"
-                  placeholder={`Message #${activeChannel.name}...`}
-                  value={messageText}
-                  onChange={(e) => setMessageText(e.target.value)}
-                  className="flex-1 px-4 py-2.5 rounded-xl border border-[#D1C9EB] text-xs text-[#18143D] focus:border-[#7928CA] focus:outline-hidden"
-                />
-
-                <Button type="submit" variant="purple" size="sm" className="px-4">
-                  <Send className="w-4 h-4" />
-                </Button>
+              </form>
+            ) : (
+              <div className="p-4 border-t border-[#F0EDF9] bg-white flex items-center justify-center gap-2 text-xs text-[#645F80] font-semibold">
+                <Lock className="w-3.5 h-3.5" />
+                <span>Log in to join the conversation</span>
               </div>
-            </form>
+            )}
           </div>
         </div>
       </div>
@@ -263,4 +285,3 @@ export default function CommunityPage() {
     </div>
   );
 }
-
