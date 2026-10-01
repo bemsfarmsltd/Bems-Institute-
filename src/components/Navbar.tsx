@@ -25,13 +25,11 @@ import {
   ShieldCheck,
   ChevronDown,
   Search,
-  Settings,
   BookOpen,
   CreditCard,
   ShoppingBag,
   FileText,
   HelpCircle,
-  ShoppingCart,
   Edit3,
   Trash2,
   FilePlus,
@@ -89,6 +87,7 @@ export function Navbar() {
                   src="/images/bems-logo.jpg"
                   alt="BEMS Logo"
                   fill
+                  sizes="(min-width: 640px) 64px, 48px"
                   className="object-contain"
                 />
               </div>
@@ -103,8 +102,12 @@ export function Navbar() {
             </Link>
           </div>
 
-          {/* Desktop Navigation: Resources ⌄, Accounts ⌄ (with nested Instructor/Student flyouts), More */}
+          {/* Desktop Navigation: Home, Resources ⌄, Accounts ⌄ (with nested Instructor/Student flyouts), More */}
           <nav className="hidden lg:flex items-center gap-6 text-xs sm:text-[13px] font-semibold whitespace-nowrap">
+            <Link href="/" className={navLinkClass("/")}>
+              Home
+            </Link>
+
             {/* "Resources ⌄" Dropdown */}
             <div className="relative group py-2">
               <button
@@ -162,35 +165,6 @@ export function Navbar() {
                 >
                   <span>Tuition &amp; Admissions</span>
                 </Link>
-                <div className="relative group/auth">
-                  <Link
-                    href="/login"
-                    className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] group-hover/auth:bg-[#F7EDF9] group-hover/auth:text-[#AE54C6]"
-                  >
-                    <span>Authentication</span>
-                    <MoreHorizontal className="w-4 h-4" />
-                  </Link>
-                  <div className="invisible opacity-0 group-hover/auth:visible group-hover/auth:opacity-100 transition-all duration-150 absolute left-full top-0 ml-1.5 w-48 bg-white rounded-xl shadow-[0_10px_40px_rgba(24,20,61,0.14)] border border-slate-100 p-2 z-50">
-                    <Link
-                      href="/login"
-                      className="flex items-center px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#F7EDF9]/70 hover:text-[#AE54C6]"
-                    >
-                      Sign In
-                    </Link>
-                    <Link
-                      href="/login?mode=signup"
-                      className="flex items-center px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#F7EDF9]/70 hover:text-[#AE54C6]"
-                    >
-                      Sign Up
-                    </Link>
-                    <Link
-                      href="/forgot-password"
-                      className="flex items-center px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#F7EDF9]/70 hover:text-[#AE54C6]"
-                    >
-                      Forgot Password
-                    </Link>
-                  </div>
-                </div>
                 <Link
                   href="/qr-studio"
                   className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#F7EDF9]/50 hover:text-[#AE54C6]"
@@ -326,20 +300,6 @@ export function Navbar() {
                       <HelpCircle className="w-3.5 h-3.5" />
                       <span>Quiz</span>
                     </Link>
-                    <Link
-                      href="/subscriptions"
-                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F7EDF9] hover:text-[#AE54C6]"
-                    >
-                      <CreditCard className="w-3.5 h-3.5" />
-                      <span>Payment Info</span>
-                    </Link>
-                    <Link
-                      href="/courses"
-                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F7EDF9] hover:text-[#AE54C6]"
-                    >
-                      <ShoppingCart className="w-3.5 h-3.5" />
-                      <span>Wishlist</span>
-                    </Link>
                   </div>
                 </div>
 
@@ -354,21 +314,14 @@ export function Navbar() {
                 </Link>
                 )}
                 <Link
-                  href="/dashboard"
+                  href="/account"
                   className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F7EDF9] hover:text-[#AE54C6] transition-colors"
                 >
                   <Edit3 className="w-4 h-4" />
                   <span>Edit Profile</span>
                 </Link>
                 <Link
-                  href="/dashboard"
-                  className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F7EDF9] hover:text-[#AE54C6] transition-colors"
-                >
-                  <Settings className="w-4 h-4" />
-                  <span>Settings</span>
-                </Link>
-                <Link
-                  href="/dashboard"
+                  href="/account#danger-zone"
                   className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F7EDF9] hover:text-[#AE54C6] transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />

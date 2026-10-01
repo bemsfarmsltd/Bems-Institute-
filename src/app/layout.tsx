@@ -8,9 +8,14 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
+// Not preloaded — font-mono only shows up on specific pages (sandbox, code
+// snippets, the referral code, etc.), never the first thing painted, so
+// eagerly preloading it on every page just trips the browser's "preloaded
+// but unused within a few seconds" warning everywhere else.
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  preload: false,
 });
 
 export const metadata: Metadata = {

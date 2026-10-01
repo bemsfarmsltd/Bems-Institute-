@@ -827,7 +827,7 @@ function AdminDashboardContent() {
           <div className="flex items-center justify-between px-2 mb-7">
             <Link href="/" className="flex items-center gap-2.5 group min-w-0">
               <div className="relative w-9 h-9 rounded-lg overflow-hidden bg-white shrink-0 shadow-xs">
-                <Image src="/images/bems-logo.jpg" alt="BEMS Logo" fill className="object-contain" />
+                <Image src="/images/bems-logo.jpg" alt="BEMS Logo" fill sizes="36px" className="object-contain" />
               </div>
               <span className="font-display font-extrabold text-[17px] leading-tight tracking-tight text-white truncate">
                 BEMS INSTITUTE

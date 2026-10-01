@@ -196,6 +196,7 @@ export function Hero() {
                   alt="BEMS Institute Tech Student"
                   fill
                   priority
+                  sizes="(min-width: 640px) 410px, 320px"
                   className="object-cover object-top scale-105"
                 />
 

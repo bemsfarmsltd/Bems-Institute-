@@ -256,7 +256,7 @@ export default function EduportAuthSplitLayout({
         <div className="w-full max-w-[520px] flex items-center justify-between">
           <Link href="/" className="inline-flex items-center gap-2.5 group">
             <div className="relative w-8 h-8 rounded-lg overflow-hidden bg-white shadow-sm shrink-0">
-              <Image src="/images/bems-logo.jpg" alt="BEMS Logo" fill className="object-contain" />
+              <Image src="/images/bems-logo.jpg" alt="BEMS Logo" fill sizes="32px" className="object-contain" />
             </div>
             <span className="font-display font-extrabold text-[18px] tracking-tight text-[#1D2026]">
               BEMS<span className="text-[#AE54C6]">.</span>

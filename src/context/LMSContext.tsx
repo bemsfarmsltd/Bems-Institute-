@@ -66,6 +66,7 @@ interface LMSContextType {
   requestPasswordReset: (email: string) => Promise<{ ok: boolean; message: string }>;
   resetPassword: (token: string, password: string) => Promise<AuthResult>;
   uploadAvatar: (file: File) => Promise<{ ok: boolean; error?: string }>;
+  updateProfile: (name: string, phone: string) => Promise<{ ok: boolean; error?: string }>;
   // Course catalog — DB-backed, public
   courses: LMSCourse[];
   quizzes: Quiz[];
@@ -447,6 +448,25 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const updateProfile = async (name: string, phone: string): Promise<{ ok: boolean; error?: string }> => {
+    try {
+      const res = await apiFetch("/api/auth/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, phone })
+      });
+      const data = await res.json();
+      if (res.ok && data.user) {
+        setUser(data.user);
+        localStorage.setItem("bems_lms_user", JSON.stringify(data.user));
+        return { ok: true };
+      }
+      return { ok: false, error: data.error || "Could not update your profile." };
+    } catch {
+      return { ok: false, error: "Could not reach the server. Please try again." };
+    }
+  };
+
   const setVerifiedUser = (verified: User) => {
     setUser(verified);
     localStorage.setItem("bems_lms_user", JSON.stringify(verified));
@@ -622,6 +642,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
         requestPasswordReset,
         resetPassword,
         uploadAvatar,
+        updateProfile,
         courses,
         quizzes,
         assignments,

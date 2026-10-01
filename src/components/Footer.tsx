@@ -11,7 +11,7 @@ export function Footer() {
           <div className="lg:col-span-4">
             <Link href="/" className="flex items-center gap-3 mb-4">
               <div className="relative w-10 h-10 rounded-lg overflow-hidden border border-slate-200 bg-white p-0.5 shrink-0">
-                <Image src="/images/bems-logo.jpg" alt="BEMS Logo" fill className="object-contain" />
+                <Image src="/images/bems-logo.jpg" alt="BEMS Logo" fill sizes="40px" className="object-contain" />
               </div>
               <div>
                 <strong className="text-[#24292D] text-base font-extrabold block leading-none">

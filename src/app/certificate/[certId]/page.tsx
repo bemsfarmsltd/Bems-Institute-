@@ -156,7 +156,7 @@ export default function CertificateViewPage({
           {/* Institutional Crest Header */}
           <div className="relative z-10 flex flex-col items-center mb-8">
             <div className="relative w-20 h-20 rounded-2xl overflow-hidden bg-white shadow-lg border-2 border-[#AE54C6] mb-3">
-              <Image src="/images/bems-logo.jpg" alt="BEMS Logo" fill className="object-contain" />
+              <Image src="/images/bems-logo.jpg" alt="BEMS Logo" fill sizes="80px" className="object-contain" />
             </div>
             <h2 className="text-xl sm:text-2xl font-black tracking-widest text-[#303654] uppercase">
               Bems Institute of Technology

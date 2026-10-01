@@ -36,7 +36,8 @@ import {
   Search,
   BookOpen,
   GraduationCap,
-  Table2
+  Table2,
+  UserCog
 } from "lucide-react";
 
 function SidebarLink({
@@ -211,6 +212,9 @@ function StudentDashboardContent() {
             <SidebarLink href="/live" icon={<Video className="w-4 h-4" />} label="Live Classes" />
             <SidebarLink href="/community" icon={<MessageSquare className="w-4 h-4" />} label="Community Chat" />
             <SidebarLink href="/leaderboard" icon={<Trophy className="w-4 h-4" />} label="Leaderboard" />
+
+            <div className="my-2 border-t border-white/10" />
+            <SidebarLink href="/account" icon={<UserCog className="w-4 h-4" />} label="Edit Profile" />
 
             <div className="my-2 border-t border-white/10" />
             <button
