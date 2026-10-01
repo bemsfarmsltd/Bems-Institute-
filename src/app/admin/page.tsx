@@ -58,6 +58,7 @@ interface EduportStudentCard {
   enrollmentId?: string;
   paymentStatus?: "PAID_FULL" | "PARTIAL" | "PENDING";
   coursePrice?: number;
+  paymentReference?: string | null;
 }
 
 interface EduportInstructorCard {
@@ -668,6 +669,35 @@ function AdminDashboardContent() {
   const [savingSiteSettings, setSavingSiteSettings] = useState(false);
   const [savingNotifyPrefs, setSavingNotifyPrefs] = useState(false);
 
+  interface LedgerEntry {
+    id: string;
+    reference: string;
+    studentName: string;
+    studentEmail: string;
+    courseTitle: string;
+    paymentPlan: string;
+    amount: number;
+    status: "PENDING" | "SUCCESS" | "FAILED" | "ABANDONED";
+    channel: string | null;
+    gatewayResponse: string | null;
+    paidAt: string | null;
+    createdAt: string;
+  }
+  const [paymentLedger, setPaymentLedger] = useState<LedgerEntry[]>([]);
+  const [ledgerLoaded, setLedgerLoaded] = useState(false);
+  const ledgerLoading = (activeTab === "earnings" || activeTab === "analytics") && !ledgerLoaded;
+
+  useEffect(() => {
+    if (!(activeTab === "earnings" || activeTab === "analytics") || ledgerLoaded) return;
+    apiFetch("/api/admin/payment-ledger")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data) setPaymentLedger(data.transactions || []);
+        setLedgerLoaded(true);
+      })
+      .catch(() => setLedgerLoaded(true));
+  }, [activeTab, ledgerLoaded]);
+
   useEffect(() => {
     if (activeTab !== "settings" || settingsLoaded) return;
     apiFetch("/api/admin/settings")
@@ -765,6 +795,7 @@ function AdminDashboardContent() {
     enrollmentId: stu.id,
     paymentStatus: stu.paymentStatus,
     coursePrice: stu.totalDue,
+    paymentReference: stu.paymentReference,
   }));
 
   const combinedStudents: EduportStudentCard[] = [
@@ -1589,7 +1620,7 @@ function AdminDashboardContent() {
                             onClick={() => {
                               if (
                                 student.enrollmentId &&
-                                student.paymentStatus === "PARTIAL" &&
+                                (student.paymentStatus === "PARTIAL" || student.paymentStatus === "PENDING") &&
                                 student.coursePrice
                               ) {
                                 updateStudentPayment(
@@ -1651,6 +1682,14 @@ function AdminDashboardContent() {
                               />
                             </div>
                           </div>
+
+                          {student.paymentStatus === "PENDING" && student.paymentReference && (
+                            <div className="pt-1 text-[11.5px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-1.5">
+                              Claimed bank transfer ref:{" "}
+                              <code className="font-mono font-bold">{student.paymentReference}</code>
+                              {" "}— match against the bank statement before confirming.
+                            </div>
+                          )}
                         </div>
 
                         {/* Card Footer */}
@@ -1709,7 +1748,14 @@ function AdminDashboardContent() {
                                 alt={stu.name}
                                 className="w-9 h-9 rounded-full object-cover"
                               />
-                              <span className="font-bold text-[#1D2026]">{stu.name}</span>
+                              <div>
+                                <span className="font-bold text-[#1D2026] block">{stu.name}</span>
+                                {stu.paymentStatus === "PENDING" && stu.paymentReference && (
+                                  <span className="text-[11px] text-amber-700">
+                                    Ref: <code className="font-mono font-bold">{stu.paymentReference}</code>
+                                  </span>
+                                )}
+                              </div>
                             </td>
                             <td className="py-3.5 px-4 text-[#747579]">{stu.location}</td>
                             <td className="py-3.5 px-4 font-bold text-[#AE54C6]">
@@ -1729,7 +1775,9 @@ function AdminDashboardContent() {
                             </td>
                             <td className="py-3.5 px-4 text-[#747579]">{stu.joinDate}</td>
                             <td className="py-3.5 px-4 text-right">
-                              {stu.enrollmentId && stu.paymentStatus === "PARTIAL" && stu.coursePrice ? (
+                              {stu.enrollmentId &&
+                              (stu.paymentStatus === "PARTIAL" || stu.paymentStatus === "PENDING") &&
+                              stu.coursePrice ? (
                                 <button
                                   type="button"
                                   onClick={() => {
@@ -3057,270 +3105,127 @@ function AdminDashboardContent() {
                 Earnings
               </h1>
 
-              {/* 3 Pastel Summary Cards */}
+              {/* 3 Real Summary Cards — computed from the actual payment
+                  ledger/roster, not placeholder figures. */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-7">
-                {/* Sales this month */}
                 <div className="bg-[#F7EDF9] rounded-xl p-6">
                   <div className="text-[14px] font-bold text-[#1D2026] mb-2">
-                    Sales this month
+                    Total Collected
                   </div>
-                  <div className="font-display text-[36px] sm:text-[42px] font-extrabold text-[#AE54C6] leading-tight">
-                    $899.95
+                  <div className="font-display text-[32px] sm:text-[36px] font-extrabold text-[#AE54C6] leading-tight">
+                    ₦{analytics.totalRevenue.toLocaleString()}
+                  </div>
+                  <div className="text-[12px] text-[#747579] mt-1">
+                    Across {analytics.totalStudents} enrolled student{analytics.totalStudents === 1 ? "" : "s"}
                   </div>
                 </div>
 
-                {/* To be paid */}
                 <div className="bg-[#F6ECF9] rounded-xl p-6">
                   <div className="text-[14px] font-bold text-[#1D2026] mb-2 flex items-center gap-1.5">
-                    <span>To be paid</span>
-                    <span className="w-4 h-4 rounded-full bg-[#1D2026] text-white text-[10px] font-black inline-flex items-center justify-center">
-                      i
-                    </span>
+                    <span>Outstanding Balance</span>
                   </div>
-                  <div className="font-display text-[36px] sm:text-[42px] font-extrabold text-[#A16EBD] leading-tight">
-                    $750.35
+                  <div className="font-display text-[32px] sm:text-[36px] font-extrabold text-[#A16EBD] leading-tight">
+                    ₦{adminStudents.reduce((sum, s) => sum + Math.max(s.totalDue - s.amountPaid, 0), 0).toLocaleString()}
+                  </div>
+                  <div className="text-[12px] text-[#747579] mt-1">
+                    Still due across every enrollment on record
                   </div>
                 </div>
 
-                {/* Lifetime Earnings */}
                 <div className="bg-[#FFF2E2] rounded-xl p-6">
                   <div className="text-[14px] font-bold text-[#1D2026] mb-2">
-                    Lifetime Earnings
+                    Target Revenue
                   </div>
-                  <div className="font-display text-[36px] sm:text-[42px] font-extrabold text-[#FD7E14] leading-tight">
-                    $4882.65
+                  <div className="font-display text-[32px] sm:text-[36px] font-extrabold text-[#FD7E14] leading-tight">
+                    ₦{analytics.targetRevenue.toLocaleString()}
+                  </div>
+                  <div className="text-[12px] text-[#747579] mt-1">
+                    {analytics.targetRevenue > 0
+                      ? `${Math.round((analytics.totalRevenue / analytics.targetRevenue) * 100)}% reached this cohort`
+                      : "No cohort revenue target set"}
                   </div>
                 </div>
               </div>
 
-              {/* Invoice History Card */}
+              {/* Payment Ledger — every real PaymentTransaction row (Paystack
+                  or staff-confirmed bank transfer), the actual "who has paid"
+                  record rather than a derived running total. */}
               <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
-                <div className="bg-[#F8F9FA] px-6 py-4 border-b border-slate-200/80">
+                <div className="bg-[#F8F9FA] px-6 py-4 border-b border-slate-200/80 flex items-center justify-between">
                   <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
-                    Invoice History
+                    Payment Ledger
                   </h2>
+                  <span className="text-[12.5px] text-[#747579]">
+                    {paymentLedger.length} transaction{paymentLedger.length === 1 ? "" : "s"}
+                  </span>
                 </div>
 
                 <div className="p-6">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse min-w-[780px]">
-                      <thead>
-                        <tr className="bg-[#24292D] text-white text-[13.5px] font-bold">
-                          <th className="py-3.5 px-4 rounded-l-lg">Invoice ID</th>
-                          <th className="py-3.5 px-4">Course Name</th>
-                          <th className="py-3.5 px-4">Date</th>
-                          <th className="py-3.5 px-4">Payment Method</th>
-                          <th className="py-3.5 px-4">Amount</th>
-                          <th className="py-3.5 px-4">Status</th>
-                          <th className="py-3.5 px-4 rounded-r-lg">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 text-[14px]">
-                        {[
-                          {
-                            id: "#254684",
-                            course: "Create a Design System in Figma",
-                            date: "29 Aug 2021",
-                            method: "mastercard",
-                            amount: "$3999",
-                            status: "Paid",
-                            statusClass: "bg-[#F7EDF9] text-[#AE54C6]",
-                            highlight: false,
-                          },
-                          {
-                            id: "#125464",
-                            course: "Sketch from A to Z: for app designer",
-                            date: "26 Aug 2021",
-                            method: "paypal",
-                            amount: "$4201",
-                            status: "Paid",
-                            statusClass: "bg-[#F7EDF9] text-[#AE54C6]",
-                            highlight: false,
-                          },
-                          {
-                            id: "#123546",
-                            course: "The Complete Web Development in python",
-                            date: "18 July 2021",
-                            method: "paypal",
-                            amount: "$1032",
-                            status: "Pending",
-                            statusClass: "bg-[#FFF2E2] text-[#FD7E14]",
-                            highlight: false,
-                          },
-                          {
-                            id: "#1235698",
-                            course: "Deep Learning with React-Native",
-                            date: "09 July 2021",
-                            method: "mastercard",
-                            amount: "$6548",
-                            status: "Paid",
-                            statusClass: "bg-[#F7EDF9] text-[#AE54C6]",
-                            highlight: false,
-                          },
-                          {
-                            id: "#132456",
-                            course: "Microsoft Excel - Excel from Beginner to Advanced",
-                            date: "21 June 2021",
-                            method: "paypal",
-                            amount: "$2546",
-                            status: "Pending",
-                            statusClass: "bg-[#FFF2E2] text-[#FD7E14]",
-                            highlight: false,
-                          },
-                          {
-                            id: "#145623",
-                            course: "Twitter Marketing & Twitter Ads For Beginners",
-                            date: "05 June 2021",
-                            method: "mastercard",
-                            amount: "$4258",
-                            status: "Cancel",
-                            statusClass: "bg-[#FBE9EB] text-[#D6293E]",
-                            highlight: false,
-                          },
-                          {
-                            id: "#154632",
-                            course: "The Complete Digital Marketing Course - 12 Courses in 1",
-                            date: "15 April 2021",
-                            method: "paypal",
-                            amount: "$854",
-                            status: "Pending",
-                            statusClass: "bg-[#FFF2E2] text-[#FD7E14]",
-                            highlight: false,
-                          },
-                          {
-                            id: "#165423",
-                            course: "Create a Design System in Figma",
-                            date: "02 Jan 2021",
-                            method: "mastercard",
-                            amount: "$965",
-                            status: "Paid",
-                            statusClass: "bg-[#F7EDF9] text-[#AE54C6]",
-                            highlight: true,
-                          },
-                        ].map((inv) => (
-                          <tr
-                            key={inv.id}
-                            className={inv.highlight ? "bg-[#F2F4F6]" : "hover:bg-slate-50/70"}
-                          >
-                            <td
-                              className={`py-4 px-4 ${
-                                inv.highlight
-                                  ? "text-[#1D2026] font-semibold"
-                                  : "text-[#747579]"
-                              }`}
-                            >
-                              {inv.id}
-                            </td>
-                            <td className="py-4 px-4 font-bold text-[#1D2026]">
-                              {inv.course}
-                            </td>
-                            <td
-                              className={`py-4 px-4 ${
-                                inv.highlight
-                                  ? "text-[#1D2026] font-medium"
-                                  : "text-[#747579]"
-                              }`}
-                            >
-                              {inv.date}
-                            </td>
-                            <td className="py-4 px-4">
-                              {inv.method === "mastercard" ? (
-                                <div className="inline-flex items-center relative h-6">
-                                  <span className="w-6 h-6 rounded-full bg-[#EB001B] inline-block" />
-                                  <span className="w-6 h-6 rounded-full bg-[#F79E1B]/90 -ml-2.5 inline-block" />
-                                  <span className="absolute inset-0 flex items-center justify-center text-[7px] font-extrabold text-white tracking-tighter">
-                                    mastercard
-                                  </span>
-                                </div>
-                              ) : (
-                                <div className="inline-flex items-center gap-1 font-display font-black italic text-[15px]">
-                                  <span className="text-[#003087]">P</span>
-                                  <span className="text-[#003087]">Pay</span>
-                                  <span className="text-[#0079C1] -ml-1">Pal</span>
-                                </div>
-                              )}
-                            </td>
-                            <td className="py-4 px-4">
-                              <div className="inline-flex items-center gap-1.5 font-medium text-[#475569]">
-                                <span>{inv.amount}</span>
-                                <span className="w-4 h-4 rounded-full bg-[#1D2026] text-white text-[9.5px] font-black inline-flex items-center justify-center">
-                                  i
-                                </span>
-                              </div>
-                            </td>
-                            <td className="py-4 px-4">
-                              <span
-                                className={`px-2.5 py-1 rounded-md text-[11.5px] font-bold ${inv.statusClass}`}
-                              >
-                                {inv.status}
-                              </span>
-                            </td>
-                            <td className="py-4 px-4">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setAdminNotice(`Downloaded invoice ${inv.id}.`)
-                                }
-                                className="w-9 h-9 rounded-full bg-[#F7EDF9] hover:bg-[#AE54C6] text-[#AE54C6] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
-                                title="Download Invoice"
-                              >
-                                <svg
-                                  className="w-4 h-4"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4"
-                                  />
-                                </svg>
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Pagination Footer */}
-                  <div className="mt-6 pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-[13.5px] text-[#747579]">
-                    <div>Showing 1 to 8 of 20 entries</div>
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
-                      >
-                        <ChevronLeft className="w-4 h-4" />
-                      </button>
-                      <button
-                        type="button"
-                        className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] text-[13px] font-bold flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
-                      >
-                        1
-                      </button>
-                      <button
-                        type="button"
-                        className="w-8 h-8 rounded-md bg-[#AE54C6] text-white text-[13px] font-bold flex items-center justify-center cursor-pointer"
-                      >
-                        2
-                      </button>
-                      <button
-                        type="button"
-                        className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] text-[13px] font-bold flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
-                      >
-                        3
-                      </button>
-                      <button
-                        type="button"
-                        className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
-                      >
-                        <ChevronRight className="w-4 h-4" />
-                      </button>
+                  {ledgerLoading ? (
+                    <div className="py-10 text-center text-[13.5px] text-[#747579]">
+                      Loading payment ledger…
                     </div>
-                  </div>
+                  ) : paymentLedger.length === 0 ? (
+                    <div className="py-10 text-center text-[13.5px] text-[#747579]">
+                      No payment transactions recorded yet.
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse min-w-[860px]">
+                        <thead>
+                          <tr className="bg-[#24292D] text-white text-[13.5px] font-bold">
+                            <th className="py-3.5 px-4 rounded-l-lg">Reference</th>
+                            <th className="py-3.5 px-4">Student</th>
+                            <th className="py-3.5 px-4">Course</th>
+                            <th className="py-3.5 px-4">Plan</th>
+                            <th className="py-3.5 px-4">Amount</th>
+                            <th className="py-3.5 px-4">Channel</th>
+                            <th className="py-3.5 px-4">Status</th>
+                            <th className="py-3.5 px-4 rounded-r-lg">Date</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 text-[14px]">
+                          {paymentLedger.map((txn) => {
+                            const statusClass =
+                              txn.status === "SUCCESS"
+                                ? "bg-[#F7EDF9] text-[#AE54C6]"
+                                : txn.status === "PENDING"
+                                ? "bg-[#FFF2E2] text-[#FD7E14]"
+                                : "bg-[#FBE9EB] text-[#D6293E]";
+                            return (
+                              <tr key={txn.id} className="hover:bg-slate-50/70">
+                                <td className="py-4 px-4 text-[#747579] font-mono text-[12px]">
+                                  {txn.reference}
+                                </td>
+                                <td className="py-4 px-4">
+                                  <div className="font-bold text-[#1D2026]">{txn.studentName}</div>
+                                  <div className="text-[12px] text-[#747579]">{txn.studentEmail}</div>
+                                </td>
+                                <td className="py-4 px-4 text-[#475569]">{txn.courseTitle}</td>
+                                <td className="py-4 px-4 text-[#475569] capitalize">{txn.paymentPlan}</td>
+                                <td className="py-4 px-4 font-medium text-[#475569]">
+                                  ₦{txn.amount.toLocaleString()}
+                                </td>
+                                <td className="py-4 px-4 text-[#475569] capitalize">{txn.channel || "—"}</td>
+                                <td className="py-4 px-4">
+                                  <span className={`px-2.5 py-1 rounded-md text-[11.5px] font-bold ${statusClass}`}>
+                                    {txn.status}
+                                  </span>
+                                </td>
+                                <td className="py-4 px-4 text-[#747579] text-[12.5px]">
+                                  {new Date(txn.createdAt).toLocaleDateString("en-GB", {
+                                    day: "2-digit",
+                                    month: "short",
+                                    year: "numeric"
+                                  })}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

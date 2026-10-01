@@ -149,6 +149,7 @@ export interface AdminStudent {
   amountPaid: number;
   totalDue: number;
   paymentStatus: "PAID_FULL" | "PARTIAL" | "PENDING";
+  paymentReference?: string | null;
   progressPercent: number;
   quizScore?: number;
   capstoneStatus: "NOT_STARTED" | "SUBMITTED" | "GRADED";

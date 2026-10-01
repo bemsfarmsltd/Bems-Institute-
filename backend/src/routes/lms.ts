@@ -119,10 +119,21 @@ router.post("/enroll", async (req, res) => {
   const source = typeof body.source === "string" && body.source.trim() ? body.source.trim() : "website";
   const deliveryMode: "PHYSICAL_LAB" | "VIRTUAL_ZOOM" = body.deliveryMode === "VIRTUAL_ZOOM" ? "VIRTUAL_ZOOM" : "PHYSICAL_LAB";
   const paymentPlan = body.paymentPlan === "installment" ? "installment" : "full";
-  const paymentMethod = body.paymentMethod === "paystack" || body.paymentMethod === "bank" ? body.paymentMethod : null;
+  // Paystack charges now go through POST /payments/init + /payments/verify,
+  // which confirm against Paystack's own API before crediting anything —
+  // this route only still exists for the "bank transfer" path, where a
+  // human (admin) is always the one who turns PENDING into PAID_FULL/PARTIAL
+  // via POST /admin/enrollments/:id/payment.
+  const paymentMethod = body.paymentMethod === "bank" ? body.paymentMethod : null;
+  const bankReference = typeof body.bankReference === "string" ? body.bankReference.trim() : "";
 
   if (!courseId) {
     return res.status(400).json({ error: "courseId is required." });
+  }
+  // Without a reference, a claimed bank transfer gives staff nothing to
+  // match against the actual bank statement before confirming it.
+  if (paymentMethod === "bank" && !bankReference) {
+    return res.status(400).json({ error: "Please enter the transfer reference or narration you used." });
   }
 
   const course = await prisma.course.findUnique({
@@ -143,15 +154,10 @@ router.post("/enroll", async (req, res) => {
   let amountPaid: number | undefined;
   let paymentStatus: "PENDING" | "PARTIAL" | "PAID_FULL" | undefined;
 
-  // No real payment gateway is wired up yet — there's no Paystack
-  // verification/webhook anywhere in this codebase, so a client-supplied
-  // "paymentMethod: paystack" used to be trusted at face value, which let
-  // anyone mark themselves PAID_FULL (and farm real referral credit off of
-  // it) for free. Every payment method now lands PENDING here; real
-  // confirmation only happens through the staff-gated
-  // POST /admin/enrollments/:id/payment route, same as bank transfers
-  // already worked.
-  if (paymentMethod === "paystack" || paymentMethod === "bank") {
+  // A bank-transfer "enrollment" always lands PENDING — a human (admin) is
+  // the only thing that can turn it into PAID_FULL/PARTIAL, via the
+  // staff-gated POST /admin/enrollments/:id/payment route.
+  if (paymentMethod === "bank") {
     amountPaid = 0;
     paymentStatus = "PENDING";
   }
@@ -165,6 +171,7 @@ router.post("/enroll", async (req, res) => {
     totalDue,
     ...(amountPaid !== undefined ? { amountPaid } : {}),
     ...(paymentStatus !== undefined ? { paymentStatus } : {}),
+    ...(paymentMethod === "bank" ? { paymentReference: bankReference } : {}),
     ...(activeCohort ? { cohortId: activeCohort.id } : {})
   };
 
@@ -180,9 +187,7 @@ router.post("/enroll", async (req, res) => {
 
   const firstLessonId = course.modules[0]?.lessons[0]?.id ?? "les-1";
   const paymentSummary =
-    paymentMethod === "paystack"
-      ? "Paystack payment logged — pending admin verification."
-      : paymentMethod === "bank"
+    paymentMethod === "bank"
       ? "Bank transfer logged (pending admin verification)."
       : "Your classroom access is now unlocked.";
 

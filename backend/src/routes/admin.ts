@@ -1,4 +1,5 @@
 import { Router } from "express";
+import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser, isStaff, isAdmin } from "@/lib/api-auth";
 import { computeAdminRoster } from "@/lib/admin-roster";
@@ -95,6 +96,41 @@ router.get("/roster", async (req, res) => {
   }
   const roster = await computeAdminRoster();
   return res.json({ roster });
+});
+
+// The real "who has paid" record — every PaymentTransaction row, Paystack
+// or bank, regardless of what an Enrollment's current running total says.
+// This is the ledger the Earnings tab reads from instead of placeholder data.
+router.get("/payment-ledger", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isStaff(session)) {
+    return res.status(403).json({ error: "Staff access required." });
+  }
+
+  const transactions = await prisma.paymentTransaction.findMany({
+    orderBy: { createdAt: "desc" },
+    include: {
+      user: { select: { name: true, email: true } },
+      course: { select: { title: true } }
+    }
+  });
+
+  return res.json({
+    transactions: transactions.map((t) => ({
+      id: t.id,
+      reference: t.reference,
+      studentName: t.user.name,
+      studentEmail: t.user.email,
+      courseTitle: t.course.title,
+      paymentPlan: t.paymentPlan,
+      amount: t.amount,
+      status: t.status,
+      channel: t.channel,
+      gatewayResponse: t.gatewayResponse,
+      paidAt: t.paidAt ? t.paidAt.toISOString() : null,
+      createdAt: t.createdAt.toISOString()
+    }))
+  });
 });
 
 router.get("/courses", async (req, res) => {
@@ -213,7 +249,10 @@ router.post("/enrollments/:id/payment", async (req, res) => {
     return res.status(400).json({ error: "amountPaid must be a non-negative number." });
   }
 
-  const existing = await prisma.enrollment.findUnique({ where: { id }, select: { totalDue: true } });
+  const existing = await prisma.enrollment.findUnique({
+    where: { id },
+    select: { totalDue: true, amountPaid: true, userId: true, courseId: true, paymentPlan: true, paymentReference: true }
+  });
   if (!existing) {
     return res.status(404).json({ error: "Enrollment not found." });
   }
@@ -235,6 +274,28 @@ router.post("/enrollments/:id/payment", async (req, res) => {
     data: { paymentStatus: status, amountPaid },
     include: { course: { select: { title: true, slug: true } } }
   });
+
+  // Mirrors a staff-confirmed bank transfer into the same ledger Paystack
+  // charges write to, so the ledger is the complete payment history
+  // regardless of channel — not just a Paystack-only audit trail.
+  const delta = amountPaid - existing.amountPaid;
+  if (delta > 0) {
+    await prisma.paymentTransaction.create({
+      data: {
+        reference: `bank_${crypto.randomUUID().replace(/-/g, "")}`,
+        userId: existing.userId,
+        courseId: existing.courseId,
+        paymentPlan: existing.paymentPlan,
+        amount: delta,
+        status: "SUCCESS",
+        channel: "bank",
+        gatewayResponse: existing.paymentReference
+          ? `Confirmed manually by staff. Student-provided reference: "${existing.paymentReference}".`
+          : `Confirmed manually by staff (no reference was recorded at checkout).`,
+        paidAt: new Date()
+      }
+    });
+  }
 
   await createNotification({
     userId: enrollment.userId,

@@ -20,6 +20,7 @@ import referralsRoutes from "@/routes/referrals";
 import graduatesRoutes from "@/routes/graduates";
 import attendanceRoutes from "@/routes/attendance";
 import communityRoutes from "@/routes/community";
+import paymentsRoutes from "@/routes/payments";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -47,7 +48,17 @@ app.use(
   })
 );
 app.use(cookieParser());
-app.use(express.json());
+// The `verify` callback stashes the exact raw bytes of every request body
+// on req.rawBody *before* express.json() parses them — POST /payments/webhook
+// needs those exact bytes (not a re-serialized JSON.stringify) to check
+// Paystack's HMAC signature, since any reformatting changes the hash.
+app.use(
+  express.json({
+    verify: (req, _res, buf) => {
+      (req as express.Request & { rawBody?: Buffer }).rawBody = buf;
+    }
+  })
+);
 
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
@@ -62,6 +73,7 @@ app.use("/api/referrals", referralsRoutes);
 app.use("/api/graduates", graduatesRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/community", communityRoutes);
+app.use("/api/payments", paymentsRoutes);
 
 app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error("Unhandled error:", err);

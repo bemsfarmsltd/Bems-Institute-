@@ -40,7 +40,16 @@ export interface EnrollOptions {
   source?: string;
   deliveryMode?: "PHYSICAL_LAB" | "VIRTUAL_ZOOM";
   paymentPlan?: "full" | "installment";
-  paymentMethod?: "paystack" | "bank";
+  // "paystack" isn't accepted here anymore — a real Paystack charge goes
+  // through apiFetch("/api/payments/init"/"verify") directly (see
+  // /subscriptions), which confirms against Paystack's own API before
+  // crediting anything. This path only still exists for bank transfers,
+  // which always land PENDING until staff manually confirm them.
+  paymentMethod?: "bank";
+  // Required when paymentMethod is "bank" — the transfer reference/narration
+  // the student used, so staff have something to match against the bank
+  // statement before confirming.
+  bankReference?: string;
 }
 
 export interface AuthResult {
@@ -77,6 +86,11 @@ interface LMSContextType {
   // Enrollment & progress — DB-backed, per user
   enrolledCourseIds: string[];
   enrollInCourse: (courseId: string, options?: EnrollOptions) => Promise<void>;
+  // Re-fetches enrollment/progress/quiz/submission state from the server —
+  // used after a real Paystack payment is verified, since that path updates
+  // the Enrollment row directly on the backend rather than through
+  // enrollInCourse.
+  refreshEnrollments: () => Promise<void>;
   isEnrolled: (courseId: string) => boolean;
   completedLessonIds: string[];
   toggleLessonComplete: (lessonId: string) => Promise<void>;
@@ -516,6 +530,10 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const refreshEnrollments = useCallback(async () => {
+    await loadOwnLmsData(user?.role ?? "STUDENT");
+  }, [loadOwnLmsData, user?.role]);
+
   const isEnrolled = (courseId: string) => enrolledCourseIds.includes(courseId);
 
   const toggleLessonComplete = async (lessonId: string) => {
@@ -650,6 +668,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
         getQuizForCourse,
         getAssignmentForCourse,
         enrolledCourseIds,
+        refreshEnrollments,
         enrollInCourse,
         isEnrolled,
         completedLessonIds,

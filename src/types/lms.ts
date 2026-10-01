@@ -149,6 +149,11 @@ export interface AdminStudent {
   amountPaid: number;
   totalDue: number;
   paymentStatus: "PAID_FULL" | "PARTIAL" | "PENDING";
+  // For a bank transfer awaiting confirmation, the reference/narration the
+  // student entered at checkout — what staff match against the bank
+  // statement before confirming. Null for Paystack (which verifies itself)
+  // or before any reference has been recorded.
+  paymentReference?: string | null;
   progressPercent: number;
   quizScore?: number;
   capstoneStatus: "NOT_STARTED" | "SUBMITTED" | "GRADED";

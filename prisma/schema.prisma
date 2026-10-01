@@ -105,6 +105,7 @@ model User {
   graduateOutcomes     GraduateOutcome[]
   communityMessages    CommunityMessage[]
   communityMessageLikes CommunityMessageLike[]
+  paymentTransactions  PaymentTransaction[]
   // Which categories of staff-broadcast notifications (notifyStaff) this
   // user wants to receive — only affects staff-wide alerts, never a user's
   // own personal notifications (payment confirmed, submission graded, etc.),
@@ -257,6 +258,7 @@ model Course {
   concepts     Concept[]
   liveSessions LiveSession[]
   graduateOutcomes GraduateOutcome[]
+  paymentTransactions PaymentTransaction[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 }
@@ -313,6 +315,40 @@ model Enrollment {
   updatedAt        DateTime         @updatedAt
 
   @@unique([userId, courseId])
+  @@index([courseId])
+}
+
+enum PaymentTransactionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  ABANDONED
+}
+
+// Immutable, append-only record of every Paystack charge attempt — the
+// source of truth for "did money actually move," independent of whatever
+// Enrollment.paymentStatus/amountPaid currently say (those are a derived
+// running total, this is the audit trail behind them). One row per charge,
+// so an installment plan accumulates several rows against the same
+// userId+courseId pair as the student pays across the cohort.
+model PaymentTransaction {
+  id              String                   @id @default(cuid())
+  reference       String                   @unique
+  userId          String
+  user            User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId        String
+  course          Course                   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  paymentPlan     String // "full" or "installment" — which plan this charge was made under
+  amount          Int // Naira, whole currency unit — matches Course.priceFull/priceParts/deposit
+  status          PaymentTransactionStatus @default(PENDING)
+  channel         String? // "card" / "bank" / "ussd" etc. — from Paystack's response, or "bank" for a staff-confirmed manual transfer
+  gatewayResponse String?
+  paidAt          DateTime?
+  rawPayload      Json? // full Paystack verify/webhook payload, kept for dispute resolution
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+
+  @@index([userId])
   @@index([courseId])
 }
 

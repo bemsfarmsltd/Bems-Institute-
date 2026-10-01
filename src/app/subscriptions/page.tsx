@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
+import Script from "next/script";
 import { useSearchParams } from "next/navigation";
 import { useLMS } from "@/context/LMSContext";
 import { Navbar } from "@/components/Navbar";
@@ -16,12 +17,31 @@ import {
   MessageCircle,
   ArrowRight,
   BookOpen,
-  PlayCircle
+  PlayCircle,
+  AlertTriangle
 } from "lucide-react";
 import { apiFetch } from "@/lib/api-client";
 
 type PaymentPlan = "full" | "installment";
 import { readAttributionParam, persistAttribution, getStoredAttribution } from "@/lib/attribution";
+
+interface PaystackSetupOptions {
+  key: string;
+  email: string;
+  amount: number;
+  ref: string;
+  currency?: string;
+  onClose: () => void;
+  callback: (response: { reference: string }) => void;
+}
+
+declare global {
+  interface Window {
+    PaystackPop?: {
+      setup: (options: PaystackSetupOptions) => { openIframe: () => void };
+    };
+  }
+}
 
 function SubscriptionsContent() {
   const searchParams = useSearchParams();
@@ -32,7 +52,7 @@ function SubscriptionsContent() {
   // param on THIS page load, fall back to what was persisted there instead
   // of losing the attribution.
   const sourceParam = readAttributionParam(searchParams);
-  const { courses, enrollInCourse, isEnrolled } = useLMS();
+  const { courses, enrollInCourse, isEnrolled, refreshEnrollments } = useLMS();
   const [effectiveSource, setEffectiveSource] = useState<string | null>(null);
 
   const [selectedCourseId, setSelectedCourseId] = useState<string>(courseQuery || "web-dev");
@@ -40,6 +60,8 @@ function SubscriptionsContent() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"PAYSTACK" | "BANK">("PAYSTACK");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [bankReference, setBankReference] = useState("");
   const [confirmedEnrollment, setConfirmedEnrollment] = useState<{
     planLabel: string;
     amount: number;
@@ -91,37 +113,124 @@ function SubscriptionsContent() {
 
   const handleSelectPlan = (plan: PaymentPlan) => {
     setSelectedPlan(plan);
+    setPaymentError(null);
+    setBankReference("");
     setShowPaymentModal(true);
   };
 
-  const handleProcessPayment = async () => {
-    if (!selectedPlan) return;
-    setIsProcessing(true);
+  const dueTodayAmount = (plan: PaymentPlan) =>
+    plan === "full" ? planAmount("full") : selectedCourse?.deposit ?? 0;
+
+  const finalizeEnrollmentUI = (plan: PaymentPlan) => {
+    if (!selectedCourse) return;
+    const firstLessonId = selectedCourse.modules[0]?.lessons[0]?.id || "les-1";
+    setConfirmedEnrollment({
+      planLabel: planLabel(plan),
+      amount: dueTodayAmount(plan),
+      courseTitle: selectedCourse.title,
+      courseSlug: selectedCourse.slug,
+      firstLessonId
+    });
+    setShowPaymentModal(false);
+    setIsProcessing(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Called from Paystack's own success callback — re-verifies server-side
+  // against Paystack's API (POST /payments/verify) rather than trusting the
+  // popup's callback payload, since that's exactly what the old fake flow
+  // got wrong by trusting the client.
+  const verifyAndFinalize = async (plan: PaymentPlan, reference: string) => {
     try {
-      if (selectedCourse) {
-        await enrollInCourse(selectedCourse.id, {
-          source: effectiveSource || undefined,
-          paymentMethod: paymentMethod === "PAYSTACK" ? "paystack" : "bank",
-          paymentPlan: selectedPlan
-        });
-      }
-      const firstLessonId = selectedCourse?.modules[0]?.lessons[0]?.id || "les-1";
-      setConfirmedEnrollment({
-        planLabel: planLabel(selectedPlan),
-        amount: planAmount(selectedPlan),
-        courseTitle: selectedCourse?.title || "Full-Stack Web Development",
-        courseSlug: selectedCourse?.slug || "web-development",
-        firstLessonId
+      const verifyRes = await apiFetch("/api/payments/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reference })
       });
-      setShowPaymentModal(false);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } finally {
+      const verifyData = await verifyRes.json();
+      if (!verifyRes.ok || !verifyData.ok) {
+        setPaymentError(
+          `We couldn't confirm this payment with Paystack. If money left your account, contact admissions with reference ${reference}.`
+        );
+        setIsProcessing(false);
+        return;
+      }
+      await refreshEnrollments();
+      finalizeEnrollmentUI(plan);
+    } catch {
+      setPaymentError(
+        `We couldn't reach our server to confirm this payment. If money left your account, contact admissions with reference ${reference}.`
+      );
+      setIsProcessing(false);
+    }
+  };
+
+  const handleProcessPayment = async () => {
+    if (!selectedPlan || !selectedCourse) return;
+    setPaymentError(null);
+    setIsProcessing(true);
+
+    if (paymentMethod === "BANK") {
+      if (!bankReference.trim()) {
+        setPaymentError("Please enter the transfer reference or narration you used.");
+        setIsProcessing(false);
+        return;
+      }
+      await enrollInCourse(selectedCourse.id, {
+        source: effectiveSource || undefined,
+        paymentMethod: "bank",
+        paymentPlan: selectedPlan,
+        bankReference: bankReference.trim()
+      });
+      finalizeEnrollmentUI(selectedPlan);
+      return;
+    }
+
+    try {
+      const initRes = await apiFetch("/api/payments/init", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          courseId: selectedCourse.id,
+          paymentPlan: selectedPlan,
+          source: effectiveSource || undefined
+        })
+      });
+      const initData = await initRes.json();
+      if (!initRes.ok) {
+        setPaymentError(initData.error || "Could not start payment. Please try again.");
+        setIsProcessing(false);
+        return;
+      }
+
+      if (!window.PaystackPop) {
+        setPaymentError("Payment system is still loading — please try again in a moment.");
+        setIsProcessing(false);
+        return;
+      }
+
+      const plan = selectedPlan;
+      const handler = window.PaystackPop.setup({
+        key: initData.publicKey,
+        email: initData.email,
+        amount: initData.amountKobo,
+        ref: initData.reference,
+        currency: "NGN",
+        onClose: () => setIsProcessing(false),
+        callback: (response) => {
+          void verifyAndFinalize(plan, response.reference);
+        }
+      });
+      handler.openIframe();
+    } catch {
+      setPaymentError("Could not start payment. Please try again.");
       setIsProcessing(false);
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF8FF]">
+      <Script src="https://js.paystack.co/v1/inline.js" strategy="afterInteractive" />
       <Navbar />
 
       {/* Header */}
@@ -400,7 +509,7 @@ function SubscriptionsContent() {
                   {selectedPlan === "full" ? "Tuition Amount:" : "Due Today (Deposit):"}
                 </span>
                 <strong className="text-emerald-700 text-sm">
-                  ₦{(selectedPlan === "full" ? planAmount(selectedPlan) : selectedCourse?.deposit ?? 0).toLocaleString()}
+                  ₦{dueTodayAmount(selectedPlan).toLocaleString()}
                 </strong>
               </div>
               {selectedPlan === "installment" && (
@@ -443,17 +552,38 @@ function SubscriptionsContent() {
             </div>
 
             {paymentMethod === "BANK" ? (
-              <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-950 mb-6 space-y-1">
-                <strong className="block font-bold">Zenith Bank Plc</strong>
-                <div>Account Name: BEMS Institute of Technology Ltd</div>
-                <div>Account Number: <code className="font-mono font-bold text-sm">1012345678</code></div>
-                <div className="text-[10px] text-amber-800 pt-1">
-                  Once transfer is made, click below to activate your student portal immediately.
+              <div className="mb-6 space-y-3">
+                <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-950 space-y-1">
+                  <strong className="block font-bold">Zenith Bank Plc</strong>
+                  <div>Account Name: BEMS Institute of Technology Ltd</div>
+                  <div>Account Number: <code className="font-mono font-bold text-sm">1012345678</code></div>
+                  <div className="text-[10px] text-amber-800 pt-1">
+                    Once transfer is made, enter the reference/narration below and click Confirm — admissions will match it against the bank statement and unlock your classroom once verified.
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-[#645F80] block mb-1.5">
+                    Transfer Reference / Narration
+                  </label>
+                  <input
+                    type="text"
+                    value={bankReference}
+                    onChange={(e) => setBankReference(e.target.value)}
+                    placeholder="e.g. the narration or reference shown on your transfer receipt"
+                    className="w-full px-3 py-2.5 rounded-xl border border-[#F1E2F5] text-xs focus:outline-none focus:ring-2 focus:ring-[#AE54C6]/30 focus:border-[#AE54C6]"
+                  />
                 </div>
               </div>
             ) : (
               <div className="p-4 rounded-xl bg-purple-50 border border-purple-200 text-xs text-purple-950 mb-6">
-                Pay instantly via Debit Card, USSD, or Bank Transfer using Paystack secure gateway.
+                Pay instantly via Debit Card, USSD, or Bank Transfer using Paystack secure gateway. Your classroom unlocks the moment the payment is confirmed.
+              </div>
+            )}
+
+            {paymentError && (
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-800 mb-4 flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>{paymentError}</span>
               </div>
             )}
 
@@ -464,8 +594,10 @@ function SubscriptionsContent() {
               className="w-full py-3 shadow-md text-xs font-bold"
             >
               {isProcessing
-                ? "Activating Enrollment..."
-                : `Confirm & Enroll (₦${(selectedPlan === "full" ? planAmount(selectedPlan) : selectedCourse?.deposit ?? 0).toLocaleString()})`}
+                ? paymentMethod === "PAYSTACK"
+                  ? "Opening Paystack…"
+                  : "Logging Transfer…"
+                : `${paymentMethod === "PAYSTACK" ? "Pay" : "Confirm"} ₦${dueTodayAmount(selectedPlan).toLocaleString()}`}
             </Button>
           </div>
         </div>

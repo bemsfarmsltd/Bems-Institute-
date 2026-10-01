@@ -30,13 +30,15 @@ export function isAdmin(session: SessionPayload | null): boolean {
 }
 
 // Gates lesson-progress/quiz/capstone actions to students who actually
-// enrolled — without this, any logged-in user could complete a course's
-// quiz/lessons and even get a capstone graded into a real certificate
-// without ever paying for or enrolling in it.
+// enrolled AND have a payment on record — without the payment check, any
+// logged-in user could complete a course's quiz/lessons and even get a
+// capstone graded into a real certificate while still PENDING (i.e. having
+// paid nothing, whether via an unconfirmed bank transfer or an abandoned
+// Paystack checkout).
 export async function isEnrolled(userId: string, courseId: string): Promise<boolean> {
   const enrollment = await prisma.enrollment.findUnique({
     where: { userId_courseId: { userId, courseId } },
-    select: { id: true }
+    select: { paymentStatus: true }
   });
-  return !!enrollment;
+  return !!enrollment && enrollment.paymentStatus !== "PENDING";
 }
