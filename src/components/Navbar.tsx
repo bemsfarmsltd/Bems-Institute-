@@ -48,6 +48,7 @@ export function Navbar() {
   const myCourse = courses.find((c) => enrolledCourseIds.includes(c.id));
   const myFirstLessonId = myCourse?.modules[0]?.lessons[0]?.id;
   const myQuiz = myCourse ? getQuizForCourse(myCourse.id) : undefined;
+  const dashboardHref = user?.role === "ADMIN" ? "/admin" : user?.role === "INSTRUCTOR" ? "/instructor" : "/dashboard";
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [navSearch, setNavSearch] = useState("");
 
@@ -83,7 +84,7 @@ export function Navbar() {
           {/* Brand Logo */}
           <div className="flex items-center gap-3 min-w-0 shrink lg:shrink-0">
             <Link href="/" className="flex items-center gap-2 sm:gap-3 min-w-0">
-              <div className="relative w-9 h-9 sm:w-11 sm:h-11 rounded-lg overflow-hidden border border-slate-200 shadow-2xs shrink-0">
+              <div className="relative w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden shrink-0">
                 <Image
                   src="/images/bems-logo.jpg"
                   alt="BEMS Logo"
@@ -92,65 +93,19 @@ export function Navbar() {
                 />
               </div>
               <div className="min-w-0">
-                <span className="font-extrabold text-[#24292D] text-sm sm:text-lg tracking-tight block leading-tight truncate">
+                <span className="font-extrabold text-[#24292D] text-xs sm:text-base tracking-tight block leading-tight truncate">
                   BEMS INSTITUTE
                 </span>
-                <span className="text-[8px] sm:text-[10px] font-bold text-[#AE54C6] tracking-normal sm:tracking-wider uppercase block truncate">
+                <span className="text-[7px] sm:text-[9px] font-bold text-[#AE54C6] tracking-normal sm:tracking-wider uppercase block truncate">
                   OF TECHNOLOGY &amp; VOCATIONAL STUDIES
                 </span>
               </div>
             </Link>
           </div>
 
-          {/* Desktop Navigation: Explore ⌄, Resources ⌄, Accounts ⌄ (with nested Instructor/Student flyouts), More */}
+          {/* Desktop Navigation: Resources ⌄, Accounts ⌄ (with nested Instructor/Student flyouts), More */}
           <nav className="hidden lg:flex items-center gap-6 text-xs sm:text-[13px] font-semibold whitespace-nowrap">
-            {/* 1. "Explore ⌄" Dropdown */}
-            <div className="relative group py-2">
-              <button
-                type="button"
-                className={`inline-flex items-center gap-1 font-semibold cursor-pointer ${
-                  pathname === "/" ? "text-[#AE54C6]" : "text-[#747579] group-hover:text-[#AE54C6]"
-                }`}
-              >
-                <span>Explore</span>
-                <ChevronDown className="w-3.5 h-3.5 transition-transform group-hover:rotate-180" />
-              </button>
-
-              <div className="invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-all duration-150 absolute left-0 top-full w-52 bg-white rounded-xl shadow-[0_10px_40px_rgba(24,20,61,0.12)] border border-slate-100 p-2 z-50">
-                <Link
-                  href="/"
-                  className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-semibold text-[#AE54C6] bg-[#F7EDF9]/60 hover:bg-[#F7EDF9]"
-                >
-                  <span>Home</span>
-                </Link>
-                <Link
-                  href="/courses"
-                  className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#F7EDF9]/50 hover:text-[#AE54C6]"
-                >
-                  <span>Course Categories</span>
-                </Link>
-                <Link
-                  href="/dashboard"
-                  className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#F7EDF9]/50 hover:text-[#AE54C6]"
-                >
-                  <span>Student Academy</span>
-                </Link>
-                <Link
-                  href="/ai"
-                  className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#F7EDF9]/50 hover:text-[#AE54C6]"
-                >
-                  <span>AI Tutor &amp; RAG Hub</span>
-                </Link>
-                <Link
-                  href="/sandbox"
-                  className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#F7EDF9]/50 hover:text-[#AE54C6]"
-                >
-                  <span>Interactive Code Lab</span>
-                </Link>
-              </div>
-            </div>
-
-            {/* 2. "Resources ⌄" Dropdown */}
+            {/* "Resources ⌄" Dropdown */}
             <div className="relative group py-2">
               <button
                 type="button"
@@ -245,7 +200,7 @@ export function Navbar() {
               </div>
             </div>
 
-            {/* 3. Eduport "Accounts ⌄" Multi-Level Dropdown (Matches Images 1 & 2) */}
+            {/* "Accounts ⌄" Multi-Level Dropdown */}
             <div className="relative group py-2">
               <button
                 type="button"
@@ -282,13 +237,6 @@ export function Navbar() {
 
                   {/* Flyout to the right for Instructor */}
                   <div className="invisible opacity-0 group-hover/instructor:visible group-hover/instructor:opacity-100 transition-all duration-150 absolute left-full top-0 ml-1.5 w-56 bg-white rounded-xl shadow-[0_10px_40px_rgba(24,20,61,0.14)] border border-slate-100 p-2 z-50">
-                    <Link
-                      href="/instructor"
-                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F7EDF9] hover:text-[#AE54C6]"
-                    >
-                      <LayoutDashboard className="w-3.5 h-3.5" />
-                      <span>Dashboard</span>
-                    </Link>
                     <Link
                       href="/courses"
                       className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F7EDF9] hover:text-[#AE54C6]"
@@ -350,13 +298,6 @@ export function Navbar() {
 
                   {/* Flyout to the right for Student */}
                   <div className="invisible opacity-0 group-hover/student:visible group-hover/student:opacity-100 transition-all duration-150 absolute left-full top-0 ml-1.5 w-56 bg-white rounded-xl shadow-[0_10px_40px_rgba(24,20,61,0.14)] border border-slate-100 p-2 z-50">
-                    <Link
-                      href="/dashboard"
-                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F7EDF9] hover:text-[#AE54C6]"
-                    >
-                      <LayoutDashboard className="w-3.5 h-3.5" />
-                      <span>Dashboard</span>
-                    </Link>
                     <Link
                       href="/subscriptions"
                       className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#AE54C6] bg-[#F7EDF9]/60 hover:bg-[#F7EDF9]"
@@ -434,60 +375,10 @@ export function Navbar() {
                   <span>Delete Profile</span>
                 </Link>
 
-                <div className="my-1 border-t border-slate-100" />
-
-                {/* Nested Sub-Menu 3: Learning Tools */}
-                <div className="relative group/levels">
-                  <button
-                    type="button"
-                    className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#747579] group-hover/levels:bg-[#F7EDF9] group-hover/levels:text-[#AE54C6] transition-colors"
-                  >
-                    <span>Learning Tools</span>
-                    <MoreHorizontal className="w-4 h-4" />
-                  </button>
-
-                  <div className="invisible opacity-0 group-hover/levels:visible group-hover/levels:opacity-100 transition-all duration-150 absolute left-full bottom-0 ml-1.5 w-52 bg-white rounded-xl shadow-[0_10px_40px_rgba(24,20,61,0.14)] border border-slate-100 p-2 z-50">
-                    <Link
-                      href="/ai"
-                      className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F7EDF9] hover:text-[#AE54C6]"
-                    >
-                      <Bot className="w-3.5 h-3.5" />
-                      <span>24/7 AI Tutor</span>
-                    </Link>
-                    <Link
-                      href="/sandbox"
-                      className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F7EDF9] hover:text-[#AE54C6]"
-                    >
-                      <Code2 className="w-3.5 h-3.5" />
-                      <span>Coding Sandbox</span>
-                    </Link>
-                    <Link
-                      href="/live"
-                      className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F7EDF9] hover:text-[#AE54C6]"
-                    >
-                      <Video className="w-3.5 h-3.5" />
-                      <span>Live Classes</span>
-                    </Link>
-                    <Link
-                      href="/community"
-                      className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F7EDF9] hover:text-[#AE54C6]"
-                    >
-                      <MessageSquare className="w-3.5 h-3.5" />
-                      <span>Community Chat</span>
-                    </Link>
-                    <Link
-                      href="/leaderboard"
-                      className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F7EDF9] hover:text-[#AE54C6]"
-                    >
-                      <Trophy className="w-3.5 h-3.5" />
-                      <span>Leaderboard</span>
-                    </Link>
-                  </div>
-                </div>
               </div>
             </div>
 
-            {/* 4. Eduport "•••" More Menu */}
+            {/* "•••" More Menu */}
             <div className="relative group py-2">
               <button
                 type="button"
@@ -531,7 +422,7 @@ export function Navbar() {
               </div>
             </div>
 
-            <Link href="/dashboard" className={navLinkClass("/dashboard")}>
+            <Link href={dashboardHref} className={navLinkClass(dashboardHref)}>
               <LayoutDashboard className="w-3.5 h-3.5 shrink-0" />
               <span>Dashboard</span>
             </Link>
@@ -565,13 +456,7 @@ export function Navbar() {
                 <NotificationBell />
                 <div className="hidden sm:flex items-center gap-2 pl-1">
                   <Link
-                    href={
-                      user.role === "ADMIN"
-                        ? "/admin"
-                        : user.role === "INSTRUCTOR"
-                        ? "/instructor"
-                        : "/dashboard"
-                    }
+                    href={dashboardHref}
                     title={`${user.name} (${user.role})`}
                     className="inline-flex hover:scale-105 transition-transform"
                   >
