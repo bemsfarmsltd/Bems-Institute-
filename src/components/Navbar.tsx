@@ -314,14 +314,14 @@ export function Navbar() {
                 </Link>
                 )}
                 <Link
-                  href="/account"
+                  href="/dashboard#edit-profile"
                   className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F7EDF9] hover:text-[#AE54C6] transition-colors"
                 >
                   <Edit3 className="w-4 h-4" />
                   <span>Edit Profile</span>
                 </Link>
                 <Link
-                  href="/account#danger-zone"
+                  href="/dashboard#danger-zone"
                   className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F7EDF9] hover:text-[#AE54C6] transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
