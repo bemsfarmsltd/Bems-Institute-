@@ -52,6 +52,9 @@ router.post("/login", async (req, res) => {
   if (!user || !valid) {
     return res.status(401).json({ error: "Invalid email or password." });
   }
+  if (user.deactivatedAt) {
+    return res.status(403).json({ error: "This account has been deactivated. Contact admissions to restore it." });
+  }
 
   const token = await createSessionToken({ id: user.id, name: user.name, email: user.email, role: user.role, tokenVersion: user.tokenVersion });
   res.cookie(SESSION_COOKIE, token, SESSION_COOKIE_OPTIONS);
@@ -109,6 +112,164 @@ router.post("/avatar", (req, res, next) => {
   } catch {
     return res.status(502).json({ error: "Could not upload the image. Please try again." });
   }
+});
+
+// The caller's own full editable profile — separate from the lean
+// id/name/email/role/avatarUrl shape /me returns (which flows into the
+// frontend's global user context everywhere), since phone and notification
+// preferences are only ever needed on the Edit Profile page itself.
+router.get("/profile", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!session) {
+    return res.status(401).json({ error: "Not authenticated." });
+  }
+  const user = await prisma.user.findUnique({
+    where: { id: session.id },
+    select: { name: true, email: true, phone: true, avatarUrl: true, notifyCategories: true }
+  });
+  if (!user) return res.status(404).json({ error: "Account not found." });
+  return res.json({ profile: user });
+});
+
+// Email is intentionally not editable here — it's also the login
+// identifier, and changing it safely would need its own re-verification
+// flow, which is out of scope for a basic profile edit.
+router.patch("/profile", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!session) {
+    return res.status(401).json({ error: "Not authenticated." });
+  }
+
+  const body = req.body ?? {};
+  const name = typeof body.name === "string" ? body.name.trim() : undefined;
+  const phone = typeof body.phone === "string" ? body.phone.trim() : undefined;
+
+  if (name !== undefined) {
+    if (!name) return res.status(400).json({ error: "Name is required." });
+    if (name.length > MAX_NAME_LENGTH) {
+      return res.status(400).json({ error: `Name must be ${MAX_NAME_LENGTH} characters or fewer.` });
+    }
+  }
+  if (phone !== undefined && phone.length > 30) {
+    return res.status(400).json({ error: "Phone number must be 30 characters or fewer." });
+  }
+
+  const user = await prisma.user.update({
+    where: { id: session.id },
+    data: { name, phone: phone || null },
+    select: { id: true, name: true, email: true, role: true, avatarUrl: true }
+  });
+  return res.json({ user });
+});
+
+// Which categories of staff-broadcast notifications the caller wants —
+// open to any signed-in user for their own row (unlike the admin console's
+// equivalent at PATCH /admin/settings/notifications, which exists for the
+// Settings screen specifically and happens to touch the same column).
+router.patch("/notifications", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!session) {
+    return res.status(401).json({ error: "Not authenticated." });
+  }
+
+  const ALL_CATEGORIES = ["CLASS", "GRADING", "PAYMENT", "GAMIFICATION", "ATTENDANCE"] as const;
+  const categories = Array.isArray(req.body?.categories)
+    ? req.body.categories.filter((c: unknown): c is typeof ALL_CATEGORIES[number] =>
+        ALL_CATEGORIES.includes(c as typeof ALL_CATEGORIES[number])
+      )
+    : [];
+
+  const user = await prisma.user.update({
+    where: { id: session.id },
+    data: { notifyCategories: categories },
+    select: { notifyCategories: true }
+  });
+  return res.json({ notifyCategories: user.notifyCategories });
+});
+
+// A real in-app password change — until now the only way to change a
+// password was the forgot-password email-reset flow. Requires the current
+// password so a hijacked session cookie alone can't take over the account.
+router.post("/change-password", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!session) {
+    return res.status(401).json({ error: "Not authenticated." });
+  }
+
+  const rateLimitKey = `change-password:${session.id}`;
+  const limit = await checkRateLimit(rateLimitKey);
+  if (limit.blocked) {
+    return res.status(429).json({ error: rateLimitMessage(limit.retryAfterSeconds!) });
+  }
+
+  const body = req.body ?? {};
+  const currentPassword = typeof body.currentPassword === "string" ? body.currentPassword : "";
+  const newPassword = typeof body.newPassword === "string" ? body.newPassword : "";
+
+  const user = await prisma.user.findUnique({ where: { id: session.id } });
+  if (!user) return res.status(404).json({ error: "Account not found." });
+
+  const valid = await verifyPassword(currentPassword, user.passwordHash);
+  await recordAttempt(rateLimitKey, valid);
+  if (!valid) {
+    return res.status(401).json({ error: "Current password is incorrect." });
+  }
+  if (!isPasswordStrongEnough(newPassword)) {
+    return res.status(400).json({ error: "New password must be at least 8 characters." });
+  }
+
+  const passwordHash = await hashPassword(newPassword);
+  // Bumping tokenVersion revokes every other session (same as the
+  // forgot-password reset flow) — a stolen cookie elsewhere stops working
+  // the moment the real owner changes their password.
+  const updated = await prisma.user.update({
+    where: { id: session.id },
+    data: { passwordHash, tokenVersion: { increment: 1 } }
+  });
+
+  const token = await createSessionToken({
+    id: updated.id,
+    name: updated.name,
+    email: updated.email,
+    role: updated.role,
+    tokenVersion: updated.tokenVersion
+  });
+  res.cookie(SESSION_COOKIE, token, SESSION_COOKIE_OPTIONS);
+  return res.json({ ok: true });
+});
+
+// A soft delete — sets deactivatedAt rather than removing the row, so
+// staff could still restore an account on request. Requires re-entering
+// the password: this is the single most destructive thing a user can do
+// to their own account, so a hijacked session alone shouldn't be enough.
+router.post("/deactivate", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!session) {
+    return res.status(401).json({ error: "Not authenticated." });
+  }
+
+  const rateLimitKey = `deactivate:${session.id}`;
+  const limit = await checkRateLimit(rateLimitKey);
+  if (limit.blocked) {
+    return res.status(429).json({ error: rateLimitMessage(limit.retryAfterSeconds!) });
+  }
+
+  const password = typeof req.body?.password === "string" ? req.body.password : "";
+  const user = await prisma.user.findUnique({ where: { id: session.id } });
+  if (!user) return res.status(404).json({ error: "Account not found." });
+
+  const valid = await verifyPassword(password, user.passwordHash);
+  await recordAttempt(rateLimitKey, valid);
+  if (!valid) {
+    return res.status(401).json({ error: "Password is incorrect." });
+  }
+
+  await prisma.user.update({
+    where: { id: session.id },
+    data: { deactivatedAt: new Date(), tokenVersion: { increment: 1 } }
+  });
+  res.cookie(SESSION_COOKIE, "", { ...SESSION_COOKIE_OPTIONS, maxAge: 0 });
+  return res.json({ ok: true });
 });
 
 // Public account creation: STUDENT or INSTRUCTOR only. ADMIN accounts can

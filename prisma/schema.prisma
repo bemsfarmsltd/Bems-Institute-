@@ -77,6 +77,10 @@ model User {
   phone        String?
   avatarUrl    String?
   role         UserRole       @default(STUDENT)
+  // Set by the user's own "Delete Profile" action — a soft delete, not a
+  // real row deletion, so staff can still restore an account on request.
+  // Blocks login and getSessionUser while set.
+  deactivatedAt DateTime?
   // Bumped whenever the password changes (see POST /auth/reset-password) so
   // every session token issued before that point fails verification on its
   // next use — a stateless signed cookie has no other way to be revoked.

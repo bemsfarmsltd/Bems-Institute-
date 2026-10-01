@@ -12,8 +12,11 @@ export async function getSessionUser(req: Request): Promise<SessionPayload | nul
   const payload = await verifySessionToken(token);
   if (!payload) return null;
 
-  const user = await prisma.user.findUnique({ where: { id: payload.id }, select: { tokenVersion: true } });
-  if (!user || user.tokenVersion !== payload.tokenVersion) return null;
+  const user = await prisma.user.findUnique({
+    where: { id: payload.id },
+    select: { tokenVersion: true, deactivatedAt: true }
+  });
+  if (!user || user.tokenVersion !== payload.tokenVersion || user.deactivatedAt) return null;
 
   return payload;
 }
