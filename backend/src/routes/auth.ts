@@ -1,4 +1,5 @@
 import { Router } from "express";
+import multer from "multer";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword, hashPassword, isPasswordStrongEnough } from "@/lib/password";
 import { createSessionToken, SESSION_COOKIE, SESSION_COOKIE_OPTIONS } from "@/lib/session";
@@ -7,10 +8,24 @@ import { checkRateLimit, recordAttempt, rateLimitMessage, clearAttempts, checkUs
 import { createPasswordResetToken, deliverPasswordResetLink, lookupResetToken, consumeResetToken } from "@/lib/password-reset";
 import { recordReferralSignup } from "@/lib/referrals";
 import { isValidEmail } from "@/lib/validation";
+import { uploadAvatar } from "@/lib/cloudinary";
 
 const MAX_NAME_LENGTH = 100;
 
 const router = Router();
+
+const ALLOWED_AVATAR_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+const avatarUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (!ALLOWED_AVATAR_TYPES.has(file.mimetype)) {
+      cb(new Error("Only JPG, PNG, WEBP, or GIF images are allowed."));
+      return;
+    }
+    cb(null, true);
+  }
+});
 
 // Real credential check against the database — role comes from the stored
 // user record, never from the request body, so a client can no longer just
@@ -40,7 +55,7 @@ router.post("/login", async (req, res) => {
 
   const token = await createSessionToken({ id: user.id, name: user.name, email: user.email, role: user.role, tokenVersion: user.tokenVersion });
   res.cookie(SESSION_COOKIE, token, SESSION_COOKIE_OPTIONS);
-  return res.json({ user: { id: user.id, name: user.name, email: user.email, role: user.role } });
+  return res.json({ user: { id: user.id, name: user.name, email: user.email, role: user.role, avatarUrl: user.avatarUrl } });
 });
 
 router.post("/logout", async (_req, res) => {
@@ -48,11 +63,52 @@ router.post("/logout", async (_req, res) => {
   return res.json({ ok: true });
 });
 
+// The signed session cookie only carries id/name/email/role (see
+// SessionPayload) — avatarUrl isn't in it, so /me always reads the current
+// value from the database rather than something baked into the token.
 router.get("/me", async (req, res) => {
   const session = await getSessionUser(req);
   if (!session) return res.json({ user: null });
-  const { id, name, email, role } = session;
-  return res.json({ user: { id, name, email, role } });
+  const user = await prisma.user.findUnique({
+    where: { id: session.id },
+    select: { id: true, name: true, email: true, role: true, avatarUrl: true }
+  });
+  if (!user) return res.json({ user: null });
+  return res.json({ user });
+});
+
+// Authenticated users upload/replace their own avatar — never someone
+// else's, since the target is always the caller's own session id, not a
+// client-supplied userId.
+router.post("/avatar", (req, res, next) => {
+  avatarUpload.single("avatar")(req, res, (err: unknown) => {
+    if (!err) return next();
+    // Surface multer's file-size/type rejections as a real 400 instead of
+    // letting them fall through to the generic 500 handler.
+    const message = err instanceof Error ? err.message : "Could not read the uploaded file.";
+    const isTooLarge = err instanceof multer.MulterError && err.code === "LIMIT_FILE_SIZE";
+    res.status(400).json({ error: isTooLarge ? "Image must be 5MB or smaller." : message });
+  });
+}, async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!session) {
+    return res.status(401).json({ error: "Not authenticated." });
+  }
+  if (!req.file) {
+    return res.status(400).json({ error: "No image file was uploaded." });
+  }
+
+  try {
+    const avatarUrl = await uploadAvatar(req.file.buffer, session.id);
+    const user = await prisma.user.update({
+      where: { id: session.id },
+      data: { avatarUrl },
+      select: { id: true, name: true, email: true, role: true, avatarUrl: true }
+    });
+    return res.json({ user });
+  } catch {
+    return res.status(502).json({ error: "Could not upload the image. Please try again." });
+  }
 });
 
 // Public account creation: STUDENT or INSTRUCTOR only. ADMIN accounts can
@@ -114,7 +170,7 @@ router.post("/signup", async (req, res) => {
 
   const token = await createSessionToken({ id: user.id, name: user.name, email: user.email, role: user.role, tokenVersion: user.tokenVersion });
   res.cookie(SESSION_COOKIE, token, SESSION_COOKIE_OPTIONS);
-  return res.json({ user: { id: user.id, name: user.name, email: user.email, role: user.role } });
+  return res.json({ user: { id: user.id, name: user.name, email: user.email, role: user.role, avatarUrl: user.avatarUrl } });
 });
 
 const GENERIC_RESET_MESSAGE = "If an account exists for that email, a reset link has been sent.";
@@ -181,7 +237,7 @@ router.post("/reset-password", async (req, res) => {
 
   const sessionToken = await createSessionToken({ id: user.id, name: user.name, email: user.email, role: user.role, tokenVersion: user.tokenVersion });
   res.cookie(SESSION_COOKIE, sessionToken, SESSION_COOKIE_OPTIONS);
-  return res.json({ user: { id: user.id, name: user.name, email: user.email, role: user.role } });
+  return res.json({ user: { id: user.id, name: user.name, email: user.email, role: user.role, avatarUrl: user.avatarUrl } });
 });
 
 export default router;

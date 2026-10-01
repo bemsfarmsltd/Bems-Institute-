@@ -75,6 +75,7 @@ model User {
   email        String         @unique
   passwordHash String
   phone        String?
+  avatarUrl    String?
   role         UserRole       @default(STUDENT)
   // Bumped whenever the password changes (see POST /auth/reset-password) so
   // every session token issued before that point fails verification on its
