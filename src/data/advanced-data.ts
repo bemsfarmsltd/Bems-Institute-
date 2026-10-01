@@ -1,7 +1,6 @@
 import {
   CommunityChannel,
-  AppNotification,
-  SubscriptionTier
+  AppNotification
 } from "@/types/advanced";
 
 // Channels are a small, fixed, code-defined taxonomy — not a DB table (see
@@ -78,63 +77,6 @@ export const INITIAL_NOTIFICATIONS: AppNotification[] = [
   }
 ];
 
-export const SUBSCRIPTION_TIERS: SubscriptionTier[] = [
-  {
-    id: "tier-cohort",
-    name: "FutureSkills Accelerator",
-    badge: "Most Popular",
-    priceNaira: 79000,
-    billingPeriod: "One-Time",
-    description: "Full 3-Month practical cohort training at BEMS Hub Labs or Live Zoom, Capstone project, and verified Certificate.",
-    features: [
-      "Access to all modules & HD lesson recordings for your track",
-      "Dedicated Umuahia physical lab workstation & high-speed internet",
-      "Weekly live code reviews & mentoring with Mr. Victor / Timi / Temi",
-      "Pre-submission AI code review & 24/7 AI Tutor assistant",
-      "Printable BEMS Certificate with cryptographic QR verifier",
-      "Direct admission to official BEMS Class WhatsApp Community"
-    ],
-    isPopular: true,
-    ctaText: "Enroll in October 2026 Cohort"
-  },
-  {
-    id: "tier-all-access",
-    name: "BEMS All-Access Pro Pass",
-    badge: "Unlimited Tech Learning",
-    priceNaira: 15000,
-    billingPeriod: "Monthly",
-    description: "Cross-skill continuously across all 4 tracks (AI, Web, Design, Cyber) with priority lab desk access.",
-    features: [
-      "Unlimited access to ALL 4 technical tracks simultaneously",
-      "Priority physical lab seating in Umuahia during open lab hours",
-      "1-on-1 monthly code clinic with Senior Lead Instructors",
-      "Unlimited AI Quiz generations & automated capstone audits",
-      "Access to exclusive employer talent directory matchmaking",
-      "Cancel or pause anytime with no hidden penalty"
-    ],
-    isPopular: false,
-    ctaText: "Subscribe for ₦15,000 / mo"
-  },
-  {
-    id: "tier-alumni",
-    name: "Alumni Tech Mastermind",
-    badge: "Career Matchmaking",
-    priceNaira: 8000,
-    billingPeriod: "Monthly",
-    description: "For graduates who want ongoing career referrals, weekly engineering masterclasses, and freelance client leads.",
-    features: [
-      "Weekly live technical architecture deep-dives",
-      "Direct introductions to hiring tech startups across Nigeria & remote",
-      "BEMS Innovation Hub hot-desk pass (2 days/week)",
-      "Portfolio case study reviews for international job applications",
-      "Private Alumni WhatsApp Mastermind networking group"
-    ],
-    isPopular: false,
-    ctaText: "Join Alumni Club (₦8,000 / mo)"
-  }
-];
-
 export const mockNotifications = INITIAL_NOTIFICATIONS;
-export const mockSubscriptionTiers = SUBSCRIPTION_TIERS;
 
 

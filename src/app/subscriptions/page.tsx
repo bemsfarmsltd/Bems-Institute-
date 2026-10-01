@@ -10,7 +10,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   CheckCircle2,
-  Sparkles,
   CreditCard,
   Building2,
   ShieldCheck,
@@ -19,9 +18,9 @@ import {
   BookOpen,
   PlayCircle
 } from "lucide-react";
-import { mockSubscriptionTiers } from "@/data/advanced-data";
-import { SubscriptionTier } from "@/types/advanced";
 import { apiFetch } from "@/lib/api-client";
+
+type PaymentPlan = "full" | "installment";
 import { readAttributionParam, persistAttribution, getStoredAttribution } from "@/lib/attribution";
 
 function SubscriptionsContent() {
@@ -36,14 +35,13 @@ function SubscriptionsContent() {
   const { courses, enrollInCourse, isEnrolled } = useLMS();
   const [effectiveSource, setEffectiveSource] = useState<string | null>(null);
 
-  const [tiers] = useState<SubscriptionTier[]>(mockSubscriptionTiers);
   const [selectedCourseId, setSelectedCourseId] = useState<string>(courseQuery || "web-dev");
-  const [selectedTier, setSelectedTier] = useState<SubscriptionTier | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<PaymentPlan | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"PAYSTACK" | "BANK">("PAYSTACK");
   const [isProcessing, setIsProcessing] = useState(false);
   const [confirmedEnrollment, setConfirmedEnrollment] = useState<{
-    tierName: string;
+    planLabel: string;
     amount: number;
     courseTitle: string;
     courseSlug: string;
@@ -87,25 +85,30 @@ function SubscriptionsContent() {
   const selectedCourse =
     courses.find((c) => c.id === selectedCourseId || c.slug === selectedCourseId) || courses[0];
 
-  const handleSelectPlan = (tier: SubscriptionTier) => {
-    setSelectedTier(tier);
+  const planAmount = (plan: PaymentPlan) =>
+    selectedCourse ? (plan === "full" ? selectedCourse.priceFull : selectedCourse.priceParts) : 0;
+  const planLabel = (plan: PaymentPlan) => (plan === "full" ? "Pay in Full" : "Pay in 3 Parts");
+
+  const handleSelectPlan = (plan: PaymentPlan) => {
+    setSelectedPlan(plan);
     setShowPaymentModal(true);
   };
 
   const handleProcessPayment = async () => {
-    if (!selectedTier) return;
+    if (!selectedPlan) return;
     setIsProcessing(true);
     try {
       if (selectedCourse) {
         await enrollInCourse(selectedCourse.id, {
           source: effectiveSource || undefined,
-          paymentMethod: paymentMethod === "PAYSTACK" ? "paystack" : "bank"
+          paymentMethod: paymentMethod === "PAYSTACK" ? "paystack" : "bank",
+          paymentPlan: selectedPlan
         });
       }
       const firstLessonId = selectedCourse?.modules[0]?.lessons[0]?.id || "les-1";
       setConfirmedEnrollment({
-        tierName: selectedTier.name,
-        amount: selectedTier.priceNaira,
+        planLabel: planLabel(selectedPlan),
+        amount: planAmount(selectedPlan),
         courseTitle: selectedCourse?.title || "Full-Stack Web Development",
         courseSlug: selectedCourse?.slug || "web-development",
         firstLessonId
@@ -132,7 +135,7 @@ function SubscriptionsContent() {
             Invest in High-Income Tech Skills
           </h1>
           <p className="text-sm sm:text-base text-[#A5A0C8] max-w-2xl mx-auto leading-relaxed">
-            Choose your primary accelerator track and select the full 3-month cohort plan, the monthly All-Access Pass across all 4 tracks, or ongoing Alumni Mastermind support.
+            Choose your track, then pay in full for 12% off or spread it across 3 parts — no one has to find it all at once.
           </p>
         </div>
       </div>
@@ -145,7 +148,7 @@ function SubscriptionsContent() {
             <div className="space-y-1.5">
               <div className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-emerald-800">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>Enrollment Confirmed · ₦{confirmedEnrollment.amount.toLocaleString()} ({confirmedEnrollment.tierName})</span>
+                <span>Enrollment Confirmed · ₦{confirmedEnrollment.amount.toLocaleString()} ({confirmedEnrollment.planLabel})</span>
               </div>
               <h2 className="text-xl sm:text-2xl font-black text-[#18143D]">
                 You&apos;re enrolled in {confirmedEnrollment.courseTitle}!
@@ -234,39 +237,30 @@ function SubscriptionsContent() {
           </div>
         )}
 
-        {/* Pricing Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
-          {tiers.map((tier) => (
-            <div
-              key={tier.id}
-              className={`rounded-3xl p-8 flex flex-col justify-between transition-all duration-300 relative ${
-                tier.isPopular
-                  ? "bg-white border-2 border-[#7928CA] shadow-2xl ring-4 ring-[#7928CA]/10 -translate-y-2"
-                  : "bg-white border border-[#E6E1F5] shadow-xs hover:border-[#7928CA]/40"
-              }`}
-            >
-              {tier.badge && (
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                  <span className="px-4 py-1 rounded-full bg-[#7928CA] text-white text-[11px] font-black uppercase tracking-wider shadow-sm">
-                    {tier.badge}
-                  </span>
-                </div>
-              )}
+        {/* Payment Plan Cards — two ways to pay, per course (PRD §3.1) */}
+        {selectedCourse && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
+            <div className="rounded-3xl p-8 flex flex-col justify-between transition-all duration-300 relative bg-white border-2 border-[#7928CA] shadow-2xl ring-4 ring-[#7928CA]/10 -translate-y-2">
+              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+                <span className="px-4 py-1 rounded-full bg-[#7928CA] text-white text-[11px] font-black uppercase tracking-wider shadow-sm">
+                  Save 12%
+                </span>
+              </div>
 
               <div>
                 <div className="mb-4">
-                  <h3 className="text-xl font-black text-[#18143D]">{tier.name}</h3>
-                  <p className="text-xs text-[#645F80] mt-1">{tier.description}</p>
+                  <h3 className="text-xl font-black text-[#18143D]">Pay in Full</h3>
+                  <p className="text-xs text-[#645F80] mt-1">
+                    One-time payment for {selectedCourse.title}. Cash upfront, rewards paying early.
+                  </p>
                 </div>
 
                 <div className="py-4 border-y border-[#F0EDF9] mb-6">
                   <div className="flex items-baseline gap-1">
                     <span className="text-3xl sm:text-4xl font-black text-[#18143D]">
-                      ₦{tier.priceNaira.toLocaleString()}
+                      ₦{selectedCourse.priceFull.toLocaleString()}
                     </span>
-                    <span className="text-xs text-[#8580A3] font-bold">
-                      / {tier.billingPeriod}
-                    </span>
+                    <span className="text-xs text-[#8580A3] font-bold">one-time</span>
                   </div>
                 </div>
 
@@ -274,8 +268,12 @@ function SubscriptionsContent() {
                   <span className="text-xs font-bold uppercase tracking-wider text-[#645F80] block">
                     What&apos;s Included:
                   </span>
-                  {tier.features.map((feature, fIdx) => (
-                    <div key={fIdx} className="flex items-start gap-2.5 text-xs text-[#4A4568]">
+                  {[
+                    `Full access to ${selectedCourse.title} — all lessons, quizzes & the final capstone`,
+                    "Cheapest way to pay — save vs. the 3-part plan",
+                    "BEMS Verified Certificate with QR verification on completion"
+                  ].map((feature) => (
+                    <div key={feature} className="flex items-start gap-2.5 text-xs text-[#4A4568]">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
                       <span>{feature}</span>
                     </div>
@@ -285,16 +283,62 @@ function SubscriptionsContent() {
 
               <div>
                 <Button
-                  onClick={() => handleSelectPlan(tier)}
-                  variant={tier.isPopular ? "purple" : "outline"}
+                  onClick={() => handleSelectPlan("full")}
+                  variant="purple"
                   className="w-full py-3 text-xs font-bold shadow-xs"
                 >
-                  {tier.ctaText}
+                  Pay ₦{selectedCourse.priceFull.toLocaleString()} in Full
                 </Button>
               </div>
             </div>
-          ))}
-        </div>
+
+            <div className="rounded-3xl p-8 flex flex-col justify-between transition-all duration-300 relative bg-white border border-[#E6E1F5] shadow-xs hover:border-[#7928CA]/40">
+              <div>
+                <div className="mb-4">
+                  <h3 className="text-xl font-black text-[#18143D]">Pay in 3 Parts</h3>
+                  <p className="text-xs text-[#645F80] mt-1">
+                    No one has to find it all at once — start today, spread the rest across the cohort.
+                  </p>
+                </div>
+
+                <div className="py-4 border-y border-[#F0EDF9] mb-6">
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-3xl sm:text-4xl font-black text-[#18143D]">
+                      ₦{selectedCourse.priceParts.toLocaleString()}
+                    </span>
+                    <span className="text-xs text-[#8580A3] font-bold">total, in 3 parts</span>
+                  </div>
+                </div>
+
+                <div className="space-y-3 mb-8">
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#645F80] block">
+                    What&apos;s Included:
+                  </span>
+                  {[
+                    `Start today with just ₦${selectedCourse.deposit.toLocaleString()} deposit`,
+                    "Same full course access and same certificate as paying in full",
+                    "2 more installments across the 3-month cohort"
+                  ].map((feature) => (
+                    <div key={feature} className="flex items-start gap-2.5 text-xs text-[#4A4568]">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+                      <span>{feature}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <Button
+                  onClick={() => handleSelectPlan("installment")}
+                  variant="outline"
+                  className="w-full py-3 text-xs font-bold shadow-xs"
+                >
+                  Start with ₦{selectedCourse.deposit.toLocaleString()} Deposit
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Guarantee Banner */}
         <div className="bg-white rounded-3xl border border-[#E6E1F5] p-6 sm:p-8 shadow-xs flex flex-col md:flex-row items-center justify-between gap-6">
@@ -325,12 +369,12 @@ function SubscriptionsContent() {
       </div>
 
       {/* Checkout Modal */}
-      {showPaymentModal && selectedTier && (
+      {showPaymentModal && selectedPlan && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-[#E6E1F5] animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#F0EDF9]">
               <h3 className="text-lg font-black text-[#18143D]">
-                Confirm Subscription / Enrollment
+                Confirm Enrollment
               </h3>
               <button
                 onClick={() => setShowPaymentModal(false)}
@@ -349,14 +393,22 @@ function SubscriptionsContent() {
               )}
               <div className="flex justify-between">
                 <span className="text-[#645F80]">Selected Plan:</span>
-                <strong className="text-[#18143D]">{selectedTier.name}</strong>
+                <strong className="text-[#18143D]">{planLabel(selectedPlan)}</strong>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#645F80]">Tuition Amount:</span>
+                <span className="text-[#645F80]">
+                  {selectedPlan === "full" ? "Tuition Amount:" : "Due Today (Deposit):"}
+                </span>
                 <strong className="text-emerald-700 text-sm">
-                  ₦{selectedTier.priceNaira.toLocaleString()}
+                  ₦{(selectedPlan === "full" ? planAmount(selectedPlan) : selectedCourse?.deposit ?? 0).toLocaleString()}
                 </strong>
               </div>
+              {selectedPlan === "installment" && (
+                <div className="flex justify-between">
+                  <span className="text-[#645F80]">Total Across 3 Parts:</span>
+                  <strong className="text-[#18143D]">₦{planAmount(selectedPlan).toLocaleString()}</strong>
+                </div>
+              )}
             </div>
 
             {/* Payment Method Selector */}
@@ -413,7 +465,7 @@ function SubscriptionsContent() {
             >
               {isProcessing
                 ? "Activating Enrollment..."
-                : `Confirm & Enroll (₦${selectedTier.priceNaira.toLocaleString()})`}
+                : `Confirm & Enroll (₦${(selectedPlan === "full" ? planAmount(selectedPlan) : selectedCourse?.deposit ?? 0).toLocaleString()})`}
             </Button>
           </div>
         </div>

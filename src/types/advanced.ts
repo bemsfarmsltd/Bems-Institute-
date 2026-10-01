@@ -60,15 +60,3 @@ export interface LeaderboardStudent {
   badgesCount: number;
   isMe: boolean;
 }
-
-export interface SubscriptionTier {
-  id: string;
-  name: string;
-  badge?: string;
-  priceNaira: number;
-  billingPeriod: "One-Time" | "Monthly" | "Quarterly";
-  description: string;
-  features: string[];
-  isPopular?: boolean;
-  ctaText: string;
-}

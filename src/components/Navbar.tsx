@@ -37,14 +37,16 @@ import {
   FileCheck,
   TrendingUp,
   Star,
-  Wallet,
   MoreHorizontal
 } from "lucide-react";
 
 export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isHydrated, logout } = useLMS();
+  const { user, isHydrated, logout, courses, enrolledCourseIds, getQuizForCourse } = useLMS();
+  const myCourse = courses.find((c) => enrolledCourseIds.includes(c.id));
+  const myFirstLessonId = myCourse?.modules[0]?.lessons[0]?.id;
+  const myQuiz = myCourse ? getQuizForCourse(myCourse.id) : undefined;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [navSearch, setNavSearch] = useState("");
 
@@ -321,13 +323,6 @@ export function Navbar() {
                       <span>Course Added</span>
                     </Link>
                     <Link
-                      href="/learn/web-dev/quiz/quiz-web-dev"
-                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F0EDF9] hover:text-[#7928CA]"
-                    >
-                      <HelpCircle className="w-3.5 h-3.5" />
-                      <span>Quiz</span>
-                    </Link>
-                    <Link
                       href="/admin/analytics"
                       className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F0EDF9] hover:text-[#7928CA]"
                     >
@@ -342,25 +337,11 @@ export function Navbar() {
                       <span>Students</span>
                     </Link>
                     <Link
-                      href="/admin/students"
-                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F0EDF9] hover:text-[#7928CA]"
-                    >
-                      <ShoppingCart className="w-3.5 h-3.5" />
-                      <span>Orders</span>
-                    </Link>
-                    <Link
                       href="/instructor/grading"
                       className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F0EDF9] hover:text-[#7928CA]"
                     >
                       <Star className="w-3.5 h-3.5" />
-                      <span>Reviews</span>
-                    </Link>
-                    <Link
-                      href="/admin/analytics"
-                      className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F0EDF9] hover:text-[#7928CA]"
-                    >
-                      <Wallet className="w-3.5 h-3.5" />
-                      <span>Payout</span>
+                      <span>Grading</span>
                     </Link>
                   </div>
                 </div>
@@ -403,14 +384,14 @@ export function Navbar() {
                       <span>Courses</span>
                     </Link>
                     <Link
-                      href="/learn/web-dev/les-1"
+                      href={myCourse && myFirstLessonId ? `/learn/${myCourse.slug}/${myFirstLessonId}` : "/dashboard"}
                       className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F0EDF9] hover:text-[#7928CA]"
                     >
                       <FileText className="w-3.5 h-3.5" />
                       <span>Course Resume</span>
                     </Link>
                     <Link
-                      href="/learn/web-dev/quiz/quiz-web-dev"
+                      href={myCourse && myQuiz ? `/learn/${myCourse.slug}/quiz/${myQuiz.id}` : "/dashboard"}
                       className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F0EDF9] hover:text-[#7928CA]"
                     >
                       <HelpCircle className="w-3.5 h-3.5" />
