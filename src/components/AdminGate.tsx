@@ -98,15 +98,15 @@ export function AdminGate({ children }: { children: React.ReactNode }) {
       <Navbar />
 
       <div className="flex-1 flex items-center justify-center py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full bg-white rounded-3xl border border-[#E6E1F5] p-8 sm:p-10 shadow-lg">
+        <div className="max-w-md w-full bg-white rounded-3xl border border-[#F1E2F5] p-8 sm:p-10 shadow-lg">
           <div className="text-center mb-8">
-            <div className="w-14 h-14 rounded-2xl bg-[#7928CA]/10 text-[#7928CA] flex items-center justify-center mx-auto mb-4">
+            <div className="w-14 h-14 rounded-2xl bg-[#AE54C6]/10 text-[#AE54C6] flex items-center justify-center mx-auto mb-4">
               <Lock className="w-6 h-6" />
             </div>
             <div className="flex items-center justify-center gap-2 mb-2">
               <Badge variant="purple">STAFF ONLY</Badge>
             </div>
-            <h1 className="text-2xl font-black text-[#18143D]">
+            <h1 className="text-2xl font-black text-[#303654]">
               Master Admin Console
             </h1>
             <p className="text-xs sm:text-sm text-[#645F80] mt-1">
@@ -114,7 +114,7 @@ export function AdminGate({ children }: { children: React.ReactNode }) {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 mb-6 p-1 rounded-2xl bg-[#FAF8FF] border border-[#E6E1F5]">
+          <div className="grid grid-cols-2 gap-2 mb-6 p-1 rounded-2xl bg-[#FAF8FF] border border-[#F1E2F5]">
             <button
               type="button"
               onClick={() => {
@@ -122,7 +122,7 @@ export function AdminGate({ children }: { children: React.ReactNode }) {
                 setError(null);
               }}
               className={`py-2 rounded-xl text-xs font-bold transition-colors ${
-                mode === "signin" ? "bg-white shadow-sm text-[#7928CA]" : "text-[#645F80]"
+                mode === "signin" ? "bg-white shadow-sm text-[#AE54C6]" : "text-[#645F80]"
               }`}
             >
               Sign In
@@ -134,7 +134,7 @@ export function AdminGate({ children }: { children: React.ReactNode }) {
                 setError(null);
               }}
               className={`py-2 rounded-xl text-xs font-bold transition-colors ${
-                mode === "register" ? "bg-white shadow-sm text-[#7928CA]" : "text-[#645F80]"
+                mode === "register" ? "bg-white shadow-sm text-[#AE54C6]" : "text-[#645F80]"
               }`}
             >
               Register (New Staff)
@@ -144,7 +144,7 @@ export function AdminGate({ children }: { children: React.ReactNode }) {
           <form onSubmit={mode === "signin" ? handleSignIn : handleRegister} className="space-y-4">
             {mode === "register" && (
               <div>
-                <label className="block text-xs font-bold text-[#18143D] mb-1.5">
+                <label className="block text-xs font-bold text-[#303654] mb-1.5">
                   Full Name
                 </label>
                 <input
@@ -152,13 +152,13 @@ export function AdminGate({ children }: { children: React.ReactNode }) {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-[#D1C9EB] focus:border-[#7928CA] focus:outline-hidden text-sm text-[#18143D] bg-white"
+                  className="w-full px-4 py-3 rounded-xl border border-[#E5C8ED] focus:border-[#AE54C6] focus:outline-hidden text-sm text-[#303654] bg-white"
                 />
               </div>
             )}
 
             <div>
-              <label className="block text-xs font-bold text-[#18143D] mb-1.5">
+              <label className="block text-xs font-bold text-[#303654] mb-1.5">
                 Email Address
               </label>
               <input
@@ -166,12 +166,12 @@ export function AdminGate({ children }: { children: React.ReactNode }) {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-[#D1C9EB] focus:border-[#7928CA] focus:outline-hidden text-sm text-[#18143D] bg-white"
+                className="w-full px-4 py-3 rounded-xl border border-[#E5C8ED] focus:border-[#AE54C6] focus:outline-hidden text-sm text-[#303654] bg-white"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-[#18143D] mb-1.5">
+              <label className="block text-xs font-bold text-[#303654] mb-1.5">
                 Password
               </label>
               <input
@@ -181,13 +181,13 @@ export function AdminGate({ children }: { children: React.ReactNode }) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full px-4 py-3 rounded-xl border border-[#D1C9EB] focus:border-[#7928CA] focus:outline-hidden text-sm text-[#18143D] bg-white"
+                className="w-full px-4 py-3 rounded-xl border border-[#E5C8ED] focus:border-[#AE54C6] focus:outline-hidden text-sm text-[#303654] bg-white"
               />
             </div>
 
             {mode === "register" && (
               <div>
-                <label className="block text-xs font-bold text-[#18143D] mb-1.5">
+                <label className="block text-xs font-bold text-[#303654] mb-1.5">
                   Staff Access Code
                 </label>
                 <input
@@ -196,7 +196,7 @@ export function AdminGate({ children }: { children: React.ReactNode }) {
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full px-4 py-3 rounded-xl border border-[#D1C9EB] focus:border-[#7928CA] focus:outline-hidden text-sm text-[#18143D] bg-white"
+                  className="w-full px-4 py-3 rounded-xl border border-[#E5C8ED] focus:border-[#AE54C6] focus:outline-hidden text-sm text-[#303654] bg-white"
                 />
                 <p className="text-[11px] text-[#8580A3] mt-1">
                   One-time invite code from your director — only needed to register, not for future sign-ins.

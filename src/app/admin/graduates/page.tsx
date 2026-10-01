@@ -111,10 +111,10 @@ function AdminGraduatesContent() {
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full space-y-8">
         <div>
-          <Link href="/admin" className="inline-flex items-center gap-1.5 text-xs font-bold text-[#7928CA] hover:underline mb-3">
+          <Link href="/admin" className="inline-flex items-center gap-1.5 text-xs font-bold text-[#AE54C6] hover:underline mb-3">
             <ArrowLeft className="w-3.5 h-3.5" /> Back to Admin Console
           </Link>
-          <h1 className="text-2xl font-black text-[#18143D]">Graduate Outcomes — &quot;Where They Are Now&quot;</h1>
+          <h1 className="text-2xl font-black text-[#303654]">Graduate Outcomes — &quot;Where They Are Now&quot;</h1>
           <p className="text-xs text-[#645F80] mt-1">
             Curate the public success-story page. Nothing here is auto-published from a certificate — a name/photo
             going public needs the graduate&apos;s consent, so add and publish entries deliberately.
@@ -122,17 +122,17 @@ function AdminGraduatesContent() {
         </div>
 
         {/* New entry form */}
-        <form onSubmit={handleCreate} className="bg-white rounded-2xl border border-[#E6E1F5] p-6 space-y-4">
-          <h2 className="text-sm font-black text-[#18143D] flex items-center gap-1.5">
-            <Plus className="w-4 h-4 text-[#7928CA]" /> Add an Outcome
+        <form onSubmit={handleCreate} className="bg-white rounded-2xl border border-[#F1E2F5] p-6 space-y-4">
+          <h2 className="text-sm font-black text-[#303654] flex items-center gap-1.5">
+            <Plus className="w-4 h-4 text-[#AE54C6]" /> Add an Outcome
           </h2>
 
           <div>
-            <label className="block text-xs font-bold text-[#18143D] mb-1.5">Certified Graduate</label>
+            <label className="block text-xs font-bold text-[#303654] mb-1.5">Certified Graduate</label>
             <select
               value={selectedKey}
               onChange={(e) => setSelectedKey(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E1F5] text-xs focus:outline-none focus:ring-2 focus:ring-[#7928CA]/30"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#F1E2F5] text-xs focus:outline-none focus:ring-2 focus:ring-[#AE54C6]/30"
             >
               <option value="">Select a certified graduate…</option>
               {eligible.map((g) => (
@@ -145,46 +145,46 @@ function AdminGraduatesContent() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-[#18143D] mb-1.5">Headline *</label>
+              <label className="block text-xs font-bold text-[#303654] mb-1.5">Headline *</label>
               <input
                 type="text"
                 value={headline}
                 onChange={(e) => setHeadline(e.target.value)}
                 placeholder="e.g. Hired as Frontend Developer"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E1F5] text-xs focus:outline-none focus:ring-2 focus:ring-[#7928CA]/30"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#F1E2F5] text-xs focus:outline-none focus:ring-2 focus:ring-[#AE54C6]/30"
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-[#18143D] mb-1.5">Company</label>
+              <label className="block text-xs font-bold text-[#303654] mb-1.5">Company</label>
               <input
                 type="text"
                 value={company}
                 onChange={(e) => setCompany(e.target.value)}
                 placeholder="e.g. BEMS Group"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E1F5] text-xs focus:outline-none focus:ring-2 focus:ring-[#7928CA]/30"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#F1E2F5] text-xs focus:outline-none focus:ring-2 focus:ring-[#AE54C6]/30"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#18143D] mb-1.5">Quote</label>
+            <label className="block text-xs font-bold text-[#303654] mb-1.5">Quote</label>
             <textarea
               value={quote}
               onChange={(e) => setQuote(e.target.value)}
               rows={2}
               placeholder="A short testimonial in their own words"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E1F5] text-xs focus:outline-none focus:ring-2 focus:ring-[#7928CA]/30"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#F1E2F5] text-xs focus:outline-none focus:ring-2 focus:ring-[#AE54C6]/30"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-[#18143D] mb-1.5">Photo URL</label>
+            <label className="block text-xs font-bold text-[#303654] mb-1.5">Photo URL</label>
             <input
               type="text"
               value={photoUrl}
               onChange={(e) => setPhotoUrl(e.target.value)}
               placeholder="https://…"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E1F5] text-xs font-mono focus:outline-none focus:ring-2 focus:ring-[#7928CA]/30"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#F1E2F5] text-xs font-mono focus:outline-none focus:ring-2 focus:ring-[#AE54C6]/30"
             />
           </div>
 
@@ -193,18 +193,18 @@ function AdminGraduatesContent() {
           <button
             type="submit"
             disabled={submitting}
-            className="px-5 py-2.5 rounded-xl bg-[#7928CA] hover:bg-[#671fb0] text-white text-xs font-bold disabled:opacity-60"
+            className="px-5 py-2.5 rounded-xl bg-[#AE54C6] hover:bg-[#A03BBC] text-white text-xs font-bold disabled:opacity-60"
           >
             {submitting ? "Adding…" : "Add Draft Entry"}
           </button>
         </form>
 
         {/* Existing entries */}
-        <div className="bg-white rounded-2xl border border-[#E6E1F5] overflow-hidden">
-          <div className="p-5 border-b border-[#F0EDF9]">
-            <h2 className="text-sm font-black text-[#18143D]">All Entries ({outcomes.length})</h2>
+        <div className="bg-white rounded-2xl border border-[#F1E2F5] overflow-hidden">
+          <div className="p-5 border-b border-[#F7EDF9]">
+            <h2 className="text-sm font-black text-[#303654]">All Entries ({outcomes.length})</h2>
           </div>
-          <div className="divide-y divide-[#F0EDF9]">
+          <div className="divide-y divide-[#F7EDF9]">
             {outcomes.length === 0 && (
               <p className="p-5 text-xs text-[#8580A3]">No entries yet — add one above.</p>
             )}
@@ -212,8 +212,8 @@ function AdminGraduatesContent() {
               <div key={o.id} className="p-5 flex items-center justify-between gap-4">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-sm text-[#18143D] truncate">{o.user.name}</span>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#7928CA] bg-[#F0EDF9] px-2 py-0.5 rounded-full shrink-0">
+                    <span className="font-bold text-sm text-[#303654] truncate">{o.user.name}</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#AE54C6] bg-[#F7EDF9] px-2 py-0.5 rounded-full shrink-0">
                       {o.course.title}
                     </span>
                     {o.published ? (
@@ -229,7 +229,7 @@ function AdminGraduatesContent() {
                     type="button"
                     onClick={() => toggleFeatured(o.id, o.featured)}
                     title={o.featured ? "Unfeature" : "Feature"}
-                    className={`p-2 rounded-lg border ${o.featured ? "border-amber-300 bg-amber-50 text-amber-600" : "border-[#E6E1F5] text-[#8580A3]"}`}
+                    className={`p-2 rounded-lg border ${o.featured ? "border-amber-300 bg-amber-50 text-amber-600" : "border-[#F1E2F5] text-[#8580A3]"}`}
                   >
                     <Star className="w-3.5 h-3.5" fill={o.featured ? "currentColor" : "none"} />
                   </button>
@@ -237,7 +237,7 @@ function AdminGraduatesContent() {
                     type="button"
                     onClick={() => togglePublished(o.id, o.published)}
                     title={o.published ? "Unpublish" : "Publish"}
-                    className="p-2 rounded-lg border border-[#E6E1F5] text-[#7928CA]"
+                    className="p-2 rounded-lg border border-[#F1E2F5] text-[#AE54C6]"
                   >
                     {o.published ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                   </button>
@@ -245,7 +245,7 @@ function AdminGraduatesContent() {
                     type="button"
                     onClick={() => handleDelete(o.id)}
                     title="Delete"
-                    className="p-2 rounded-lg border border-[#E6E1F5] text-red-500"
+                    className="p-2 rounded-lg border border-[#F1E2F5] text-red-500"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>

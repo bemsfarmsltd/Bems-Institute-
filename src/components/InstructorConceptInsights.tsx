@@ -38,7 +38,7 @@ export function InstructorConceptInsights({ courseId }: { courseId?: string }) {
 
   if (rows === null) {
     return (
-      <div className="bg-white rounded-2xl border border-[#E6E1F5] shadow-xs p-6">
+      <div className="bg-white rounded-2xl border border-[#F1E2F5] shadow-xs p-6">
         <p className="text-xs text-[#8580A3]">Loading concept analytics&hellip;</p>
       </div>
     );
@@ -47,9 +47,9 @@ export function InstructorConceptInsights({ courseId }: { courseId?: string }) {
   const struggling = rows.filter((r) => r.strugglePercent > 0);
 
   return (
-    <div className="bg-white rounded-2xl border border-[#E6E1F5] shadow-xs overflow-hidden">
-      <div className="p-6 border-b border-[#F0EDF9]">
-        <h2 className="text-xl font-black text-[#18143D] flex items-center gap-2">
+    <div className="bg-white rounded-2xl border border-[#F1E2F5] shadow-xs overflow-hidden">
+      <div className="p-6 border-b border-[#F7EDF9]">
+        <h2 className="text-xl font-black text-[#303654] flex items-center gap-2">
           <TrendingDown className="w-5 h-5 text-red-500" /> Where Students Are Struggling
         </h2>
         <p className="text-xs text-[#645F80] mt-1">
@@ -66,13 +66,13 @@ export function InstructorConceptInsights({ courseId }: { courseId?: string }) {
           </p>
         </div>
       ) : (
-        <div className="divide-y divide-[#F0EDF9]">
+        <div className="divide-y divide-[#F7EDF9]">
           {struggling.map((row) => (
             <div key={row.conceptId} className="p-5 flex items-center gap-4">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-sm text-[#18143D] truncate">{row.conceptName}</span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#7928CA] bg-[#F0EDF9] px-2 py-0.5 rounded-full shrink-0">
+                  <span className="font-bold text-sm text-[#303654] truncate">{row.conceptName}</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#AE54C6] bg-[#F7EDF9] px-2 py-0.5 rounded-full shrink-0">
                     {row.courseTitle}
                   </span>
                   {row.smallSample && (
@@ -84,7 +84,7 @@ export function InstructorConceptInsights({ courseId }: { courseId?: string }) {
                     </span>
                   )}
                 </div>
-                <div className="mt-2 w-full bg-[#F0EDF9] rounded-full h-2 overflow-hidden">
+                <div className="mt-2 w-full bg-[#F7EDF9] rounded-full h-2 overflow-hidden">
                   <div
                     className="bg-red-400 h-full transition-all duration-500"
                     style={{ width: `${row.strugglePercent}%` }}

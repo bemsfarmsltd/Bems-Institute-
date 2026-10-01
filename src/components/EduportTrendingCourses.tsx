@@ -67,11 +67,11 @@ export function EduportTrendingCourses() {
                         type="button"
                         onClick={() => toggleBookmark(course.id)}
                         aria-label="Bookmark course"
-                        className="w-8 h-8 rounded-full bg-white shadow-xs flex items-center justify-center text-[#24292D] hover:text-[#7928CA] transition-colors cursor-pointer"
+                        className="w-8 h-8 rounded-full bg-white shadow-xs flex items-center justify-center text-[#24292D] hover:text-[#AE54C6] transition-colors cursor-pointer"
                       >
                         <Bookmark
                           className={`w-4 h-4 ${
-                            isSaved ? "fill-[#7928CA] text-[#7928CA]" : "text-[#24292D]"
+                            isSaved ? "fill-[#AE54C6] text-[#AE54C6]" : "text-[#24292D]"
                           }`}
                         />
                       </button>
@@ -84,7 +84,7 @@ export function EduportTrendingCourses() {
                       <div className="flex items-center gap-1.5 mb-2">
                         <span className="w-2 h-2 rounded-full bg-[#D6293E]" />
                         <span className="w-2 h-2 rounded-full bg-[#F7C32E]" />
-                        <span className="w-2 h-2 rounded-full bg-[#7928CA]" />
+                        <span className="w-2 h-2 rounded-full bg-[#AE54C6]" />
                         <span className="text-[10px] font-bold text-[#747579] ml-1.5">
                           BEMS Interactive Lab · ₦{course.deposit.toLocaleString()} deposit
                         </span>
@@ -97,13 +97,13 @@ export function EduportTrendingCourses() {
                   {/* Card Body */}
                   <div className="p-6 pb-4">
                     <div className="flex items-center gap-2 mb-3">
-                      <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-md bg-[#F0EDF9] text-[#7928CA]">
+                      <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-md bg-[#F7EDF9] text-[#AE54C6]">
                         {course.delivery || "Hybrid"}
                       </span>
                     </div>
 
                     <Link href={`/courses/${course.slug}`}>
-                      <h3 className="text-lg font-bold text-[#24292D] group-hover:text-[#7928CA] transition-colors leading-snug mb-4 line-clamp-2">
+                      <h3 className="text-lg font-bold text-[#24292D] group-hover:text-[#AE54C6] transition-colors leading-snug mb-4 line-clamp-2">
                         {course.title}
                       </h3>
                     </Link>
@@ -114,7 +114,7 @@ export function EduportTrendingCourses() {
 
                     <div className="flex items-center gap-5 text-xs text-[#747579]">
                       <span className="inline-flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5 text-[#7928CA]" />
+                        <Clock className="w-3.5 h-3.5 text-[#AE54C6]" />
                         {course.duration}
                       </span>
                       <span className="inline-flex items-center gap-1.5">
@@ -128,19 +128,19 @@ export function EduportTrendingCourses() {
                 {/* Card Footer: Tutor + Price / Enroll */}
                 <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-lg bg-[#7928CA] text-white text-xs font-extrabold flex items-center justify-center">
+                    <div className="w-9 h-9 rounded-lg bg-[#AE54C6] text-white text-xs font-extrabold flex items-center justify-center">
                       {initials(course.tutor)}
                     </div>
                     <span className="text-xs font-bold text-[#24292D]">{course.tutor}</span>
                   </div>
 
                   <div>
-                    <span className="text-lg font-extrabold text-[#7928CA] group-hover:hidden">
+                    <span className="text-lg font-extrabold text-[#AE54C6] group-hover:hidden">
                       ₦{course.priceFull.toLocaleString()}
                     </span>
                     <Link
                       href={`/subscriptions?course=${course.slug}`}
-                      className="hidden group-hover:inline-flex items-center gap-1.5 bg-[#F0EDF9] hover:bg-[#7928CA] text-[#7928CA] hover:text-white text-xs font-bold px-3.5 py-2 rounded-lg transition-colors"
+                      className="hidden group-hover:inline-flex items-center gap-1.5 bg-[#F7EDF9] hover:bg-[#AE54C6] text-[#AE54C6] hover:text-white text-xs font-bold px-3.5 py-2 rounded-lg transition-colors"
                     >
                       <ShoppingCart className="w-3.5 h-3.5" />
                       <span>Enroll Course</span>

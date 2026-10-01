@@ -270,8 +270,8 @@ const SUPPORT_REQUESTS = [
     name: "Emeka Nwosu",
     avatar: null,
     initials: "DB",
-    badgeBg: "bg-[#EFEBF9]",
-    badgeText: "text-[#6F42C1]",
+    badgeBg: "bg-[#F6ECF9]",
+    badgeText: "text-[#A16EBD]",
     message: "Comment from Tunde Bakare on ticket #659",
     boldPart: null,
     time: "8 hour ago",
@@ -341,8 +341,8 @@ function EarningsLineChart() {
       >
         <defs>
           <linearGradient id="eduportEarningsGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#7928CA" stopOpacity="0.32" />
-            <stop offset="100%" stopColor="#7928CA" stopOpacity="0.03" />
+            <stop offset="0%" stopColor="#AE54C6" stopOpacity="0.32" />
+            <stop offset="100%" stopColor="#AE54C6" stopOpacity="0.03" />
           </linearGradient>
         </defs>
 
@@ -376,7 +376,7 @@ function EarningsLineChart() {
         {/* Smooth Blue Line */}
         <path
           d={linePath}
-          stroke="#7928CA"
+          stroke="#AE54C6"
           strokeWidth="3"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -403,7 +403,7 @@ function EarningsLineChart() {
               width="36"
               height="17"
               rx="3.5"
-              fill="#7928CA"
+              fill="#AE54C6"
               stroke="#FFFFFF"
               strokeWidth="1.2"
             />
@@ -431,8 +431,8 @@ function TrafficSourcesDonutChart() {
   const c = 2 * Math.PI * r;
   // Segments: Blue (62%), Green (16%), Yellow (14%), Red (8%)
   const segments = [
-    { color: "#7928CA", pct: 0.62, offset: 0 },
-    { color: "#7928CA", pct: 0.16, offset: 0.62 },
+    { color: "#AE54C6", pct: 0.62, offset: 0 },
+    { color: "#AE54C6", pct: 0.16, offset: 0.62 },
     { color: "#F7C32E", pct: 0.14, offset: 0.78 },
     { color: "#D6293E", pct: 0.08, offset: 0.92 },
   ];
@@ -464,11 +464,11 @@ function TrafficSourcesDonutChart() {
 
       <div className="w-full space-y-3 mt-4">
         <div className="flex items-start gap-2.5 text-[13.5px] text-[#747579]">
-          <span className="w-3 h-3 rounded-full bg-[#7928CA] shrink-0 mt-1" />
+          <span className="w-3 h-3 rounded-full bg-[#AE54C6] shrink-0 mt-1" />
           <span>Create a Design System in Figma</span>
         </div>
         <div className="flex items-start gap-2.5 text-[13.5px] text-[#747579]">
-          <span className="w-3 h-3 rounded-full bg-[#7928CA] shrink-0 mt-1" />
+          <span className="w-3 h-3 rounded-full bg-[#AE54C6] shrink-0 mt-1" />
           <span>The Complete Digital Marketing Course - 12 Courses in 1</span>
         </div>
         <div className="flex items-start gap-2.5 text-[13.5px] text-[#747579]">
@@ -848,7 +848,7 @@ function AdminDashboardContent() {
             onClick={() => switchTab("dashboard")}
             className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
               activeTab === "dashboard"
-                ? "text-[#7928CA]"
+                ? "text-[#AE54C6]"
                 : "text-white/90 hover:text-white hover:bg-white/5"
             }`}
           >
@@ -872,7 +872,7 @@ function AdminDashboardContent() {
                 }}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
                   activeTab === "courses"
-                    ? "bg-[#1B2228] text-[#7928CA]"
+                    ? "bg-[#1B2228] text-[#AE54C6]"
                     : "text-white/90 hover:text-white hover:bg-white/5"
                 }`}
               >
@@ -894,7 +894,7 @@ function AdminDashboardContent() {
                     onClick={() => switchTab("courses")}
                     className={`w-full text-left py-1.5 font-medium transition-colors cursor-pointer ${
                       activeTab === "courses"
-                        ? "text-[#7928CA]"
+                        ? "text-[#AE54C6]"
                         : "text-white/80 hover:text-white"
                     }`}
                   >
@@ -922,7 +922,7 @@ function AdminDashboardContent() {
               onClick={() => switchTab("students")}
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
                 activeTab === "students"
-                  ? "text-[#7928CA]"
+                  ? "text-[#AE54C6]"
                   : "text-white/90 hover:text-white hover:bg-white/5"
               }`}
             >
@@ -951,7 +951,7 @@ function AdminDashboardContent() {
                 }}
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
                   activeTab.startsWith("instructor")
-                    ? "bg-[#1B2228] text-[#7928CA]"
+                    ? "bg-[#1B2228] text-[#AE54C6]"
                     : "text-white/90 hover:text-white hover:bg-white/5"
                 }`}
               >
@@ -973,7 +973,7 @@ function AdminDashboardContent() {
                     onClick={() => switchTab("instructors")}
                     className={`w-full text-left font-medium transition-colors cursor-pointer ${
                       activeTab === "instructors"
-                        ? "text-[#7928CA]"
+                        ? "text-[#AE54C6]"
                         : "text-white/85 hover:text-white"
                     }`}
                   >
@@ -984,7 +984,7 @@ function AdminDashboardContent() {
                     onClick={() => switchTab("instructor-detail")}
                     className={`w-full text-left font-medium transition-colors cursor-pointer ${
                       activeTab === "instructor-detail"
-                        ? "text-[#7928CA]"
+                        ? "text-[#AE54C6]"
                         : "text-white/85 hover:text-white"
                     }`}
                   >
@@ -995,12 +995,12 @@ function AdminDashboardContent() {
                     onClick={() => switchTab("instructor-requests")}
                     className={`w-full flex items-center justify-between font-medium transition-colors cursor-pointer ${
                       activeTab === "instructor-requests"
-                        ? "text-[#7928CA]"
+                        ? "text-[#AE54C6]"
                         : "text-white/85 hover:text-white"
                     }`}
                   >
                     <span>Instructor requests</span>
-                    <span className="w-5 h-5 rounded-full bg-[#7928CA] text-white text-[11px] font-bold flex items-center justify-center">
+                    <span className="w-5 h-5 rounded-full bg-[#AE54C6] text-white text-[11px] font-bold flex items-center justify-center">
                       2
                     </span>
                   </button>
@@ -1014,7 +1014,7 @@ function AdminDashboardContent() {
               onClick={() => switchTab("reviews")}
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
                 activeTab === "reviews"
-                  ? "text-[#7928CA]"
+                  ? "text-[#AE54C6]"
                   : "text-white/90 hover:text-white hover:bg-white/5"
               }`}
             >
@@ -1028,7 +1028,7 @@ function AdminDashboardContent() {
               onClick={() => switchTab("earnings")}
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
                 activeTab === "earnings" || activeTab === "analytics"
-                  ? "text-[#7928CA]"
+                  ? "text-[#AE54C6]"
                   : "text-white/90 hover:text-white hover:bg-white/5"
               }`}
             >
@@ -1042,7 +1042,7 @@ function AdminDashboardContent() {
               onClick={() => switchTab("settings")}
               className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
                 activeTab === "settings"
-                  ? "text-[#7928CA]"
+                  ? "text-[#AE54C6]"
                   : "text-white/90 hover:text-white hover:bg-white/5"
               }`}
             >
@@ -1144,9 +1144,9 @@ function AdminDashboardContent() {
                 value={globalSearch}
                 onChange={(e) => setGlobalSearch(e.target.value)}
                 placeholder="Search"
-                className="w-full bg-[#F5F7F9] rounded-lg pl-4 pr-10 py-2 text-[14px] text-[#24292D] placeholder:text-[#8C939A] focus:outline-none focus:ring-1 focus:ring-[#7928CA]"
+                className="w-full bg-[#F5F7F9] rounded-lg pl-4 pr-10 py-2 text-[14px] text-[#24292D] placeholder:text-[#8C939A] focus:outline-none focus:ring-1 focus:ring-[#AE54C6]"
               />
-              <Search className="w-4 h-4 text-[#7928CA] absolute right-3.5 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-[#AE54C6] absolute right-3.5 top-1/2 -translate-y-1/2" />
             </div>
           </div>
 
@@ -1221,7 +1221,7 @@ function AdminDashboardContent() {
                 </div>
 
                 {/* 2. Enrolled Courses */}
-                <div className="bg-[#EFEBF9] rounded-xl p-6 flex items-center justify-between">
+                <div className="bg-[#F6ECF9] rounded-xl p-6 flex items-center justify-between">
                   <div>
                     <div className="font-display text-[32px] font-extrabold text-[#1D2026] leading-none mb-2">
                       1600
@@ -1230,13 +1230,13 @@ function AdminDashboardContent() {
                       Enrolled Courses
                     </div>
                   </div>
-                  <div className="w-14 h-14 rounded-full bg-[#6F42C1] text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <div className="w-14 h-14 rounded-full bg-[#A16EBD] text-white flex items-center justify-center shrink-0 shadow-xs">
                     <UserIcon className="w-6 h-6" />
                   </div>
                 </div>
 
                 {/* 3. Course In Progress */}
-                <div className="bg-[#F0EDF9] rounded-xl p-6 flex items-center justify-between">
+                <div className="bg-[#F7EDF9] rounded-xl p-6 flex items-center justify-between">
                   <div>
                     <div className="font-display text-[32px] font-extrabold text-[#1D2026] leading-none mb-2">
                       1235
@@ -1245,13 +1245,13 @@ function AdminDashboardContent() {
                       Course In Progress
                     </div>
                   </div>
-                  <div className="w-14 h-14 rounded-full bg-[#7928CA] text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <div className="w-14 h-14 rounded-full bg-[#AE54C6] text-white flex items-center justify-center shrink-0 shadow-xs">
                     <GraduationCap className="w-6 h-6" />
                   </div>
                 </div>
 
                 {/* 4. Total Watch Time */}
-                <div className="bg-[#F0EDF9] rounded-xl p-6 flex items-center justify-between">
+                <div className="bg-[#F7EDF9] rounded-xl p-6 flex items-center justify-between">
                   <div>
                     <div className="font-display text-[32px] font-extrabold text-[#1D2026] leading-none mb-2">
                       845 hrs
@@ -1260,7 +1260,7 @@ function AdminDashboardContent() {
                       Total Watch Time
                     </div>
                   </div>
-                  <div className="w-14 h-14 rounded-full bg-[#7928CA] text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <div className="w-14 h-14 rounded-full bg-[#AE54C6] text-white flex items-center justify-center shrink-0 shadow-xs">
                     <Clock className="w-6 h-6" />
                   </div>
                 </div>
@@ -1287,7 +1287,7 @@ function AdminDashboardContent() {
                     <button
                       type="button"
                       onClick={() => switchTab("reviews")}
-                      className="text-[13px] font-semibold text-[#7928CA] hover:underline cursor-pointer"
+                      className="text-[13px] font-semibold text-[#AE54C6] hover:underline cursor-pointer"
                     >
                       View all
                     </button>
@@ -1310,7 +1310,7 @@ function AdminDashboardContent() {
                           </div>
                         )}
                         <div className="min-w-0 flex-1">
-                          <h3 className="text-[14.5px] font-bold text-[#1D2026] hover:text-[#7928CA] transition-colors cursor-pointer">
+                          <h3 className="text-[14.5px] font-bold text-[#1D2026] hover:text-[#AE54C6] transition-colors cursor-pointer">
                             {item.name}
                           </h3>
                           {item.boldPrefix ? (
@@ -1345,7 +1345,7 @@ function AdminDashboardContent() {
                     <button
                       type="button"
                       onClick={() => switchTab("instructors")}
-                      className="text-[13px] font-semibold text-[#7928CA] hover:underline cursor-pointer"
+                      className="text-[13px] font-semibold text-[#AE54C6] hover:underline cursor-pointer"
                     >
                       View all
                     </button>
@@ -1379,7 +1379,7 @@ function AdminDashboardContent() {
                             </div>
                             <div className="flex items-center gap-3 text-[12px] text-[#747579] mt-0.5">
                               <span className="inline-flex items-center gap-1">
-                                <BookOpen className="w-3.5 h-3.5 text-[#6F42C1]" />
+                                <BookOpen className="w-3.5 h-3.5 text-[#A16EBD]" />
                                 {inst.courses} Courses
                               </span>
                               <span className="inline-flex items-center gap-1">
@@ -1393,7 +1393,7 @@ function AdminDashboardContent() {
                         <button
                           type="button"
                           onClick={() => switchTab("instructors")}
-                          className="px-3.5 py-1.5 rounded-lg bg-[#F5F7F9] hover:bg-[#7928CA] text-[#24292D] hover:text-white text-[12.5px] font-semibold transition-colors shrink-0 cursor-pointer"
+                          className="px-3.5 py-1.5 rounded-lg bg-[#F5F7F9] hover:bg-[#AE54C6] text-[#24292D] hover:text-white text-[12.5px] font-semibold transition-colors shrink-0 cursor-pointer"
                         >
                           View
                         </button>
@@ -1471,14 +1471,14 @@ function AdminDashboardContent() {
                   </div>
 
                   {/* Bottom Mint Banner */}
-                  <div className="mt-6 rounded-lg bg-[#F0EDF9] border border-[#7928CA]/35 px-4 py-2.5 flex items-center justify-between">
-                    <span className="text-[12.5px] font-semibold text-[#7928CA]">
+                  <div className="mt-6 rounded-lg bg-[#F7EDF9] border border-[#AE54C6]/35 px-4 py-2.5 flex items-center justify-between">
+                    <span className="text-[12.5px] font-semibold text-[#AE54C6]">
                       45 more notices listed
                     </span>
                     <button
                       type="button"
                       onClick={() => switchTab("reviews")}
-                      className="px-3 py-1.5 rounded-md bg-[#E6E1F5] hover:bg-[#7928CA] text-[#7928CA] hover:text-white text-[12px] font-bold transition-colors cursor-pointer"
+                      className="px-3 py-1.5 rounded-md bg-[#F1E2F5] hover:bg-[#AE54C6] text-[#AE54C6] hover:text-white text-[12px] font-bold transition-colors cursor-pointer"
                     >
                       View all
                     </button>
@@ -1494,7 +1494,7 @@ function AdminDashboardContent() {
                     <button
                       type="button"
                       onClick={() => switchTab("earnings")}
-                      className="text-[13px] font-semibold text-[#7928CA] hover:underline cursor-pointer"
+                      className="text-[13px] font-semibold text-[#AE54C6] hover:underline cursor-pointer"
                     >
                       View all
                     </button>
@@ -1524,7 +1524,7 @@ function AdminDashboardContent() {
                       value={studentSearch}
                       onChange={(e) => setStudentSearch(e.target.value)}
                       placeholder="Search"
-                      className="w-full bg-white border border-slate-200 rounded-lg pl-4 pr-10 py-2.5 text-[14px] text-[#24292D] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#7928CA]"
+                      className="w-full bg-white border border-slate-200 rounded-lg pl-4 pr-10 py-2.5 text-[14px] text-[#24292D] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#AE54C6]"
                     />
                     <Search className="w-4 h-4 text-[#747579] absolute right-3.5 top-1/2 -translate-y-1/2" />
                   </div>
@@ -1612,7 +1612,7 @@ function AdminDashboardContent() {
                           {/* Payments Row */}
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-full bg-[#F0EDF9] text-[#7928CA] flex items-center justify-center">
+                              <div className="w-10 h-10 rounded-full bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center">
                                 <DollarSign className="w-4 h-4" />
                               </div>
                               <span className="text-[14px] text-[#475569] font-medium">
@@ -1627,7 +1627,7 @@ function AdminDashboardContent() {
                           {/* Total Course Row */}
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-full bg-[#EFEBF9] text-[#6F42C1] flex items-center justify-center">
+                              <div className="w-10 h-10 rounded-full bg-[#F6ECF9] text-[#A16EBD] flex items-center justify-center">
                                 <BookOpen className="w-4 h-4" />
                               </div>
                               <span className="text-[14px] text-[#475569] font-medium">
@@ -1644,10 +1644,10 @@ function AdminDashboardContent() {
                             <div className="text-[12.5px] font-extrabold text-[#1D2026] mb-1.5">
                               {student.progress}%
                             </div>
-                            <div className="w-full h-1.5 rounded-full bg-[#F0EDF9] overflow-hidden">
+                            <div className="w-full h-1.5 rounded-full bg-[#F7EDF9] overflow-hidden">
                               <div
                                 style={{ width: `${student.progress}%` }}
-                                className="h-full rounded-full bg-[#7928CA]"
+                                className="h-full rounded-full bg-[#AE54C6]"
                               />
                             </div>
                           </div>
@@ -1668,7 +1668,7 @@ function AdminDashboardContent() {
                           <div className="flex items-center gap-2.5 text-[#747579]">
                             <button
                               type="button"
-                              className="hover:text-[#7928CA] transition-colors cursor-pointer"
+                              className="hover:text-[#AE54C6] transition-colors cursor-pointer"
                               title="Message student"
                             >
                               <Mail className="w-4 h-4" />
@@ -1712,16 +1712,16 @@ function AdminDashboardContent() {
                               <span className="font-bold text-[#1D2026]">{stu.name}</span>
                             </td>
                             <td className="py-3.5 px-4 text-[#747579]">{stu.location}</td>
-                            <td className="py-3.5 px-4 font-bold text-[#7928CA]">
+                            <td className="py-3.5 px-4 font-bold text-[#AE54C6]">
                               {stu.payments}
                             </td>
                             <td className="py-3.5 px-4 text-[#475569]">{stu.totalCourse}</td>
                             <td className="py-3.5 px-4">
                               <div className="flex items-center gap-2">
-                                <div className="w-24 h-1.5 rounded-full bg-[#F0EDF9] overflow-hidden">
+                                <div className="w-24 h-1.5 rounded-full bg-[#F7EDF9] overflow-hidden">
                                   <div
                                     style={{ width: `${stu.progress}%` }}
-                                    className="h-full bg-[#7928CA]"
+                                    className="h-full bg-[#AE54C6]"
                                   />
                                 </div>
                                 <span className="text-xs font-bold">{stu.progress}%</span>
@@ -1740,12 +1740,12 @@ function AdminDashboardContent() {
                                     );
                                     setAdminNotice(`Marked ${stu.name} as PAID FULL.`);
                                   }}
-                                  className="px-3 py-1.5 rounded-lg bg-[#7928CA] text-white text-xs font-semibold hover:bg-[#671FB0] cursor-pointer"
+                                  className="px-3 py-1.5 rounded-lg bg-[#AE54C6] text-white text-xs font-semibold hover:bg-[#A03BBC] cursor-pointer"
                                 >
                                   Mark Paid Full
                                 </button>
                               ) : (
-                                <span className="px-2.5 py-1 rounded-md bg-[#F0EDF9] text-[#7928CA] text-xs font-bold">
+                                <span className="px-2.5 py-1 rounded-md bg-[#F7EDF9] text-[#AE54C6] text-xs font-bold">
                                   Verified
                                 </span>
                               )}
@@ -1764,7 +1764,7 @@ function AdminDashboardContent() {
                     <button
                       type="button"
                       onClick={() => setStudentPage((p) => Math.max(1, p - 1))}
-                      className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
+                      className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </button>
@@ -1775,8 +1775,8 @@ function AdminDashboardContent() {
                         onClick={() => setStudentPage(p)}
                         className={`w-8 h-8 rounded-md text-[13px] font-bold flex items-center justify-center transition-colors cursor-pointer ${
                           studentPage === p
-                            ? "bg-[#7928CA] text-white"
-                            : "bg-[#F0EDF9] text-[#7928CA] hover:bg-[#7928CA] hover:text-white"
+                            ? "bg-[#AE54C6] text-white"
+                            : "bg-[#F7EDF9] text-[#AE54C6] hover:bg-[#AE54C6] hover:text-white"
                         }`}
                       >
                         {p}
@@ -1785,7 +1785,7 @@ function AdminDashboardContent() {
                     <button
                       type="button"
                       onClick={() => setStudentPage((p) => Math.min(3, p + 1))}
-                      className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
+                      className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
                     >
                       <ChevronRight className="w-4 h-4" />
                     </button>
@@ -1815,7 +1815,7 @@ function AdminDashboardContent() {
                       value={instructorSearch}
                       onChange={(e) => setInstructorSearch(e.target.value)}
                       placeholder="Search"
-                      className="w-full bg-white border border-slate-200 rounded-lg pl-4 pr-10 py-2.5 text-[14px] text-[#24292D] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#7928CA]"
+                      className="w-full bg-white border border-slate-200 rounded-lg pl-4 pr-10 py-2.5 text-[14px] text-[#24292D] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#AE54C6]"
                     />
                     <Search className="w-4 h-4 text-[#747579] absolute right-3.5 top-1/2 -translate-y-1/2" />
                   </div>
@@ -1867,7 +1867,7 @@ function AdminDashboardContent() {
                             <button
                               type="button"
                               onClick={() => switchTab("instructor-detail")}
-                              className="font-display text-[17px] font-extrabold text-[#1D2026] hover:text-[#7928CA] transition-colors truncate block text-left cursor-pointer"
+                              className="font-display text-[17px] font-extrabold text-[#1D2026] hover:text-[#AE54C6] transition-colors truncate block text-left cursor-pointer"
                             >
                               {inst.name}
                             </button>
@@ -1907,7 +1907,7 @@ function AdminDashboardContent() {
                         {/* Total Courses */}
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-[#EFEBF9] text-[#6F42C1] flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-full bg-[#F6ECF9] text-[#A16EBD] flex items-center justify-center">
                               <BookOpen className="w-4 h-4" />
                             </div>
                             <span className="text-[14px] text-[#475569] font-medium">
@@ -1938,7 +1938,7 @@ function AdminDashboardContent() {
                         <button
                           type="button"
                           onClick={() => switchTab("instructor-detail")}
-                          className="text-[#747579] hover:text-[#7928CA] transition-colors cursor-pointer"
+                          className="text-[#747579] hover:text-[#AE54C6] transition-colors cursor-pointer"
                           title="Contact Instructor"
                         >
                           <Mail className="w-4 h-4" />
@@ -2039,7 +2039,7 @@ function AdminDashboardContent() {
                         984
                       </span>
                       <div className="text-[13px]">
-                        <span className="text-[#7928CA] font-semibold">0.20% ↑</span>{" "}
+                        <span className="text-[#AE54C6] font-semibold">0.20% ↑</span>{" "}
                         <span className="text-[#747579]">vs last Week</span>
                       </div>
                     </div>
@@ -2048,8 +2048,8 @@ function AdminDashboardContent() {
                       <svg viewBox="0 0 400 115" className="w-full h-28 block" preserveAspectRatio="none">
                         <defs>
                           <linearGradient id="activeStudentsGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#7928CA" stopOpacity="0.32" />
-                            <stop offset="100%" stopColor="#7928CA" stopOpacity="0.02" />
+                            <stop offset="0%" stopColor="#AE54C6" stopOpacity="0.32" />
+                            <stop offset="100%" stopColor="#AE54C6" stopOpacity="0.02" />
                           </linearGradient>
                         </defs>
                         <path
@@ -2059,7 +2059,7 @@ function AdminDashboardContent() {
                         <path
                           d="M 0 95 C 40 85, 65 78, 95 52 C 125 32, 160 40, 205 42 C 245 44, 270 72, 300 68 C 335 64, 365 25, 400 20"
                           fill="none"
-                          stroke="#7928CA"
+                          stroke="#AE54C6"
                           strokeWidth="3"
                           strokeLinecap="round"
                         />
@@ -2080,7 +2080,7 @@ function AdminDashboardContent() {
                         140
                       </span>
                       <div className="text-[13px]">
-                        <span className="text-[#7928CA] font-semibold">0.35% ↑</span>{" "}
+                        <span className="text-[#AE54C6] font-semibold">0.35% ↑</span>{" "}
                         <span className="text-[#747579]">vs last Week</span>
                       </div>
                     </div>
@@ -2089,8 +2089,8 @@ function AdminDashboardContent() {
                       <svg viewBox="0 0 400 115" className="w-full h-28 block" preserveAspectRatio="none">
                         <defs>
                           <linearGradient id="newEnrollmentGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#6F42C1" stopOpacity="0.32" />
-                            <stop offset="100%" stopColor="#6F42C1" stopOpacity="0.02" />
+                            <stop offset="0%" stopColor="#A16EBD" stopOpacity="0.32" />
+                            <stop offset="100%" stopColor="#A16EBD" stopOpacity="0.02" />
                           </linearGradient>
                         </defs>
                         <path
@@ -2100,7 +2100,7 @@ function AdminDashboardContent() {
                         <path
                           d="M 0 102 C 45 92, 95 92, 140 65 C 175 45, 210 28, 235 32 C 260 36, 275 82, 305 78 C 340 74, 370 18, 400 18"
                           fill="none"
-                          stroke="#6F42C1"
+                          stroke="#A16EBD"
                           strokeWidth="3"
                           strokeLinecap="round"
                         />
@@ -2135,7 +2135,7 @@ function AdminDashboardContent() {
                             title: "Building Scalable APIs with GraphQL",
                             enrolled: 412,
                             status: "Live",
-                            statusStyle: "bg-[#F0EDF9] text-[#7928CA]",
+                            statusStyle: "bg-[#F7EDF9] text-[#AE54C6]",
                             thumbBg: "bg-[#FDEBC8]",
                             thumbText: "💎",
                           },
@@ -2143,7 +2143,7 @@ function AdminDashboardContent() {
                             title: "Graphic Design Masterclass",
                             enrolled: 254,
                             status: "Live",
-                            statusStyle: "bg-[#F0EDF9] text-[#7928CA]",
+                            statusStyle: "bg-[#F7EDF9] text-[#AE54C6]",
                             thumbBg: "bg-[#1D3B53] text-[#38BDF8]",
                             thumbText: "Ps",
                           },
@@ -2159,7 +2159,7 @@ function AdminDashboardContent() {
                             title: "Deep Learning with React-Native",
                             enrolled: 98,
                             status: "Live",
-                            statusStyle: "bg-[#F0EDF9] text-[#7928CA]",
+                            statusStyle: "bg-[#F7EDF9] text-[#AE54C6]",
                             thumbBg: "bg-[#E0F7FA] text-[#00BCD4]",
                             thumbText: "⚛",
                           },
@@ -2168,7 +2168,7 @@ function AdminDashboardContent() {
                             enrolled: 58,
                             status: "Cancel",
                             statusStyle: "bg-[#FBE9EB] text-[#D6293E]",
-                            thumbBg: "bg-[#D8C6F7] text-[#6F42C1]",
+                            thumbBg: "bg-[#ECD7F2] text-[#A16EBD]",
                             thumbText: "B",
                           },
                         ].map((item) => (
@@ -2213,31 +2213,31 @@ function AdminDashboardContent() {
                     <div className="flex items-center gap-1.5">
                       <button
                         type="button"
-                        className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
+                        className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
                       >
                         <ChevronLeft className="w-4 h-4" />
                       </button>
                       <button
                         type="button"
-                        className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] text-[13px] font-bold flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
+                        className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] text-[13px] font-bold flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
                       >
                         1
                       </button>
                       <button
                         type="button"
-                        className="w-8 h-8 rounded-md bg-[#7928CA] text-white text-[13px] font-bold flex items-center justify-center cursor-pointer"
+                        className="w-8 h-8 rounded-md bg-[#AE54C6] text-white text-[13px] font-bold flex items-center justify-center cursor-pointer"
                       >
                         2
                       </button>
                       <button
                         type="button"
-                        className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] text-[13px] font-bold flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
+                        className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] text-[13px] font-bold flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
                       >
                         3
                       </button>
                       <button
                         type="button"
-                        className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
+                        className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
                       >
                         <ChevronRight className="w-4 h-4" />
                       </button>
@@ -2366,31 +2366,31 @@ function AdminDashboardContent() {
                     <div className="flex items-center gap-1.5">
                       <button
                         type="button"
-                        className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
+                        className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
                       >
                         <ChevronLeft className="w-4 h-4" />
                       </button>
                       <button
                         type="button"
-                        className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] text-[13px] font-bold flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
+                        className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] text-[13px] font-bold flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
                       >
                         1
                       </button>
                       <button
                         type="button"
-                        className="w-8 h-8 rounded-md bg-[#7928CA] text-white text-[13px] font-bold flex items-center justify-center cursor-pointer"
+                        className="w-8 h-8 rounded-md bg-[#AE54C6] text-white text-[13px] font-bold flex items-center justify-center cursor-pointer"
                       >
                         2
                       </button>
                       <button
                         type="button"
-                        className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] text-[13px] font-bold flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
+                        className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] text-[13px] font-bold flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
                       >
                         3
                       </button>
                       <button
                         type="button"
-                        className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
+                        className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
                       >
                         <ChevronRight className="w-4 h-4" />
                       </button>
@@ -2419,7 +2419,7 @@ function AdminDashboardContent() {
                       value={requestSearch}
                       onChange={(e) => setRequestSearch(e.target.value)}
                       placeholder="Search"
-                      className="w-full bg-white border border-slate-200 rounded-lg pl-4 pr-10 py-2.5 text-[14px] text-[#24292D] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#7928CA]"
+                      className="w-full bg-white border border-slate-200 rounded-lg pl-4 pr-10 py-2.5 text-[14px] text-[#24292D] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#AE54C6]"
                     />
                     <Search className="w-4 h-4 text-[#747579] absolute right-3.5 top-1/2 -translate-y-1/2" />
                   </div>
@@ -2427,7 +2427,7 @@ function AdminDashboardContent() {
                   <select
                     value={requestSort}
                     onChange={(e) => setRequestSort(e.target.value)}
-                    className="bg-white border border-slate-200 rounded-lg px-4 py-2.5 w-full sm:w-56 text-[13.5px] text-[#747579] focus:outline-none focus:border-[#7928CA]"
+                    className="bg-white border border-slate-200 rounded-lg px-4 py-2.5 w-full sm:w-56 text-[13.5px] text-[#747579] focus:outline-none focus:border-[#AE54C6]"
                   >
                     <option value="default">Sort by</option>
                     <option value="newest">Newest Requested</option>
@@ -2497,7 +2497,7 @@ function AdminDashboardContent() {
                                             `Accepted ${req.name}'s instructor application.`
                                           );
                                         }}
-                                        className="px-3.5 py-1.5 rounded-md bg-[#F0EDF9] hover:bg-[#7928CA] text-[#7928CA] hover:text-white text-[12.5px] font-bold transition-colors cursor-pointer"
+                                        className="px-3.5 py-1.5 rounded-md bg-[#F7EDF9] hover:bg-[#AE54C6] text-[#AE54C6] hover:text-white text-[12.5px] font-bold transition-colors cursor-pointer"
                                       >
                                         Accept
                                       </button>
@@ -2537,7 +2537,7 @@ function AdminDashboardContent() {
                                   <button
                                     type="button"
                                     onClick={() => switchTab("instructor-detail")}
-                                    className="px-3.5 py-1.5 rounded-md bg-[#F0EDF9] hover:bg-[#7928CA] text-[#7928CA] hover:text-white text-[12.5px] font-bold transition-colors cursor-pointer"
+                                    className="px-3.5 py-1.5 rounded-md bg-[#F7EDF9] hover:bg-[#AE54C6] text-[#AE54C6] hover:text-white text-[12.5px] font-bold transition-colors cursor-pointer"
                                   >
                                     View App
                                   </button>
@@ -2565,7 +2565,7 @@ function AdminDashboardContent() {
                 <button
                   type="button"
                   onClick={() => setShowAddCourseModal(true)}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#7928CA] hover:bg-[#671FB0] text-white text-[14px] font-semibold shadow-xs transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-[#AE54C6] hover:bg-[#A03BBC] text-white text-[14px] font-semibold shadow-xs transition-colors cursor-pointer"
                 >
                   <PlusCircle className="w-4 h-4" />
                   <span>Create New Course</span>
@@ -2598,10 +2598,10 @@ function AdminDashboardContent() {
                   >
                     <div>
                       <div className="flex items-center justify-between gap-2 mb-3">
-                        <span className="px-2.5 py-1 rounded-md bg-[#F0EDF9] text-[#7928CA] text-xs font-bold">
+                        <span className="px-2.5 py-1 rounded-md bg-[#F7EDF9] text-[#AE54C6] text-xs font-bold">
                           {course.badge}
                         </span>
-                        <span className="px-2.5 py-1 rounded-md bg-[#F0EDF9] text-[#7928CA] text-xs font-bold">
+                        <span className="px-2.5 py-1 rounded-md bg-[#F7EDF9] text-[#AE54C6] text-xs font-bold">
                           {course.status}
                         </span>
                       </div>
@@ -2621,13 +2621,13 @@ function AdminDashboardContent() {
                         </div>
                         <div>
                           <div className="text-[11px] text-[#747579] uppercase font-bold">Installment</div>
-                          <div className="text-[15px] font-extrabold text-[#7928CA]">
+                          <div className="text-[15px] font-extrabold text-[#AE54C6]">
                             ₦{course.priceParts.toLocaleString()}
                           </div>
                         </div>
                         <div>
                           <div className="text-[11px] text-[#747579] uppercase font-bold">Enrolled</div>
-                          <div className="text-[15px] font-extrabold text-[#7928CA]">
+                          <div className="text-[15px] font-extrabold text-[#AE54C6]">
                             {course.enrolledCount} Students
                           </div>
                         </div>
@@ -2637,7 +2637,7 @@ function AdminDashboardContent() {
                     <div className="flex items-center justify-between pt-3 border-t border-slate-100">
                       <Link
                         href={`/courses/${course.slug}`}
-                        className="text-[13px] font-semibold text-[#7928CA] hover:underline"
+                        className="text-[13px] font-semibold text-[#AE54C6] hover:underline"
                       >
                         View Course Page →
                       </Link>
@@ -2736,7 +2736,7 @@ function AdminDashboardContent() {
                               }
                               className={`w-10 h-5 rounded-full p-0.5 transition-colors cursor-pointer flex items-center ${
                                 rev.visible
-                                  ? "bg-[#7928CA] justify-end"
+                                  ? "bg-[#AE54C6] justify-end"
                                   : "bg-[#E2E8F0] justify-start"
                               }`}
                             >
@@ -2752,7 +2752,7 @@ function AdminDashboardContent() {
                                     `Opened review editor for ${rev.studentName}.`
                                   )
                                 }
-                                className="w-8 h-8 rounded-full bg-[#F0EDF9] hover:bg-[#7928CA] text-[#7928CA] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                                className="w-8 h-8 rounded-full bg-[#F7EDF9] hover:bg-[#AE54C6] text-[#AE54C6] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
                                 title="Edit Review"
                               >
                                 <Edit3 className="w-3.5 h-3.5" />
@@ -2793,31 +2793,31 @@ function AdminDashboardContent() {
                   <div className="flex items-center gap-1.5">
                     <button
                       type="button"
-                      className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
+                      className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
                     >
                       <ChevronLeft className="w-4 h-4" />
                     </button>
                     <button
                       type="button"
-                      className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] text-[13px] font-bold flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
+                      className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] text-[13px] font-bold flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
                     >
                       1
                     </button>
                     <button
                       type="button"
-                      className="w-8 h-8 rounded-md bg-[#7928CA] text-white text-[13px] font-bold flex items-center justify-center cursor-pointer"
+                      className="w-8 h-8 rounded-md bg-[#AE54C6] text-white text-[13px] font-bold flex items-center justify-center cursor-pointer"
                     >
                       2
                     </button>
                     <button
                       type="button"
-                      className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] text-[13px] font-bold flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
+                      className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] text-[13px] font-bold flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
                     >
                       3
                     </button>
                     <button
                       type="button"
-                      className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
+                      className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
                     >
                       <ChevronRight className="w-4 h-4" />
                     </button>
@@ -2852,35 +2852,35 @@ function AdminDashboardContent() {
                               title: "AI & Automation",
                               enrolled: 22,
                               stars: 5,
-                              thumbBg: "bg-[#F0EDF9] text-[#7928CA]",
+                              thumbBg: "bg-[#F7EDF9] text-[#AE54C6]",
                               thumbText: "🤖",
                             },
                             {
                               title: "Web Development",
                               enrolled: 31,
                               stars: 5,
-                              thumbBg: "bg-[#18143D] text-white",
+                              thumbBg: "bg-[#303654] text-white",
                               thumbText: "</>",
                             },
                             {
                               title: "Product Design (UI/UX)",
                               enrolled: 18,
                               stars: 5,
-                              thumbBg: "bg-[#F0EDF9] text-[#7928CA]",
+                              thumbBg: "bg-[#F7EDF9] text-[#AE54C6]",
                               thumbText: "🎨",
                             },
                             {
                               title: "Cybersecurity",
                               enrolled: 15,
                               stars: 4,
-                              thumbBg: "bg-[#18143D] text-white",
+                              thumbBg: "bg-[#303654] text-white",
                               thumbText: "🔒",
                             },
                             {
                               title: "Mobile App Engineering",
                               enrolled: 12,
                               stars: 4,
-                              thumbBg: "bg-[#F0EDF9] text-[#7928CA]",
+                              thumbBg: "bg-[#F7EDF9] text-[#AE54C6]",
                               thumbText: "📱",
                             },
                           ].map((course) => (
@@ -2919,7 +2919,7 @@ function AdminDashboardContent() {
                                   <div className="flex items-center gap-1.5">
                                     <button
                                       type="button"
-                                      className="w-8 h-8 rounded-full bg-[#F0EDF9] hover:bg-[#7928CA] text-[#7928CA] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                                      className="w-8 h-8 rounded-full bg-[#F7EDF9] hover:bg-[#AE54C6] text-[#AE54C6] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
                                       title="Edit"
                                     >
                                       <Edit3 className="w-3.5 h-3.5" />
@@ -2952,31 +2952,31 @@ function AdminDashboardContent() {
                       <div className="flex items-center gap-1.5">
                         <button
                           type="button"
-                          className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
+                          className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
                         >
                           <ChevronLeft className="w-4 h-4" />
                         </button>
                         <button
                           type="button"
-                          className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] text-[13px] font-bold flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
+                          className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] text-[13px] font-bold flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
                         >
                           1
                         </button>
                         <button
                           type="button"
-                          className="w-8 h-8 rounded-md bg-[#7928CA] text-white text-[13px] font-bold flex items-center justify-center cursor-pointer"
+                          className="w-8 h-8 rounded-md bg-[#AE54C6] text-white text-[13px] font-bold flex items-center justify-center cursor-pointer"
                         >
                           2
                         </button>
                         <button
                           type="button"
-                          className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] text-[13px] font-bold flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
+                          className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] text-[13px] font-bold flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
                         >
                           3
                         </button>
                         <button
                           type="button"
-                          className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
+                          className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
                         >
                           <ChevronRight className="w-4 h-4" />
                         </button>
@@ -2995,7 +2995,7 @@ function AdminDashboardContent() {
 
                   <div className="p-6 flex-1 flex flex-col justify-between">
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-[#F0EDF9] rounded-lg p-4">
+                      <div className="bg-[#F7EDF9] rounded-lg p-4">
                         <div className="text-[13px] text-[#747579] mb-1">
                           Total Positive Review
                         </div>
@@ -3023,7 +3023,7 @@ function AdminDashboardContent() {
                             cy="80"
                             r="60"
                             fill="transparent"
-                            stroke="#7928CA"
+                            stroke="#AE54C6"
                             strokeWidth="26"
                             strokeDasharray="273 377"
                             strokeDashoffset="0"
@@ -3060,24 +3060,24 @@ function AdminDashboardContent() {
               {/* 3 Pastel Summary Cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-7">
                 {/* Sales this month */}
-                <div className="bg-[#F0EDF9] rounded-xl p-6">
+                <div className="bg-[#F7EDF9] rounded-xl p-6">
                   <div className="text-[14px] font-bold text-[#1D2026] mb-2">
                     Sales this month
                   </div>
-                  <div className="font-display text-[36px] sm:text-[42px] font-extrabold text-[#7928CA] leading-tight">
+                  <div className="font-display text-[36px] sm:text-[42px] font-extrabold text-[#AE54C6] leading-tight">
                     $899.95
                   </div>
                 </div>
 
                 {/* To be paid */}
-                <div className="bg-[#EFEBF9] rounded-xl p-6">
+                <div className="bg-[#F6ECF9] rounded-xl p-6">
                   <div className="text-[14px] font-bold text-[#1D2026] mb-2 flex items-center gap-1.5">
                     <span>To be paid</span>
                     <span className="w-4 h-4 rounded-full bg-[#1D2026] text-white text-[10px] font-black inline-flex items-center justify-center">
                       i
                     </span>
                   </div>
-                  <div className="font-display text-[36px] sm:text-[42px] font-extrabold text-[#6F42C1] leading-tight">
+                  <div className="font-display text-[36px] sm:text-[42px] font-extrabold text-[#A16EBD] leading-tight">
                     $750.35
                   </div>
                 </div>
@@ -3124,7 +3124,7 @@ function AdminDashboardContent() {
                             method: "mastercard",
                             amount: "$3999",
                             status: "Paid",
-                            statusClass: "bg-[#F0EDF9] text-[#7928CA]",
+                            statusClass: "bg-[#F7EDF9] text-[#AE54C6]",
                             highlight: false,
                           },
                           {
@@ -3134,7 +3134,7 @@ function AdminDashboardContent() {
                             method: "paypal",
                             amount: "$4201",
                             status: "Paid",
-                            statusClass: "bg-[#F0EDF9] text-[#7928CA]",
+                            statusClass: "bg-[#F7EDF9] text-[#AE54C6]",
                             highlight: false,
                           },
                           {
@@ -3154,7 +3154,7 @@ function AdminDashboardContent() {
                             method: "mastercard",
                             amount: "$6548",
                             status: "Paid",
-                            statusClass: "bg-[#F0EDF9] text-[#7928CA]",
+                            statusClass: "bg-[#F7EDF9] text-[#AE54C6]",
                             highlight: false,
                           },
                           {
@@ -3194,7 +3194,7 @@ function AdminDashboardContent() {
                             method: "mastercard",
                             amount: "$965",
                             status: "Paid",
-                            statusClass: "bg-[#F0EDF9] text-[#7928CA]",
+                            statusClass: "bg-[#F7EDF9] text-[#AE54C6]",
                             highlight: true,
                           },
                         ].map((inv) => (
@@ -3261,7 +3261,7 @@ function AdminDashboardContent() {
                                 onClick={() =>
                                   setAdminNotice(`Downloaded invoice ${inv.id}.`)
                                 }
-                                className="w-9 h-9 rounded-full bg-[#F0EDF9] hover:bg-[#7928CA] text-[#7928CA] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                                className="w-9 h-9 rounded-full bg-[#F7EDF9] hover:bg-[#AE54C6] text-[#AE54C6] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
                                 title="Download Invoice"
                               >
                                 <svg
@@ -3291,31 +3291,31 @@ function AdminDashboardContent() {
                     <div className="flex items-center gap-1.5">
                       <button
                         type="button"
-                        className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
+                        className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
                       >
                         <ChevronLeft className="w-4 h-4" />
                       </button>
                       <button
                         type="button"
-                        className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] text-[13px] font-bold flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
+                        className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] text-[13px] font-bold flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
                       >
                         1
                       </button>
                       <button
                         type="button"
-                        className="w-8 h-8 rounded-md bg-[#7928CA] text-white text-[13px] font-bold flex items-center justify-center cursor-pointer"
+                        className="w-8 h-8 rounded-md bg-[#AE54C6] text-white text-[13px] font-bold flex items-center justify-center cursor-pointer"
                       >
                         2
                       </button>
                       <button
                         type="button"
-                        className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] text-[13px] font-bold flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
+                        className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] text-[13px] font-bold flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
                       >
                         3
                       </button>
                       <button
                         type="button"
-                        className="w-8 h-8 rounded-md bg-[#F0EDF9] text-[#7928CA] flex items-center justify-center hover:bg-[#7928CA] hover:text-white transition-colors cursor-pointer"
+                        className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
                       >
                         <ChevronRight className="w-4 h-4" />
                       </button>
@@ -3404,7 +3404,7 @@ function AdminDashboardContent() {
                               placeholder="Site Name"
                               value={siteSettingsForm.siteName}
                               onChange={(e) => setSiteSettingsForm((prev) => ({ ...prev, siteName: e.target.value }))}
-                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#7928CA]"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#AE54C6]"
                             />
                             <p className="text-[11.5px] text-[#9A9EA4] mt-1.5 leading-snug">
                               Enter Website Name. It Display in Website and Email.
@@ -3420,7 +3420,7 @@ function AdminDashboardContent() {
                               placeholder="Site Copyrights"
                               value={siteSettingsForm.copyrightText}
                               onChange={(e) => setSiteSettingsForm((prev) => ({ ...prev, copyrightText: e.target.value }))}
-                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#7928CA]"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#AE54C6]"
                             />
                             <p className="text-[11.5px] text-[#9A9EA4] mt-1.5 leading-snug">
                               For the copyright text shown in the site footer.
@@ -3436,7 +3436,7 @@ function AdminDashboardContent() {
                               placeholder="Site Email"
                               value={siteSettingsForm.siteEmail}
                               onChange={(e) => setSiteSettingsForm((prev) => ({ ...prev, siteEmail: e.target.value }))}
-                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#7928CA]"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#AE54C6]"
                             />
                             <p className="text-[11.5px] text-[#9A9EA4] mt-1.5 leading-snug">
                               Using for contact and outbound email.
@@ -3452,7 +3452,7 @@ function AdminDashboardContent() {
                             rows={4}
                             value={siteSettingsForm.description}
                             onChange={(e) => setSiteSettingsForm((prev) => ({ ...prev, description: e.target.value }))}
-                            className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#7928CA]"
+                            className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#AE54C6]"
                           />
                           <p className="text-[11.5px] text-[#9A9EA4] mt-1.5">
                             For write brief description of your organization, or a Website.
@@ -3469,7 +3469,7 @@ function AdminDashboardContent() {
                               placeholder="Contact Phone"
                               value={siteSettingsForm.contactPhone}
                               onChange={(e) => setSiteSettingsForm((prev) => ({ ...prev, contactPhone: e.target.value }))}
-                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#7928CA]"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#AE54C6]"
                             />
                             <p className="text-[11.5px] text-[#9A9EA4] mt-1.5">
                               Using for Contact and Support.
@@ -3485,7 +3485,7 @@ function AdminDashboardContent() {
                               placeholder="Support Email"
                               value={siteSettingsForm.supportEmail}
                               onChange={(e) => setSiteSettingsForm((prev) => ({ ...prev, supportEmail: e.target.value }))}
-                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#7928CA]"
+                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#AE54C6]"
                             />
                             <p className="text-[11.5px] text-[#9A9EA4] mt-1.5">
                               For Support Email.
@@ -3517,7 +3517,7 @@ function AdminDashboardContent() {
                                       allowRegistration: opt.id as "enable" | "disable" | "request"
                                     }))
                                   }
-                                  className="w-4 h-4 accent-[#7928CA]"
+                                  className="w-4 h-4 accent-[#AE54C6]"
                                 />
                                 <span>{opt.label}</span>
                               </label>
@@ -3538,7 +3538,7 @@ function AdminDashboardContent() {
                             placeholder="Contact Address"
                             value={siteSettingsForm.contactAddress}
                             onChange={(e) => setSiteSettingsForm((prev) => ({ ...prev, contactAddress: e.target.value }))}
-                            className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#7928CA]"
+                            className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#AE54C6]"
                           />
                         </div>
 
@@ -3546,7 +3546,7 @@ function AdminDashboardContent() {
                           <button
                             type="submit"
                             disabled={savingSiteSettings}
-                            className="px-5 py-2.5 rounded-lg bg-[#7928CA] hover:bg-[#671FB0] text-white text-[14px] font-bold transition-colors cursor-pointer disabled:opacity-60"
+                            className="px-5 py-2.5 rounded-lg bg-[#AE54C6] hover:bg-[#A03BBC] text-white text-[14px] font-bold transition-colors cursor-pointer disabled:opacity-60"
                           >
                             {savingSiteSettings ? "Saving…" : "Update"}
                           </button>
@@ -3616,7 +3616,7 @@ function AdminDashboardContent() {
                                   onClick={() => toggleNotifyCategory(item.key)}
                                   className={`w-10 h-5 rounded-full p-0.5 transition-colors cursor-pointer flex items-center shrink-0 ${
                                     checked
-                                      ? "bg-[#7928CA] justify-end"
+                                      ? "bg-[#AE54C6] justify-end"
                                       : "bg-[#EEF0F3] border border-slate-300 justify-start"
                                   }`}
                                 >
@@ -3664,7 +3664,7 @@ function AdminDashboardContent() {
                                   : "Could not send reset link. Try again."
                               );
                             }}
-                            className="px-5 py-2.5 rounded-lg bg-[#7928CA] hover:bg-[#671FB0] text-white text-[14px] font-bold transition-colors cursor-pointer"
+                            className="px-5 py-2.5 rounded-lg bg-[#AE54C6] hover:bg-[#A03BBC] text-white text-[14px] font-bold transition-colors cursor-pointer"
                           >
                             Send Reset Link
                           </button>
@@ -3758,7 +3758,7 @@ function AdminDashboardContent() {
                       );
                     }}
                     placeholder="e.g., Cloud & DevOps Engineering"
-                    className="w-full px-3.5 py-2.5 rounded-lg bg-[#F5F7F9] text-sm focus:outline-none focus:ring-1 focus:ring-[#7928CA]"
+                    className="w-full px-3.5 py-2.5 rounded-lg bg-[#F5F7F9] text-sm focus:outline-none focus:ring-1 focus:ring-[#AE54C6]"
                   />
                 </div>
 
@@ -3797,7 +3797,7 @@ function AdminDashboardContent() {
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 rounded-lg bg-[#7928CA] text-white text-sm font-semibold hover:bg-[#671FB0]"
+                    className="px-5 py-2 rounded-lg bg-[#AE54C6] text-white text-sm font-semibold hover:bg-[#A03BBC]"
                   >
                     Publish Course
                   </button>

@@ -75,7 +75,7 @@ export function EduportStudentFeedback() {
                         i === 1 ? "sm:ml-8" : ""
                       }`}
                     >
-                      <div className="w-16 h-16 rounded-full bg-[#F0EDF9] border-4 border-white shadow-md mx-auto mb-4 flex items-center justify-center text-lg font-extrabold text-[#7928CA]">
+                      <div className="w-16 h-16 rounded-full bg-[#F7EDF9] border-4 border-white shadow-md mx-auto mb-4 flex items-center justify-center text-lg font-extrabold text-[#AE54C6]">
                         {initials(o.name)}
                       </div>
                       {o.quote && (
@@ -94,7 +94,7 @@ export function EduportStudentFeedback() {
                   ))
                 ) : (
                   <div className="bg-white rounded-2xl p-6 sm:p-7 shadow-[0_8px_30px_rgba(24,20,61,0.06)] text-center">
-                    <div className="w-16 h-16 rounded-full bg-[#F0EDF9] border-4 border-white shadow-md mx-auto mb-4 flex items-center justify-center text-[#7928CA]">
+                    <div className="w-16 h-16 rounded-full bg-[#F7EDF9] border-4 border-white shadow-md mx-auto mb-4 flex items-center justify-center text-[#AE54C6]">
                       <Sparkles className="w-6 h-6" />
                     </div>
                     <p className="text-xs sm:text-sm text-[#747579] leading-relaxed mb-2">
@@ -107,7 +107,7 @@ export function EduportStudentFeedback() {
 
               {/* Right Stack: Certificates Issued + Real Instructors */}
               <div className="sm:col-span-5 space-y-6">
-                <div className="bg-[#7928CA] text-white rounded-2xl p-5 text-center shadow-lg relative overflow-hidden">
+                <div className="bg-[#AE54C6] text-white rounded-2xl p-5 text-center shadow-lg relative overflow-hidden">
                   <div
                     aria-hidden="true"
                     className="pointer-events-none absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-white/10"
@@ -123,12 +123,12 @@ export function EduportStudentFeedback() {
                     <h4 className="text-sm font-extrabold text-[#24292D]">
                       {mentors.length} Expert Instructor{mentors.length === 1 ? "" : "s"}
                     </h4>
-                    <ShieldCheck className="w-4 h-4 text-[#7928CA]" />
+                    <ShieldCheck className="w-4 h-4 text-[#AE54C6]" />
                   </div>
                   <div className="space-y-3.5">
                     {mentors.map((m) => (
                       <div key={m.name} className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-lg bg-[#7928CA] text-white text-xs font-extrabold flex items-center justify-center shrink-0">
+                        <div className="w-9 h-9 rounded-lg bg-[#AE54C6] text-white text-xs font-extrabold flex items-center justify-center shrink-0">
                           {initials(m.name)}
                         </div>
                         <div className="min-w-0">
@@ -154,7 +154,7 @@ export function EduportStudentFeedback() {
             <div className="flex flex-wrap items-center gap-3">
               <Link
                 href="/graduates"
-                className="inline-flex items-center justify-center rounded-lg bg-[#7928CA] hover:bg-[#671FB0] text-white font-bold text-sm px-6 py-3 transition-colors shadow-xs"
+                className="inline-flex items-center justify-center rounded-lg bg-[#AE54C6] hover:bg-[#A03BBC] text-white font-bold text-sm px-6 py-3 transition-colors shadow-xs"
               >
                 View Graduate Outcomes
               </Link>

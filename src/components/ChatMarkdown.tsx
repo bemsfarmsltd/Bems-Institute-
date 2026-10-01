@@ -36,7 +36,7 @@ export function ChatMarkdown({ content }: { content: string }) {
             );
           },
           pre: ({ children }) => (
-            <pre className="my-2 p-3 rounded-lg bg-[#18143D] text-gray-100 text-[0.8em] overflow-x-auto font-mono leading-snug">
+            <pre className="my-2 p-3 rounded-lg bg-[#303654] text-gray-100 text-[0.8em] overflow-x-auto font-mono leading-snug">
               {children}
             </pre>
           )

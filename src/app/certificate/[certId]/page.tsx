@@ -45,7 +45,7 @@ export default function CertificateViewPage({
       <div className="min-h-screen flex flex-col bg-[#FAF8FF]">
         <Navbar />
         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-          <h2 className="text-2xl font-bold text-[#18143D] mb-4">
+          <h2 className="text-2xl font-bold text-[#303654] mb-4">
             Certificate Not Found
           </h2>
           <p className="text-sm text-[#645F80] mb-6">
@@ -85,19 +85,19 @@ export default function CertificateViewPage({
       </div>
 
       {/* Action Toolbar (hidden during print) */}
-      <div className="print:hidden bg-[#18143D] text-white py-6 border-b border-white/10">
+      <div className="print:hidden bg-[#303654] text-white py-6 border-b border-white/10">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Link
               href="/dashboard"
-              className="text-[#A5A0C8] hover:text-white transition-colors"
+              className="text-[#C6BDD3] hover:text-white transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <div>
               <div className="flex items-center gap-2">
                 <Badge variant="gold">OFFICIAL CREDENTIAL</Badge>
-                <span className="text-xs text-[#A5A0C8]">
+                <span className="text-xs text-[#C6BDD3]">
                   ID: {certificate.certNumber}
                 </span>
               </div>
@@ -147,24 +147,24 @@ export default function CertificateViewPage({
 
       {/* Main Certificate Canvas */}
       <div className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 py-10 print:p-0 print:m-0 print:max-w-none">
-        <div className="bg-white rounded-3xl border-8 border-double border-[#7928CA]/30 p-8 sm:p-14 shadow-2xl relative overflow-hidden text-center print:shadow-none print:border-4 print:border-[#7928CA]">
+        <div className="bg-white rounded-3xl border-8 border-double border-[#AE54C6]/30 p-8 sm:p-14 shadow-2xl relative overflow-hidden text-center print:shadow-none print:border-4 print:border-[#AE54C6]">
           {/* Subtle Guilloche / Watermark Pattern */}
           <div className="absolute inset-0 opacity-[0.03] pointer-events-none flex items-center justify-center">
-            <div className="w-[600px] h-[600px] rounded-full border-[40px] border-[#18143D]" />
+            <div className="w-[600px] h-[600px] rounded-full border-[40px] border-[#303654]" />
           </div>
 
           {/* Institutional Crest Header */}
           <div className="relative z-10 flex flex-col items-center mb-8">
-            <div className="relative w-20 h-20 rounded-2xl overflow-hidden bg-white shadow-lg border-2 border-[#7928CA] mb-3">
+            <div className="relative w-20 h-20 rounded-2xl overflow-hidden bg-white shadow-lg border-2 border-[#AE54C6] mb-3">
               <Image src="/images/bems-logo.jpg" alt="BEMS Logo" fill className="object-contain" />
             </div>
-            <h2 className="text-xl sm:text-2xl font-black tracking-widest text-[#18143D] uppercase">
+            <h2 className="text-xl sm:text-2xl font-black tracking-widest text-[#303654] uppercase">
               Bems Institute of Technology
             </h2>
-            <p className="text-xs uppercase tracking-wider text-[#7928CA] font-extrabold mt-1">
+            <p className="text-xs uppercase tracking-wider text-[#AE54C6] font-extrabold mt-1">
               & Vocational Studies &middot; FutureSkills Accelerator
             </p>
-            <div className="w-32 h-1 bg-gradient-to-r from-transparent via-[#7928CA] to-transparent my-4" />
+            <div className="w-32 h-1 bg-gradient-to-r from-transparent via-[#AE54C6] to-transparent my-4" />
           </div>
 
           {/* Certificate Award Statement */}
@@ -173,7 +173,7 @@ export default function CertificateViewPage({
               This is to certify that
             </span>
 
-            <h3 className="text-3xl sm:text-5xl font-black text-[#18143D] tracking-tight border-b-2 border-[#E6E1F5] pb-4 inline-block px-8">
+            <h3 className="text-3xl sm:text-5xl font-black text-[#303654] tracking-tight border-b-2 border-[#F1E2F5] pb-4 inline-block px-8">
               {certificate.studentName}
             </h3>
 
@@ -182,7 +182,7 @@ export default function CertificateViewPage({
             </p>
 
             <div className="py-2">
-              <span className="text-2xl sm:text-3xl font-extrabold text-[#7928CA] block">
+              <span className="text-2xl sm:text-3xl font-extrabold text-[#AE54C6] block">
                 {certificate.courseTitle}
               </span>
               <span className="inline-block mt-2 px-4 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold border border-emerald-200">
@@ -192,13 +192,13 @@ export default function CertificateViewPage({
           </div>
 
           {/* Signatures & Seal Section */}
-          <div className="relative z-10 grid grid-cols-1 sm:grid-cols-3 gap-8 items-end mt-14 pt-8 border-t border-[#E6E1F5]">
+          <div className="relative z-10 grid grid-cols-1 sm:grid-cols-3 gap-8 items-end mt-14 pt-8 border-t border-[#F1E2F5]">
             <div className="text-center sm:text-left">
-              <div className="font-serif italic text-lg sm:text-xl text-[#18143D] mb-1 font-bold">
+              <div className="font-serif italic text-lg sm:text-xl text-[#303654] mb-1 font-bold">
                 Victor E.
               </div>
-              <div className="w-40 h-0.5 bg-[#18143D]/40 mb-1 mx-auto sm:mx-0" />
-              <div className="text-xs font-bold text-[#18143D]">
+              <div className="w-40 h-0.5 bg-[#303654]/40 mb-1 mx-auto sm:mx-0" />
+              <div className="text-xs font-bold text-[#303654]">
                 Lead Course Instructor
               </div>
               <div className="text-[11px] text-[#645F80]">
@@ -208,7 +208,7 @@ export default function CertificateViewPage({
 
             {/* Official Gold/Purple Seal */}
             <div className="flex flex-col items-center">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-[#7928CA] to-[#8B5CF6] text-white flex flex-col items-center justify-center p-2 shadow-xl border-4 border-white ring-4 ring-[#7928CA]/20">
+              <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-[#AE54C6] to-[#C591E9] text-white flex flex-col items-center justify-center p-2 shadow-xl border-4 border-white ring-4 ring-[#AE54C6]/20">
                 <Award className="w-8 h-8 text-yellow-300 mb-0.5" />
                 <span className="text-[9px] font-black uppercase tracking-wider text-center">
                   BEMS SEAL
@@ -218,11 +218,11 @@ export default function CertificateViewPage({
             </div>
 
             <div className="text-center sm:text-right">
-              <div className="font-serif italic text-lg sm:text-xl text-[#18143D] mb-1 font-bold">
+              <div className="font-serif italic text-lg sm:text-xl text-[#303654] mb-1 font-bold">
                 Chima B.
               </div>
-              <div className="w-40 h-0.5 bg-[#18143D]/40 mb-1 ml-auto mr-auto sm:mr-0" />
-              <div className="text-xs font-bold text-[#18143D]">
+              <div className="w-40 h-0.5 bg-[#303654]/40 mb-1 ml-auto mr-auto sm:mr-0" />
+              <div className="text-xs font-bold text-[#303654]">
                 Director of Studies
               </div>
               <div className="text-[11px] text-[#645F80]">
@@ -232,12 +232,12 @@ export default function CertificateViewPage({
           </div>
 
           {/* Certificate Verification Footer */}
-          <div className="relative z-10 mt-10 pt-4 flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#8580A3] border-t border-[#F0EDF9]">
+          <div className="relative z-10 mt-10 pt-4 flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#8580A3] border-t border-[#F7EDF9]">
             <span>
-              Certificate No: <strong className="text-[#18143D]">{certificate.certNumber}</strong>
+              Certificate No: <strong className="text-[#303654]">{certificate.certNumber}</strong>
             </span>
             <span>
-              Date of Conferral: <strong className="text-[#18143D]">{new Date(certificate.issuedAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</strong>
+              Date of Conferral: <strong className="text-[#303654]">{new Date(certificate.issuedAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}</strong>
             </span>
             <span className="flex items-center gap-1 text-emerald-700 font-semibold">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Tamper-Proof Cryptographic ID

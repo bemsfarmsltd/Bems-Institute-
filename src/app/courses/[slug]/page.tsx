@@ -55,7 +55,7 @@ export default function CourseDetailPage({
       <div className="min-h-screen flex flex-col">
         <Navbar />
         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-          <h1 className="text-2xl font-bold text-[#18143D] mb-4">Course Not Found</h1>
+          <h1 className="text-2xl font-bold text-[#303654] mb-4">Course Not Found</h1>
           <Link href="/">
             <Button>Back to Courses</Button>
           </Link>
@@ -81,16 +81,16 @@ export default function CourseDetailPage({
     <div className="min-h-screen flex flex-col bg-[#FAF8FF]">
       <Navbar />
 
-      <div className="bg-gradient-to-r from-[#18143D] via-[#241E56] to-[#18143D] text-white py-14 border-b border-white/10">
+      <div className="bg-gradient-to-r from-[#303654] via-[#3E4569] to-[#303654] text-white py-14 border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link href="/courses" className="inline-flex items-center gap-2 text-xs text-[#D8B4FE] hover:text-white mb-6">
+          <Link href="/courses" className="inline-flex items-center gap-2 text-xs text-[#F4E0FA] hover:text-white mb-6">
             <ArrowLeft className="w-4 h-4" /> Back to Course Catalog
           </Link>
 
           <div className="flex flex-wrap items-center gap-2 mb-4">
             <Badge variant="purple">{course.badge}</Badge>
             <Badge variant="gold">{course.duration}</Badge>
-            <span className="text-xs text-[#A5A0C8]">
+            <span className="text-xs text-[#C6BDD3]">
               {course.modules.length} Modules · {totalLessons} Video Lessons
             </span>
           </div>
@@ -98,17 +98,17 @@ export default function CourseDetailPage({
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight mb-4">
             {course.title}
           </h1>
-          <p className="text-lg text-[#D8B4FE] max-w-2xl mb-6">
+          <p className="text-lg text-[#F4E0FA] max-w-2xl mb-6">
             {course.tagline}
           </p>
 
           <div className="flex flex-wrap items-center gap-6 text-xs text-white/90">
             <div className="flex items-center gap-2">
-              <UserCheck className="w-4 h-4 text-[#D8B4FE]" />
+              <UserCheck className="w-4 h-4 text-[#F4E0FA]" />
               <span><strong>Lead Instructor:</strong> {course.tutor} ({course.tutorRole})</span>
             </div>
             <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-[#D8B4FE]" />
+              <Clock className="w-4 h-4 text-[#F4E0FA]" />
               <span><strong>Schedule:</strong> {course.schedule}</span>
             </div>
           </div>
@@ -120,8 +120,8 @@ export default function CourseDetailPage({
           
           <div className="lg:col-span-8 space-y-8">
             <div>
-              <h2 className="text-2xl font-extrabold text-[#18143D] mb-2 flex items-center gap-2">
-                <BookOpen className="w-6 h-6 text-[#7928CA]" />
+              <h2 className="text-2xl font-extrabold text-[#303654] mb-2 flex items-center gap-2">
+                <BookOpen className="w-6 h-6 text-[#AE54C6]" />
                 <span>Course Curriculum & Video Lessons</span>
               </h2>
               <p className="text-sm text-[#645F80]">
@@ -130,9 +130,9 @@ export default function CourseDetailPage({
             </div>
 
             {course.modules.length === 0 ? (
-              <div className="bg-white border border-[#E6E1F5] rounded-2xl p-8 text-center">
-                <BookOpen className="w-8 h-8 text-[#A5A0C8] mx-auto mb-3" />
-                <h3 className="font-bold text-[#18143D] mb-1">Curriculum Coming Soon</h3>
+              <div className="bg-white border border-[#F1E2F5] rounded-2xl p-8 text-center">
+                <BookOpen className="w-8 h-8 text-[#C6BDD3] mx-auto mb-3" />
+                <h3 className="font-bold text-[#303654] mb-1">Curriculum Coming Soon</h3>
                 <p className="text-sm text-[#645F80]">
                   Modules and video lessons for this track haven&apos;t been published yet. Check back soon.
                 </p>
@@ -142,18 +142,18 @@ export default function CourseDetailPage({
               {course.modules.map((mod) => (
                 <div 
                   key={mod.id} 
-                  className="bg-white border border-[#E6E1F5] rounded-2xl overflow-hidden shadow-xs"
+                  className="bg-white border border-[#F1E2F5] rounded-2xl overflow-hidden shadow-xs"
                 >
-                  <div className="bg-[#FAF8FF] px-6 py-4 border-b border-[#E6E1F5] flex items-center justify-between">
-                    <h3 className="font-bold text-[#18143D] text-base">
+                  <div className="bg-[#FAF8FF] px-6 py-4 border-b border-[#F1E2F5] flex items-center justify-between">
+                    <h3 className="font-bold text-[#303654] text-base">
                       {mod.title}
                     </h3>
-                    <span className="text-xs font-semibold text-[#7928CA]">
+                    <span className="text-xs font-semibold text-[#AE54C6]">
                       {mod.lessons.length} Lessons
                     </span>
                   </div>
 
-                  <div className="divide-y divide-[#E6E1F5]">
+                  <div className="divide-y divide-[#F1E2F5]">
                     {mod.lessons.map((lesson) => {
                       const completed = isLessonCompleted(lesson.id);
                       const canWatch = enrolled || lesson.isFreePreview;
@@ -167,13 +167,13 @@ export default function CourseDetailPage({
                             {completed ? (
                               <CheckCircle2 className="w-5 h-5 text-[#10B981] shrink-0 mt-0.5" />
                             ) : canWatch ? (
-                              <PlayCircle className="w-5 h-5 text-[#7928CA] shrink-0 mt-0.5" />
+                              <PlayCircle className="w-5 h-5 text-[#AE54C6] shrink-0 mt-0.5" />
                             ) : (
-                              <Lock className="w-5 h-5 text-[#A5A0C8] shrink-0 mt-0.5" />
+                              <Lock className="w-5 h-5 text-[#C6BDD3] shrink-0 mt-0.5" />
                             )}
                             <div>
                               <div className="flex items-center gap-2">
-                                <span className="font-semibold text-sm text-[#18143D]">
+                                <span className="font-semibold text-sm text-[#303654]">
                                   {lesson.title}
                                 </span>
                                 {lesson.isFreePreview && !enrolled && (
@@ -230,23 +230,23 @@ export default function CourseDetailPage({
           </div>
 
           <div className="lg:col-span-4 sticky top-28">
-            <div className="bg-white border border-[#E6E1F5] rounded-3xl p-6 sm:p-8 shadow-lg">
+            <div className="bg-white border border-[#F1E2F5] rounded-3xl p-6 sm:p-8 shadow-lg">
               
               {enrolled ? (
                 <div>
                   <Badge variant="green" className="mb-3">
                     ACTIVE ENROLLMENT
                   </Badge>
-                  <h3 className="text-xl font-black text-[#18143D] mb-2">
+                  <h3 className="text-xl font-black text-[#303654] mb-2">
                     Your Course Progress
                   </h3>
                   <p className="text-xs text-[#645F80] mb-4">
                     {progress.completed} of {progress.total} lessons completed ({progress.percent}%)
                   </p>
 
-                  <div className="w-full h-3 bg-[#F4EFFF] rounded-full overflow-hidden mb-6">
+                  <div className="w-full h-3 bg-[#FBF6FC] rounded-full overflow-hidden mb-6">
                     <div 
-                      className="h-full bg-gradient-to-r from-[#7928CA] to-[#10B981] transition-all duration-500"
+                      className="h-full bg-gradient-to-r from-[#AE54C6] to-[#10B981] transition-all duration-500"
                       style={{ width: `${progress.percent}%` }}
                     />
                   </div>
@@ -292,19 +292,19 @@ export default function CourseDetailPage({
                 </div>
               ) : (
                 <div>
-                  <span className="text-xs font-bold text-[#7928CA] uppercase tracking-wider block mb-1">
+                  <span className="text-xs font-bold text-[#AE54C6] uppercase tracking-wider block mb-1">
                     Full Course Access
                   </span>
                   <div className="mb-1">
-                    <span className="text-3xl font-black text-[#18143D]">
+                    <span className="text-3xl font-black text-[#303654]">
                       ₦{course.priceFull.toLocaleString()}
                     </span>
                   </div>
                   <p className="text-xs text-[#645F80] mb-4">Paid in full, one time</p>
 
-                  <div className="bg-[#FAF8FF] border border-[#E6E1F5] rounded-xl p-3.5 mb-6 text-xs text-[#18143D] space-y-1.5">
+                  <div className="bg-[#FAF8FF] border border-[#F1E2F5] rounded-xl p-3.5 mb-6 text-xs text-[#303654] space-y-1.5">
                     <div><strong>Pay in Parts Option:</strong> ₦{course.priceParts.toLocaleString()} total</div>
-                    <div className="text-[#7928CA] font-semibold">
+                    <div className="text-[#AE54C6] font-semibold">
                       Start today with ₦{course.deposit.toLocaleString()} deposit
                     </div>
                   </div>
@@ -325,7 +325,7 @@ export default function CourseDetailPage({
                     </Button>
                   </Link>
 
-                  <ul className="mt-6 pt-6 border-t border-[#E6E1F5] space-y-2.5 text-xs text-[#645F80]">
+                  <ul className="mt-6 pt-6 border-t border-[#F1E2F5] space-y-2.5 text-xs text-[#645F80]">
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
                       <span>

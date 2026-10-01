@@ -106,11 +106,11 @@ export default function AssignmentSubmissionPage({
       <Navbar />
 
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-[#18143D] via-[#241E56] to-[#18143D] text-white py-12 border-b border-white/10">
+      <div className="bg-gradient-to-r from-[#303654] via-[#3E4569] to-[#303654] text-white py-12 border-b border-white/10">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
           <Link
             href={`/courses/${course.slug}`}
-            className="inline-flex items-center gap-2 text-xs text-[#D8B4FE] hover:text-white mb-4"
+            className="inline-flex items-center gap-2 text-xs text-[#F4E0FA] hover:text-white mb-4"
           >
             <ArrowLeft className="w-4 h-4" /> Back to {course.title}
           </Link>
@@ -123,7 +123,7 @@ export default function AssignmentSubmissionPage({
           <h1 className="text-2xl sm:text-4xl font-black tracking-tight mb-2">
             {assignment.title}
           </h1>
-          <p className="text-sm text-[#D8B4FE] max-w-2xl">
+          <p className="text-sm text-[#F4E0FA] max-w-2xl">
             Lead Instructor: <strong>{course.tutor}</strong> ({course.tutorRole})
           </p>
         </div>
@@ -209,38 +209,38 @@ export default function AssignmentSubmissionPage({
           {/* Left 7 Cols: Project Brief & Rubric */}
           <div className="lg:col-span-7 space-y-6">
 
-            <div className="bg-white border border-[#E6E1F5] rounded-3xl p-6 sm:p-8 shadow-xs">
-              <h3 className="text-lg font-black text-[#18143D] mb-3 flex items-center gap-2">
-                <FileCheck className="w-5 h-5 text-[#7928CA]" />
+            <div className="bg-white border border-[#F1E2F5] rounded-3xl p-6 sm:p-8 shadow-xs">
+              <h3 className="text-lg font-black text-[#303654] mb-3 flex items-center gap-2">
+                <FileCheck className="w-5 h-5 text-[#AE54C6]" />
                 <span>Capstone Specification</span>
               </h3>
               <p className="text-sm text-[#645F80] leading-relaxed mb-6">
                 {assignment.brief}
               </p>
 
-              <h4 className="text-xs font-bold text-[#7928CA] uppercase tracking-wider mb-3">
+              <h4 className="text-xs font-bold text-[#AE54C6] uppercase tracking-wider mb-3">
                 Mandatory Deliverables:
               </h4>
               <ul className="space-y-2.5 mb-6">
                 {assignment.requirements.map((req, idx) => (
-                  <li key={idx} className="flex items-start gap-2.5 text-xs text-[#1E1B38]">
+                  <li key={idx} className="flex items-start gap-2.5 text-xs text-[#363A50]">
                     <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0 mt-0.5" />
                     <span>{req}</span>
                   </li>
                 ))}
               </ul>
 
-              <h4 className="text-xs font-bold text-[#7928CA] uppercase tracking-wider mb-3">
+              <h4 className="text-xs font-bold text-[#AE54C6] uppercase tracking-wider mb-3">
                 Grading Rubric (Total: 100 Points):
               </h4>
               <div className="space-y-2">
                 {assignment.rubric.map((item, idx) => (
                   <div
                     key={idx}
-                    className="flex justify-between items-center p-3 bg-[#FAF8FF] border border-[#E6E1F5] rounded-xl text-xs text-[#18143D]"
+                    className="flex justify-between items-center p-3 bg-[#FAF8FF] border border-[#F1E2F5] rounded-xl text-xs text-[#303654]"
                   >
                     <span>{item.criteria}</span>
-                    <strong className="text-[#7928CA] font-bold">{item.points} pts</strong>
+                    <strong className="text-[#AE54C6] font-bold">{item.points} pts</strong>
                   </div>
                 ))}
               </div>
@@ -250,8 +250,8 @@ export default function AssignmentSubmissionPage({
 
           {/* Right 5 Cols: Submission Input Box */}
           <div className="lg:col-span-5 sticky top-28">
-            <div className="bg-white border border-[#E6E1F5] rounded-3xl p-6 sm:p-8 shadow-lg">
-              <h3 className="text-lg font-black text-[#18143D] mb-1">
+            <div className="bg-white border border-[#F1E2F5] rounded-3xl p-6 sm:p-8 shadow-lg">
+              <h3 className="text-lg font-black text-[#303654] mb-1">
                 Student Project Submission
               </h3>
               <p className="text-xs text-[#645F80] mb-6">
@@ -260,7 +260,7 @@ export default function AssignmentSubmissionPage({
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-[#18143D] uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-bold text-[#303654] uppercase tracking-wider mb-1.5">
                     GitHub Repository URL *
                   </label>
                   <div className="relative">
@@ -271,13 +271,13 @@ export default function AssignmentSubmissionPage({
                       value={githubUrl}
                       onChange={(e) => setGithubUrl(e.target.value)}
                       placeholder="https://github.com/username/project"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#E6E1F5] text-xs text-[#18143D] focus:outline-none focus:border-[#7928CA] focus:ring-2 focus:ring-[#7928CA]/15"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#F1E2F5] text-xs text-[#303654] focus:outline-none focus:border-[#AE54C6] focus:ring-2 focus:ring-[#AE54C6]/15"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#18143D] uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-bold text-[#303654] uppercase tracking-wider mb-1.5">
                     Live Hosted URL (Vercel / Netlify) *
                   </label>
                   <div className="relative">
@@ -288,13 +288,13 @@ export default function AssignmentSubmissionPage({
                       value={liveDemoUrl}
                       onChange={(e) => setLiveDemoUrl(e.target.value)}
                       placeholder="https://my-app.vercel.app"
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#E6E1F5] text-xs text-[#18143D] focus:outline-none focus:border-[#7928CA] focus:ring-2 focus:ring-[#7928CA]/15"
+                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#F1E2F5] text-xs text-[#303654] focus:outline-none focus:border-[#AE54C6] focus:ring-2 focus:ring-[#AE54C6]/15"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#18143D] uppercase tracking-wider mb-1.5">
+                  <label className="block text-xs font-bold text-[#303654] uppercase tracking-wider mb-1.5">
                     Project Architecture Notes & Features
                   </label>
                   <textarea
@@ -302,7 +302,7 @@ export default function AssignmentSubmissionPage({
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="Describe how you solved the problem, technologies used, and key features..."
-                    className="w-full p-3 rounded-xl border border-[#E6E1F5] text-xs text-[#18143D] focus:outline-none focus:border-[#7928CA] focus:ring-2 focus:ring-[#7928CA]/15"
+                    className="w-full p-3 rounded-xl border border-[#F1E2F5] text-xs text-[#303654] focus:outline-none focus:border-[#AE54C6] focus:ring-2 focus:ring-[#AE54C6]/15"
                   />
                 </div>
 
@@ -325,17 +325,17 @@ export default function AssignmentSubmissionPage({
                 </Button>
               </form>
 
-              <div className="mt-6 pt-5 border-t border-[#E6E1F5] space-y-2.5 text-center">
+              <div className="mt-6 pt-5 border-t border-[#F1E2F5] space-y-2.5 text-center">
                 <Link href="/ai?tab=feedback" className="block">
                   <Button variant="outline" size="sm" className="w-full text-xs gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-[#7928CA]" />
+                    <Sparkles className="w-3.5 h-3.5 text-[#AE54C6]" />
                     <span>Pre-Audit Code with AI Before Submitting</span>
                   </Button>
                 </Link>
                 {(user?.role === "INSTRUCTOR" || user?.role === "ADMIN") && (
                   <Link
                     href="/instructor/grading"
-                    className="inline-block text-xs font-bold text-[#7928CA] hover:underline pt-1"
+                    className="inline-block text-xs font-bold text-[#AE54C6] hover:underline pt-1"
                   >
                     Open Instructor Grading Studio →
                   </Link>

@@ -10,7 +10,7 @@ type Role = "STUDENT" | "INSTRUCTOR" | "ADMIN";
 function GateScreen({ label }: { label: string }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-3 bg-[#FAF8FF] text-center px-6">
-      <ShieldAlert className="w-8 h-8 text-[#7928CA] animate-pulse" />
+      <ShieldAlert className="w-8 h-8 text-[#AE54C6] animate-pulse" />
       <p className="text-sm font-semibold text-[#645F80]">{label}</p>
     </div>
   );

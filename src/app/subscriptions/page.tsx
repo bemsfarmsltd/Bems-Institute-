@@ -125,7 +125,7 @@ function SubscriptionsContent() {
       <Navbar />
 
       {/* Header */}
-      <div className="bg-[#18143D] text-white py-14 border-b border-white/10 text-center">
+      <div className="bg-[#303654] text-white py-14 border-b border-white/10 text-center">
         <div className="max-w-4xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-center gap-2 mb-3">
             <Badge variant="purple">OCTOBER 2026 COHORT</Badge>
@@ -134,7 +134,7 @@ function SubscriptionsContent() {
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight mb-4">
             Invest in High-Income Tech Skills
           </h1>
-          <p className="text-sm sm:text-base text-[#A5A0C8] max-w-2xl mx-auto leading-relaxed">
+          <p className="text-sm sm:text-base text-[#C6BDD3] max-w-2xl mx-auto leading-relaxed">
             Choose your track, then pay in full for 12% off or spread it across 3 parts — no one has to find it all at once.
           </p>
         </div>
@@ -150,7 +150,7 @@ function SubscriptionsContent() {
                 <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                 <span>Enrollment Confirmed · ₦{confirmedEnrollment.amount.toLocaleString()} ({confirmedEnrollment.planLabel})</span>
               </div>
-              <h2 className="text-xl sm:text-2xl font-black text-[#18143D]">
+              <h2 className="text-xl sm:text-2xl font-black text-[#303654]">
                 You&apos;re enrolled in {confirmedEnrollment.courseTitle}!
               </h2>
               <p className="text-xs sm:text-sm text-[#4A4568]">
@@ -176,13 +176,13 @@ function SubscriptionsContent() {
 
         {/* Course Track Selector */}
         {courses.length > 0 && (
-          <div className="bg-white rounded-3xl border border-[#E6E1F5] p-6 sm:p-8 shadow-xs space-y-4">
+          <div className="bg-white rounded-3xl border border-[#F1E2F5] p-6 sm:p-8 shadow-xs space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
-                <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#7928CA] flex items-center gap-1.5">
+                <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#AE54C6] flex items-center gap-1.5">
                   <BookOpen className="w-3.5 h-3.5" /> Step 1: Choose Your Primary Accelerator Track
                 </span>
-                <h2 className="text-lg sm:text-xl font-black text-[#18143D] mt-0.5">
+                <h2 className="text-lg sm:text-xl font-black text-[#303654] mt-0.5">
                   {selectedCourse ? selectedCourse.title : "Select a Course Track"}
                 </h2>
               </div>
@@ -208,13 +208,13 @@ function SubscriptionsContent() {
                     onClick={() => setSelectedCourseId(course.id)}
                     className={`text-left p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between gap-2 ${
                       active
-                        ? "border-2 border-[#7928CA] bg-[#FAF8FF] shadow-sm"
-                        : "border-[#E6E1F5] bg-white hover:border-[#7928CA]/40"
+                        ? "border-2 border-[#AE54C6] bg-[#FAF8FF] shadow-sm"
+                        : "border-[#F1E2F5] bg-white hover:border-[#AE54C6]/40"
                     }`}
                   >
                     <div>
                       <div className="flex items-center justify-between gap-1 mb-1">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#7928CA]">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#AE54C6]">
                           {course.duration}
                         </span>
                         {enrolled && (
@@ -223,12 +223,12 @@ function SubscriptionsContent() {
                           </span>
                         )}
                       </div>
-                      <div className="text-xs font-extrabold text-[#18143D] line-clamp-2">
+                      <div className="text-xs font-extrabold text-[#303654] line-clamp-2">
                         {course.title}
                       </div>
                     </div>
                     <div className="text-[11px] text-[#645F80]">
-                      Lead: <strong className="text-[#18143D]">{course.tutor}</strong>
+                      Lead: <strong className="text-[#303654]">{course.tutor}</strong>
                     </div>
                   </button>
                 );
@@ -240,24 +240,24 @@ function SubscriptionsContent() {
         {/* Payment Plan Cards — two ways to pay, per course (PRD §3.1) */}
         {selectedCourse && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
-            <div className="rounded-3xl p-8 flex flex-col justify-between transition-all duration-300 relative bg-white border-2 border-[#7928CA] shadow-2xl ring-4 ring-[#7928CA]/10 -translate-y-2">
+            <div className="rounded-3xl p-8 flex flex-col justify-between transition-all duration-300 relative bg-white border-2 border-[#AE54C6] shadow-2xl ring-4 ring-[#AE54C6]/10 -translate-y-2">
               <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                <span className="px-4 py-1 rounded-full bg-[#7928CA] text-white text-[11px] font-black uppercase tracking-wider shadow-sm">
+                <span className="px-4 py-1 rounded-full bg-[#AE54C6] text-white text-[11px] font-black uppercase tracking-wider shadow-sm">
                   Save 12%
                 </span>
               </div>
 
               <div>
                 <div className="mb-4">
-                  <h3 className="text-xl font-black text-[#18143D]">Pay in Full</h3>
+                  <h3 className="text-xl font-black text-[#303654]">Pay in Full</h3>
                   <p className="text-xs text-[#645F80] mt-1">
                     One-time payment for {selectedCourse.title}. Cash upfront, rewards paying early.
                   </p>
                 </div>
 
-                <div className="py-4 border-y border-[#F0EDF9] mb-6">
+                <div className="py-4 border-y border-[#F7EDF9] mb-6">
                   <div className="flex items-baseline gap-1">
-                    <span className="text-3xl sm:text-4xl font-black text-[#18143D]">
+                    <span className="text-3xl sm:text-4xl font-black text-[#303654]">
                       ₦{selectedCourse.priceFull.toLocaleString()}
                     </span>
                     <span className="text-xs text-[#8580A3] font-bold">one-time</span>
@@ -292,18 +292,18 @@ function SubscriptionsContent() {
               </div>
             </div>
 
-            <div className="rounded-3xl p-8 flex flex-col justify-between transition-all duration-300 relative bg-white border border-[#E6E1F5] shadow-xs hover:border-[#7928CA]/40">
+            <div className="rounded-3xl p-8 flex flex-col justify-between transition-all duration-300 relative bg-white border border-[#F1E2F5] shadow-xs hover:border-[#AE54C6]/40">
               <div>
                 <div className="mb-4">
-                  <h3 className="text-xl font-black text-[#18143D]">Pay in 3 Parts</h3>
+                  <h3 className="text-xl font-black text-[#303654]">Pay in 3 Parts</h3>
                   <p className="text-xs text-[#645F80] mt-1">
                     No one has to find it all at once — start today, spread the rest across the cohort.
                   </p>
                 </div>
 
-                <div className="py-4 border-y border-[#F0EDF9] mb-6">
+                <div className="py-4 border-y border-[#F7EDF9] mb-6">
                   <div className="flex items-baseline gap-1">
-                    <span className="text-3xl sm:text-4xl font-black text-[#18143D]">
+                    <span className="text-3xl sm:text-4xl font-black text-[#303654]">
                       ₦{selectedCourse.priceParts.toLocaleString()}
                     </span>
                     <span className="text-xs text-[#8580A3] font-bold">total, in 3 parts</span>
@@ -341,13 +341,13 @@ function SubscriptionsContent() {
         )}
 
         {/* Guarantee Banner */}
-        <div className="bg-white rounded-3xl border border-[#E6E1F5] p-6 sm:p-8 shadow-xs flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="bg-white rounded-3xl border border-[#F1E2F5] p-6 sm:p-8 shadow-xs flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
-              <h4 className="font-black text-[#18143D] text-base">
+              <h4 className="font-black text-[#303654] text-base">
                 100% Practical &amp; Verified Certification Guarantee
               </h4>
               <p className="text-xs text-[#645F80]">
@@ -371,29 +371,29 @@ function SubscriptionsContent() {
       {/* Checkout Modal */}
       {showPaymentModal && selectedPlan && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-[#E6E1F5] animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#F0EDF9]">
-              <h3 className="text-lg font-black text-[#18143D]">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-[#F1E2F5] animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#F7EDF9]">
+              <h3 className="text-lg font-black text-[#303654]">
                 Confirm Enrollment
               </h3>
               <button
                 onClick={() => setShowPaymentModal(false)}
-                className="text-[#8580A3] hover:text-[#18143D] text-lg font-bold"
+                className="text-[#8580A3] hover:text-[#303654] text-lg font-bold"
               >
                 &times;
               </button>
             </div>
 
-            <div className="p-4 rounded-2xl bg-[#FAF8FF] border border-[#E6E1F5] mb-4 text-xs space-y-1.5">
+            <div className="p-4 rounded-2xl bg-[#FAF8FF] border border-[#F1E2F5] mb-4 text-xs space-y-1.5">
               {selectedCourse && (
                 <div className="flex justify-between">
                   <span className="text-[#645F80]">Selected Track:</span>
-                  <strong className="text-[#7928CA]">{selectedCourse.title}</strong>
+                  <strong className="text-[#AE54C6]">{selectedCourse.title}</strong>
                 </div>
               )}
               <div className="flex justify-between">
                 <span className="text-[#645F80]">Selected Plan:</span>
-                <strong className="text-[#18143D]">{planLabel(selectedPlan)}</strong>
+                <strong className="text-[#303654]">{planLabel(selectedPlan)}</strong>
               </div>
               <div className="flex justify-between">
                 <span className="text-[#645F80]">
@@ -406,7 +406,7 @@ function SubscriptionsContent() {
               {selectedPlan === "installment" && (
                 <div className="flex justify-between">
                   <span className="text-[#645F80]">Total Across 3 Parts:</span>
-                  <strong className="text-[#18143D]">₦{planAmount(selectedPlan).toLocaleString()}</strong>
+                  <strong className="text-[#303654]">₦{planAmount(selectedPlan).toLocaleString()}</strong>
                 </div>
               )}
             </div>
@@ -422,8 +422,8 @@ function SubscriptionsContent() {
                   onClick={() => setPaymentMethod("PAYSTACK")}
                   className={`p-3 rounded-xl border font-bold flex items-center justify-center gap-2 cursor-pointer transition-all ${
                     paymentMethod === "PAYSTACK"
-                      ? "border-[#7928CA] bg-purple-50 text-[#7928CA]"
-                      : "border-[#E6E1F5] text-[#645F80]"
+                      ? "border-[#AE54C6] bg-purple-50 text-[#AE54C6]"
+                      : "border-[#F1E2F5] text-[#645F80]"
                   }`}
                 >
                   <CreditCard className="w-4 h-4" /> Paystack Inline
@@ -433,8 +433,8 @@ function SubscriptionsContent() {
                   onClick={() => setPaymentMethod("BANK")}
                   className={`p-3 rounded-xl border font-bold flex items-center justify-center gap-2 cursor-pointer transition-all ${
                     paymentMethod === "BANK"
-                      ? "border-[#7928CA] bg-purple-50 text-[#7928CA]"
-                      : "border-[#E6E1F5] text-[#645F80]"
+                      ? "border-[#AE54C6] bg-purple-50 text-[#AE54C6]"
+                      : "border-[#F1E2F5] text-[#645F80]"
                   }`}
                 >
                   <Building2 className="w-4 h-4" /> Bank Transfer

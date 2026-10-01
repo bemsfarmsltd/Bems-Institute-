@@ -251,7 +251,7 @@ export default function EduportAuthSplitLayout({
   return (
     <div className="min-h-screen w-full bg-white grid grid-cols-1 lg:grid-cols-2 font-sans text-[#1D2026]">
       {/* Left 50% Community Panel */}
-      <div className="bg-[#F0EDF9] flex flex-col justify-between items-center px-6 sm:px-12 py-10 lg:py-14 relative overflow-hidden">
+      <div className="bg-[#F7EDF9] flex flex-col justify-between items-center px-6 sm:px-12 py-10 lg:py-14 relative overflow-hidden">
         {/* Top Brand Link */}
         <div className="w-full max-w-[520px] flex items-center justify-between">
           <Link href="/" className="inline-flex items-center gap-2.5 group">
@@ -259,12 +259,12 @@ export default function EduportAuthSplitLayout({
               <Image src="/images/bems-logo.jpg" alt="BEMS Logo" fill className="object-contain" />
             </div>
             <span className="font-display font-extrabold text-[18px] tracking-tight text-[#1D2026]">
-              BEMS<span className="text-[#7928CA]">.</span>
+              BEMS<span className="text-[#AE54C6]">.</span>
             </span>
           </Link>
           <Link
             href="/"
-            className="text-[13px] font-semibold text-[#475569] hover:text-[#7928CA] transition-colors lg:hidden"
+            className="text-[13px] font-semibold text-[#475569] hover:text-[#AE54C6] transition-colors lg:hidden"
           >
             ← Back to Home
           </Link>
@@ -305,7 +305,7 @@ export default function EduportAuthSplitLayout({
         <div className="w-full max-w-[460px] mx-auto flex justify-end">
           <Link
             href="/"
-            className="hidden lg:inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#64748B] hover:text-[#7928CA] transition-colors"
+            className="hidden lg:inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#64748B] hover:text-[#AE54C6] transition-colors"
           >
             ← Back to Home
           </Link>

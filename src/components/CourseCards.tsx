@@ -2,45 +2,12 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Heart, Clock, Table2, ArrowRight, Bot, Code2, Palette, ShieldCheck, Smartphone, GraduationCap } from "lucide-react";
+import { Heart, Clock, Table2, ArrowRight } from "lucide-react";
 import { useLMS } from "@/context/LMSContext";
 import { useLocalStorageRecord } from "@/hooks/useLocalStorageRecord";
+import { getCourseVisual } from "@/lib/course-visuals";
 
 type CategoryKey = "all" | string;
-
-const BANNER_STYLE: Record<string, { gradient: string; waveStroke: string; icon: React.ReactNode }> = {
-  "ai-automation": {
-    gradient: "from-[#F8B179] via-[#F69D56] to-[#F48842]",
-    waveStroke: "#D96B27",
-    icon: <Bot className="w-16 h-16 text-white drop-shadow-md" />
-  },
-  "web-dev": {
-    gradient: "from-[#2D5571] via-[#1D3B53] to-[#0F2338]",
-    waveStroke: "#3898EC",
-    icon: <Code2 className="w-16 h-16 text-white drop-shadow-md" />
-  },
-  "product-design": {
-    gradient: "from-[#FAD0D4] via-[#F7B2B9] to-[#F497A0]",
-    waveStroke: "#E45C6E",
-    icon: <Palette className="w-16 h-16 text-white drop-shadow-md" />
-  },
-  cybersecurity: {
-    gradient: "from-[#DFFBFF] via-[#B4F1FF] to-[#7CE0FA]",
-    waveStroke: "#1AA3C8",
-    icon: <ShieldCheck className="w-16 h-16 text-[#0F2338] drop-shadow-md" />
-  },
-  "mobile-dev": {
-    gradient: "from-[#F5EDA8] via-[#EFE074] to-[#E6CE3D]",
-    waveStroke: "#A38A10",
-    icon: <Smartphone className="w-16 h-16 text-[#0F2338] drop-shadow-md" />
-  }
-};
-
-const DEFAULT_BANNER = {
-  gradient: "from-[#F0EDF9] via-[#E4DCF7] to-[#D6C7F2]",
-  waveStroke: "#7928CA",
-  icon: <GraduationCap className="w-16 h-16 text-[#18143D] drop-shadow-md" />
-};
 
 export function CourseCards() {
   const { courses } = useLMS();
@@ -67,7 +34,7 @@ export function CourseCards() {
 
         {/* Category Filter Bar */}
         {courses.length > 0 && (
-          <div className="bg-[#F0EDF9] rounded-xl py-3 px-4 mb-10 flex flex-wrap items-center justify-center gap-2 sm:gap-5">
+          <div className="bg-[#F7EDF9] rounded-xl py-3 px-4 mb-10 flex flex-wrap items-center justify-center gap-2 sm:gap-5">
             {categories.map((cat) => {
               const isActive = activeCategory === cat.key;
               return (
@@ -77,8 +44,8 @@ export function CourseCards() {
                   onClick={() => setActiveCategory(cat.key)}
                   className={`px-4 sm:px-5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                     isActive
-                      ? "bg-[#7928CA] text-white shadow-xs"
-                      : "text-[#7928CA] hover:bg-[#7928CA]/10"
+                      ? "bg-[#AE54C6] text-white shadow-xs"
+                      : "text-[#AE54C6] hover:bg-[#AE54C6]/10"
                   }`}
                 >
                   {cat.label}
@@ -107,7 +74,7 @@ export function CourseCards() {
             {filteredCourses.map((course) => {
               const isLiked = !!likedIds[course.id];
               const lectureCount = course.modules.reduce((sum, m) => sum + m.lessons.length, 0);
-              const banner = BANNER_STYLE[course.slug] || DEFAULT_BANNER;
+              const banner = getCourseVisual(course.slug);
 
               return (
                 <div
@@ -152,7 +119,7 @@ export function CourseCards() {
                     {/* Card Body */}
                     <div className="p-5 pb-4">
                       <div className="flex items-center justify-between mb-3">
-                        <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-md bg-[#F0EDF9] text-[#7928CA]">
+                        <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-md bg-[#F7EDF9] text-[#AE54C6]">
                           {course.badge}
                         </span>
 
@@ -171,7 +138,7 @@ export function CourseCards() {
                       </div>
 
                       <Link href={`/courses/${course.slug}`}>
-                        <h3 className="text-[17px] font-bold text-[#24292D] group-hover:text-[#7928CA] transition-colors leading-snug mb-2 line-clamp-2">
+                        <h3 className="text-[17px] font-bold text-[#24292D] group-hover:text-[#AE54C6] transition-colors leading-snug mb-2 line-clamp-2">
                           {course.title}
                         </h3>
                       </Link>
@@ -182,7 +149,7 @@ export function CourseCards() {
 
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-xs font-semibold text-[#24292D]">{course.tutor}</span>
-                        <span className="text-[11px] font-bold text-[#7928CA]">
+                        <span className="text-[11px] font-bold text-[#AE54C6]">
                           ₦{course.priceFull.toLocaleString()}
                         </span>
                       </div>
@@ -193,7 +160,7 @@ export function CourseCards() {
                   <div className="px-5 py-3.5 border-t border-slate-100">
                     <div className="flex items-center justify-between text-xs text-[#24292D] mb-2.5">
                       <span className="inline-flex items-center gap-1.5 text-[#747579]">
-                        <Clock className="w-3.5 h-3.5 text-[#7928CA]" />
+                        <Clock className="w-3.5 h-3.5 text-[#AE54C6]" />
                         {course.duration}
                       </span>
                       <span className="inline-flex items-center gap-1.5 text-[#747579]">
@@ -211,7 +178,7 @@ export function CourseCards() {
                       </Link>
                       <Link
                         href={`/subscriptions?course=${course.slug}`}
-                        className="inline-flex items-center gap-1 text-[#7928CA] hover:text-[#044F96] transition-colors"
+                        className="inline-flex items-center gap-1 text-[#AE54C6] hover:text-[#A03BBC] transition-colors"
                       >
                         <span>Enroll Now</span>
                         <ArrowRight className="w-3.5 h-3.5" />

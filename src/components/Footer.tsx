@@ -17,7 +17,7 @@ export function Footer() {
                 <strong className="text-[#24292D] text-base font-extrabold block leading-none">
                   BEMS INSTITUTE
                 </strong>
-                <span className="text-[10px] text-[#7928CA] font-bold uppercase tracking-wider">
+                <span className="text-[10px] text-[#AE54C6] font-bold uppercase tracking-wider">
                   OF TECHNOLOGY &amp; VOCATIONAL STUDIES
                 </span>
               </div>
@@ -67,20 +67,20 @@ export function Footer() {
               <li>
                 <Link
                   href="/courses/ai-automation"
-                  className="hover:text-[#7928CA] transition-colors"
+                  className="hover:text-[#AE54C6] transition-colors"
                 >
                   AI &amp; Automation
                 </Link>
               </li>
               <li>
-                <Link href="/courses/web-dev" className="hover:text-[#7928CA] transition-colors">
+                <Link href="/courses/web-dev" className="hover:text-[#AE54C6] transition-colors">
                   Web Development
                 </Link>
               </li>
               <li>
                 <Link
                   href="/courses/product-design"
-                  className="hover:text-[#7928CA] transition-colors"
+                  className="hover:text-[#AE54C6] transition-colors"
                 >
                   Product Design (UI/UX)
                 </Link>
@@ -88,7 +88,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/courses/cybersecurity"
-                  className="hover:text-[#7928CA] transition-colors"
+                  className="hover:text-[#AE54C6] transition-colors"
                 >
                   Cybersecurity
                 </Link>
@@ -101,27 +101,27 @@ export function Footer() {
             <h4 className="text-base font-bold text-[#24292D] mb-4">Community</h4>
             <ul className="space-y-2.5 text-xs sm:text-sm">
               <li>
-                <Link href="/dashboard" className="hover:text-[#7928CA] transition-colors">
+                <Link href="/dashboard" className="hover:text-[#AE54C6] transition-colors">
                   Student Dashboard
                 </Link>
               </li>
               <li>
-                <Link href="/ai" className="hover:text-[#7928CA] transition-colors">
+                <Link href="/ai" className="hover:text-[#AE54C6] transition-colors">
                   24/7 AI Tutor
                 </Link>
               </li>
               <li>
-                <Link href="/sandbox" className="hover:text-[#7928CA] transition-colors">
+                <Link href="/sandbox" className="hover:text-[#AE54C6] transition-colors">
                   Coding Sandbox
                 </Link>
               </li>
               <li>
-                <Link href="/leaderboard" className="hover:text-[#7928CA] transition-colors">
+                <Link href="/leaderboard" className="hover:text-[#AE54C6] transition-colors">
                   Cohort Leaderboard
                 </Link>
               </li>
               <li>
-                <Link href="/graduates" className="hover:text-[#7928CA] transition-colors">
+                <Link href="/graduates" className="hover:text-[#AE54C6] transition-colors">
                   Graduate Stories
                 </Link>
               </li>
@@ -133,22 +133,22 @@ export function Footer() {
             <h4 className="text-base font-bold text-[#24292D] mb-4">Teaching</h4>
             <ul className="space-y-2.5 text-xs sm:text-sm">
               <li>
-                <Link href="/become-instructor" className="hover:text-[#7928CA] transition-colors">
+                <Link href="/become-instructor" className="hover:text-[#AE54C6] transition-colors">
                   Become a Tutor
                 </Link>
               </li>
               <li>
-                <Link href="/instructor/grading" className="hover:text-[#7928CA] transition-colors">
+                <Link href="/instructor/grading" className="hover:text-[#AE54C6] transition-colors">
                   Capstone Grading
                 </Link>
               </li>
               <li>
-                <Link href="/qr-studio" className="hover:text-[#7928CA] transition-colors">
+                <Link href="/qr-studio" className="hover:text-[#AE54C6] transition-colors">
                   Banner QR Studio
                 </Link>
               </li>
               <li>
-                <Link href="/admin" className="hover:text-[#7928CA] transition-colors">
+                <Link href="/admin" className="hover:text-[#AE54C6] transition-colors">
                   Admin Scoreboard
                 </Link>
               </li>
@@ -160,18 +160,18 @@ export function Footer() {
             <h4 className="text-base font-bold text-[#24292D] mb-4">Contact</h4>
             <ul className="space-y-2.5 text-xs">
               <li className="flex items-start gap-2">
-                <Phone className="w-4 h-4 text-[#7928CA] shrink-0 mt-0.5" />
+                <Phone className="w-4 h-4 text-[#AE54C6] shrink-0 mt-0.5" />
                 <div>
                   <span className="block text-[#24292D] font-semibold">+234 800 000 0000</span>
                   <span className="text-[11px] text-[#747579]">(8:00 AM to 6:00 PM)</span>
                 </div>
               </li>
               <li className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-[#7928CA] shrink-0" />
+                <Mail className="w-4 h-4 text-[#AE54C6] shrink-0" />
                 <span className="truncate">admissions@bemsinstitute.ng</span>
               </li>
               <li className="flex items-start gap-2">
-                <MapPin className="w-4 h-4 text-[#7928CA] shrink-0 mt-0.5" />
+                <MapPin className="w-4 h-4 text-[#AE54C6] shrink-0 mt-0.5" />
                 <span>BEMS Innovation Hub, Umuahia, Abia State</span>
               </li>
               <li className="flex items-center gap-2">
@@ -190,19 +190,19 @@ export function Footer() {
           <div className="flex flex-wrap items-center gap-5">
             <Link
               href="/qr-studio"
-              className="inline-flex items-center gap-1 hover:text-[#7928CA] transition-colors"
+              className="inline-flex items-center gap-1 hover:text-[#AE54C6] transition-colors"
             >
               <QrCode className="w-3.5 h-3.5" />
               <span>QR Studio</span>
             </Link>
-            <Link href="/subscriptions" className="hover:text-[#7928CA] transition-colors">
+            <Link href="/subscriptions" className="hover:text-[#AE54C6] transition-colors">
               Terms of Admission
             </Link>
             <Link
               href="/admin"
-              className="inline-flex items-center gap-1 text-[#24292D] font-semibold hover:text-[#7928CA] transition-colors"
+              className="inline-flex items-center gap-1 text-[#24292D] font-semibold hover:text-[#AE54C6] transition-colors"
             >
-              <ShieldCheck className="w-3.5 h-3.5 text-[#7928CA]" />
+              <ShieldCheck className="w-3.5 h-3.5 text-[#AE54C6]" />
               <span>Staff Portal</span>
             </Link>
           </div>

@@ -90,7 +90,7 @@ function PracticeQuestionPanel({ conceptId }: { conceptId: string }) {
         <button
           type="button"
           onClick={generate}
-          className="flex items-center gap-1.5 text-[11px] font-bold text-[#7928CA] hover:underline"
+          className="flex items-center gap-1.5 text-[11px] font-bold text-[#AE54C6] hover:underline"
         >
           <Sparkles className="w-3.5 h-3.5" /> Generate a practice question
         </button>
@@ -109,7 +109,7 @@ function PracticeQuestionPanel({ conceptId }: { conceptId: string }) {
 
   return (
     <div className="mt-3 pt-3 border-t border-black/5 space-y-2">
-      <p className="text-xs font-semibold text-[#18143D]">{question.prompt}</p>
+      <p className="text-xs font-semibold text-[#303654]">{question.prompt}</p>
       <div className="space-y-1.5">
         {question.options.map((opt, i) => {
           const isSelected = selected === i;
@@ -126,7 +126,7 @@ function PracticeQuestionPanel({ conceptId }: { conceptId: string }) {
                   ? "border-emerald-400 bg-emerald-50 text-emerald-900"
                   : isWrongSelection
                   ? "border-red-300 bg-red-50 text-red-900"
-                  : "border-[#E6E1F5] bg-white hover:border-[#7928CA]/40"
+                  : "border-[#F1E2F5] bg-white hover:border-[#AE54C6]/40"
               }`}
             >
               <span>{opt}</span>
@@ -140,7 +140,7 @@ function PracticeQuestionPanel({ conceptId }: { conceptId: string }) {
         <div className={`text-[11px] rounded-lg p-2.5 ${result.correct ? "bg-emerald-50 text-emerald-900" : "bg-amber-50 text-amber-900"}`}>
           <p className="font-bold mb-0.5">{result.correct ? "Correct!" : "Not quite."}</p>
           <p>{result.explanation}</p>
-          <button type="button" onClick={generate} className="mt-1.5 font-bold text-[#7928CA] hover:underline">
+          <button type="button" onClick={generate} className="mt-1.5 font-bold text-[#AE54C6] hover:underline">
             Try another
           </button>
         </div>
@@ -169,10 +169,10 @@ function MasteryBar({ name, score, tone }: { name: string; score: number; tone: 
   return (
     <div>
       <div className="flex items-center justify-between text-xs mb-1">
-        <span className="font-semibold text-[#18143D] truncate pr-2">{name}</span>
+        <span className="font-semibold text-[#303654] truncate pr-2">{name}</span>
         <span className="font-bold text-[#645F80] shrink-0">{pct}%</span>
       </div>
-      <div className="w-full bg-[#F0EDF9] rounded-full h-2 overflow-hidden">
+      <div className="w-full bg-[#F7EDF9] rounded-full h-2 overflow-hidden">
         <div className={`h-full ${barColor} transition-all duration-500`} style={{ width: `${pct}%` }} />
       </div>
     </div>
@@ -187,7 +187,7 @@ export function LearningInsights() {
   // When no quiz attempts are logged yet, guide the student to calibrate their LearnIQ profile
   if (strengths.length === 0 && weaknesses.length === 0 && recommendations.length === 0) {
     return (
-      <div className="bg-white rounded-2xl border border-[#E6E1F5] p-6 sm:p-8 shadow-xs">
+      <div className="bg-white rounded-2xl border border-[#F1E2F5] p-6 sm:p-8 shadow-xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2 max-w-xl">
             <div className="flex items-center gap-2">
@@ -198,7 +198,7 @@ export function LearningInsights() {
                 </Badge>
               )}
             </div>
-            <h2 className="text-xl sm:text-2xl font-black text-[#18143D]">
+            <h2 className="text-xl sm:text-2xl font-black text-[#303654]">
               Calibrate Your LearnIQ Personalization Profile
             </h2>
             <p className="text-sm text-[#645F80] leading-relaxed">
@@ -212,7 +212,7 @@ export function LearningInsights() {
               </Button>
             </Link>
             <Link href="/ai?tab=tutor">
-              <Button variant="outline" size="sm" className="border-[#D1C9EB] text-[#7928CA]">
+              <Button variant="outline" size="sm" className="border-[#E5C8ED] text-[#AE54C6]">
                 <Bot className="w-4 h-4 mr-1.5" /> Ask AI Tutor
               </Button>
             </Link>
@@ -223,8 +223,8 @@ export function LearningInsights() {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-[#E6E1F5] p-6 sm:p-8 shadow-xs">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-[#F0EDF9]">
+    <div className="bg-white rounded-2xl border border-[#F1E2F5] p-6 sm:p-8 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-[#F7EDF9]">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Badge variant="purple">PERSONALIZATION ENGINE</Badge>
@@ -234,7 +234,7 @@ export function LearningInsights() {
               </Badge>
             )}
           </div>
-          <h2 className="text-2xl font-black text-[#18143D]">Your Learning Insights</h2>
+          <h2 className="text-2xl font-black text-[#303654]">Your Learning Insights</h2>
         </div>
         <p className="text-xs text-[#645F80] max-w-sm">
           Computed from your real quiz answers — not a generic study plan.
@@ -271,7 +271,7 @@ export function LearningInsights() {
       {recommendations.length > 0 && (
         <div>
           <h3 className="text-xs font-bold uppercase tracking-wider text-[#645F80] mb-3 flex items-center gap-1.5">
-            <Target className="w-4 h-4 text-[#7928CA]" /> Recommended For You
+            <Target className="w-4 h-4 text-[#AE54C6]" /> Recommended For You
           </h3>
           <div className="space-y-3">
             {recommendations.map((rec) => {
@@ -279,15 +279,15 @@ export function LearningInsights() {
               return (
                 <div
                   key={rec.id}
-                  className={`rounded-2xl border p-4 ${URGENCY_STYLE[rec.urgency] || "border-[#E6E1F5] bg-[#FAF8FF]"}`}
+                  className={`rounded-2xl border p-4 ${URGENCY_STYLE[rec.urgency] || "border-[#F1E2F5] bg-[#FAF8FF]"}`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-white border border-[#E6E1F5] flex items-center justify-center text-[#7928CA] shrink-0">
+                      <div className="w-8 h-8 rounded-lg bg-white border border-[#F1E2F5] flex items-center justify-center text-[#AE54C6] shrink-0">
                         {TYPE_ICON[rec.type] || <Target className="w-4 h-4" />}
                       </div>
                       <div>
-                        <h4 className="font-bold text-[#18143D] text-sm">{rec.title}</h4>
+                        <h4 className="font-bold text-[#303654] text-sm">{rec.title}</h4>
                         {rec.estimatedMinutes > 0 && (
                           <span className="text-[11px] text-[#8580A3]">~{rec.estimatedMinutes} min</span>
                         )}
@@ -303,7 +303,7 @@ export function LearningInsights() {
                   <button
                     type="button"
                     onClick={() => setExpandedId(isOpen ? null : rec.id)}
-                    className="mt-3 flex items-center gap-1 text-[11px] font-bold text-[#7928CA] hover:underline"
+                    className="mt-3 flex items-center gap-1 text-[11px] font-bold text-[#AE54C6] hover:underline"
                   >
                     {isOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                     Why am I seeing this?
@@ -319,7 +319,7 @@ export function LearningInsights() {
                         <ul className="space-y-1">
                           {rec.evidence.map((e, i) => (
                             <li key={i} className="text-[11px] text-[#645F80] flex items-start gap-1.5">
-                              <ArrowUpRight className="w-3 h-3 mt-0.5 shrink-0 text-[#7928CA]" />
+                              <ArrowUpRight className="w-3 h-3 mt-0.5 shrink-0 text-[#AE54C6]" />
                               <span>{e}</span>
                             </li>
                           ))}

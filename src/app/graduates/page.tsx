@@ -42,7 +42,7 @@ export default function GraduatesPage() {
 
       <section className="bg-[#F5F7F9] py-14 sm:py-16 px-4 sm:px-6 lg:px-8 text-center">
         <div className="max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F0EDF9] text-[#7928CA] text-xs font-bold uppercase tracking-wider mb-4">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F7EDF9] text-[#AE54C6] text-xs font-bold uppercase tracking-wider mb-4">
             <Sparkles className="w-3.5 h-3.5" /> Real Outcomes
           </div>
           <h1 className="font-display text-3xl sm:text-[44px] font-extrabold tracking-tight mb-3">
@@ -70,7 +70,7 @@ export default function GraduatesPage() {
                 key={o.id}
                 className={`rounded-xl border p-6 flex flex-col gap-4 ${
                   o.featured
-                    ? "border-[#7928CA] bg-[#F0EDF9]/40 shadow-[0_0_30px_rgba(12,188,135,0.08)]"
+                    ? "border-[#AE54C6] bg-[#F7EDF9]/40 shadow-[0_0_30px_rgba(12,188,135,0.08)]"
                     : "border-slate-200/90 bg-white"
                 }`}
               >
@@ -94,7 +94,7 @@ export default function GraduatesPage() {
                 </div>
 
                 <div>
-                  <p className="font-bold text-[#7928CA] text-sm mb-1">{o.headline}</p>
+                  <p className="font-bold text-[#AE54C6] text-sm mb-1">{o.headline}</p>
                   {o.company && (
                     <p className="text-xs text-[#747579] flex items-center gap-1.5">
                       <Building2 className="w-3.5 h-3.5" /> {o.company}
@@ -103,8 +103,8 @@ export default function GraduatesPage() {
                 </div>
 
                 {o.quote && (
-                  <blockquote className="text-xs sm:text-[13px] text-[#24292D]/80 leading-relaxed italic border-l-2 border-[#7928CA]/40 pl-3 flex gap-1.5">
-                    <Quote className="w-3.5 h-3.5 text-[#7928CA]/60 shrink-0 mt-0.5" />
+                  <blockquote className="text-xs sm:text-[13px] text-[#24292D]/80 leading-relaxed italic border-l-2 border-[#AE54C6]/40 pl-3 flex gap-1.5">
+                    <Quote className="w-3.5 h-3.5 text-[#AE54C6]/60 shrink-0 mt-0.5" />
                     <span>{o.quote}</span>
                   </blockquote>
                 )}

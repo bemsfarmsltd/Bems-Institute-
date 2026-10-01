@@ -29,8 +29,8 @@ const OTHER_STATS = [
   {
     value: "80 Seats",
     label: "October 2026 Cohort",
-    bg: "bg-[#EFEBF9]",
-    iconColor: "text-[#6F42C1]",
+    bg: "bg-[#F6ECF9]",
+    iconColor: "text-[#A16EBD]",
     Icon: GraduationCap
   },
   {
@@ -94,7 +94,7 @@ export function Hero() {
             {/* Green Starburst Accent */}
             <svg
               aria-hidden="true"
-              className="hidden sm:block absolute -top-8 left-[58%] w-6 h-6 text-[#7928CA]"
+              className="hidden sm:block absolute -top-8 left-[58%] w-6 h-6 text-[#AE54C6]"
               viewBox="0 0 24 24"
               fill="currentColor"
             >
@@ -151,16 +151,16 @@ export function Hero() {
             <div className="flex flex-wrap items-center gap-5">
               <Link
                 href="/subscriptions"
-                className="inline-flex items-center justify-center rounded-lg bg-[#7928CA] hover:bg-[#671FB0] text-white font-bold text-sm px-7 py-3.5 transition-all duration-200 shadow-2xs"
+                className="inline-flex items-center justify-center rounded-lg bg-[#AE54C6] hover:bg-[#A03BBC] text-white font-bold text-sm px-7 py-3.5 transition-all duration-200 shadow-2xs"
               >
                 Get Started
               </Link>
 
               <Link
                 href="#courses"
-                className="inline-flex items-center gap-3.5 group text-sm font-bold text-[#24292D] hover:text-[#7928CA] transition-colors"
+                className="inline-flex items-center gap-3.5 group text-sm font-bold text-[#24292D] hover:text-[#AE54C6] transition-colors"
               >
-                <span className="w-12 h-12 rounded-full bg-[#7928CA] text-white flex items-center justify-center ring-8 ring-[#7928CA]/15 group-hover:scale-105 transition-transform">
+                <span className="w-12 h-12 rounded-full bg-[#AE54C6] text-white flex items-center justify-center ring-8 ring-[#AE54C6]/15 group-hover:scale-105 transition-transform">
                   <Play className="w-4 h-4 fill-white ml-0.5" />
                 </span>
                 <span>Explore Courses</span>
@@ -168,9 +168,9 @@ export function Hero() {
 
               <Link
                 href="/qr-studio"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#747579] hover:text-[#7928CA] transition-colors ml-auto sm:ml-2"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#747579] hover:text-[#AE54C6] transition-colors ml-auto sm:ml-2"
               >
-                <QrCode className="w-4 h-4 text-[#7928CA]" />
+                <QrCode className="w-4 h-4 text-[#AE54C6]" />
                 <span>Banner QR Studio</span>
               </Link>
             </div>
@@ -190,7 +190,7 @@ export function Hero() {
           <div className="lg:col-span-6 relative flex justify-center">
             <div className="relative w-full max-w-[490px]">
               {/* Organic Eduport Navy Shape Container */}
-              <div className="relative mx-auto w-[320px] h-[360px] sm:w-[410px] sm:h-[440px] rounded-[46%_54%_48%_52%/54%_46%_54%_46%] bg-[#162A45] overflow-hidden shadow-xl">
+              <div className="relative mx-auto w-[320px] h-[360px] sm:w-[410px] sm:h-[440px] rounded-[46%_54%_48%_52%/54%_46%_54%_46%] bg-[#334E5B] overflow-hidden shadow-xl">
                 <Image
                   src="/images/eduport-hero-student.jpg"
                   alt="BEMS Institute Tech Student"
@@ -290,7 +290,7 @@ export function Hero() {
               </div>
 
               {/* Floating card: October 2026 cohort avatar stack */}
-              <div className="absolute top-24 -right-2 sm:-right-8 bg-[#7928CA] text-white rounded-2xl p-4 shadow-xl w-52 overflow-hidden">
+              <div className="absolute top-24 -right-2 sm:-right-8 bg-[#AE54C6] text-white rounded-2xl p-4 shadow-xl w-52 overflow-hidden">
                 {/* Subtle topographic wave pattern */}
                 <svg
                   aria-hidden="true"
@@ -314,13 +314,13 @@ export function Hero() {
                   <div className="w-8 h-8 rounded-full border-2 border-white bg-[#D6293E] text-white text-[10px] font-extrabold flex items-center justify-center">
                     AN
                   </div>
-                  <div className="w-8 h-8 rounded-full border-2 border-white bg-[#6F42C1] text-white text-[10px] font-extrabold flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-full border-2 border-white bg-[#A16EBD] text-white text-[10px] font-extrabold flex items-center justify-center">
                     EK
                   </div>
                   <div className="w-8 h-8 rounded-full border-2 border-white bg-[#1D3B53] text-white text-[10px] font-extrabold flex items-center justify-center">
                     UI
                   </div>
-                  <div className="w-9 h-9 rounded-full border-2 border-white bg-[#7928CA] text-white text-[10px] font-extrabold flex items-center justify-center">
+                  <div className="w-9 h-9 rounded-full border-2 border-white bg-[#AE54C6] text-white text-[10px] font-extrabold flex items-center justify-center">
                     80+
                   </div>
                 </div>
@@ -336,7 +336,7 @@ export function Hero() {
                     <h4 className="text-xs sm:text-sm font-extrabold text-[#24292D]">
                       Congratulations
                     </h4>
-                    <span className="w-4 h-4 rounded-full bg-[#7928CA] text-white flex items-center justify-center text-[10px] font-bold">
+                    <span className="w-4 h-4 rounded-full bg-[#AE54C6] text-white flex items-center justify-center text-[10px] font-bold">
                       ✓
                     </span>
                   </div>

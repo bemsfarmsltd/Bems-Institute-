@@ -2,18 +2,18 @@
 
 :root {
   --background: #FAF8FF;
-  --foreground: #18143D;
+  --foreground: #303654;
   color-scheme: light;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-brand-navy: #18143D;
-  --color-brand-dark: #1E1B38;
-  --color-brand-purple: #7928CA;
-  --color-brand-purple-hover: #671FB0;
-  --color-brand-lavender: #F0EDF9;
+  --color-brand-navy: #303654;
+  --color-brand-dark: #363A50;
+  --color-brand-purple: #AE54C6;
+  --color-brand-purple-hover: #A03BBC;
+  --color-brand-lavender: #F7EDF9;
   --color-brand-light: #FAF8FF;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);

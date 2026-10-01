@@ -65,6 +65,7 @@ interface LMSContextType {
   logout: () => void;
   requestPasswordReset: (email: string) => Promise<{ ok: boolean; message: string }>;
   resetPassword: (token: string, password: string) => Promise<AuthResult>;
+  uploadAvatar: (file: File) => Promise<{ ok: boolean; error?: string }>;
   // Course catalog — DB-backed, public
   courses: LMSCourse[];
   quizzes: Quiz[];
@@ -427,6 +428,25 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const uploadAvatar = async (file: File): Promise<{ ok: boolean; error?: string }> => {
+    try {
+      const formData = new FormData();
+      formData.append("avatar", file);
+      // No Content-Type header — the browser sets the multipart boundary
+      // itself, which breaks if a fixed "application/json" is forced here.
+      const res = await apiFetch("/api/auth/avatar", { method: "POST", body: formData });
+      const data = await res.json();
+      if (res.ok && data.user) {
+        setUser(data.user);
+        localStorage.setItem("bems_lms_user", JSON.stringify(data.user));
+        return { ok: true };
+      }
+      return { ok: false, error: data.error || "Could not upload the image." };
+    } catch {
+      return { ok: false, error: "Could not reach the server. Please try again." };
+    }
+  };
+
   const setVerifiedUser = (verified: User) => {
     setUser(verified);
     localStorage.setItem("bems_lms_user", JSON.stringify(verified));
@@ -601,6 +621,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
         logout,
         requestPasswordReset,
         resetPassword,
+        uploadAvatar,
         courses,
         quizzes,
         assignments,

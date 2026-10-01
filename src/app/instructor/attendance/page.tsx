@@ -135,7 +135,7 @@ function InstructorAttendanceContent() {
     <div className="min-h-screen flex flex-col bg-[#FAF8FF]">
       <Navbar />
 
-      <div className="bg-[#18143D] text-white py-10 border-b border-white/10">
+      <div className="bg-[#303654] text-white py-10 border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
@@ -143,7 +143,7 @@ function InstructorAttendanceContent() {
               <Badge variant="gold">FACULTY PORTAL</Badge>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black">Attendance Tracking</h1>
-            <p className="text-xs sm:text-sm text-[#A5A0C8]">
+            <p className="text-xs sm:text-sm text-[#C6BDD3]">
               Create live sessions and mark who showed up. Students who miss two sessions in a row are
               automatically flagged with an in-app check-in reminder.
             </p>
@@ -166,11 +166,11 @@ function InstructorAttendanceContent() {
         )}
 
         <div>
-          <label className="block text-xs font-bold text-[#18143D] uppercase tracking-wider mb-1.5">Course</label>
+          <label className="block text-xs font-bold text-[#303654] uppercase tracking-wider mb-1.5">Course</label>
           <select
             value={courseId}
             onChange={(e) => setCourseId(e.target.value)}
-            className="w-full sm:w-96 px-4 py-2.5 rounded-xl border border-[#E6E1F5] text-sm font-semibold text-[#18143D] focus:outline-none focus:border-[#7928CA]"
+            className="w-full sm:w-96 px-4 py-2.5 rounded-xl border border-[#F1E2F5] text-sm font-semibold text-[#303654] focus:outline-none focus:border-[#AE54C6]"
           >
             {adminCourses.map((c) => (
               <option key={c.id} value={c.id}>{c.title}</option>
@@ -181,29 +181,29 @@ function InstructorAttendanceContent() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left: sessions list + create form */}
           <div className="lg:col-span-5 space-y-4">
-            <form onSubmit={handleCreateSession} className="bg-white border border-[#E6E1F5] rounded-2xl p-5 space-y-3">
-              <h3 className="font-extrabold text-[#18143D] text-sm flex items-center gap-1.5">
-                <CalendarPlus className="w-4 h-4 text-[#7928CA]" /> New Live Session
+            <form onSubmit={handleCreateSession} className="bg-white border border-[#F1E2F5] rounded-2xl p-5 space-y-3">
+              <h3 className="font-extrabold text-[#303654] text-sm flex items-center gap-1.5">
+                <CalendarPlus className="w-4 h-4 text-[#AE54C6]" /> New Live Session
               </h3>
               <input
                 type="text"
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
                 placeholder="e.g. Week 4 — Live Q&A"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E1F5] text-xs focus:outline-none focus:border-[#7928CA]"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#F1E2F5] text-xs focus:outline-none focus:border-[#AE54C6]"
               />
               <input
                 type="datetime-local"
                 value={newScheduledAt}
                 onChange={(e) => setNewScheduledAt(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E1F5] text-xs focus:outline-none focus:border-[#7928CA]"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#F1E2F5] text-xs focus:outline-none focus:border-[#AE54C6]"
               />
               <input
                 type="url"
                 value={newMeetingUrl}
                 onChange={(e) => setNewMeetingUrl(e.target.value)}
                 placeholder="Meeting link (Zoom/Meet) — optional"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E1F5] text-xs focus:outline-none focus:border-[#7928CA]"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#F1E2F5] text-xs focus:outline-none focus:border-[#AE54C6]"
               />
               <Button type="submit" size="sm" disabled={creating} className="w-full">
                 {creating ? "Creating…" : "Create Session"}
@@ -211,7 +211,7 @@ function InstructorAttendanceContent() {
             </form>
 
             <div className="space-y-2">
-              <h3 className="font-extrabold text-[#18143D] text-sm px-1">Sessions ({sessions.length})</h3>
+              <h3 className="font-extrabold text-[#303654] text-sm px-1">Sessions ({sessions.length})</h3>
               {sessions.length === 0 && (
                 <p className="text-xs text-[#645F80] px-1">No sessions yet for this course.</p>
               )}
@@ -221,11 +221,11 @@ function InstructorAttendanceContent() {
                   onClick={() => setSelectedSessionId(s.id)}
                   className={`p-4 rounded-xl border cursor-pointer transition-all ${
                     selectedSessionId === s.id
-                      ? "bg-white border-[#7928CA] shadow-md ring-2 ring-[#7928CA]/20"
-                      : "bg-white border-[#E6E1F5] hover:border-[#7928CA]/40"
+                      ? "bg-white border-[#AE54C6] shadow-md ring-2 ring-[#AE54C6]/20"
+                      : "bg-white border-[#F1E2F5] hover:border-[#AE54C6]/40"
                   }`}
                 >
-                  <p className="text-xs font-bold text-[#18143D]">{s.title}</p>
+                  <p className="text-xs font-bold text-[#303654]">{s.title}</p>
                   <p className="text-[11px] text-[#645F80]">{new Date(s.scheduledAt).toLocaleString()}</p>
                 </div>
               ))}
@@ -235,18 +235,18 @@ function InstructorAttendanceContent() {
           {/* Right: roster marking */}
           <div className="lg:col-span-7">
             {selectedSessionId ? (
-              <form onSubmit={handleSaveRoster} className="bg-white border border-[#E6E1F5] rounded-3xl p-6 sm:p-8 shadow-md space-y-4">
-                <h2 className="text-lg font-black text-[#18143D]">Mark Attendance ({roster.length} enrolled)</h2>
+              <form onSubmit={handleSaveRoster} className="bg-white border border-[#F1E2F5] rounded-3xl p-6 sm:p-8 shadow-md space-y-4">
+                <h2 className="text-lg font-black text-[#303654]">Mark Attendance ({roster.length} enrolled)</h2>
 
                 {roster.length === 0 && (
                   <p className="text-xs text-[#645F80]">No enrolled students for this course yet.</p>
                 )}
 
-                <div className="divide-y divide-[#F0EDF9]">
+                <div className="divide-y divide-[#F7EDF9]">
                   {roster.map((r) => (
                     <div key={r.userId} className="flex items-center justify-between py-3">
                       <div className="min-w-0">
-                        <p className="text-xs font-bold text-[#18143D] truncate">{r.name}</p>
+                        <p className="text-xs font-bold text-[#303654] truncate">{r.name}</p>
                         <p className="text-[11px] text-[#645F80] truncate">{r.email}</p>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
@@ -256,7 +256,7 @@ function InstructorAttendanceContent() {
                           className={`p-2 rounded-lg border flex items-center gap-1 text-[11px] font-bold ${
                             marks[r.userId]
                               ? "border-emerald-400 bg-emerald-50 text-emerald-700"
-                              : "border-[#E6E1F5] text-[#8580A3]"
+                              : "border-[#F1E2F5] text-[#8580A3]"
                           }`}
                         >
                           <UserCheck className="w-3.5 h-3.5" /> Present
@@ -267,7 +267,7 @@ function InstructorAttendanceContent() {
                           className={`p-2 rounded-lg border flex items-center gap-1 text-[11px] font-bold ${
                             !marks[r.userId]
                               ? "border-red-300 bg-red-50 text-red-600"
-                              : "border-[#E6E1F5] text-[#8580A3]"
+                              : "border-[#F1E2F5] text-[#8580A3]"
                           }`}
                         >
                           <UserX className="w-3.5 h-3.5" /> Absent
@@ -288,7 +288,7 @@ function InstructorAttendanceContent() {
                 </Button>
               </form>
             ) : (
-              <div className="bg-white border border-[#E6E1F5] rounded-3xl p-12 text-center text-[#645F80] text-xs">
+              <div className="bg-white border border-[#F1E2F5] rounded-3xl p-12 text-center text-[#645F80] text-xs">
                 Select or create a session on the left to mark attendance.
               </div>
             )}

@@ -468,7 +468,7 @@ export function EduportNotFoundView() {
 
         <Link
           href="/"
-          className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-[#7928CA] hover:bg-[#671FB0] text-white text-[13.5px] font-bold mt-6 transition-colors shadow-2xs"
+          className="inline-flex items-center justify-center px-6 py-3 rounded-lg bg-[#AE54C6] hover:bg-[#A03BBC] text-white text-[13.5px] font-bold mt-6 transition-colors shadow-2xs"
         >
           Take me to Homepage
         </Link>

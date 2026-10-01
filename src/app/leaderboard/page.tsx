@@ -63,7 +63,7 @@ export default function LeaderboardPage() {
       <Navbar />
 
       {/* Hero Banner */}
-      <div className="bg-[#18143D] text-white py-12 border-b border-white/10">
+      <div className="bg-[#303654] text-white py-12 border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
@@ -74,7 +74,7 @@ export default function LeaderboardPage() {
               <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
                 Cohort Leaderboard &amp; Badges
               </h1>
-              <p className="text-xs sm:text-sm text-[#A5A0C8] mt-1">
+              <p className="text-xs sm:text-sm text-[#C6BDD3] mt-1">
                 Earn XP points for completed lessons, quiz scores, and certificates — real rankings, computed from your actual progress.
               </p>
             </div>
@@ -82,11 +82,11 @@ export default function LeaderboardPage() {
             {me && (
               <div className="flex items-center gap-4 bg-white/10 p-4 rounded-2xl border border-white/20">
                 <div className="text-center px-3 border-r border-white/20">
-                  <span className="text-[10px] text-[#A5A0C8] font-bold block uppercase">Total XP</span>
+                  <span className="text-[10px] text-[#C6BDD3] font-bold block uppercase">Total XP</span>
                   <span className="text-2xl font-black text-amber-300">{me.xpPoints}</span>
                 </div>
                 <div className="text-center px-3">
-                  <span className="text-[10px] text-[#A5A0C8] font-bold block uppercase">Study Streak</span>
+                  <span className="text-[10px] text-[#C6BDD3] font-bold block uppercase">Study Streak</span>
                   <span className="text-2xl font-black text-orange-400 flex items-center gap-1">
                     <Flame className="w-5 h-5" /> {me.streakDays}d
                   </span>
@@ -101,13 +101,13 @@ export default function LeaderboardPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full space-y-10">
         {/* Top Gamer Profile Widget */}
         {me && (
-          <div className="bg-white rounded-3xl border border-[#E6E1F5] p-6 sm:p-8 shadow-xs">
+          <div className="bg-white rounded-3xl border border-[#F1E2F5] p-6 sm:p-8 shadow-xs">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6">
               <div>
-                <span className="text-xs uppercase font-bold text-[#7928CA] tracking-wider block mb-1">
+                <span className="text-xs uppercase font-bold text-[#AE54C6] tracking-wider block mb-1">
                   Your Current Status &amp; Standing
                 </span>
-                <h2 className="text-2xl font-black text-[#18143D]">
+                <h2 className="text-2xl font-black text-[#303654]">
                   Level {me.level}: {me.levelTitle}
                 </h2>
                 <p className="text-xs text-[#645F80] mt-1">
@@ -116,13 +116,13 @@ export default function LeaderboardPage() {
               </div>
 
               <div className="w-full md:w-72">
-                <div className="flex items-center justify-between text-xs font-bold text-[#18143D] mb-1.5">
+                <div className="flex items-center justify-between text-xs font-bold text-[#303654] mb-1.5">
                   <span>XP Progress</span>
                   <span>{me.xpPoints} / {nextLevelXp} XP</span>
                 </div>
-                <div className="w-full bg-[#E6E1F5] rounded-full h-3 overflow-hidden">
+                <div className="w-full bg-[#F1E2F5] rounded-full h-3 overflow-hidden">
                   <div
-                    className="bg-gradient-to-r from-[#7928CA] to-[#8B5CF6] h-full transition-all duration-500"
+                    className="bg-gradient-to-r from-[#AE54C6] to-[#C591E9] h-full transition-all duration-500"
                     style={{ width: `${progressPct}%` }}
                   />
                 </div>
@@ -131,7 +131,7 @@ export default function LeaderboardPage() {
 
             {/* Badges Drawer */}
             <div>
-              <h3 className="text-sm font-black text-[#18143D] mb-3">
+              <h3 className="text-sm font-black text-[#303654] mb-3">
                 Unlocked Achievements &amp; Badges ({me.badges.length} / {Object.keys(BADGE_DEFINITIONS).length})
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -141,11 +141,11 @@ export default function LeaderboardPage() {
                     <div
                       key={key}
                       className={`p-4 rounded-2xl border text-center transition-all ${
-                        isUnlocked ? "bg-[#FAF8FF] border-[#D1C9EB] shadow-xs" : "bg-gray-50 border-gray-200 opacity-50"
+                        isUnlocked ? "bg-[#FAF8FF] border-[#E5C8ED] shadow-xs" : "bg-gray-50 border-gray-200 opacity-50"
                       }`}
                     >
-                      <div className="flex justify-center mb-2 text-[#7928CA]">{def.icon}</div>
-                      <h4 className="font-bold text-xs text-[#18143D] mb-1">{def.title}</h4>
+                      <div className="flex justify-center mb-2 text-[#AE54C6]">{def.icon}</div>
+                      <h4 className="font-bold text-xs text-[#303654] mb-1">{def.title}</h4>
                       <p className="text-[10px] text-[#645F80] leading-snug">{def.description}</p>
                       {isUnlocked ? (
                         <span className="inline-block mt-2 text-[9px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
@@ -164,10 +164,10 @@ export default function LeaderboardPage() {
 
         {/* Cohort Leaderboard Table */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 bg-white rounded-3xl border border-[#E6E1F5] shadow-xs overflow-hidden">
-            <div className="p-6 border-b border-[#F0EDF9] flex items-center justify-between">
+          <div className="lg:col-span-2 bg-white rounded-3xl border border-[#F1E2F5] shadow-xs overflow-hidden">
+            <div className="p-6 border-b border-[#F7EDF9] flex items-center justify-between">
               <div>
-                <h3 className="text-xl font-black text-[#18143D]">Cohort Top Learners</h3>
+                <h3 className="text-xl font-black text-[#303654]">Cohort Top Learners</h3>
                 <p className="text-xs text-[#645F80]">
                   Rankings update as students complete lessons, pass quizzes, and earn certificates.
                 </p>
@@ -175,7 +175,7 @@ export default function LeaderboardPage() {
               <Trophy className="w-6 h-6 text-amber-500" />
             </div>
 
-            <div className="divide-y divide-[#F0EDF9]">
+            <div className="divide-y divide-[#F7EDF9]">
               {leaderboard.length === 0 ? (
                 <p className="p-6 text-xs text-[#8580A3]">No students yet.</p>
               ) : (
@@ -193,19 +193,19 @@ export default function LeaderboardPage() {
                       }`}
                     >
                       <div className="flex items-center gap-3.5">
-                        <div className="w-8 text-center font-black text-sm text-[#18143D] flex items-center justify-center">
+                        <div className="w-8 text-center font-black text-sm text-[#303654] flex items-center justify-center">
                           {rankIcon || `#${student.rank}`}
                         </div>
 
-                        <div className="w-9 h-9 rounded-2xl bg-[#18143D] text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                        <div className="w-9 h-9 rounded-2xl bg-[#303654] text-white flex items-center justify-center font-bold text-xs shadow-xs">
                           {initials(student.name)}
                         </div>
 
                         <div>
-                          <div className="font-bold text-sm text-[#18143D] flex items-center gap-1.5">
+                          <div className="font-bold text-sm text-[#303654] flex items-center gap-1.5">
                             {student.name}
                             {student.isMe && (
-                              <span className="text-[10px] bg-[#7928CA] text-white px-2 py-0.2 rounded-full font-bold">
+                              <span className="text-[10px] bg-[#AE54C6] text-white px-2 py-0.2 rounded-full font-bold">
                                 You
                               </span>
                             )}
@@ -222,7 +222,7 @@ export default function LeaderboardPage() {
                         </div>
 
                         <div>
-                          <span className="text-sm font-black text-[#18143D] block">
+                          <span className="text-sm font-black text-[#303654] block">
                             {student.xpPoints.toLocaleString()} XP
                           </span>
                           <span className="text-[10px] text-[#8580A3]">{student.badgesCount} badges</span>
@@ -237,31 +237,31 @@ export default function LeaderboardPage() {
 
           {/* XP Rules & How to Level Up */}
           <div className="space-y-6">
-            <div className="bg-white rounded-3xl border border-[#E6E1F5] p-6 shadow-xs space-y-4">
-              <h3 className="font-black text-base text-[#18143D] flex items-center gap-2">
+            <div className="bg-white rounded-3xl border border-[#F1E2F5] p-6 shadow-xs space-y-4">
+              <h3 className="font-black text-base text-[#303654] flex items-center gap-2">
                 <Zap className="w-5 h-5 text-amber-500" /> How to Earn XP Points
               </h3>
 
               <div className="space-y-2.5 text-xs text-[#4A4568]">
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#FAF8FF] border border-[#E6E1F5]">
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#FAF8FF] border border-[#F1E2F5]">
                   <span>Complete a Video Lesson:</span>
-                  <strong className="text-[#7928CA] font-black">+15 XP</strong>
+                  <strong className="text-[#AE54C6] font-black">+15 XP</strong>
                 </div>
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#FAF8FF] border border-[#E6E1F5]">
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#FAF8FF] border border-[#F1E2F5]">
                   <span>Quiz Score (your best attempt):</span>
-                  <strong className="text-[#7928CA] font-black">up to +100 XP</strong>
+                  <strong className="text-[#AE54C6] font-black">up to +100 XP</strong>
                 </div>
-                <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#FAF8FF] border border-[#E6E1F5]">
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-[#FAF8FF] border border-[#F1E2F5]">
                   <span>Earn a Course Certificate:</span>
                   <strong className="text-emerald-700 font-black">+100 XP</strong>
                 </div>
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-[#18143D] to-[#2E1065] text-white rounded-3xl p-6 shadow-xl space-y-3">
+            <div className="bg-gradient-to-br from-[#303654] to-[#5B2479] text-white rounded-3xl p-6 shadow-xl space-y-3">
               <Badge variant="gold">EMPLOYER SHOWCASE</Badge>
               <h4 className="text-lg font-black">Top 10 Leaderboard Recognition</h4>
-              <p className="text-xs text-[#C4BDE7] leading-relaxed">
+              <p className="text-xs text-[#E5DDEF] leading-relaxed">
                 The top 10 ranked students in each cohort are featured directly in our institutional employer matchmaking portfolio distributed to hiring tech firms in Lagos, Abuja, and abroad.
               </p>
               <Link href="/learn/web-dev/assignment/assign-web-dev" className="block pt-1">

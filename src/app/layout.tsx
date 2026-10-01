@@ -32,7 +32,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#18143D",
+  themeColor: "#303654",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5
@@ -52,7 +52,7 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
       </head>
-      <body className="min-h-full flex flex-col font-sans bg-white text-[#18143D]">
+      <body className="min-h-full flex flex-col font-sans bg-white text-[#303654]">
         <LMSProvider>{children}</LMSProvider>
         <script
           dangerouslySetInnerHTML={{

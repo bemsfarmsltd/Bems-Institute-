@@ -333,7 +333,7 @@ export const INITIAL_ANALYTICS: AnalyticsSummary = {
   completionRate: 82,
   certificatesIssued: 14,
   trackDistribution: [
-    { track: "Web Development", count: 32, revenue: 2640000, color: "#7928CA" },
+    { track: "Web Development", count: 32, revenue: 2640000, color: "#AE54C6" },
     { track: "AI & Automation", count: 24, revenue: 2060000, color: "#25D366" },
     { track: "Product Design", count: 18, revenue: 1310000, color: "#F5A623" },
     { track: "Cybersecurity", count: 14, revenue: 910000, color: "#3B82F6" }

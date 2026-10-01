@@ -57,7 +57,7 @@ export default function LessonViewPage({
       <div className="min-h-screen flex flex-col bg-[#FAF8FF]">
         <Navbar />
         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-          <h2 className="text-2xl font-bold text-[#18143D] mb-4">Course Not Found</h2>
+          <h2 className="text-2xl font-bold text-[#303654] mb-4">Course Not Found</h2>
           <Link href="/">
             <Button>Back to Courses</Button>
           </Link>
@@ -75,7 +75,7 @@ export default function LessonViewPage({
       <div className="min-h-screen flex flex-col bg-[#FAF8FF]">
         <Navbar />
         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-          <h2 className="text-2xl font-bold text-[#18143D] mb-2">Curriculum Coming Soon</h2>
+          <h2 className="text-2xl font-bold text-[#303654] mb-2">Curriculum Coming Soon</h2>
           <p className="text-sm text-[#645F80] mb-6 max-w-md">
             {course.title} doesn&apos;t have any published lessons yet. Check back soon, or explore another track in the meantime.
           </p>
@@ -128,21 +128,21 @@ export default function LessonViewPage({
       <Navbar />
 
       {/* Classroom Header Bar */}
-      <div className="bg-[#18143D] text-white py-4 px-4 sm:px-8 border-b border-white/10">
+      <div className="bg-[#303654] text-white py-4 px-4 sm:px-8 border-b border-white/10">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Link
               href={`/courses/${slug}`}
-              className="text-[#A5A0C8] hover:text-white transition-colors p-1"
+              className="text-[#C6BDD3] hover:text-white transition-colors p-1"
             >
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs uppercase tracking-wider text-[#A5A0C8] font-bold">
+                <span className="text-xs uppercase tracking-wider text-[#C6BDD3] font-bold">
                   {course.title} Classroom
                 </span>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-[#7928CA]/30 text-purple-200 border border-[#7928CA]/50 font-semibold">
+                <span className="text-xs px-2 py-0.5 rounded-full bg-[#AE54C6]/30 text-purple-200 border border-[#AE54C6]/50 font-semibold">
                   {progress.percent}% Completed
                 </span>
               </div>
@@ -192,7 +192,7 @@ export default function LessonViewPage({
           {/* Main Video & Lesson Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Video Player */}
-            <div className="rounded-2xl overflow-hidden bg-black shadow-xl border border-[#E6E1F5] aspect-video relative group">
+            <div className="rounded-2xl overflow-hidden bg-black shadow-xl border border-[#F1E2F5] aspect-video relative group">
               <video
                 key={currentLesson.videoUrl}
                 controls
@@ -205,18 +205,18 @@ export default function LessonViewPage({
             </div>
 
             {/* Lesson Control Bar */}
-            <div className="bg-white rounded-2xl p-6 border border-[#E6E1F5] shadow-xs">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#F0EDF9]">
+            <div className="bg-white rounded-2xl p-6 border border-[#F1E2F5] shadow-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#F7EDF9]">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-bold text-[#7928CA]">
+                    <span className="text-xs font-bold text-[#AE54C6]">
                       LESSON {currentLessonIndex + 1} OF {allLessons.length}
                     </span>
                     <span className="text-xs text-[#8580A3] flex items-center gap-1">
                       <Clock className="w-3.5 h-3.5" /> {currentLesson.duration}
                     </span>
                   </div>
-                  <h2 className="text-xl sm:text-2xl font-black text-[#18143D]">
+                  <h2 className="text-xl sm:text-2xl font-black text-[#303654]">
                     {currentLesson.title}
                   </h2>
                 </div>
@@ -225,7 +225,7 @@ export default function LessonViewPage({
                   <Button
                     onClick={() => toggleLessonComplete(currentLesson.id)}
                     variant={isCompleted ? "secondary" : "outline"}
-                    className="border-[#D1C9EB]"
+                    className="border-[#E5C8ED]"
                   >
                     {isCompleted ? (
                       <>
@@ -271,12 +271,12 @@ export default function LessonViewPage({
 
                 {/* Knowledge Concepts Covered in This Lesson */}
                 {lessonConcepts.length > 0 && (
-                  <div className="pt-3 border-t border-[#F0EDF9]">
+                  <div className="pt-3 border-t border-[#F7EDF9]">
                     <div className="flex items-center justify-between gap-2 mb-3">
                       <h3 className="text-xs font-bold uppercase tracking-wider text-[#645F80] flex items-center gap-1.5">
-                        <Target className="w-3.5 h-3.5 text-[#7928CA]" /> Knowledge Concepts in This Lesson
+                        <Target className="w-3.5 h-3.5 text-[#AE54C6]" /> Knowledge Concepts in This Lesson
                       </h3>
-                      <span className="text-[11px] font-semibold text-[#7928CA]">
+                      <span className="text-[11px] font-semibold text-[#AE54C6]">
                         Tracked by LearnIQ Engine
                       </span>
                     </div>
@@ -292,11 +292,11 @@ export default function LessonViewPage({
                         return (
                           <div
                             key={concept.id}
-                            className="p-3.5 rounded-xl bg-[#FAF8FF] border border-[#E6E1F5] flex flex-col justify-between gap-2.5"
+                            className="p-3.5 rounded-xl bg-[#FAF8FF] border border-[#F1E2F5] flex flex-col justify-between gap-2.5"
                           >
                             <div>
                               <div className="flex items-center justify-between gap-2 mb-1">
-                                <span className="text-xs font-bold text-[#18143D]">
+                                <span className="text-xs font-bold text-[#303654]">
                                   {concept.name}
                                 </span>
                                 {masteryPct !== null ? (
@@ -310,7 +310,7 @@ export default function LessonViewPage({
                                     {masteryPct}% Mastery
                                   </span>
                                 ) : (
-                                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white text-[#645F80] border border-[#E6E1F5]">
+                                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white text-[#645F80] border border-[#F1E2F5]">
                                     Untested
                                   </span>
                                 )}
@@ -324,7 +324,7 @@ export default function LessonViewPage({
                             <div className="flex items-center justify-between pt-1">
                               <Link
                                 href={`/ai?tab=tutor&courseId=${encodeURIComponent(course.id)}&lessonTitle=${encodeURIComponent(`${currentLesson.title} — ${concept.name}`)}`}
-                                className="inline-flex items-center gap-1 text-xs font-bold text-[#7928CA] hover:text-[#5B189A] transition-colors"
+                                className="inline-flex items-center gap-1 text-xs font-bold text-[#AE54C6] hover:text-[#9132A8] transition-colors"
                               >
                                 <Bot className="w-3.5 h-3.5" /> Explain {concept.name} with AI →
                               </Link>
@@ -336,13 +336,13 @@ export default function LessonViewPage({
                   </div>
                 )}
 
-                <div className="p-4 rounded-xl bg-[#FAF8FF] border border-[#E6E1F5] flex items-center justify-between">
+                <div className="p-4 rounded-xl bg-[#FAF8FF] border border-[#F1E2F5] flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-[#7928CA]/10 text-[#7928CA] flex items-center justify-center font-bold text-sm">
+                    <div className="w-10 h-10 rounded-full bg-[#AE54C6]/10 text-[#AE54C6] flex items-center justify-center font-bold text-sm">
                       {course.tutor.substring(0, 2)}
                     </div>
                     <div>
-                      <div className="text-xs font-bold text-[#18143D]">
+                      <div className="text-xs font-bold text-[#303654]">
                         Lead Tutor: {course.tutor}
                       </div>
                       <div className="text-xs text-[#645F80]">
@@ -358,20 +358,20 @@ export default function LessonViewPage({
 
           {/* Course Curriculum Drawer / Sidebar */}
           <div className="space-y-6">
-            <div className="bg-white rounded-2xl border border-[#E6E1F5] shadow-xs p-5">
-              <div className="flex items-center justify-between pb-3 border-b border-[#F0EDF9] mb-4">
-                <h3 className="font-bold text-[#18143D] text-sm">
+            <div className="bg-white rounded-2xl border border-[#F1E2F5] shadow-xs p-5">
+              <div className="flex items-center justify-between pb-3 border-b border-[#F7EDF9] mb-4">
+                <h3 className="font-bold text-[#303654] text-sm">
                   Course Content & Modules
                 </h3>
-                <span className="text-xs font-semibold text-[#7928CA]">
+                <span className="text-xs font-semibold text-[#AE54C6]">
                   {progress.completed}/{progress.total} Done
                 </span>
               </div>
 
               {/* Progress bar */}
-              <div className="w-full bg-[#E6E1F5] rounded-full h-2 mb-6 overflow-hidden">
+              <div className="w-full bg-[#F1E2F5] rounded-full h-2 mb-6 overflow-hidden">
                 <div
-                  className="bg-gradient-to-r from-[#7928CA] to-[#8B5CF6] h-full transition-all duration-300"
+                  className="bg-gradient-to-r from-[#AE54C6] to-[#C591E9] h-full transition-all duration-300"
                   style={{ width: `${progress.percent}%` }}
                 />
               </div>
@@ -380,7 +380,7 @@ export default function LessonViewPage({
               <div className="space-y-4 max-h-[600px] overflow-y-auto pr-1">
                 {course.modules.map((mod) => (
                   <div key={mod.id} className="space-y-2">
-                    <div className="text-xs font-bold text-[#18143D] px-2 py-1 bg-[#FAF8FF] rounded-lg border border-[#E6E1F5]/60">
+                    <div className="text-xs font-bold text-[#303654] px-2 py-1 bg-[#FAF8FF] rounded-lg border border-[#F1E2F5]/60">
                       {mod.title}
                     </div>
 
@@ -395,7 +395,7 @@ export default function LessonViewPage({
                             href={`/learn/${slug}/${les.id}`}
                             className={`flex items-center justify-between p-2.5 rounded-xl text-xs transition-all ${
                               isCurrent
-                                ? "bg-[#7928CA] text-white font-semibold shadow-xs"
+                                ? "bg-[#AE54C6] text-white font-semibold shadow-xs"
                                 : "hover:bg-[#FAF8FF] text-[#4A4568]"
                             }`}
                           >
@@ -431,13 +431,13 @@ export default function LessonViewPage({
               </div>
 
               {/* Assessment Card in Sidebar */}
-              <div className="mt-6 pt-4 border-t border-[#F0EDF9] space-y-2">
-                <div className="text-xs font-bold text-[#18143D]">
+              <div className="mt-6 pt-4 border-t border-[#F7EDF9] space-y-2">
+                <div className="text-xs font-bold text-[#303654]">
                   Next Step: Assessment & Certification
                 </div>
                 <Link
                   href={`/learn/${slug}/quiz/quiz-${slug}`}
-                  className="flex items-center justify-between p-3 rounded-xl bg-purple-50 text-[#7928CA] hover:bg-purple-100 transition-colors text-xs font-bold"
+                  className="flex items-center justify-between p-3 rounded-xl bg-purple-50 text-[#AE54C6] hover:bg-purple-100 transition-colors text-xs font-bold"
                 >
                   <span className="flex items-center gap-2">
                     <Award className="w-4 h-4" /> Comprehensive Quiz

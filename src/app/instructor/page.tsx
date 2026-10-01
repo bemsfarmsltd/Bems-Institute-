@@ -50,7 +50,7 @@ function InstructorDashboardContent() {
       <Navbar />
 
       {/* Instructor Top Banner */}
-      <div className="bg-[#18143D] text-white py-12 border-b border-white/10">
+      <div className="bg-[#303654] text-white py-12 border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
@@ -61,7 +61,7 @@ function InstructorDashboardContent() {
               <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
                 Instructor Studio: {selectedTutor}
               </h1>
-              <p className="text-xs sm:text-sm text-[#A5A0C8] mt-1">
+              <p className="text-xs sm:text-sm text-[#C6BDD3] mt-1">
                 Oversee student lab progress, review Capstone submissions, and track learning milestones.
               </p>
             </div>
@@ -79,10 +79,10 @@ function InstructorDashboardContent() {
                 }}
                 className="bg-white/10 border border-white/20 text-white rounded-xl px-3 py-2 text-xs font-bold focus:outline-hidden"
               >
-                <option value="Mr. Victor" className="text-[#18143D]">Mr. Victor (Web Dev Lead)</option>
-                <option value="Timi" className="text-[#18143D]">Timi (AI & Automation)</option>
-                <option value="Temi" className="text-[#18143D]">Temi (Product Design)</option>
-                <option value="All" className="text-[#18143D]">All Faculty View</option>
+                <option value="Mr. Victor" className="text-[#303654]">Mr. Victor (Web Dev Lead)</option>
+                <option value="Timi" className="text-[#303654]">Timi (AI & Automation)</option>
+                <option value="Temi" className="text-[#303654]">Temi (Product Design)</option>
+                <option value="All" className="text-[#303654]">All Faculty View</option>
               </select>
 
               <Link href="/instructor/grading">
@@ -115,14 +115,14 @@ function InstructorDashboardContent() {
       {/* KPI Cards */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white rounded-2xl p-6 border border-[#E6E1F5] shadow-xs">
+          <div className="bg-white rounded-2xl p-6 border border-[#F1E2F5] shadow-xs">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-bold uppercase tracking-wider text-[#645F80]">
                 Active Students
               </span>
-              <Users className="w-5 h-5 text-[#7928CA]" />
+              <Users className="w-5 h-5 text-[#AE54C6]" />
             </div>
-            <div className="text-3xl font-black text-[#18143D]">
+            <div className="text-3xl font-black text-[#303654]">
               {tutorStudents.length}
             </div>
             <p className="text-xs text-[#8580A3] mt-1">
@@ -130,7 +130,7 @@ function InstructorDashboardContent() {
             </p>
           </div>
 
-          <div className="bg-white rounded-2xl p-6 border border-[#E6E1F5] shadow-xs">
+          <div className="bg-white rounded-2xl p-6 border border-[#F1E2F5] shadow-xs">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-bold uppercase tracking-wider text-[#645F80]">
                 Pending Capstones
@@ -145,7 +145,7 @@ function InstructorDashboardContent() {
             </p>
           </div>
 
-          <div className="bg-white rounded-2xl p-6 border border-[#E6E1F5] shadow-xs">
+          <div className="bg-white rounded-2xl p-6 border border-[#F1E2F5] shadow-xs">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-bold uppercase tracking-wider text-[#645F80]">
                 Graded & Certified
@@ -160,14 +160,14 @@ function InstructorDashboardContent() {
             </p>
           </div>
 
-          <div className="bg-white rounded-2xl p-6 border border-[#E6E1F5] shadow-xs">
+          <div className="bg-white rounded-2xl p-6 border border-[#F1E2F5] shadow-xs">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-bold uppercase tracking-wider text-[#645F80]">
                 Average Progress
               </span>
-              <CheckCircle2 className="w-5 h-5 text-[#7928CA]" />
+              <CheckCircle2 className="w-5 h-5 text-[#AE54C6]" />
             </div>
-            <div className="text-3xl font-black text-[#18143D]">
+            <div className="text-3xl font-black text-[#303654]">
               {Math.round(
                 tutorStudents.reduce((acc, s) => acc + s.progressPercent, 0) /
                   (tutorStudents.length || 1)
@@ -180,7 +180,7 @@ function InstructorDashboardContent() {
         </div>
 
         {/* Live Lab Support & Quick Actions */}
-        <div className="bg-gradient-to-r from-[#18143D] to-[#2E1065] rounded-3xl p-6 sm:p-8 text-white flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl">
+        <div className="bg-gradient-to-r from-[#303654] to-[#5B2479] rounded-3xl p-6 sm:p-8 text-white flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl">
           <div className="space-y-2 max-w-xl">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-xs font-bold">
               <Video className="w-4 h-4 text-purple-300" /> Umuahia Labs + Live Zoom Hybrid
@@ -188,7 +188,7 @@ function InstructorDashboardContent() {
             <h3 className="text-xl sm:text-2xl font-black">
               Lead Tutor Office Hours & Live Lab Sessions
             </h3>
-            <p className="text-xs sm:text-sm text-[#C4BDE7]">
+            <p className="text-xs sm:text-sm text-[#E5DDEF]">
               Need to broadcast an urgent class update, change physical lab seating, or launch a live Zoom code review? Dispatch directly to the BEMS WhatsApp group.
             </p>
           </div>
@@ -199,7 +199,7 @@ function InstructorDashboardContent() {
               target="_blank"
               rel="noreferrer"
             >
-              <Button className="bg-[#25D366] hover:bg-[#20bd5a] text-[#18143D] font-black">
+              <Button className="bg-[#25D366] hover:bg-[#20bd5a] text-[#303654] font-black">
                 <MessageCircle className="w-4 h-4 mr-2" /> Class WhatsApp Community
               </Button>
             </a>
@@ -214,10 +214,10 @@ function InstructorDashboardContent() {
         <InstructorConceptInsights courseId={selectedCourseFilter} />
 
         {/* Student Roster Table */}
-        <div className="bg-white rounded-2xl border border-[#E6E1F5] shadow-xs overflow-hidden">
-          <div className="p-6 border-b border-[#F0EDF9] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="bg-white rounded-2xl border border-[#F1E2F5] shadow-xs overflow-hidden">
+          <div className="p-6 border-b border-[#F7EDF9] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-xl font-black text-[#18143D]">
+              <h2 className="text-xl font-black text-[#303654]">
                 Student Progress Roster
               </h2>
               <p className="text-xs text-[#645F80]">
@@ -232,7 +232,7 @@ function InstructorDashboardContent() {
               <select
                 value={selectedCourseFilter}
                 onChange={(e) => setSelectedCourseFilter(e.target.value)}
-                className="px-3 py-1.5 rounded-xl border border-[#D1C9EB] text-xs font-bold text-[#18143D] bg-white focus:outline-hidden"
+                className="px-3 py-1.5 rounded-xl border border-[#E5C8ED] text-xs font-bold text-[#303654] bg-white focus:outline-hidden"
               >
                 <option value="all">All Tracks</option>
                 <option value="web-dev">Web Development</option>
@@ -245,7 +245,7 @@ function InstructorDashboardContent() {
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-[#FAF8FF] text-[#645F80] font-bold uppercase tracking-wider border-b border-[#E6E1F5]">
+              <thead className="bg-[#FAF8FF] text-[#645F80] font-bold uppercase tracking-wider border-b border-[#F1E2F5]">
                 <tr>
                   <th className="py-3.5 px-6">Student</th>
                   <th className="py-3.5 px-4">Track</th>
@@ -256,11 +256,11 @@ function InstructorDashboardContent() {
                   <th className="py-3.5 px-6 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#F0EDF9] text-[#18143D]">
+              <tbody className="divide-y divide-[#F7EDF9] text-[#303654]">
                 {tutorStudents.map((student) => (
                   <tr key={student.id} className="hover:bg-[#FAF8FF]/60 transition-colors">
                     <td className="py-4 px-6">
-                      <div className="font-bold text-sm text-[#18143D]">
+                      <div className="font-bold text-sm text-[#303654]">
                         {student.name}
                       </div>
                       <div className="text-[11px] text-[#8580A3]">
@@ -268,7 +268,7 @@ function InstructorDashboardContent() {
                       </div>
                     </td>
 
-                    <td className="py-4 px-4 font-semibold text-[#7928CA]">
+                    <td className="py-4 px-4 font-semibold text-[#AE54C6]">
                       {student.courseTitle}
                     </td>
 
@@ -284,9 +284,9 @@ function InstructorDashboardContent() {
 
                     <td className="py-4 px-4">
                       <div className="flex items-center gap-2">
-                        <div className="w-24 bg-[#E6E1F5] rounded-full h-2 overflow-hidden">
+                        <div className="w-24 bg-[#F1E2F5] rounded-full h-2 overflow-hidden">
                           <div
-                            className="bg-[#7928CA] h-full"
+                            className="bg-[#AE54C6] h-full"
                             style={{ width: `${student.progressPercent}%` }}
                           />
                         </div>

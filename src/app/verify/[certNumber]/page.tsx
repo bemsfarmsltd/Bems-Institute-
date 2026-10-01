@@ -57,7 +57,7 @@ export default function CertificateVerificationPage({
       <Navbar />
 
       {/* Header */}
-      <div className="bg-[#18143D] text-white py-12 border-b border-white/10 text-center">
+      <div className="bg-[#303654] text-white py-12 border-b border-white/10 text-center">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold mb-4">
             <ShieldCheck className="w-4 h-4 text-emerald-400" /> OFFICIAL REGISTRY
@@ -65,7 +65,7 @@ export default function CertificateVerificationPage({
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight mb-2">
             BEMS Credential Verification Service
           </h1>
-          <p className="text-sm text-[#A5A0C8]">
+          <p className="text-sm text-[#C6BDD3]">
             Instant cryptographic verification of certificates issued by BEMS Institute of Technology & Vocational Studies.
           </p>
 
@@ -96,7 +96,7 @@ export default function CertificateVerificationPage({
       {/* Verification Card */}
       <div className="flex-1 max-w-3xl mx-auto w-full px-4 sm:px-6 py-12">
         {certificate ? (
-          <div className="bg-white rounded-3xl border border-[#E6E1F5] shadow-xl overflow-hidden">
+          <div className="bg-white rounded-3xl border border-[#F1E2F5] shadow-xl overflow-hidden">
             {/* Status bar */}
             <div className="bg-emerald-500 text-white p-4 sm:p-5 flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -122,8 +122,8 @@ export default function CertificateVerificationPage({
                   <span className="text-xs uppercase tracking-wider text-[#645F80] font-bold block mb-1">
                     Student Name
                   </span>
-                  <div className="flex items-center gap-2 text-lg font-black text-[#18143D]">
-                    <User className="w-5 h-5 text-[#7928CA]" />
+                  <div className="flex items-center gap-2 text-lg font-black text-[#303654]">
+                    <User className="w-5 h-5 text-[#AE54C6]" />
                     {certificate.studentName}
                   </div>
                 </div>
@@ -132,7 +132,7 @@ export default function CertificateVerificationPage({
                   <span className="text-xs uppercase tracking-wider text-[#645F80] font-bold block mb-1">
                     Certificate Number
                   </span>
-                  <div className="text-lg font-mono font-bold text-[#7928CA]">
+                  <div className="text-lg font-mono font-bold text-[#AE54C6]">
                     {certificate.certNumber}
                   </div>
                 </div>
@@ -141,8 +141,8 @@ export default function CertificateVerificationPage({
                   <span className="text-xs uppercase tracking-wider text-[#645F80] font-bold block mb-1">
                     Course Program
                   </span>
-                  <div className="flex items-center gap-2 text-base font-bold text-[#18143D]">
-                    <GraduationCap className="w-5 h-5 text-[#7928CA]" />
+                  <div className="flex items-center gap-2 text-base font-bold text-[#303654]">
+                    <GraduationCap className="w-5 h-5 text-[#AE54C6]" />
                     {certificate.courseTitle}
                   </div>
                   <span className="text-xs text-[#645F80]">
@@ -155,10 +155,10 @@ export default function CertificateVerificationPage({
                     Award & Standing
                   </span>
                   <div className="flex items-center gap-2">
-                    <span className="px-3 py-1 rounded-full bg-purple-100 text-[#7928CA] font-bold text-xs">
+                    <span className="px-3 py-1 rounded-full bg-purple-100 text-[#AE54C6] font-bold text-xs">
                       {certificate.gradeTitle}
                     </span>
-                    <span className="text-sm font-semibold text-[#18143D]">
+                    <span className="text-sm font-semibold text-[#303654]">
                       Final Score: {certificate.finalScore}%
                     </span>
                   </div>
@@ -168,7 +168,7 @@ export default function CertificateVerificationPage({
                   <span className="text-xs uppercase tracking-wider text-[#645F80] font-bold block mb-1">
                     Conferral Date
                   </span>
-                  <div className="flex items-center gap-2 text-sm font-semibold text-[#18143D]">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-[#303654]">
                     <Calendar className="w-4 h-4 text-[#645F80]" />
                     {new Date(certificate.issuedAt).toLocaleDateString("en-US", {
                       month: "long",
@@ -182,7 +182,7 @@ export default function CertificateVerificationPage({
                   <span className="text-xs uppercase tracking-wider text-[#645F80] font-bold block mb-1">
                     Issuing Authority
                   </span>
-                  <div className="text-sm font-semibold text-[#18143D]">
+                  <div className="text-sm font-semibold text-[#303654]">
                     BEMS Institute of Technology & Vocational Studies
                   </div>
                   <span className="text-xs text-[#645F80]">
@@ -191,7 +191,7 @@ export default function CertificateVerificationPage({
                 </div>
               </div>
 
-              <div className="pt-6 border-t border-[#F0EDF9] flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="pt-6 border-t border-[#F7EDF9] flex flex-col sm:flex-row items-center justify-between gap-4">
                 <Link href={`/certificate/${certificate.id}`}>
                   <Button variant="purple" className="w-full sm:w-auto shadow-sm">
                     View Full Certificate Canvas <ExternalLink className="w-4 h-4 ml-1.5" />
@@ -209,7 +209,7 @@ export default function CertificateVerificationPage({
             <div className="w-16 h-16 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-4">
               <XCircle className="w-8 h-8" />
             </div>
-            <h3 className="text-2xl font-black text-[#18143D] mb-2">
+            <h3 className="text-2xl font-black text-[#303654] mb-2">
               Credential Not Found
             </h3>
             <p className="text-sm text-[#645F80] max-w-md mx-auto mb-6">

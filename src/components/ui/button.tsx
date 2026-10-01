@@ -11,12 +11,12 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const base = "inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:pointer-events-none";
     
     const variants = {
-      primary: "bg-gradient-to-r from-[#7928CA] to-[#18143D] text-white shadow-md hover:shadow-lg hover:from-[#8B3FFC] hover:to-[#241E56] hover:-translate-y-0.5",
-      purple: "bg-[#7928CA] text-white shadow-md hover:bg-[#681EB3] hover:shadow-lg hover:-translate-y-0.5",
-      secondary: "bg-[#FAF8FF] text-[#18143D] border border-[#D1C9EB] hover:bg-[#F0EBFF]",
-      outline: "border border-[#E6E1F5] bg-white text-[#18143D] hover:border-[#7928CA] hover:bg-[#FAF8FF] hover:text-[#7928CA]",
+      primary: "bg-gradient-to-r from-[#AE54C6] to-[#303654] text-white shadow-md hover:shadow-lg hover:from-[#C779EA] hover:to-[#3E4569] hover:-translate-y-0.5",
+      purple: "bg-[#AE54C6] text-white shadow-md hover:bg-[#A23ABF] hover:shadow-lg hover:-translate-y-0.5",
+      secondary: "bg-[#FAF8FF] text-[#303654] border border-[#E5C8ED] hover:bg-[#F9F3FB]",
+      outline: "border border-[#F1E2F5] bg-white text-[#303654] hover:border-[#AE54C6] hover:bg-[#FAF8FF] hover:text-[#AE54C6]",
       whatsapp: "bg-[#25D366] text-white font-bold shadow-md hover:bg-[#1DA851] hover:shadow-lg hover:-translate-y-0.5",
-      ghost: "text-[#18143D] hover:bg-[#FAF8FF] hover:text-[#7928CA]"
+      ghost: "text-[#303654] hover:bg-[#FAF8FF] hover:text-[#AE54C6]"
     };
 
     const sizes = {

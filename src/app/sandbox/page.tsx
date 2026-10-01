@@ -40,7 +40,7 @@ const TEMPLATES: Record<string, { html: string; css: string; js: string }> = {
   background: white;
   padding: 2.5rem;
   border-radius: 1.5rem;
-  border: 1px solid #E6E1F5;
+  border: 1px solid #F1E2F5;
   box-shadow: 0 10px 25px rgba(24, 20, 61, 0.05);
   max-width: 450px;
   text-align: center;
@@ -48,8 +48,8 @@ const TEMPLATES: Record<string, { html: string; css: string; js: string }> = {
 .badge {
   display: inline-block;
   background: #FAF8FF;
-  color: #7928CA;
-  border: 1px solid #E6E1F5;
+  color: #AE54C6;
+  border: 1px solid #F1E2F5;
   font-size: 0.75rem;
   font-weight: 800;
   padding: 0.25rem 0.75rem;
@@ -57,7 +57,7 @@ const TEMPLATES: Record<string, { html: string; css: string; js: string }> = {
   margin-bottom: 1rem;
 }
 h1 {
-  color: #18143D;
+  color: #303654;
   font-size: 1.5rem;
   font-weight: 900;
   margin: 0 0 0.5rem 0;
@@ -69,7 +69,7 @@ p {
   margin: 0 0 1.5rem 0;
 }
 button {
-  background: linear-gradient(135deg, #7928CA, #18143D);
+  background: linear-gradient(135deg, #AE54C6, #303654);
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -107,11 +107,11 @@ btn.addEventListener('click', () => {
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 1rem;
   padding: 2rem;
-  background: #18143D;
+  background: #303654;
   min-height: 80vh;
 }
 .box {
-  background: #7928CA;
+  background: #AE54C6;
   color: white;
   display: flex;
   align-items: center;
@@ -126,7 +126,7 @@ btn.addEventListener('click', () => {
 }
 .box:hover {
   transform: scale(1.05);
-  background: #8B5CF6;
+  background: #C591E9;
 }`,
     js: `console.log("CSS Grid layout initialized with 4 BEMS tracks.");`
   }
@@ -196,7 +196,7 @@ export default function CodingSandboxPage() {
       <Navbar />
 
       {/* Sandbox Header Bar */}
-      <div className="bg-[#18143D] text-white py-6 border-b border-white/10">
+      <div className="bg-[#303654] text-white py-6 border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -206,7 +206,7 @@ export default function CodingSandboxPage() {
             <h1 className="text-xl sm:text-2xl font-black">
               BEMS In-Browser Code Playground
             </h1>
-            <p className="text-xs text-[#A5A0C8]">
+            <p className="text-xs text-[#C6BDD3]">
               Write and preview HTML5, CSS3, and JavaScript in real-time right in your browser without local setup.
             </p>
           </div>
@@ -216,8 +216,8 @@ export default function CodingSandboxPage() {
               onChange={(e) => loadTemplate(e.target.value)}
               className="bg-white/10 border border-white/20 text-white rounded-xl px-3 py-2 text-xs font-bold focus:outline-hidden"
             >
-              <option value="bems-hero" className="text-[#18143D]">Template: BEMS Hero Card</option>
-              <option value="flexbox-grid" className="text-[#18143D]">Template: Responsive CSS Grid</option>
+              <option value="bems-hero" className="text-[#303654]">Template: BEMS Hero Card</option>
+              <option value="flexbox-grid" className="text-[#303654]">Template: Responsive CSS Grid</option>
             </select>
 
             <Button
@@ -246,7 +246,7 @@ export default function CodingSandboxPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[720px]">
           {/* Left Column: Code Editors */}
-          <div className="bg-[#18143D] rounded-3xl border border-white/10 shadow-xl flex flex-col overflow-hidden">
+          <div className="bg-[#303654] rounded-3xl border border-white/10 shadow-xl flex flex-col overflow-hidden">
             {/* Editor Tabs */}
             <div className="flex items-center justify-between p-2 px-4 border-b border-white/10 bg-black/30">
               <div className="flex items-center gap-1">
@@ -261,7 +261,7 @@ export default function CodingSandboxPage() {
                     className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                       activeTab === t.id
                         ? "bg-white/15 text-white shadow-xs"
-                        : "text-[#A5A0C8] hover:text-white"
+                        : "text-[#C6BDD3] hover:text-white"
                     }`}
                   >
                     <FileCode className={`w-3.5 h-3.5 ${t.color}`} />
@@ -270,7 +270,7 @@ export default function CodingSandboxPage() {
                 ))}
               </div>
 
-              <span className="text-[10px] text-[#A5A0C8] font-mono">
+              <span className="text-[10px] text-[#C6BDD3] font-mono">
                 UTF-8 &middot; Live Sync
               </span>
             </div>
@@ -304,7 +304,7 @@ export default function CodingSandboxPage() {
             </div>
 
             {/* Editor Footer Status */}
-            <div className="p-2.5 px-4 bg-black/40 border-t border-white/10 flex items-center justify-between text-[11px] text-[#A5A0C8]">
+            <div className="p-2.5 px-4 bg-black/40 border-t border-white/10 flex items-center justify-between text-[11px] text-[#C6BDD3]">
               <span>Press <strong>Run Code</strong> to re-render preview</span>
               <button
                 onClick={() => loadTemplate("bems-hero")}
@@ -318,10 +318,10 @@ export default function CodingSandboxPage() {
           {/* Right Column: Live Output & Console */}
           <div className="flex flex-col gap-4">
             {/* Live Preview Iframe */}
-            <div className="flex-1 bg-white rounded-3xl border border-[#E6E1F5] shadow-xs flex flex-col overflow-hidden">
-              <div className="p-3 px-5 border-b border-[#F0EDF9] bg-[#FAF8FF] flex items-center justify-between text-xs font-bold text-[#18143D]">
+            <div className="flex-1 bg-white rounded-3xl border border-[#F1E2F5] shadow-xs flex flex-col overflow-hidden">
+              <div className="p-3 px-5 border-b border-[#F7EDF9] bg-[#FAF8FF] flex items-center justify-between text-xs font-bold text-[#303654]">
                 <div className="flex items-center gap-2">
-                  <Eye className="w-4 h-4 text-[#7928CA]" />
+                  <Eye className="w-4 h-4 text-[#AE54C6]" />
                   <span>Real-Time Output Preview</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-[10px] text-[#8580A3]">
@@ -339,8 +339,8 @@ export default function CodingSandboxPage() {
             </div>
 
             {/* Console Output Drawer */}
-            <div className="h-40 bg-[#18143D] rounded-2xl border border-white/10 shadow-xs flex flex-col overflow-hidden text-xs">
-              <div className="p-2.5 px-4 bg-black/40 border-b border-white/10 flex items-center justify-between text-[#A5A0C8]">
+            <div className="h-40 bg-[#303654] rounded-2xl border border-white/10 shadow-xs flex flex-col overflow-hidden text-xs">
+              <div className="p-2.5 px-4 bg-black/40 border-b border-white/10 flex items-center justify-between text-[#C6BDD3]">
                 <div className="flex items-center gap-2 font-mono font-bold">
                   <Terminal className="w-3.5 h-3.5 text-emerald-400" />
                   <span>Browser Console Output</span>
@@ -353,7 +353,7 @@ export default function CodingSandboxPage() {
                 </button>
               </div>
 
-              <div className="flex-1 p-3 overflow-y-auto font-mono text-[11px] text-[#C4BDE7] space-y-1">
+              <div className="flex-1 p-3 overflow-y-auto font-mono text-[11px] text-[#E5DDEF] space-y-1">
                 {consoleLogs.length === 0 ? (
                   <span className="text-[#8580A3]">No logs yet. Trigger events to see output.</span>
                 ) : (

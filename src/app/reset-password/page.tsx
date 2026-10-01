@@ -52,15 +52,15 @@ function ResetPasswordContent() {
       <Navbar />
 
       <div className="flex-1 flex items-center justify-center py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full bg-white rounded-3xl border border-[#E6E1F5] p-8 sm:p-10 shadow-lg">
+        <div className="max-w-md w-full bg-white rounded-3xl border border-[#F1E2F5] p-8 sm:p-10 shadow-lg">
           <div className="text-center mb-8">
-            <div className="w-14 h-14 rounded-2xl bg-[#7928CA]/10 text-[#7928CA] flex items-center justify-center mx-auto mb-4">
+            <div className="w-14 h-14 rounded-2xl bg-[#AE54C6]/10 text-[#AE54C6] flex items-center justify-center mx-auto mb-4">
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div className="flex items-center justify-center gap-2 mb-2">
               <Badge variant="purple">ACCOUNT RECOVERY</Badge>
             </div>
-            <h1 className="text-2xl font-black text-[#18143D]">Set a new password</h1>
+            <h1 className="text-2xl font-black text-[#303654]">Set a new password</h1>
             <p className="text-xs sm:text-sm text-[#645F80] mt-1">
               Choose a new password for your account. You&apos;ll be signed in immediately after.
             </p>
@@ -73,7 +73,7 @@ function ResetPasswordContent() {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-[#18143D] mb-1.5">New Password</label>
+                <label className="block text-xs font-bold text-[#303654] mb-1.5">New Password</label>
                 <input
                   type="password"
                   required
@@ -81,13 +81,13 @@ function ResetPasswordContent() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full px-4 py-3 rounded-xl border border-[#D1C9EB] focus:border-[#7928CA] focus:outline-hidden text-sm text-[#18143D] bg-white"
+                  className="w-full px-4 py-3 rounded-xl border border-[#E5C8ED] focus:border-[#AE54C6] focus:outline-hidden text-sm text-[#303654] bg-white"
                 />
                 <p className="text-[11px] text-[#8580A3] mt-1">At least 8 characters.</p>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#18143D] mb-1.5">Confirm Password</label>
+                <label className="block text-xs font-bold text-[#303654] mb-1.5">Confirm Password</label>
                 <input
                   type="password"
                   required
@@ -95,7 +95,7 @@ function ResetPasswordContent() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full px-4 py-3 rounded-xl border border-[#D1C9EB] focus:border-[#7928CA] focus:outline-hidden text-sm text-[#18143D] bg-white"
+                  className="w-full px-4 py-3 rounded-xl border border-[#E5C8ED] focus:border-[#AE54C6] focus:outline-hidden text-sm text-[#303654] bg-white"
                 />
               </div>
 
@@ -118,8 +118,8 @@ function ResetPasswordContent() {
             </form>
           )}
 
-          <div className="mt-6 pt-4 border-t border-[#F0EDF9] text-center">
-            <Link href="/login" className="text-xs text-[#645F80] hover:text-[#18143D] font-semibold">
+          <div className="mt-6 pt-4 border-t border-[#F7EDF9] text-center">
+            <Link href="/login" className="text-xs text-[#645F80] hover:text-[#303654] font-semibold">
               &larr; Back to Sign In
             </Link>
           </div>

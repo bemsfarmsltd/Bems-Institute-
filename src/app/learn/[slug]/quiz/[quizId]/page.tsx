@@ -65,7 +65,7 @@ export default function QuizAssessmentPage({
       <div className="min-h-screen flex flex-col bg-[#FAF8FF]">
         <Navbar />
         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-          <h2 className="text-2xl font-bold text-[#18143D] mb-4">Quiz Not Found</h2>
+          <h2 className="text-2xl font-bold text-[#303654] mb-4">Quiz Not Found</h2>
           <Link href="/">
             <Button>Back to Courses</Button>
           </Link>
@@ -114,11 +114,11 @@ export default function QuizAssessmentPage({
       <Navbar />
 
       {/* Header */}
-      <div className="bg-[#18143D] text-white py-10 border-b border-white/10">
+      <div className="bg-[#303654] text-white py-10 border-b border-white/10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6">
           <Link
             href={`/courses/${slug}`}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#A5A0C8] hover:text-white transition-colors mb-4"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#C6BDD3] hover:text-white transition-colors mb-4"
           >
             <ArrowLeft className="w-4 h-4" /> Back to {course.title} Syllabus
           </Link>
@@ -131,7 +131,7 @@ export default function QuizAssessmentPage({
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight mb-2">
             {quiz.title}
           </h1>
-          <p className="text-sm text-[#A5A0C8] leading-relaxed">
+          <p className="text-sm text-[#C6BDD3] leading-relaxed">
             {quiz.description}
           </p>
         </div>
@@ -195,7 +195,7 @@ export default function QuizAssessmentPage({
 
         {/* Question Form */}
         <form onSubmit={handleSubmitQuiz} className="space-y-6">
-          <div className="flex items-center justify-between text-xs font-bold text-[#645F80] pb-2 border-b border-[#E6E1F5]">
+          <div className="flex items-center justify-between text-xs font-bold text-[#645F80] pb-2 border-b border-[#F1E2F5]">
             <span>
               TOTAL QUESTIONS: {totalQuestions}
             </span>
@@ -212,14 +212,14 @@ export default function QuizAssessmentPage({
             return (
               <div
                 key={q.id}
-                className="bg-white rounded-2xl p-6 border border-[#E6E1F5] shadow-xs hover:border-[#D1C9EB] transition-all"
+                className="bg-white rounded-2xl p-6 border border-[#F1E2F5] shadow-xs hover:border-[#E5C8ED] transition-all"
               >
                 <div className="flex items-start justify-between gap-4 mb-4">
                   <div className="flex items-center gap-2">
-                    <span className="w-7 h-7 rounded-full bg-[#FAF8FF] border border-[#E6E1F5] text-[#18143D] text-xs font-black flex items-center justify-center">
+                    <span className="w-7 h-7 rounded-full bg-[#FAF8FF] border border-[#F1E2F5] text-[#303654] text-xs font-black flex items-center justify-center">
                       {idx + 1}
                     </span>
-                    <h3 className="text-base font-bold text-[#18143D]">
+                    <h3 className="text-base font-bold text-[#303654]">
                       {q.prompt}
                     </h3>
                   </div>
@@ -243,7 +243,7 @@ export default function QuizAssessmentPage({
                   {q.options.map((option, optIdx) => {
                     const isSelected = chosenOption === optIdx;
                     let optionStyle =
-                      "border-[#E6E1F5] bg-white text-[#18143D] hover:bg-[#FAF8FF]";
+                      "border-[#F1E2F5] bg-white text-[#303654] hover:bg-[#FAF8FF]";
 
                     if (submitted) {
                       if (optIdx === q.correctOption) {
@@ -253,11 +253,11 @@ export default function QuizAssessmentPage({
                         optionStyle =
                           "border-red-400 bg-red-50 text-red-950 line-through";
                       } else {
-                        optionStyle = "border-[#E6E1F5] bg-gray-50/50 text-[#8580A3] opacity-60";
+                        optionStyle = "border-[#F1E2F5] bg-gray-50/50 text-[#8580A3] opacity-60";
                       }
                     } else if (isSelected) {
                       optionStyle =
-                        "border-[#7928CA] bg-[#FAF8FF] text-[#18143D] font-medium shadow-xs";
+                        "border-[#AE54C6] bg-[#FAF8FF] text-[#303654] font-medium shadow-xs";
                     }
 
                     return (
@@ -272,8 +272,8 @@ export default function QuizAssessmentPage({
                           <span
                             className={`w-5 h-5 rounded-full border flex items-center justify-center text-xs font-bold ${
                               isSelected
-                                ? "border-[#7928CA] bg-[#7928CA] text-white"
-                                : "border-[#CCC7E5] text-[#8580A3]"
+                                ? "border-[#AE54C6] bg-[#AE54C6] text-white"
+                                : "border-[#E9E4F0] text-[#8580A3]"
                             }`}
                           >
                             {String.fromCharCode(65 + optIdx)}
@@ -287,10 +287,10 @@ export default function QuizAssessmentPage({
 
                 {/* Explanation on submitted view */}
                 {submitted && (
-                  <div className="mt-4 p-3.5 rounded-xl bg-[#FAF8FF] border border-[#E6E1F5] text-xs text-[#4A4568] flex items-start gap-2">
-                    <HelpCircle className="w-4 h-4 text-[#7928CA] flex-shrink-0 mt-0.5" />
+                  <div className="mt-4 p-3.5 rounded-xl bg-[#FAF8FF] border border-[#F1E2F5] text-xs text-[#4A4568] flex items-start gap-2">
+                    <HelpCircle className="w-4 h-4 text-[#AE54C6] flex-shrink-0 mt-0.5" />
                     <div>
-                      <strong className="text-[#18143D]">Tutor Explanation: </strong>
+                      <strong className="text-[#303654]">Tutor Explanation: </strong>
                       {q.explanation}
                     </div>
                   </div>
