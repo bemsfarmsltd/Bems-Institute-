@@ -7,6 +7,7 @@ import { DELIVERY_MODE_LABEL, mapAdminCourse } from "@/lib/lms-mappers";
 import { createNotification } from "@/lib/notifications";
 import { creditReferralIfEligible } from "@/lib/referrals";
 import { sendWhatsAppMessage } from "@/lib/twilio";
+import { toCsv } from "@/lib/csv";
 import type { AnalyticsSummary } from "@/types/lms";
 
 const router = Router();
@@ -190,6 +191,63 @@ router.get("/roster", async (req, res) => {
   return res.json({ roster });
 });
 
+// Same data as GET /roster, as a downloadable CSV for board reporting /
+// accounting reconciliation — admin-only since it's a full export of
+// every student's payment status and contact info in one file.
+router.get("/roster/export", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
+  }
+  const roster = await computeAdminRoster();
+  const csv = toCsv(roster as unknown as Record<string, unknown>[], [
+    "name",
+    "email",
+    "phone",
+    "courseTitle",
+    "cohort",
+    "deliveryMode",
+    "paymentPlan",
+    "amountPaid",
+    "totalDue",
+    "paymentStatus",
+    "enrollmentStatus",
+    "progressPercent",
+    "capstoneStatus",
+    "certificateIssued",
+    "qrSource",
+    "enrolledAt"
+  ]);
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader("Content-Disposition", `attachment; filename="bems-roster-${new Date().toISOString().slice(0, 10)}.csv"`);
+  return res.send(csv);
+});
+
+async function loadPaymentLedger() {
+  const transactions = await prisma.paymentTransaction.findMany({
+    orderBy: { createdAt: "desc" },
+    include: {
+      user: { select: { name: true, email: true } },
+      course: { select: { title: true } }
+    }
+  });
+
+  return transactions.map((t) => ({
+    id: t.id,
+    reference: t.reference,
+    studentName: t.user.name,
+    studentEmail: t.user.email,
+    courseTitle: t.course.title,
+    paymentPlan: t.paymentPlan,
+    amount: t.amount,
+    status: t.status,
+    channel: t.channel,
+    gatewayResponse: t.gatewayResponse,
+    paidAt: t.paidAt ? t.paidAt.toISOString() : null,
+    createdAt: t.createdAt.toISOString()
+  }));
+}
+
 // The real "who has paid" record — every PaymentTransaction row, Paystack
 // or bank, regardless of what an Enrollment's current running total says.
 // This is the ledger the Earnings tab reads from instead of placeholder data.
@@ -199,30 +257,32 @@ router.get("/payment-ledger", async (req, res) => {
     return res.status(403).json({ error: "Staff access required." });
   }
 
-  const transactions = await prisma.paymentTransaction.findMany({
-    orderBy: { createdAt: "desc" },
-    include: {
-      user: { select: { name: true, email: true } },
-      course: { select: { title: true } }
-    }
-  });
+  return res.json({ transactions: await loadPaymentLedger() });
+});
 
-  return res.json({
-    transactions: transactions.map((t) => ({
-      id: t.id,
-      reference: t.reference,
-      studentName: t.user.name,
-      studentEmail: t.user.email,
-      courseTitle: t.course.title,
-      paymentPlan: t.paymentPlan,
-      amount: t.amount,
-      status: t.status,
-      channel: t.channel,
-      gatewayResponse: t.gatewayResponse,
-      paidAt: t.paidAt ? t.paidAt.toISOString() : null,
-      createdAt: t.createdAt.toISOString()
-    }))
-  });
+router.get("/payment-ledger/export", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
+  }
+
+  const transactions = await loadPaymentLedger();
+  const csv = toCsv(transactions, [
+    "reference",
+    "studentName",
+    "studentEmail",
+    "courseTitle",
+    "paymentPlan",
+    "amount",
+    "status",
+    "channel",
+    "gatewayResponse",
+    "paidAt",
+    "createdAt"
+  ]);
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader("Content-Disposition", `attachment; filename="bems-payment-ledger-${new Date().toISOString().slice(0, 10)}.csv"`);
+  return res.send(csv);
 });
 
 // The PRD's "job-help list" (§6.2) and second revenue stream (§3.4) — a
@@ -788,6 +848,73 @@ router.post("/enrollments/:id/second-chance", async (req, res) => {
   });
 
   return res.json({ enrollment: updated, waivedAmount });
+});
+
+// Bookkeeping-only, same convention as a staff-confirmed bank transfer —
+// the money was given back outside the app (whatever channel it came in
+// through); this just records that it happened and revokes access. No
+// Paystack refund API call is made here even for card payments, to avoid
+// triggering a real reversal of production money from an admin click
+// with no second confirmation step.
+router.post("/enrollments/:id/refund", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
+  }
+
+  const { id } = req.params;
+  const amount = Number(req.body?.amount);
+  const reason = typeof req.body?.reason === "string" ? req.body.reason.trim() : "";
+
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return res.status(400).json({ error: "amount must be a positive number." });
+  }
+
+  const enrollment = await prisma.enrollment.findUnique({
+    where: { id },
+    include: { user: { select: { id: true, name: true } }, course: { select: { title: true } } }
+  });
+  if (!enrollment) {
+    return res.status(404).json({ error: "Enrollment not found." });
+  }
+  if (amount > enrollment.amountPaid) {
+    return res.status(400).json({
+      error: `amount (₦${amount.toLocaleString()}) cannot exceed what was actually paid (₦${enrollment.amountPaid.toLocaleString()}).`
+    });
+  }
+
+  const updated = await prisma.enrollment.update({
+    where: { id },
+    data: { paymentStatus: "REFUNDED", status: "WITHDRAWN" }
+  });
+
+  await prisma.paymentTransaction.create({
+    data: {
+      reference: `refund_${crypto.randomUUID().replace(/-/g, "")}`,
+      userId: enrollment.user.id,
+      courseId: enrollment.courseId,
+      paymentPlan: enrollment.paymentPlan,
+      amount,
+      status: "REFUNDED",
+      channel: "refund",
+      gatewayResponse: reason
+        ? `Refunded by ${session?.name ?? "admin"}: ${reason}`
+        : `Refunded by ${session?.name ?? "admin"} (no reason given).`,
+      paidAt: new Date()
+    }
+  });
+
+  await createNotification({
+    userId: enrollment.user.id,
+    title: `Refund Processed: ${enrollment.course.title}`,
+    message: `₦${amount.toLocaleString()} has been refunded. Your access to this course has been withdrawn.${
+      reason ? ` Reason: ${reason}` : ""
+    }`,
+    category: "PAYMENT",
+    linkUrl: "/dashboard"
+  });
+
+  return res.json({ enrollment: updated });
 });
 
 const NOTIFICATION_CATEGORIES = ["CLASS", "GRADING", "PAYMENT", "GAMIFICATION", "ATTENDANCE"] as const;

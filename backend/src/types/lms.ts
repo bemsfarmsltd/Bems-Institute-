@@ -150,9 +150,9 @@ export interface AdminStudent {
   paymentPlan: "FULL" | "INSTALLMENT";
   amountPaid: number;
   totalDue: number;
-  paymentStatus: "PAID_FULL" | "PARTIAL" | "PENDING";
+  paymentStatus: "PAID_FULL" | "PARTIAL" | "PENDING" | "REFUNDED";
   paymentReference?: string | null;
-  enrollmentStatus: "PENDING" | "ACTIVE" | "COMPLETED" | "DROPPED";
+  enrollmentStatus: "PENDING" | "ACTIVE" | "COMPLETED" | "DROPPED" | "WITHDRAWN";
   secondChanceUsed: boolean;
   progressPercent: number;
   quizScore?: number;

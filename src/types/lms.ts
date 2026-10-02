@@ -153,7 +153,7 @@ export interface AdminStudent {
   paymentPlan: "FULL" | "INSTALLMENT";
   amountPaid: number;
   totalDue: number;
-  paymentStatus: "PAID_FULL" | "PARTIAL" | "PENDING";
+  paymentStatus: "PAID_FULL" | "PARTIAL" | "PENDING" | "REFUNDED";
   // For a bank transfer awaiting confirmation, the reference/narration the
   // student entered at checkout — what staff match against the bank
   // statement before confirming. Null for Paystack (which verifies itself)
@@ -162,7 +162,7 @@ export interface AdminStudent {
   // PRD §4.2's one-time "second chance" rejoin needs a dropped-out
   // enrollment to actually exist as a state, and a way to check a
   // student hasn't already used their lifetime second chance.
-  enrollmentStatus: "PENDING" | "ACTIVE" | "COMPLETED" | "DROPPED";
+  enrollmentStatus: "PENDING" | "ACTIVE" | "COMPLETED" | "DROPPED" | "WITHDRAWN";
   secondChanceUsed: boolean;
   progressPercent: number;
   quizScore?: number;

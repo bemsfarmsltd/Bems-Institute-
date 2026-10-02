@@ -151,6 +151,7 @@ export function Hero() {
             <div className="flex flex-wrap items-center gap-5">
               <Link
                 href="/subscriptions"
+                data-tour="hero-cta"
                 className="inline-flex items-center justify-center rounded-lg bg-[#AE54C6] hover:bg-[#A03BBC] text-white font-bold text-sm px-7 py-3.5 transition-all duration-200 shadow-2xs"
               >
                 Get Started

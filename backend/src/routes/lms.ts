@@ -14,6 +14,7 @@ import { creditReferralIfEligible } from "@/lib/referrals";
 import { computeLeaderboard } from "@/lib/leaderboard";
 import { ensurePlacementSeeking } from "@/lib/job-placements";
 import { sendWhatsAppMessage } from "@/lib/twilio";
+import { checkUsageQuota, recordAttempt, rateLimitMessage } from "@/lib/rate-limit";
 import type { QuizResult } from "@/types/lms";
 import type { NotificationCategory } from "@prisma/client";
 
@@ -459,7 +460,16 @@ router.post("/submissions/:id/grade", async (req, res) => {
 
 // Public, fire-and-forget: logs a banner/QR landing-page visit so the admin
 // analytics dashboard can compute real scan-to-registration conversion.
+// Rate-limited per-IP — unauthenticated, anyone can hit it, and it writes
+// a DB row per call.
 router.post("/track-scan", async (req, res) => {
+  const quotaKey = `track-scan:${req.ip || "unknown"}`;
+  const quota = await checkUsageQuota(quotaKey, 60, 10 * 60 * 1000);
+  if (quota.blocked) {
+    return res.status(429).json({ error: rateLimitMessage(quota.retryAfterSeconds!) });
+  }
+  await recordAttempt(quotaKey, true);
+
   const body = req.body ?? {};
   const source = typeof body.source === "string" ? body.source.trim() : "";
   const courseId = typeof body.courseId === "string" ? body.courseId : null;
@@ -474,10 +484,17 @@ router.post("/track-scan", async (req, res) => {
 
 // Public: PRD §4.1 step 3's lightweight lead form — "ask just 3 things."
 // No account/Enrollment is created here; this is the lower-commitment step
-// before the full checkout flow (/subscriptions). Rate-limiting is handled
-// the same way signup is (per-IP), since this is another unauthenticated
-// write endpoint anyone can hit.
+// before the full checkout flow (/subscriptions). Rate-limited per-IP,
+// same as signup — this is another unauthenticated write endpoint anyone
+// can hit, and each call also triggers a real WhatsApp send.
 router.post("/register-interest", async (req, res) => {
+  const quotaKey = `register-interest:${req.ip || "unknown"}`;
+  const quota = await checkUsageQuota(quotaKey, 8, 60 * 60 * 1000);
+  if (quota.blocked) {
+    return res.status(429).json({ error: rateLimitMessage(quota.retryAfterSeconds!) });
+  }
+  await recordAttempt(quotaKey, true);
+
   const body = req.body ?? {};
   const name = typeof body.name === "string" ? body.name.trim() : "";
   const phone = typeof body.phone === "string" ? body.phone.trim() : "";
@@ -584,6 +601,75 @@ router.get("/class-goals", async (req, res) => {
   });
 });
 
+// Public — real student reviews, same as the catalog/certificate registry.
+// Returns both the review list and the average, so the frontend doesn't
+// need a second request just to show a star rating on a course card.
+router.get("/reviews", async (req, res) => {
+  const courseId = typeof req.query.courseId === "string" ? req.query.courseId : "";
+  if (!courseId) {
+    return res.status(400).json({ error: "courseId is required." });
+  }
+
+  const reviews = await prisma.review.findMany({
+    where: { courseId },
+    include: { user: { select: { name: true, avatarUrl: true } } },
+    orderBy: { createdAt: "desc" }
+  });
+
+  const average = reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0;
+
+  return res.json({
+    average: Math.round(average * 10) / 10,
+    count: reviews.length,
+    reviews: reviews.map((r) => ({
+      id: r.id,
+      userId: r.userId,
+      name: r.user.name,
+      avatarUrl: r.user.avatarUrl,
+      rating: r.rating,
+      comment: r.comment,
+      createdAt: r.createdAt.toISOString()
+    }))
+  });
+});
+
+// Only a student who actually earned this course's Certificate can leave
+// a review — "real student, real outcome," no moderation queue needed
+// since the eligibility check already is the moderation.
+router.post("/reviews", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!session) {
+    return res.status(401).json({ error: "Not authenticated." });
+  }
+
+  const body = req.body ?? {};
+  const courseId = typeof body.courseId === "string" ? body.courseId : "";
+  const rating = Number(body.rating);
+  const comment = typeof body.comment === "string" ? body.comment.trim().slice(0, 1000) : null;
+
+  if (!courseId) {
+    return res.status(400).json({ error: "courseId is required." });
+  }
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+    return res.status(400).json({ error: "rating must be an integer from 1 to 5." });
+  }
+
+  const certificate = await prisma.certificate.findUnique({
+    where: { userId_courseId: { userId: session.id, courseId } }
+  });
+  if (!certificate) {
+    return res.status(403).json({ error: "You can only review a course after earning its certificate." });
+  }
+
+  const review = await prisma.review.upsert({
+    where: { userId_courseId: { userId: session.id, courseId } },
+    update: { rating, comment },
+    create: { userId: session.id, courseId, rating, comment }
+  });
+
+  return res.json({ review });
+});
+
 const TRACKABLE_PAGES = new Set(["home", "subscriptions"]);
 
 // Public, fire-and-forget: real page-view count for the two actual
@@ -591,6 +677,13 @@ const TRACKABLE_PAGES = new Set(["home", "subscriptions"]);
 // deduped per anonymous visitorId per UTC day so a refresh-happy visitor
 // doesn't inflate the number past what "N people visited" should mean.
 router.post("/track-pageview", async (req, res) => {
+  const quotaKey = `track-pageview:${req.ip || "unknown"}`;
+  const quota = await checkUsageQuota(quotaKey, 120, 10 * 60 * 1000);
+  if (quota.blocked) {
+    return res.status(429).json({ error: rateLimitMessage(quota.retryAfterSeconds!) });
+  }
+  await recordAttempt(quotaKey, true);
+
   const body = req.body ?? {};
   const page = typeof body.page === "string" ? body.page : "";
   const visitorId = typeof body.visitorId === "string" ? body.visitorId.trim() : "";

@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useLMS } from "@/context/LMSContext";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, API_BASE_URL } from "@/lib/api-client";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
 import {
   Home,
@@ -59,10 +59,11 @@ interface EduportStudentCard {
   joinDate: string;
   email?: string;
   enrollmentId?: string;
-  paymentStatus?: "PAID_FULL" | "PARTIAL" | "PENDING";
+  paymentStatus?: "PAID_FULL" | "PARTIAL" | "PENDING" | "REFUNDED";
   coursePrice?: number;
+  amountPaidRaw?: number;
   paymentReference?: string | null;
-  enrollmentStatus?: "PENDING" | "ACTIVE" | "COMPLETED" | "DROPPED";
+  enrollmentStatus?: "PENDING" | "ACTIVE" | "COMPLETED" | "DROPPED" | "WITHDRAWN";
   secondChanceUsed?: boolean;
 }
 
@@ -954,6 +955,43 @@ function AdminDashboardContent() {
     }
   };
 
+  // Bookkeeping-only refund — same convention as a manually-confirmed bank
+  // transfer. Withdraws course access and writes a real ledger entry.
+  const [refundingEnrollment, setRefundingEnrollment] = useState<{ id: string; name: string; amountPaid: number } | null>(
+    null
+  );
+  const [refundAmount, setRefundAmount] = useState("");
+  const [refundReason, setRefundReason] = useState("");
+  const [savingRefund, setSavingRefund] = useState(false);
+
+  const openRefund = (id: string, name: string, amountPaid: number) => {
+    setRefundAmount(String(amountPaid));
+    setRefundReason("");
+    setRefundingEnrollment({ id, name, amountPaid });
+  };
+
+  const confirmRefund = async () => {
+    if (!refundingEnrollment) return;
+    setSavingRefund(true);
+    try {
+      const res = await apiFetch(`/api/admin/enrollments/${refundingEnrollment.id}/refund`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: Number(refundAmount), reason: refundReason.trim() || undefined })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        await refreshAdminData();
+        setAdminNotice(`Refunded ₦${Number(refundAmount).toLocaleString()} to ${refundingEnrollment.name}.`);
+        setRefundingEnrollment(null);
+      } else {
+        setAdminNotice(data.error || "Could not process refund.");
+      }
+    } finally {
+      setSavingRefund(false);
+    }
+  };
+
   interface Lead {
     id: string;
     name: string;
@@ -1157,6 +1195,7 @@ function AdminDashboardContent() {
     enrollmentId: stu.id,
     paymentStatus: stu.paymentStatus,
     coursePrice: stu.totalDue,
+    amountPaidRaw: stu.amountPaid,
     paymentReference: stu.paymentReference,
     enrollmentStatus: stu.enrollmentStatus,
     secondChanceUsed: stu.secondChanceUsed,
@@ -1953,6 +1992,14 @@ function AdminDashboardContent() {
                   </div>
 
                   <div className="flex items-center gap-2 self-end sm:self-auto">
+                    {user?.role === "ADMIN" && (
+                      <a
+                        href={`${API_BASE_URL}/api/admin/roster/export`}
+                        className="px-3 py-2 rounded-lg border border-slate-200 text-[#475569] text-xs font-semibold hover:bg-slate-50"
+                      >
+                        Export CSV
+                      </a>
+                    )}
                     <button
                       type="button"
                       onClick={() => setStudentViewMode("grid")}
@@ -2219,6 +2266,24 @@ function AdminDashboardContent() {
                                 )}
                                 {stu.enrollmentId && stu.enrollmentStatus === "DROPPED" && stu.secondChanceUsed && (
                                   <span className="text-[10.5px] text-[#8580A3]">Second chance already used</span>
+                                )}
+
+                                {user?.role === "ADMIN" &&
+                                  stu.enrollmentId &&
+                                  (stu.amountPaidRaw || 0) > 0 &&
+                                  stu.paymentStatus !== "REFUNDED" && (
+                                    <button
+                                      type="button"
+                                      onClick={() => openRefund(stu.enrollmentId!, stu.name, stu.amountPaidRaw || 0)}
+                                      className="px-2.5 py-1 rounded-md border border-[#D6293E] text-[#D6293E] text-[11px] font-semibold hover:bg-[#FBE9EB] cursor-pointer"
+                                    >
+                                      Refund
+                                    </button>
+                                  )}
+                                {stu.paymentStatus === "REFUNDED" && (
+                                  <span className="px-2.5 py-1 rounded-md bg-[#FBE9EB] text-[#D6293E] text-[11px] font-bold">
+                                    Refunded
+                                  </span>
                                 )}
                               </div>
                             </td>
@@ -4239,6 +4304,61 @@ function AdminDashboardContent() {
             </div>
           )}
 
+          {/* Refund Modal — bookkeeping only, same convention as a
+              manually-confirmed bank transfer. */}
+          {refundingEnrollment && (
+            <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <h3 className="text-base font-extrabold text-[#1D2026]">
+                    Refund {refundingEnrollment.name}
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setRefundingEnrollment(null)}
+                    className="text-[#8580A3] hover:text-[#1D2026] text-lg font-bold cursor-pointer"
+                  >
+                    &times;
+                  </button>
+                </div>
+                <p className="text-[12px] text-[#747579]">
+                  Records that this amount was given back to the student outside the app (however it was actually
+                  sent) and withdraws their access to this course.
+                </p>
+                <div>
+                  <label className="block text-xs font-bold text-[#645F80] mb-1.5">
+                    Amount (₦, max ₦{refundingEnrollment.amountPaid.toLocaleString()})
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max={refundingEnrollment.amountPaid}
+                    value={refundAmount}
+                    onChange={(e) => setRefundAmount(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-[#645F80] mb-1.5">Reason (optional)</label>
+                  <textarea
+                    value={refundReason}
+                    onChange={(e) => setRefundReason(e.target.value)}
+                    rows={2}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={confirmRefund}
+                  disabled={savingRefund || !refundAmount || Number(refundAmount) <= 0}
+                  className="w-full py-2.5 rounded-lg bg-[#D6293E] text-white text-sm font-bold hover:bg-[#B91C2E] disabled:opacity-60 cursor-pointer"
+                >
+                  {savingRefund ? "Processing…" : "Confirm Refund"}
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* ========================================================= */}
           {/* VIEW 6: EARNINGS (Matches Images 1 & 4)                   */}
           {/* ========================================================= */}
@@ -4471,9 +4591,19 @@ function AdminDashboardContent() {
                   <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
                     Payment Ledger
                   </h2>
-                  <span className="text-[12.5px] text-[#747579]">
-                    {paymentLedger.length} transaction{paymentLedger.length === 1 ? "" : "s"}
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[12.5px] text-[#747579]">
+                      {paymentLedger.length} transaction{paymentLedger.length === 1 ? "" : "s"}
+                    </span>
+                    {user?.role === "ADMIN" && (
+                      <a
+                        href={`${API_BASE_URL}/api/admin/payment-ledger/export`}
+                        className="px-3 py-1.5 rounded-lg border border-slate-200 text-[#475569] text-xs font-semibold hover:bg-slate-50"
+                      >
+                        Export CSV
+                      </a>
+                    )}
+                  </div>
                 </div>
 
                 <div className="p-6">

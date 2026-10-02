@@ -5,7 +5,13 @@ import { LMS_COURSES } from "../src/data/lms-data";
 import { LMS_QUIZZES, LMS_ASSIGNMENTS } from "../src/data/assessment-data";
 import { CONCEPTS, QUESTION_CONCEPTS, LESSON_CONCEPTS } from "./concepts-data";
 
-process.loadEnvFile(".env.local");
+// No .env.local in CI — env vars are injected directly there, same
+// convention as backend/src/server.ts.
+try {
+  process.loadEnvFile(".env.local");
+} catch {
+  // fall through to process.env as provided by the environment
+}
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });

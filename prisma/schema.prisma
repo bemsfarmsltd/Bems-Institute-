@@ -22,6 +22,9 @@ enum EnrollmentStatus {
   // Staff-set when a student stops attending — the precondition for the
   // PRD's one-time "second chance" rejoin into a future cohort.
   DROPPED
+  // Set alongside PaymentStatus.REFUNDED — blocks further course access
+  // the same way PENDING does (see isEnrolled in api-auth.ts).
+  WITHDRAWN
 }
 
 enum SubmissionStatus {
@@ -45,6 +48,11 @@ enum PaymentStatus {
   PENDING
   PARTIAL
   PAID_FULL
+  // Money was given back outside the app (bank transfer) or, for a
+  // Paystack charge, a real refund call could be added later — see
+  // POST /admin/enrollments/:id/refund. Blocks course access same as
+  // PENDING (see isEnrolled).
+  REFUNDED
 }
 
 enum LearningEventType {
@@ -110,6 +118,7 @@ model User {
   communityMessageLikes CommunityMessageLike[]
   paymentTransactions  PaymentTransaction[]
   jobPlacements        JobPlacement[]
+  reviews              Review[]
   // Which categories of staff-broadcast notifications (notifyStaff) this
   // user wants to receive — only affects staff-wide alerts, never a user's
   // own personal notifications (payment confirmed, submission graded, etc.),
@@ -156,6 +165,25 @@ model Referral {
   createdAt   DateTime       @default(now())
 
   @@index([referrerId])
+}
+
+// A real student review — only a student who actually earned that
+// course's Certificate can leave one (enforced in the route, not here),
+// and it's visible immediately (no moderation queue). One per
+// student+course; leaving a second one updates the first via upsert.
+model Review {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  rating    Int // 1-5
+  comment   String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, courseId])
+  @@index([courseId])
 }
 
 // A public, admin-curated "where they are now" entry (PRD §5.3) — never
@@ -346,6 +374,7 @@ model Course {
   paymentTransactions PaymentTransaction[]
   jobPlacements JobPlacement[]
   leads Lead[]
+  reviews Review[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 }
@@ -428,6 +457,10 @@ enum PaymentTransactionStatus {
   SUCCESS
   FAILED
   ABANDONED
+  // A separate ledger row recording the refund event itself — the
+  // original charge's row stays SUCCESS (historically accurate: that
+  // charge really did succeed), this is what actually changed.
+  REFUNDED
 }
 
 // Immutable, append-only record of every Paystack charge attempt — the

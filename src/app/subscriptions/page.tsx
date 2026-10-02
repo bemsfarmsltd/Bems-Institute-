@@ -22,6 +22,7 @@ import {
   AlertTriangle
 } from "lucide-react";
 import { apiFetch } from "@/lib/api-client";
+import { SubscriptionsTour } from "@/components/tours/SubscriptionsTour";
 
 type PaymentPlan = "full" | "installment";
 import { readAttributionParam, persistAttribution, getStoredAttribution } from "@/lib/attribution";
@@ -63,6 +64,7 @@ function SubscriptionsContent() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [bankReference, setBankReference] = useState("");
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [confirmedEnrollment, setConfirmedEnrollment] = useState<{
     planLabel: string;
     amount: number;
@@ -116,6 +118,7 @@ function SubscriptionsContent() {
     setSelectedPlan(plan);
     setPaymentError(null);
     setBankReference("");
+    setAgreedToTerms(false);
     setShowPaymentModal(true);
   };
 
@@ -233,6 +236,7 @@ function SubscriptionsContent() {
     <div className="min-h-screen flex flex-col bg-[#FAF8FF]">
       <Script src="https://js.paystack.co/v1/inline.js" strategy="afterInteractive" />
       <PageViewTracker page="subscriptions" />
+      <SubscriptionsTour />
       <Navbar />
 
       {/* Header */}
@@ -287,7 +291,7 @@ function SubscriptionsContent() {
 
         {/* Course Track Selector */}
         {courses.length > 0 && (
-          <div className="bg-white rounded-3xl border border-[#F1E2F5] p-6 sm:p-8 shadow-xs space-y-4">
+          <div className="bg-white rounded-3xl border border-[#F1E2F5] p-6 sm:p-8 shadow-xs space-y-4" data-tour="track-selector">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#AE54C6] flex items-center gap-1.5">
@@ -350,7 +354,7 @@ function SubscriptionsContent() {
 
         {/* Payment Plan Cards — two ways to pay, per course (PRD §3.1) */}
         {selectedCourse && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch" data-tour="payment-plans">
             <div className="rounded-3xl p-8 flex flex-col justify-between transition-all duration-300 relative bg-white border-2 border-[#AE54C6] shadow-2xl ring-4 ring-[#AE54C6]/10 -translate-y-2">
               <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
                 <span className="px-4 py-1 rounded-full bg-[#AE54C6] text-white text-[11px] font-black uppercase tracking-wider shadow-sm">
@@ -589,9 +593,29 @@ function SubscriptionsContent() {
               </div>
             )}
 
+            <label className="flex items-start gap-2 mb-4 text-[11px] text-[#645F80] cursor-pointer">
+              <input
+                type="checkbox"
+                checked={agreedToTerms}
+                onChange={(e) => setAgreedToTerms(e.target.checked)}
+                className="mt-0.5 cursor-pointer"
+              />
+              <span>
+                I agree to BEMS&apos;s{" "}
+                <Link href="/terms" target="_blank" className="text-[#AE54C6] font-semibold underline">
+                  Terms of Admission
+                </Link>{" "}
+                and{" "}
+                <Link href="/privacy" target="_blank" className="text-[#AE54C6] font-semibold underline">
+                  Privacy Policy
+                </Link>
+                .
+              </span>
+            </label>
+
             <Button
               onClick={handleProcessPayment}
-              disabled={isProcessing}
+              disabled={isProcessing || !agreedToTerms}
               variant="purple"
               className="w-full py-3 shadow-md text-xs font-bold"
             >

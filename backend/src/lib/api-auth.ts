@@ -40,5 +40,5 @@ export async function isEnrolled(userId: string, courseId: string): Promise<bool
     where: { userId_courseId: { userId, courseId } },
     select: { paymentStatus: true }
   });
-  return !!enrollment && enrollment.paymentStatus !== "PENDING";
+  return !!enrollment && enrollment.paymentStatus !== "PENDING" && enrollment.paymentStatus !== "REFUNDED";
 }

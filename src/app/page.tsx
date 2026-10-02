@@ -7,6 +7,7 @@ import { EduportStudentFeedback } from "@/components/EduportStudentFeedback";
 import { Footer } from "@/components/Footer";
 import { AttributionCapture } from "@/components/AttributionCapture";
 import { PageViewTracker } from "@/components/PageViewTracker";
+import { HomeTour } from "@/components/tours/HomeTour";
 
 export default function Home() {
   return (
@@ -15,6 +16,7 @@ export default function Home() {
         <AttributionCapture />
         <PageViewTracker page="home" />
       </Suspense>
+      <HomeTour />
       <Navbar />
       <main>
         <Hero />

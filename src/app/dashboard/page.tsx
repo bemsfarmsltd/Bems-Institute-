@@ -9,6 +9,7 @@ import { LearningInsights } from "@/components/LearningInsights";
 import { ReferAFriendCard } from "@/components/ReferAFriendCard";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { DashboardTour } from "@/components/tours/DashboardTour";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { apiFetch } from "@/lib/api-client";
@@ -345,6 +346,7 @@ function StudentDashboardContent() {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF8FF]">
+      <DashboardTour />
       <Navbar />
 
       {/* Profile Banner */}

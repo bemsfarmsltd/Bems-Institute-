@@ -195,8 +195,11 @@ export function Footer() {
               <QrCode className="w-3.5 h-3.5" />
               <span>QR Studio</span>
             </Link>
-            <Link href="/subscriptions" className="hover:text-[#AE54C6] transition-colors">
+            <Link href="/terms" className="hover:text-[#AE54C6] transition-colors">
               Terms of Admission
+            </Link>
+            <Link href="/privacy" className="hover:text-[#AE54C6] transition-colors">
+              Privacy Policy
             </Link>
             <Link
               href="/admin"

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use, useState } from "react";
+import React, { use, useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLMS } from "@/context/LMSContext";
@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { apiFetch } from "@/lib/api-client";
 import { buildWhatsAppLink, BEMS_WHATSAPP_NUMBER } from "@/lib/whatsapp";
+import { CourseDetailTour } from "@/components/tours/CourseDetailTour";
 import {
   PlayCircle,
   Lock,
@@ -21,7 +22,8 @@ import {
   Sparkles,
   MessageCircle,
   BookOpen,
-  AlertTriangle
+  AlertTriangle,
+  Star
 } from "lucide-react";
 
 export default function CourseDetailPage({
@@ -40,6 +42,7 @@ export default function CourseDetailPage({
     getCourseProgress,
     getQuizForCourse,
     getAssignmentForCourse,
+    getCertificate,
     user
   } = useLMS();
 
@@ -51,7 +54,70 @@ export default function CourseDetailPage({
   const [interestSubmitted, setInterestSubmitted] = useState(false);
   const [interestWhatsappSent, setInterestWhatsappSent] = useState(false);
 
+  interface CourseReview {
+    id: string;
+    userId: string;
+    name: string;
+    avatarUrl: string | null;
+    rating: number;
+    comment: string | null;
+    createdAt: string;
+  }
+  const [reviews, setReviews] = useState<CourseReview[]>([]);
+  const [reviewAverage, setReviewAverage] = useState(0);
+  const [myRatingDraft, setMyRatingDraft] = useState(0);
+  const [myCommentDraft, setMyCommentDraft] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewMsg, setReviewMsg] = useState<string | null>(null);
+
   const course = courses.find((c) => c.slug === slug);
+
+  useEffect(() => {
+    if (!course) return;
+    apiFetch(`/api/lms/reviews?courseId=${course.id}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!data) return;
+        setReviews(data.reviews || []);
+        setReviewAverage(data.average || 0);
+        const mine = (data.reviews || []).find((r: CourseReview) => r.userId === user?.id);
+        if (mine) {
+          setMyRatingDraft(mine.rating);
+          setMyCommentDraft(mine.comment || "");
+        }
+      })
+      .catch(() => {
+        // reviews unavailable — the rest of the course page still works
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [course?.id]);
+
+  const handleSubmitReview = async () => {
+    if (!course || myRatingDraft < 1) return;
+    setSubmittingReview(true);
+    setReviewMsg(null);
+    try {
+      const res = await apiFetch("/api/lms/reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ courseId: course.id, rating: myRatingDraft, comment: myCommentDraft.trim() })
+      });
+      if (res.ok) {
+        const refreshed = await apiFetch(`/api/lms/reviews?courseId=${course.id}`);
+        if (refreshed.ok) {
+          const data = await refreshed.json();
+          setReviews(data.reviews || []);
+          setReviewAverage(data.average || 0);
+        }
+        setReviewMsg("Thanks for your review!");
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setReviewMsg(data.error || "Could not submit review.");
+      }
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
 
   if (!isHydrated) {
     return (
@@ -129,6 +195,7 @@ export default function CourseDetailPage({
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF8FF]">
+      <CourseDetailTour />
       <Navbar />
 
       <div className="bg-gradient-to-r from-[#303654] via-[#3E4569] to-[#303654] text-white py-14 border-b border-white/10">
@@ -369,7 +436,7 @@ export default function CourseDetailPage({
                     </Button>
                   )}
 
-                  <Link href={`/subscriptions?course=${course.id}`} className="block w-full">
+                  <Link href={`/subscriptions?course=${course.id}`} className="block w-full" data-tour="checkout-link">
                     <Button size="lg" className="w-full">
                       Full Checkout & Paystack Portal
                     </Button>
@@ -378,6 +445,7 @@ export default function CourseDetailPage({
                   <button
                     type="button"
                     onClick={openInterestModal}
+                    data-tour="register-interest"
                     className="w-full mt-2.5 py-2 text-xs font-bold text-[#AE54C6] hover:text-[#8f3ba3] cursor-pointer"
                   >
                     Not ready to pay yet? Just register your interest →
@@ -403,6 +471,94 @@ export default function CourseDetailPage({
               )}
 
             </div>
+          </div>
+
+          {/* Reviews — only a student who earned this course's certificate
+              can leave one, visible immediately (no moderation queue). */}
+          <div className="mt-10 bg-white rounded-3xl border border-[#F1E2F5] p-6 sm:p-8 shadow-xs" data-tour="reviews">
+            <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
+              <h2 className="text-xl font-black text-[#303654]">Student Reviews</h2>
+              {reviews.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-0.5">
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <Star
+                        key={n}
+                        className={`w-4 h-4 ${
+                          n <= Math.round(reviewAverage) ? "fill-amber-400 text-amber-400" : "text-slate-200"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-sm font-bold text-[#303654]">{reviewAverage.toFixed(1)}</span>
+                  <span className="text-xs text-[#645F80]">
+                    ({reviews.length} review{reviews.length === 1 ? "" : "s"})
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {getCertificate(course.id) && (
+              <div className="mb-6 p-4 rounded-2xl bg-[#FAF8FF] border border-[#F1E2F5]">
+                <p className="text-xs font-bold text-[#303654] mb-2">
+                  You earned this certificate — leave a review?
+                </p>
+                <div className="flex items-center gap-1 mb-3">
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <button key={n} type="button" onClick={() => setMyRatingDraft(n)}>
+                      <Star
+                        className={`w-6 h-6 cursor-pointer ${
+                          n <= myRatingDraft ? "fill-amber-400 text-amber-400" : "text-slate-300"
+                        }`}
+                      />
+                    </button>
+                  ))}
+                </div>
+                <textarea
+                  value={myCommentDraft}
+                  onChange={(e) => setMyCommentDraft(e.target.value)}
+                  rows={2}
+                  placeholder="What was your experience with this course? (optional)"
+                  className="w-full px-3.5 py-2.5 rounded-lg border border-[#F1E2F5] text-sm mb-3 focus:outline-none focus:border-[#AE54C6]"
+                />
+                {reviewMsg && <p className="text-xs text-[#AE54C6] font-semibold mb-3">{reviewMsg}</p>}
+                <Button
+                  onClick={handleSubmitReview}
+                  disabled={submittingReview || myRatingDraft < 1}
+                  variant="purple"
+                  size="sm"
+                >
+                  {submittingReview ? "Submitting…" : "Submit Review"}
+                </Button>
+              </div>
+            )}
+
+            {reviews.length === 0 ? (
+              <p className="text-xs text-[#645F80]">
+                No reviews yet — be the first graduate to share your experience.
+              </p>
+            ) : (
+              <div className="space-y-4">
+                {reviews.map((r) => (
+                  <div key={r.id} className="pb-4 border-b border-[#F7EDF9] last:border-0 last:pb-0">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="text-sm font-bold text-[#303654]">{r.name}</span>
+                      <div className="flex items-center gap-0.5">
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <Star
+                            key={n}
+                            className={`w-3.5 h-3.5 ${
+                              n <= r.rating ? "fill-amber-400 text-amber-400" : "text-slate-200"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    {r.comment && <p className="text-xs text-[#645F80]">{r.comment}</p>}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
         </div>
