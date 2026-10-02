@@ -7,20 +7,22 @@ import { useOnboardingTour } from "@/hooks/useOnboardingTour";
 const STEPS: Step[] = [
   {
     target: '[data-tour="track-selector"]',
-    title: "Pick your track",
-    content: "Choose which course you're enrolling in — the plans below update to match its price.",
+    title: "Choose Your Tech Specialty 🎯",
+    content:
+      "Pick the track you want to master—Web Dev, AI, Product Design, or Cybersecurity. The tuition plans below automatically adapt to your selection!",
     placement: "bottom",
     skipBeacon: true
   },
   {
     target: '[data-tour="payment-plans"]',
-    title: "Pay in full or in parts",
-    content: "Save 12% paying in full, or split the cost into 3 parts. Both unlock the same classroom access.",
+    title: "Student & Family Friendly Tuition 💳",
+    content:
+      "Pay in full to save 12%, or choose 3 easy installments. Both options unlock identical physical lab access in Umuahia, live Zoom workshops, and certifications!",
     placement: "top"
   }
 ];
 
 export function SubscriptionsTour() {
-  const { run, handleCallback } = useOnboardingTour("subscriptions");
-  return <OnboardingTour run={run} steps={STEPS} onCallback={handleCallback} />;
+  const { run, startTour, handleCallback } = useOnboardingTour("subscriptions");
+  return <OnboardingTour run={run} steps={STEPS} onCallback={handleCallback} onReplay={startTour} />;
 }

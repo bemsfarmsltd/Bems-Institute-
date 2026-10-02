@@ -1,14 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import type { EventData } from "react-joyride";
+import { fireCelebrationConfetti } from "@/lib/confetti";
 
-// Per-viewer, browser-local only — "have they seen this specific page's
-// tour before" is exactly the kind of convenience localStorage is for
-// (never syncs across devices, never read back by Claude/the backend).
-// Each page's tour is independent and self-contained rather than one
-// giant cross-page state machine, so leaving mid-tour or visiting pages
-// in a different order never leaves the tour in a broken state.
+/**
+ * Enhanced hook for managing interactive product & quest onboarding tours.
+ * Supports:
+ * - Automatic first-visit trigger after DOM mount
+ * - Manual replay via `startTour()` or custom window event `bems:start-tour`
+ * - Celebration confetti upon successful tour completion
+ * - Per-tour localStorage persistence
+ */
 export function useOnboardingTour(tourKey: string) {
   const storageKey = `bems_tour_seen_${tourKey}`;
   const [run, setRun] = useState(false);
@@ -16,30 +19,80 @@ export function useOnboardingTour(tourKey: string) {
   useEffect(() => {
     try {
       if (!window.localStorage.getItem(storageKey)) {
-        // A tick of delay so the page's real content (and the elements the
-        // tour targets) has mounted before Joyride tries to measure them.
-        const timer = setTimeout(() => setRun(true), 400);
+        // Delay ensures page assets, hydration, and elements have mounted
+        const timer = setTimeout(() => setRun(true), 600);
         return () => clearTimeout(timer);
       }
     } catch {
-      // localStorage unavailable (private browsing, etc.) — tour just won't show, not worth failing over
+      // localStorage unavailable (e.g. private browsing)
     }
   }, [storageKey]);
 
-  const markSeen = () => {
+  // Listen for global manual replay events (e.g., student clicks "Take Tour 🚀")
+  useEffect(() => {
+    const handleReplayEvent = (e: Event) => {
+      const customEvent = e as CustomEvent<{ key?: string }>;
+      if (!customEvent.detail?.key || customEvent.detail.key === tourKey || customEvent.detail.key === "all") {
+        setRun(false);
+        setTimeout(() => setRun(true), 150);
+      }
+    };
+
+    window.addEventListener("bems:start-tour", handleReplayEvent);
+    return () => window.removeEventListener("bems:start-tour", handleReplayEvent);
+  }, [tourKey]);
+
+  const markSeen = useCallback(() => {
     try {
       window.localStorage.setItem(storageKey, "1");
     } catch {
-      // best-effort — if it can't persist, the tour may just show again next visit
+      // Best-effort storage
     }
     setRun(false);
-  };
+  }, [storageKey]);
 
-  const handleCallback = (data: EventData) => {
-    if (data.status === "finished" || data.status === "skipped") {
-      markSeen();
-    }
-  };
+  const startTour = useCallback(() => {
+    setRun(false);
+    setTimeout(() => setRun(true), 150);
+  }, []);
 
-  return { run, handleCallback };
+  const resetTour = useCallback(() => {
+    try {
+      window.localStorage.removeItem(storageKey);
+    } catch {}
+    setRun(false);
+  }, [storageKey]);
+
+  const handleCallback = useCallback(
+    (data: EventData) => {
+      if (data.status === "finished") {
+        fireCelebrationConfetti();
+        markSeen();
+      } else if (data.status === "skipped") {
+        markSeen();
+      }
+    },
+    [markSeen]
+  );
+
+  return {
+    run,
+    startTour,
+    resetTour,
+    handleCallback
+  };
+}
+
+/**
+ * Global helper to trigger or restart an onboarding tour from anywhere in the app!
+ * Example: `triggerOnboardingTour("home")`
+ */
+export function triggerOnboardingTour(tourKey: string = "all") {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(
+      new CustomEvent("bems:start-tour", {
+        detail: { key: tourKey }
+      })
+    );
+  }
 }

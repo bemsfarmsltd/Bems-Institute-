@@ -7,26 +7,29 @@ import { useOnboardingTour } from "@/hooks/useOnboardingTour";
 const STEPS: Step[] = [
   {
     target: '[data-tour="checkout-link"]',
-    title: "Ready to enroll?",
-    content: "This takes you to checkout — pick full payment or 3 installments, and pay by card, USSD, or bank transfer.",
+    title: "Start Your Tech Journey 🎒",
+    content:
+      "Ready to join the cohort? Tap here to reserve your lab seat! Choose full payment with a 12% discount or 3 easy student installments.",
     placement: "top",
     skipBeacon: true
   },
   {
     target: '[data-tour="register-interest"]',
-    title: "Not ready yet?",
-    content: "Just leave your name and phone — no payment, no commitment. We'll message you on WhatsApp and follow up.",
+    title: "Got Questions First? 💬",
+    content:
+      "Not quite sure yet? Leave your name and WhatsApp number—our student mentors will send you sample lessons and answer all your questions!",
     placement: "top"
   },
   {
     target: '[data-tour="reviews"]',
-    title: "Hear from real graduates",
-    content: "Only students who actually earned this course's certificate can leave a review here.",
+    title: "Graduate Hall of Fame 🏆",
+    content:
+      "Read genuine reviews and success stories from real students who completed their capstones and earned verified BEMS credentials!",
     placement: "top"
   }
 ];
 
 export function CourseDetailTour() {
-  const { run, handleCallback } = useOnboardingTour("course-detail");
-  return <OnboardingTour run={run} steps={STEPS} onCallback={handleCallback} />;
+  const { run, startTour, handleCallback } = useOnboardingTour("course-detail");
+  return <OnboardingTour run={run} steps={STEPS} onCallback={handleCallback} onReplay={startTour} />;
 }

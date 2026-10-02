@@ -8,32 +8,35 @@ const STEPS: Step[] = [
   {
     target: "body",
     placement: "center",
-    title: "Welcome to BEMS FutureSkills! 👋",
+    title: "Welcome to BEMS FutureSkills! 🚀✨",
     content:
-      "Quick tour — 4 steps, about 20 seconds. We'll show you how to find a track, enroll, and get help once you're learning.",
+      "Hey Explorer! Welcome to your digital academy. Ready to build cool websites, train smart AI, and level up your tech superpowers? Let's take a quick 20-second tour!",
     skipBeacon: true
   },
   {
     target: "#courses",
-    title: "Browse the tracks",
-    content: "Web Development, AI & Automation, Product Design, and Cybersecurity — each ends with a real project.",
+    title: "Choose Your Superpower Track 💡",
+    content:
+      "Explore Web Development, AI & Automation, Product Design, and Cybersecurity. Each track is packed with hands-on coding labs and real projects to show off!",
     placement: "top"
   },
   {
     target: '[data-tour="hero-cta"]',
-    title: "Ready to enroll?",
-    content: "Pay in full or in 3 parts — click here any time to start checkout for a track.",
+    title: "Unlock Your Explorer Pass 🎟️",
+    content:
+      "Student & family-friendly tuition! Pay up front to save 12% or choose 3 easy installments. Both include physical lab workstations in Umuahia + live Zoom mentoring!",
     placement: "bottom"
   },
   {
     target: '[aria-label="More links"]',
-    title: "Everything else lives here",
-    content: "Hover the \"•••\" menu for your Dashboard, AI Tutor, Coding Sandbox, Community, and Leaderboard.",
+    title: "Your Secret Tech Toolbelt 🧰",
+    content:
+      "Hover here anytime for your 24/7 AI Study Buddy, Interactive Code Playground, Student Community, and the Cohort Leaderboard!",
     placement: "bottom"
   }
 ];
 
 export function HomeTour() {
-  const { run, handleCallback } = useOnboardingTour("home");
-  return <OnboardingTour run={run} steps={STEPS} onCallback={handleCallback} />;
+  const { run, startTour, handleCallback } = useOnboardingTour("home");
+  return <OnboardingTour run={run} steps={STEPS} onCallback={handleCallback} onReplay={startTour} />;
 }
