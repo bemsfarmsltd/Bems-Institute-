@@ -86,6 +86,8 @@ export async function computeAdminRoster(): Promise<AdminStudent[]> {
       totalDue: e.totalDue,
       paymentStatus: e.paymentStatus,
       paymentReference: e.paymentReference,
+      enrollmentStatus: e.status,
+      secondChanceUsed: !!e.user.secondChanceUsedAt,
       progressPercent,
       quizScore,
       capstoneStatus,

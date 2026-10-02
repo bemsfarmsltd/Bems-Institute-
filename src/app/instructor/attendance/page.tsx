@@ -17,6 +17,7 @@ interface LiveSessionRow {
   scheduledAt: string;
   courseId: string;
   type: "CLASS" | "WELCOME";
+  recordingUrl: string | null;
 }
 
 interface RosterEntry {
@@ -39,6 +40,8 @@ function InstructorAttendanceContent() {
   const [newScheduledAt, setNewScheduledAt] = useState("");
   const [newMeetingUrl, setNewMeetingUrl] = useState("");
   const [newType, setNewType] = useState<"CLASS" | "WELCOME">("CLASS");
+  const [recordingDrafts, setRecordingDrafts] = useState<Record<string, string>>({});
+  const [savingRecordingId, setSavingRecordingId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -55,7 +58,15 @@ function InstructorAttendanceContent() {
     const res = await apiFetch(`/api/attendance/sessions?courseId=${cid}`);
     if (res.ok) {
       const data = await res.json();
-      setSessions(data.sessions || []);
+      const rows: LiveSessionRow[] = data.sessions || [];
+      setSessions(rows);
+      setRecordingDrafts((prev) => {
+        const next = { ...prev };
+        for (const s of rows) {
+          if (next[s.id] === undefined) next[s.id] = s.recordingUrl || "";
+        }
+        return next;
+      });
     }
   };
 
@@ -112,6 +123,23 @@ function InstructorAttendanceContent() {
     setNewMeetingUrl("");
     setNewType("CLASS");
     await loadSessions(courseId);
+  };
+
+  const handleSaveRecording = async (sessionId: string) => {
+    setSavingRecordingId(sessionId);
+    try {
+      const res = await apiFetch(`/api/attendance/sessions/${sessionId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ recordingUrl: recordingDrafts[sessionId] ?? "" })
+      });
+      if (res.ok) {
+        setNotice("Recording link saved.");
+        await loadSessions(courseId);
+      }
+    } finally {
+      setSavingRecordingId(null);
+    }
   };
 
   const handleSaveRoster = async (e: React.FormEvent) => {
@@ -254,6 +282,25 @@ function InstructorAttendanceContent() {
                     )}
                   </div>
                   <p className="text-[11px] text-[#645F80]">{new Date(s.scheduledAt).toLocaleString()}</p>
+                  <div className="flex items-center gap-1.5 mt-2" onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="url"
+                      value={recordingDrafts[s.id] ?? ""}
+                      onChange={(e) =>
+                        setRecordingDrafts((prev) => ({ ...prev, [s.id]: e.target.value }))
+                      }
+                      placeholder="Paste recording link (revision)"
+                      className="flex-1 px-2.5 py-1.5 rounded-lg border border-[#F1E2F5] text-[11px] focus:outline-none focus:border-[#AE54C6]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleSaveRecording(s.id)}
+                      disabled={savingRecordingId === s.id}
+                      className="px-2.5 py-1.5 rounded-lg bg-[#F6ECF9] text-[#A16EBD] text-[11px] font-bold hover:bg-[#A16EBD] hover:text-white disabled:opacity-60 cursor-pointer"
+                    >
+                      {savingRecordingId === s.id ? "…" : "Save"}
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

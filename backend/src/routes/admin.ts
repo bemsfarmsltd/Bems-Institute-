@@ -124,6 +124,63 @@ router.patch("/cohort", async (req, res) => {
   return res.json({ cohort: updated });
 });
 
+// PRD §9 "Plan the next group" — previously only possible by hand in the
+// database. Enrollments always attach to whichever cohort is newest (see
+// POST /payments/init, /lms/enroll), so creating one here is what actually
+// starts the next intake round.
+router.get("/cohorts", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isStaff(session)) {
+    return res.status(403).json({ error: "Staff access required." });
+  }
+
+  const cohorts = await prisma.cohort.findMany({
+    orderBy: { createdAt: "desc" },
+    include: { _count: { select: { enrollments: true } } }
+  });
+
+  return res.json({
+    cohorts: cohorts.map((c) => ({
+      id: c.id,
+      name: c.name,
+      startDate: c.startDate.toISOString(),
+      endDate: c.endDate.toISOString(),
+      targetStudents: c.targetStudents,
+      targetRevenue: c.targetRevenue,
+      estimatedAdViews: c.estimatedAdViews,
+      enrolledCount: c._count.enrollments,
+      createdAt: c.createdAt.toISOString()
+    }))
+  });
+});
+
+router.post("/cohorts", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
+  }
+
+  const body = req.body ?? {};
+  const name = typeof body.name === "string" ? body.name.trim() : "";
+  const startDate = typeof body.startDate === "string" ? new Date(body.startDate) : null;
+  const endDate = typeof body.endDate === "string" ? new Date(body.endDate) : null;
+  const targetStudents = Number.isFinite(Number(body.targetStudents)) ? Number(body.targetStudents) : 80;
+  const targetRevenue = Number.isFinite(Number(body.targetRevenue)) ? Number(body.targetRevenue) : 0;
+
+  if (!name || !startDate || !endDate || Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+    return res.status(400).json({ error: "name, startDate, and endDate are required." });
+  }
+  if (endDate <= startDate) {
+    return res.status(400).json({ error: "endDate must be after startDate." });
+  }
+
+  const cohort = await prisma.cohort.create({
+    data: { name, startDate, endDate, targetStudents, targetRevenue }
+  });
+
+  return res.json({ cohort });
+});
+
 router.get("/roster", async (req, res) => {
   const session = await getSessionUser(req);
   if (!isStaff(session)) {
@@ -228,9 +285,14 @@ router.patch("/placements/:id", async (req, res) => {
     body.feeAmount === null ? null : Number.isFinite(Number(body.feeAmount)) && body.feeAmount !== undefined ? Number(body.feeAmount) : undefined;
   const feeStatus = ["NONE", "INVOICED", "PAID"].includes(body.feeStatus) ? body.feeStatus : undefined;
   const notes = typeof body.notes === "string" ? body.notes : undefined;
+  const payRate =
+    body.payRate === null ? null : Number.isFinite(Number(body.payRate)) && body.payRate !== undefined ? Number(body.payRate) : undefined;
 
   if (feeAmount !== undefined && feeAmount !== null && feeAmount < 0) {
     return res.status(400).json({ error: "feeAmount must be a non-negative number." });
+  }
+  if (payRate !== undefined && payRate !== null && payRate < 0) {
+    return res.status(400).json({ error: "payRate must be a non-negative number." });
   }
 
   const existing = await prisma.jobPlacement.findUnique({
@@ -250,7 +312,8 @@ router.patch("/placements/:id", async (req, res) => {
       ...(hiredAt !== undefined ? { hiredAt } : {}),
       ...(feeAmount !== undefined ? { feeAmount } : {}),
       ...(feeStatus !== undefined ? { feeStatus } : {}),
-      ...(notes !== undefined ? { notes } : {})
+      ...(notes !== undefined ? { notes } : {}),
+      ...(payRate !== undefined ? { payRate } : {})
     }
   });
 
@@ -265,6 +328,48 @@ router.patch("/placements/:id", async (req, res) => {
   }
 
   return res.json({ placement });
+});
+
+// PRD §5.3: "Graduates come back to teach: the best graduates return as
+// paid teaching assistants." Promotes their account to INSTRUCTOR — the
+// same role every other tutor in this app uses, so no separate "TA" role
+// needs to exist. Only sensible once BEMS has actually decided to hire
+// them (status HIRED, placementType BEMS_INTERNAL), set via the placement
+// edit modal before this button is used.
+router.post("/placements/:id/promote-to-instructor", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
+  }
+
+  const { id } = req.params;
+  const placement = await prisma.jobPlacement.findUnique({
+    where: { id },
+    include: { user: { select: { id: true, name: true, role: true } }, course: { select: { title: true } } }
+  });
+  if (!placement) {
+    return res.status(404).json({ error: "Placement not found." });
+  }
+  if (placement.status !== "HIRED" || placement.placementType !== "BEMS_INTERNAL") {
+    return res.status(400).json({
+      error: "Mark this placement HIRED with employer type \"BEMS Group (internal hire)\" before promoting to instructor."
+    });
+  }
+  if (placement.user.role === "INSTRUCTOR" || placement.user.role === "ADMIN") {
+    return res.status(400).json({ error: `${placement.user.name} already has staff access.` });
+  }
+
+  await prisma.user.update({ where: { id: placement.user.id }, data: { role: "INSTRUCTOR" } });
+
+  await createNotification({
+    userId: placement.user.id,
+    title: "Welcome to the BEMS teaching team!",
+    message: `You've been promoted to Teaching Assistant for ${placement.course.title}. Your account now has instructor access — welcome back!`,
+    category: "GRADING",
+    linkUrl: "/dashboard"
+  });
+
+  return res.json({ ok: true });
 });
 
 // PRD §4.1 step 3 — staff work the lead queue the "register interest" form
@@ -580,6 +685,109 @@ router.post("/enrollments/:id/payment", async (req, res) => {
   }
 
   return res.json({ enrollment });
+});
+
+// PRD §4.2: "A second chance: a student who falls behind can rejoin those
+// weeks in the next group for free, once. That turns a drop-out into a
+// finisher instead of a refund." One-time per student, enforced via
+// User.secondChanceUsedAt — not per-course, since the PRD frames this as a
+// lifetime perk, not a repeatable discount.
+// A plain status toggle — marking a student DROPPED is the precondition
+// for the second-chance route below, and staff need a way to undo a
+// mis-click without it counting as a real drop.
+router.patch("/enrollments/:id/status", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
+  }
+
+  const { id } = req.params;
+  const status = req.body?.status;
+  if (status !== "DROPPED" && status !== "ACTIVE") {
+    return res.status(400).json({ error: "status must be DROPPED or ACTIVE." });
+  }
+
+  const existing = await prisma.enrollment.findUnique({ where: { id } });
+  if (!existing) {
+    return res.status(404).json({ error: "Enrollment not found." });
+  }
+
+  const enrollment = await prisma.enrollment.update({ where: { id }, data: { status } });
+  return res.json({ enrollment });
+});
+
+router.post("/enrollments/:id/second-chance", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
+  }
+
+  const { id } = req.params;
+  const targetCohortId = typeof req.body?.targetCohortId === "string" ? req.body.targetCohortId : "";
+  if (!targetCohortId) {
+    return res.status(400).json({ error: "targetCohortId is required." });
+  }
+
+  const enrollment = await prisma.enrollment.findUnique({
+    where: { id },
+    include: { user: { select: { id: true, name: true, secondChanceUsedAt: true } }, course: { select: { title: true } } }
+  });
+  if (!enrollment) {
+    return res.status(404).json({ error: "Enrollment not found." });
+  }
+  if (enrollment.user.secondChanceUsedAt) {
+    return res.status(400).json({ error: `${enrollment.user.name} has already used their one-time second chance.` });
+  }
+
+  const targetCohort = await prisma.cohort.findUnique({ where: { id: targetCohortId } });
+  if (!targetCohort) {
+    return res.status(404).json({ error: "Target cohort not found." });
+  }
+
+  const waivedAmount = Math.max(enrollment.totalDue - enrollment.amountPaid, 0);
+
+  const updated = await prisma.$transaction(async (tx) => {
+    const updatedEnrollment = await tx.enrollment.update({
+      where: { id },
+      data: {
+        cohortId: targetCohortId,
+        status: "ACTIVE",
+        paymentStatus: "PAID_FULL",
+        amountPaid: enrollment.totalDue
+      }
+    });
+    await tx.user.update({ where: { id: enrollment.user.id }, data: { secondChanceUsedAt: new Date() } });
+    return updatedEnrollment;
+  });
+
+  // A real ledger entry for the waiver — so "why does this enrollment show
+  // PAID_FULL with no matching Paystack/bank transaction" has an honest
+  // answer in the Payment Ledger, not a silent discrepancy.
+  if (waivedAmount > 0) {
+    await prisma.paymentTransaction.create({
+      data: {
+        reference: `waiver_${crypto.randomUUID().replace(/-/g, "")}`,
+        userId: enrollment.user.id,
+        courseId: enrollment.courseId,
+        paymentPlan: enrollment.paymentPlan,
+        amount: waivedAmount,
+        status: "SUCCESS",
+        channel: "second_chance_waiver",
+        gatewayResponse: `One-time second-chance rejoin into cohort "${targetCohort.name}" — remaining balance waived by ${session?.name ?? "admin"}.`,
+        paidAt: new Date()
+      }
+    });
+  }
+
+  await createNotification({
+    userId: enrollment.user.id,
+    title: "You're back in! Second chance activated",
+    message: `Welcome back to ${enrollment.course.title} — you've rejoined the "${targetCohort.name}" cohort with your remaining balance waived. Your progress carries over, so pick up right where you left off.`,
+    category: "CLASS",
+    linkUrl: "/dashboard"
+  });
+
+  return res.json({ enrollment: updated, waivedAmount });
 });
 
 const NOTIFICATION_CATEGORIES = ["CLASS", "GRADING", "PAYMENT", "GAMIFICATION", "ATTENDANCE"] as const;

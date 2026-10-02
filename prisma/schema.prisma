@@ -19,6 +19,9 @@ enum EnrollmentStatus {
   PENDING
   ACTIVE
   COMPLETED
+  // Staff-set when a student stops attending — the precondition for the
+  // PRD's one-time "second chance" rejoin into a future cohort.
+  DROPPED
 }
 
 enum SubmissionStatus {
@@ -112,6 +115,11 @@ model User {
   // own personal notifications (payment confirmed, submission graded, etc.),
   // which always send regardless of this preference.
   notifyCategories     NotificationCategory[] @default([CLASS, GRADING, PAYMENT, GAMIFICATION, ATTENDANCE])
+  // PRD §4.2: "A second chance: a student who falls behind can rejoin
+  // those weeks in the next group for free, ONCE." Lifetime, not
+  // per-course — set the moment POST /admin/enrollments/:id/second-chance
+  // is used, and checked there to block a second use.
+  secondChanceUsedAt DateTime?
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 }
@@ -215,6 +223,12 @@ model JobPlacement {
   // "BEMS invoices a company."
   feeAmount     Int?
   feeStatus     PlacementFeeStatus  @default(NONE)
+  // PRD §5.3: "Graduates come back to teach: the best graduates return as
+  // paid teaching assistants." A bookkeeping figure for BEMS's own records
+  // (monthly/project rate in Naira) — not real payroll processing, which
+  // is out of scope. Only meaningful once promoted via
+  // POST /admin/placements/:id/promote-to-instructor.
+  payRate       Int?
   notes         String?             @db.Text
   createdAt     DateTime            @default(now())
   updatedAt     DateTime            @updatedAt
@@ -247,6 +261,11 @@ model LiveSession {
   // immediate WhatsApp no-show message (not the "missed 2 in a row" rule
   // regular classes use), since there's only ever one per cohort.
   type        LiveSessionType @default(CLASS)
+  // PRD §7 "Virtual: live Zoom classes with mandatory recordings uploaded
+  // for revision." No Zoom API is wired up to fetch this automatically —
+  // staff paste the recording link here after the session (see
+  // PATCH /attendance/sessions/:id), same as meetingUrl.
+  recordingUrl String?
   createdAt   DateTime @default(now())
   attendance  AttendanceRecord[]
 

@@ -159,6 +159,11 @@ export interface AdminStudent {
   // statement before confirming. Null for Paystack (which verifies itself)
   // or before any reference has been recorded.
   paymentReference?: string | null;
+  // PRD §4.2's one-time "second chance" rejoin needs a dropped-out
+  // enrollment to actually exist as a state, and a way to check a
+  // student hasn't already used their lifetime second chance.
+  enrollmentStatus: "PENDING" | "ACTIVE" | "COMPLETED" | "DROPPED";
+  secondChanceUsed: boolean;
   progressPercent: number;
   quizScore?: number;
   capstoneStatus: "NOT_STARTED" | "SUBMITTED" | "GRADED";

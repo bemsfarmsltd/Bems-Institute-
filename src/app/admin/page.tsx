@@ -62,6 +62,8 @@ interface EduportStudentCard {
   paymentStatus?: "PAID_FULL" | "PARTIAL" | "PENDING";
   coursePrice?: number;
   paymentReference?: string | null;
+  enrollmentStatus?: "PENDING" | "ACTIVE" | "COMPLETED" | "DROPPED";
+  secondChanceUsed?: boolean;
 }
 
 interface EduportInstructorCard {
@@ -713,6 +715,7 @@ function AdminDashboardContent() {
     hiredAt: string | null;
     feeAmount: number | null;
     feeStatus: "NONE" | "INVOICED" | "PAID";
+    payRate: number | null;
     notes: string | null;
     createdAt: string;
   }
@@ -729,6 +732,7 @@ function AdminDashboardContent() {
     hiredAt: "",
     feeAmount: "",
     feeStatus: "NONE" as Placement["feeStatus"],
+    payRate: "",
     notes: ""
   });
   const openEditPlacement = (p: Placement) => {
@@ -740,8 +744,21 @@ function AdminDashboardContent() {
       hiredAt: p.hiredAt ? p.hiredAt.slice(0, 10) : "",
       feeAmount: p.feeAmount !== null ? String(p.feeAmount) : "",
       feeStatus: p.feeStatus,
+      payRate: p.payRate !== null ? String(p.payRate) : "",
       notes: p.notes || ""
     });
+  };
+
+  const promoteToInstructor = async (placementId: string, studentName: string) => {
+    const res = await apiFetch(`/api/admin/placements/${placementId}/promote-to-instructor`, {
+      method: "POST"
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      setAdminNotice(`${studentName} promoted to Instructor — welcome to the teaching team!`);
+    } else {
+      setAdminNotice(data.error || "Could not promote to instructor.");
+    }
   };
 
   useEffect(() => {
@@ -770,6 +787,7 @@ function AdminDashboardContent() {
           hiredAt: placementForm.hiredAt || null,
           feeAmount: placementForm.feeAmount.trim() === "" ? null : Number(placementForm.feeAmount),
           feeStatus: placementForm.feeStatus,
+          payRate: placementForm.payRate.trim() === "" ? null : Number(placementForm.payRate),
           notes: placementForm.notes.trim() || null
         })
       });
@@ -814,6 +832,125 @@ function AdminDashboardContent() {
       }
     } finally {
       setSavingCohort(false);
+    }
+  };
+
+  // PRD §9 "Plan the next group" — previously only possible by hand in the
+  // database. Loaded alongside the cohort targets since both live in the
+  // Earnings tab's Marketing Funnel area.
+  interface CohortRow {
+    id: string;
+    name: string;
+    startDate: string;
+    endDate: string;
+    targetStudents: number;
+    targetRevenue: number;
+    estimatedAdViews: number;
+    enrolledCount: number;
+    createdAt: string;
+  }
+  const [cohorts, setCohorts] = useState<CohortRow[]>([]);
+  const [cohortsLoaded, setCohortsLoaded] = useState(false);
+  const cohortsLoading =
+    (activeTab === "earnings" || activeTab === "analytics" || activeTab === "students") && !cohortsLoaded;
+  const [creatingCohort, setCreatingCohort] = useState(false);
+  const [newCohortForm, setNewCohortForm] = useState({
+    name: "",
+    startDate: "",
+    endDate: "",
+    targetStudents: "80",
+    targetRevenue: "6800000"
+  });
+  const [savingNewCohort, setSavingNewCohort] = useState(false);
+
+  useEffect(() => {
+    if (!(activeTab === "earnings" || activeTab === "analytics" || activeTab === "students") || cohortsLoaded) return;
+    apiFetch("/api/admin/cohorts")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data) setCohorts(data.cohorts || []);
+        setCohortsLoaded(true);
+      })
+      .catch(() => setCohortsLoaded(true));
+  }, [activeTab, cohortsLoaded]);
+
+  const saveNewCohort = async () => {
+    setSavingNewCohort(true);
+    try {
+      const res = await apiFetch("/api/admin/cohorts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newCohortForm.name.trim(),
+          startDate: newCohortForm.startDate,
+          endDate: newCohortForm.endDate,
+          targetStudents: Number(newCohortForm.targetStudents),
+          targetRevenue: Number(newCohortForm.targetRevenue)
+        })
+      });
+      if (res.ok) {
+        setCohortsLoaded(false);
+        await refreshAdminData();
+        setAdminNotice(`Cohort "${newCohortForm.name}" created — new enrollments will attach to it.`);
+        setCreatingCohort(false);
+        setNewCohortForm({ name: "", startDate: "", endDate: "", targetStudents: "80", targetRevenue: "6800000" });
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setAdminNotice(data.error || "Could not create cohort.");
+      }
+    } finally {
+      setSavingNewCohort(false);
+    }
+  };
+
+  // PRD §4.2: "A second chance: a student who falls behind can rejoin
+  // those weeks in the next group for free, once." Requires the enrollment
+  // to be marked DROPPED first and picking which (newer) cohort to rejoin.
+  const [secondChanceEnrollmentId, setSecondChanceEnrollmentId] = useState<string | null>(null);
+  const [secondChanceTargetCohort, setSecondChanceTargetCohort] = useState("");
+  const [savingSecondChance, setSavingSecondChance] = useState(false);
+
+  const toggleDropped = async (enrollmentId: string, name: string, nextStatus: "DROPPED" | "ACTIVE") => {
+    const res = await apiFetch(`/api/admin/enrollments/${enrollmentId}/status`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: nextStatus })
+    });
+    if (res.ok) {
+      await refreshAdminData();
+      setAdminNotice(
+        nextStatus === "DROPPED" ? `Marked ${name} as dropped.` : `Reactivated ${name}'s enrollment.`
+      );
+    }
+  };
+
+  const openSecondChance = (enrollmentId: string) => {
+    const newestOtherCohort = cohorts[0]?.id || "";
+    setSecondChanceTargetCohort(newestOtherCohort);
+    setSecondChanceEnrollmentId(enrollmentId);
+  };
+
+  const confirmSecondChance = async () => {
+    if (!secondChanceEnrollmentId || !secondChanceTargetCohort) return;
+    setSavingSecondChance(true);
+    try {
+      const res = await apiFetch(`/api/admin/enrollments/${secondChanceEnrollmentId}/second-chance`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ targetCohortId: secondChanceTargetCohort })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        await refreshAdminData();
+        setAdminNotice(
+          `Second chance activated${data.waivedAmount ? ` — ₦${data.waivedAmount.toLocaleString()} waived` : ""}.`
+        );
+        setSecondChanceEnrollmentId(null);
+      } else {
+        setAdminNotice(data.error || "Could not activate second chance.");
+      }
+    } finally {
+      setSavingSecondChance(false);
     }
   };
 
@@ -1021,6 +1158,8 @@ function AdminDashboardContent() {
     paymentStatus: stu.paymentStatus,
     coursePrice: stu.totalDue,
     paymentReference: stu.paymentReference,
+    enrollmentStatus: stu.enrollmentStatus,
+    secondChanceUsed: stu.secondChanceUsed,
   }));
 
   const combinedStudents: EduportStudentCard[] = [
@@ -2002,9 +2141,16 @@ function AdminDashboardContent() {
                                 className="w-9 h-9 rounded-full object-cover"
                               />
                               <div>
-                                <span className="font-bold text-[#1D2026] block">{stu.name}</span>
+                                <span className="font-bold text-[#1D2026] flex items-center gap-1.5">
+                                  {stu.name}
+                                  {stu.enrollmentStatus === "DROPPED" && (
+                                    <span className="px-1.5 py-0.5 rounded-md bg-[#FBE9EB] text-[#D6293E] text-[9.5px] font-bold uppercase">
+                                      Dropped
+                                    </span>
+                                  )}
+                                </span>
                                 {stu.paymentStatus === "PENDING" && stu.paymentReference && (
-                                  <span className="text-[11px] text-amber-700">
+                                  <span className="text-[11px] text-amber-700 block">
                                     Ref: <code className="font-mono font-bold">{stu.paymentReference}</code>
                                   </span>
                                 )}
@@ -2028,28 +2174,53 @@ function AdminDashboardContent() {
                             </td>
                             <td className="py-3.5 px-4 text-[#747579]">{stu.joinDate}</td>
                             <td className="py-3.5 px-4 text-right">
-                              {stu.enrollmentId &&
-                              (stu.paymentStatus === "PARTIAL" || stu.paymentStatus === "PENDING") &&
-                              stu.coursePrice ? (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    updateStudentPayment(
-                                      stu.enrollmentId!,
-                                      "PAID_FULL",
-                                      stu.coursePrice!
-                                    );
-                                    setAdminNotice(`Marked ${stu.name} as PAID FULL.`);
-                                  }}
-                                  className="px-3 py-1.5 rounded-lg bg-[#AE54C6] text-white text-xs font-semibold hover:bg-[#A03BBC] cursor-pointer"
-                                >
-                                  Mark Paid Full
-                                </button>
-                              ) : (
-                                <span className="px-2.5 py-1 rounded-md bg-[#F7EDF9] text-[#AE54C6] text-xs font-bold">
-                                  Verified
-                                </span>
-                              )}
+                              <div className="flex flex-col items-end gap-1.5">
+                                {stu.enrollmentId &&
+                                (stu.paymentStatus === "PARTIAL" || stu.paymentStatus === "PENDING") &&
+                                stu.coursePrice ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      updateStudentPayment(
+                                        stu.enrollmentId!,
+                                        "PAID_FULL",
+                                        stu.coursePrice!
+                                      );
+                                      setAdminNotice(`Marked ${stu.name} as PAID FULL.`);
+                                    }}
+                                    className="px-3 py-1.5 rounded-lg bg-[#AE54C6] text-white text-xs font-semibold hover:bg-[#A03BBC] cursor-pointer"
+                                  >
+                                    Mark Paid Full
+                                  </button>
+                                ) : (
+                                  <span className="px-2.5 py-1 rounded-md bg-[#F7EDF9] text-[#AE54C6] text-xs font-bold">
+                                    Verified
+                                  </span>
+                                )}
+
+                                {/* PRD §4.2 one-time "second chance" rejoin */}
+                                {stu.enrollmentId && stu.enrollmentStatus === "ACTIVE" && (
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleDropped(stu.enrollmentId!, stu.name, "DROPPED")}
+                                    className="px-2.5 py-1 rounded-md border border-slate-200 text-[#747579] text-[11px] font-semibold hover:bg-slate-50 cursor-pointer"
+                                  >
+                                    Mark Dropped
+                                  </button>
+                                )}
+                                {stu.enrollmentId && stu.enrollmentStatus === "DROPPED" && !stu.secondChanceUsed && (
+                                  <button
+                                    type="button"
+                                    onClick={() => openSecondChance(stu.enrollmentId!)}
+                                    className="px-2.5 py-1 rounded-md border border-[#AE54C6] text-[#AE54C6] text-[11px] font-bold hover:bg-[#F7EDF9] cursor-pointer"
+                                  >
+                                    Second Chance →
+                                  </button>
+                                )}
+                                {stu.enrollmentId && stu.enrollmentStatus === "DROPPED" && stu.secondChanceUsed && (
+                                  <span className="text-[10.5px] text-[#8580A3]">Second chance already used</span>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         ))}
@@ -3831,6 +4002,22 @@ function AdminDashboardContent() {
                   </div>
                 )}
 
+                {placementForm.placementType === "BEMS_INTERNAL" && (
+                  <div>
+                    <label className="block text-xs font-bold text-[#645F80] mb-1.5">
+                      Pay Rate (₦/month, for BEMS&apos;s own records)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={placementForm.payRate}
+                      onChange={(e) => setPlacementForm((f) => ({ ...f, payRate: e.target.value }))}
+                      placeholder="e.g. 80000 — not real payroll, just a bookkeeping note"
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm"
+                    />
+                  </div>
+                )}
+
                 <div>
                   <label className="block text-xs font-bold text-[#645F80] mb-1.5">Notes</label>
                   <textarea
@@ -3849,6 +4036,16 @@ function AdminDashboardContent() {
                 >
                   {savingPlacement ? "Saving…" : "Save Placement"}
                 </button>
+
+                {editingPlacement.status === "HIRED" && editingPlacement.placementType === "BEMS_INTERNAL" && (
+                  <button
+                    type="button"
+                    onClick={() => promoteToInstructor(editingPlacement.id, editingPlacement.studentName)}
+                    className="w-full py-2.5 rounded-lg border border-[#AE54C6] text-[#AE54C6] text-sm font-bold hover:bg-[#F7EDF9] cursor-pointer"
+                  >
+                    Promote to Instructor (Teaching Assistant)
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -3911,6 +4108,132 @@ function AdminDashboardContent() {
                   className="w-full py-2.5 rounded-lg bg-[#AE54C6] text-white text-sm font-bold hover:bg-[#A03BBC] disabled:opacity-60 cursor-pointer"
                 >
                   {savingCohort ? "Saving…" : "Save Targets"}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* New Cohort Modal — PRD §9 "Plan the next group." */}
+          {creatingCohort && (
+            <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <h3 className="text-base font-extrabold text-[#1D2026]">New Cohort</h3>
+                  <button
+                    type="button"
+                    onClick={() => setCreatingCohort(false)}
+                    className="text-[#8580A3] hover:text-[#1D2026] text-lg font-bold cursor-pointer"
+                  >
+                    &times;
+                  </button>
+                </div>
+                <p className="text-[12px] text-[#747579]">
+                  New enrollments attach to whichever cohort is newest — creating one here starts the next intake round.
+                </p>
+                <div>
+                  <label className="block text-xs font-bold text-[#645F80] mb-1.5">Name</label>
+                  <input
+                    type="text"
+                    value={newCohortForm.name}
+                    onChange={(e) => setNewCohortForm((f) => ({ ...f, name: e.target.value }))}
+                    placeholder="e.g. February 2027 (Second Group)"
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-[#645F80] mb-1.5">Start Date</label>
+                    <input
+                      type="date"
+                      value={newCohortForm.startDate}
+                      onChange={(e) => setNewCohortForm((f) => ({ ...f, startDate: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-[#645F80] mb-1.5">End Date</label>
+                    <input
+                      type="date"
+                      value={newCohortForm.endDate}
+                      onChange={(e) => setNewCohortForm((f) => ({ ...f, endDate: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-[#645F80] mb-1.5">Target Students</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={newCohortForm.targetStudents}
+                      onChange={(e) => setNewCohortForm((f) => ({ ...f, targetStudents: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-[#645F80] mb-1.5">Target Revenue (₦)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={newCohortForm.targetRevenue}
+                      onChange={(e) => setNewCohortForm((f) => ({ ...f, targetRevenue: e.target.value }))}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm"
+                    />
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={saveNewCohort}
+                  disabled={savingNewCohort || !newCohortForm.name || !newCohortForm.startDate || !newCohortForm.endDate}
+                  className="w-full py-2.5 rounded-lg bg-[#AE54C6] text-white text-sm font-bold hover:bg-[#A03BBC] disabled:opacity-60 cursor-pointer"
+                >
+                  {savingNewCohort ? "Creating…" : "Create Cohort"}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Second Chance Modal — PRD §4.2's one-time free rejoin. */}
+          {secondChanceEnrollmentId && (
+            <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <h3 className="text-base font-extrabold text-[#1D2026]">Activate Second Chance</h3>
+                  <button
+                    type="button"
+                    onClick={() => setSecondChanceEnrollmentId(null)}
+                    className="text-[#8580A3] hover:text-[#1D2026] text-lg font-bold cursor-pointer"
+                  >
+                    &times;
+                  </button>
+                </div>
+                <p className="text-[12px] text-[#747579]">
+                  Rejoins this student into the chosen cohort, waives any remaining balance, and keeps their lesson
+                  progress. This is a lifetime one-time perk — it cannot be used again for this student.
+                </p>
+                <div>
+                  <label className="block text-xs font-bold text-[#645F80] mb-1.5">Rejoin Into Cohort</label>
+                  <select
+                    value={secondChanceTargetCohort}
+                    onChange={(e) => setSecondChanceTargetCohort(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm cursor-pointer"
+                  >
+                    <option value="">Select a cohort…</option>
+                    {cohorts.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  type="button"
+                  onClick={confirmSecondChance}
+                  disabled={savingSecondChance || !secondChanceTargetCohort}
+                  className="w-full py-2.5 rounded-lg bg-[#AE54C6] text-white text-sm font-bold hover:bg-[#A03BBC] disabled:opacity-60 cursor-pointer"
+                >
+                  {savingSecondChance ? "Activating…" : "Activate Second Chance"}
                 </button>
               </div>
             </div>
@@ -3999,13 +4322,22 @@ function AdminDashboardContent() {
                       PRD &sect;4.1 — &quot;See our advert&quot; &rarr; &quot;Visit the sign-up page&quot;
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={openEditCohortTargets}
-                    className="px-3 py-1.5 rounded-lg border border-slate-200 text-[#475569] text-xs font-semibold hover:bg-slate-50 cursor-pointer"
-                  >
-                    Edit Targets
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setCreatingCohort(true)}
+                      className="px-3 py-1.5 rounded-lg bg-[#AE54C6] text-white text-xs font-semibold hover:bg-[#A03BBC] cursor-pointer"
+                    >
+                      + New Cohort
+                    </button>
+                    <button
+                      type="button"
+                      onClick={openEditCohortTargets}
+                      className="px-3 py-1.5 rounded-lg border border-slate-200 text-[#475569] text-xs font-semibold hover:bg-slate-50 cursor-pointer"
+                    >
+                      Edit Targets
+                    </button>
+                  </div>
                 </div>
 
                 <div className="p-6 space-y-6">
@@ -4082,6 +4414,52 @@ function AdminDashboardContent() {
                       </div>
                     )}
                   </div>
+                </div>
+              </div>
+
+              {/* Cohort History — PRD §9 "Plan the next group." New
+                  enrollments always attach to whichever cohort is newest
+                  (createdAt desc), so creating one here is what actually
+                  starts the next intake round. */}
+              <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden mb-7">
+                <div className="bg-[#F8F9FA] px-6 py-4 border-b border-slate-200/80">
+                  <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">Cohorts</h2>
+                </div>
+                <div className="p-6">
+                  {cohortsLoading ? (
+                    <div className="py-6 text-center text-[13.5px] text-[#747579]">Loading cohorts…</div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse min-w-[760px]">
+                        <thead>
+                          <tr className="text-[#8580A3] text-[11px] font-bold uppercase tracking-wider">
+                            <th className="py-2 pr-4">Name</th>
+                            <th className="py-2 pr-4">Dates</th>
+                            <th className="py-2 pr-4">Enrolled</th>
+                            <th className="py-2 pr-4">Target Students</th>
+                            <th className="py-2 pr-4">Target Revenue</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 text-[13.5px]">
+                          {cohorts.map((c, idx) => (
+                            <tr key={c.id}>
+                              <td className="py-2.5 pr-4 font-bold text-[#1D2026]">
+                                {c.name} {idx === 0 && <span className="text-[10px] text-[#AE54C6]">(current)</span>}
+                              </td>
+                              <td className="py-2.5 pr-4 text-[#475569]">
+                                {new Date(c.startDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+                                {" – "}
+                                {new Date(c.endDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
+                              </td>
+                              <td className="py-2.5 pr-4 text-[#475569]">{c.enrolledCount}</td>
+                              <td className="py-2.5 pr-4 text-[#475569]">{c.targetStudents}</td>
+                              <td className="py-2.5 pr-4 text-[#475569]">₦{c.targetRevenue.toLocaleString()}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
               </div>
 

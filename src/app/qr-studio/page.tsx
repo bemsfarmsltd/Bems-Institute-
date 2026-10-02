@@ -46,6 +46,14 @@ const CAMPAIGN_PRESETS: CampaignQR[] = [
     description: "Tracks town-center commuter and NYSC corps member scans into the main accelerator landing page."
   },
   {
+    id: "banner-c",
+    title: "Banner C — LGA Secretariat",
+    placement: "Umuahia LGA Secretariat, Government Layout",
+    badge: "Outdoor Flex Banner",
+    path: "/?utm_source=banner_c&utm_medium=outdoor_qr&utm_campaign=oct2026",
+    description: "Tracks scans from the LGA Secretariat banner — the third of the PRD's three named physical locations (BEMS Hub, LGA Secretariat, MOUAU)."
+  },
+  {
     id: "track-web",
     title: "Full-Stack Web Development Flyer",
     placement: "Campus Handbills & Lab Posters",

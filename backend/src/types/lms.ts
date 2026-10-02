@@ -152,6 +152,8 @@ export interface AdminStudent {
   totalDue: number;
   paymentStatus: "PAID_FULL" | "PARTIAL" | "PENDING";
   paymentReference?: string | null;
+  enrollmentStatus: "PENDING" | "ACTIVE" | "COMPLETED" | "DROPPED";
+  secondChanceUsed: boolean;
   progressPercent: number;
   quizScore?: number;
   capstoneStatus: "NOT_STARTED" | "SUBMITTED" | "GRADED";

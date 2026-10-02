@@ -46,8 +46,11 @@ export default function LiveClassesPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const activeClass = liveClasses.find((c) => c.status === "LIVE_NOW") || liveClasses[0];
-  const upcoming = liveClasses.filter((c) => c.id !== activeClass?.id);
+  const activeClass = liveClasses.find((c) => c.status === "LIVE_NOW") || liveClasses.find((c) => c.status !== "PAST");
+  const upcoming = liveClasses.filter((c) => c.id !== activeClass?.id && c.status !== "PAST");
+  // PRD §7: "mandatory recordings uploaded for revision" — past sessions
+  // are kept around specifically so a recording link has somewhere to live.
+  const pastWithRecordings = liveClasses.filter((c) => c.status === "PAST");
 
   const handleSendQa = (e: React.FormEvent) => {
     e.preventDefault();
@@ -269,6 +272,43 @@ export default function LiveClassesPage() {
                       </a>
                     ) : (
                       <span className="text-[11px] text-[#8580A3]">Link not yet available</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Past Sessions & Recordings */}
+        {pastWithRecordings.length > 0 && (
+          <div className="space-y-4">
+            <h2 className="text-xl font-black text-[#303654]">Past Sessions &amp; Recordings</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {pastWithRecordings.map((c) => (
+                <div
+                  key={c.id}
+                  className="p-5 rounded-2xl border border-[#F1E2F5] bg-white shadow-xs flex flex-col justify-between space-y-4"
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <Badge variant="purple">Recorded</Badge>
+                      <span className="text-[11px] font-bold text-[#8580A3] flex items-center gap-1">
+                        <Calendar className="w-3 h-3" /> {formatSchedule(c.scheduledAt)}
+                      </span>
+                    </div>
+                    <h3 className="font-bold text-sm text-[#303654] mb-1">{c.title}</h3>
+                    <p className="text-xs text-[#645F80]">
+                      {c.instructor} &middot; {c.courseTitle}
+                    </p>
+                  </div>
+                  <div className="pt-3 border-t border-[#F7EDF9] flex items-center justify-end">
+                    {c.recordingUrl ? (
+                      <a href={c.recordingUrl} target="_blank" rel="noreferrer">
+                        <Button variant="outline" size="sm" className="text-xs">Watch Recording</Button>
+                      </a>
+                    ) : (
+                      <span className="text-[11px] text-[#8580A3]">Recording not uploaded yet</span>
                     )}
                   </div>
                 </div>

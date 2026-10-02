@@ -10,8 +10,9 @@ export interface LiveClass {
   instructor: string;
   instructorRole: string;
   scheduledAt: string; // ISO date string
-  status: "LIVE_NOW" | "UPCOMING";
+  status: "LIVE_NOW" | "UPCOMING" | "PAST";
   meetingUrl: string | null;
+  recordingUrl: string | null;
 }
 
 export interface CommunityChannel {

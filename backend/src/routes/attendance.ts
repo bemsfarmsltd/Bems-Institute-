@@ -25,10 +25,37 @@ router.get("/sessions", async (req, res) => {
       title: s.title,
       scheduledAt: s.scheduledAt,
       meetingUrl: s.meetingUrl,
+      recordingUrl: s.recordingUrl,
       type: s.type,
       markedCount: s._count.attendance
     }))
   });
+});
+
+// PRD §7: "Virtual: live Zoom classes with mandatory recordings uploaded
+// for revision." No Zoom API is wired up to fetch this automatically —
+// staff attach the recording link here after the session.
+router.patch("/sessions/:id", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isStaff(session)) {
+    return res.status(403).json({ error: "Staff access required." });
+  }
+
+  const recordingUrl = typeof req.body?.recordingUrl === "string" ? req.body.recordingUrl.trim() : undefined;
+  if (recordingUrl === undefined) {
+    return res.status(400).json({ error: "recordingUrl is required." });
+  }
+
+  const existing = await prisma.liveSession.findUnique({ where: { id: req.params.id } });
+  if (!existing) {
+    return res.status(404).json({ error: "Session not found." });
+  }
+
+  const updated = await prisma.liveSession.update({
+    where: { id: req.params.id },
+    data: { recordingUrl: recordingUrl || null }
+  });
+  return res.json({ session: updated });
 });
 
 router.post("/sessions", async (req, res) => {
@@ -73,14 +100,18 @@ router.get("/live", async (req, res) => {
     }
   }
 
+  // Live/upcoming sessions (recent past + future), OR any older session
+  // that has a recording attached — PRD §7's "mandatory recordings
+  // uploaded for revision" is useless if past sessions just disappear the
+  // moment they're no longer live.
   const windowStart = new Date(Date.now() - 2 * 60 * 60 * 1000);
   const sessions = await prisma.liveSession.findMany({
     where: {
-      scheduledAt: { gte: windowStart },
+      OR: [{ scheduledAt: { gte: windowStart } }, { recordingUrl: { not: null } }],
       ...(courseIds ? { courseId: { in: courseIds } } : {})
     },
     include: { course: { select: { title: true, tutor: true, tutorRole: true } } },
-    orderBy: { scheduledAt: "asc" }
+    orderBy: { scheduledAt: "desc" }
   });
 
   const now = Date.now();
@@ -90,6 +121,10 @@ router.get("/live", async (req, res) => {
     sessions: sessions.map((s) => {
       const scheduledMs = s.scheduledAt.getTime();
       const isLiveNow = Math.abs(now - scheduledMs) <= LIVE_WINDOW_MS;
+      // A session outside the live window is only "UPCOMING" if it's
+      // actually in the future — one that's already passed (the ones kept
+      // around specifically because they have a recording) is "PAST".
+      const status = isLiveNow ? "LIVE_NOW" : scheduledMs > now ? "UPCOMING" : "PAST";
       return {
         id: s.id,
         courseId: s.courseId,
@@ -99,7 +134,8 @@ router.get("/live", async (req, res) => {
         title: s.title,
         scheduledAt: s.scheduledAt,
         meetingUrl: s.meetingUrl,
-        status: isLiveNow ? "LIVE_NOW" : "UPCOMING"
+        recordingUrl: s.recordingUrl,
+        status
       };
     })
   });
