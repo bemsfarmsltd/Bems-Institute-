@@ -6,6 +6,7 @@ import { computeAdminRoster } from "@/lib/admin-roster";
 import { DELIVERY_MODE_LABEL, mapAdminCourse } from "@/lib/lms-mappers";
 import { createNotification } from "@/lib/notifications";
 import { creditReferralIfEligible } from "@/lib/referrals";
+import { sendWhatsAppMessage } from "@/lib/twilio";
 import type { AnalyticsSummary } from "@/types/lms";
 
 const router = Router();
@@ -16,12 +17,14 @@ router.get("/analytics", async (req, res) => {
     return res.status(403).json({ error: "Staff access required." });
   }
 
-  const [roster, courses, cohort, certificatesIssued, scans] = await Promise.all([
+  const [roster, courses, cohort, certificatesIssued, scans, homePageViews, signupPageViews] = await Promise.all([
     computeAdminRoster(),
     prisma.course.findMany({ include: { enrollments: true } }),
     prisma.cohort.findFirst({ orderBy: { createdAt: "desc" } }),
     prisma.certificate.count(),
-    prisma.qrScan.groupBy({ by: ["source"], _count: { _all: true } })
+    prisma.qrScan.groupBy({ by: ["source"], _count: { _all: true } }),
+    prisma.pageView.count({ where: { page: "home" } }),
+    prisma.pageView.count({ where: { page: "subscriptions" } })
   ]);
 
   const totalStudents = roster.length;
@@ -83,10 +86,42 @@ router.get("/analytics", async (req, res) => {
     certificatesIssued,
     trackDistribution,
     deliveryDistribution,
-    bannerChannelYield
+    bannerChannelYield,
+    estimatedAdViews: cohort?.estimatedAdViews ?? 0,
+    homePageViews,
+    signupPageViews
   };
 
   return res.json(summary);
+});
+
+// Admin-only — these are marketing-funnel targets/estimates (PRD §4.1),
+// not something a non-admin instructor should be adjusting.
+router.patch("/cohort", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
+  }
+
+  const cohort = await prisma.cohort.findFirst({ orderBy: { createdAt: "desc" } });
+  if (!cohort) {
+    return res.status(404).json({ error: "No cohort exists yet." });
+  }
+
+  const body = req.body ?? {};
+  const fields: Record<string, number> = {};
+  for (const key of ["targetStudents", "targetRevenue", "estimatedAdViews"] as const) {
+    if (body[key] !== undefined) {
+      const value = Number(body[key]);
+      if (!Number.isFinite(value) || value < 0) {
+        return res.status(400).json({ error: `${key} must be a non-negative number.` });
+      }
+      fields[key] = value;
+    }
+  }
+
+  const updated = await prisma.cohort.update({ where: { id: cohort.id }, data: fields });
+  return res.json({ cohort: updated });
 });
 
 router.get("/roster", async (req, res) => {
@@ -131,6 +166,241 @@ router.get("/payment-ledger", async (req, res) => {
       createdAt: t.createdAt.toISOString()
     }))
   });
+});
+
+// The PRD's "job-help list" (§6.2) and second revenue stream (§3.4) — a
+// row exists here automatically for every student who's earned a
+// Certificate (see ensurePlacementSeeking in POST /submissions/:id/grade).
+router.get("/placements", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isStaff(session)) {
+    return res.status(403).json({ error: "Staff access required." });
+  }
+
+  const placements = await prisma.jobPlacement.findMany({
+    orderBy: { createdAt: "desc" },
+    include: {
+      user: { select: { name: true, email: true } },
+      course: { select: { title: true } }
+    }
+  });
+
+  return res.json({
+    placements: placements.map((p) => ({
+      id: p.id,
+      studentName: p.user.name,
+      studentEmail: p.user.email,
+      courseTitle: p.course.title,
+      status: p.status,
+      placementType: p.placementType,
+      employerName: p.employerName,
+      hiredAt: p.hiredAt ? p.hiredAt.toISOString() : null,
+      feeAmount: p.feeAmount,
+      feeStatus: p.feeStatus,
+      notes: p.notes,
+      createdAt: p.createdAt.toISOString()
+    }))
+  });
+});
+
+// Admin-only (not just staff) — matches the existing bar for financial
+// actions like POST /enrollments/:id/payment, since this records revenue
+// (a partner's placement fee) in addition to pipeline status.
+router.patch("/placements/:id", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
+  }
+
+  const { id } = req.params;
+  const body = req.body ?? {};
+
+  const status = ["SEEKING", "INTRODUCED", "HIRED"].includes(body.status) ? body.status : undefined;
+  const placementType =
+    body.placementType === "BEMS_INTERNAL" || body.placementType === "PARTNER"
+      ? body.placementType
+      : body.placementType === null
+      ? null
+      : undefined;
+  const employerName = typeof body.employerName === "string" ? body.employerName.trim() : undefined;
+  const hiredAt = typeof body.hiredAt === "string" && body.hiredAt ? new Date(body.hiredAt) : body.hiredAt === null ? null : undefined;
+  const feeAmount =
+    body.feeAmount === null ? null : Number.isFinite(Number(body.feeAmount)) && body.feeAmount !== undefined ? Number(body.feeAmount) : undefined;
+  const feeStatus = ["NONE", "INVOICED", "PAID"].includes(body.feeStatus) ? body.feeStatus : undefined;
+  const notes = typeof body.notes === "string" ? body.notes : undefined;
+
+  if (feeAmount !== undefined && feeAmount !== null && feeAmount < 0) {
+    return res.status(400).json({ error: "feeAmount must be a non-negative number." });
+  }
+
+  const existing = await prisma.jobPlacement.findUnique({
+    where: { id },
+    include: { course: { select: { title: true } } }
+  });
+  if (!existing) {
+    return res.status(404).json({ error: "Placement not found." });
+  }
+
+  const placement = await prisma.jobPlacement.update({
+    where: { id },
+    data: {
+      ...(status !== undefined ? { status } : {}),
+      ...(placementType !== undefined ? { placementType } : {}),
+      ...(employerName !== undefined ? { employerName } : {}),
+      ...(hiredAt !== undefined ? { hiredAt } : {}),
+      ...(feeAmount !== undefined ? { feeAmount } : {}),
+      ...(feeStatus !== undefined ? { feeStatus } : {}),
+      ...(notes !== undefined ? { notes } : {})
+    }
+  });
+
+  if (status === "HIRED" && existing.status !== "HIRED") {
+    await createNotification({
+      userId: existing.userId,
+      title: "You've been marked as hired!",
+      message: `Congratulations on your placement${employerName ? ` with ${employerName}` : ""} for ${existing.course.title}. BEMS Admissions will follow up with next steps.`,
+      category: "GRADING",
+      linkUrl: "/dashboard"
+    });
+  }
+
+  return res.json({ placement });
+});
+
+// PRD §4.1 step 3 — staff work the lead queue the "register interest" form
+// feeds (POST /lms/register-interest). Not financial, so staff (not just
+// admin) can read and update, matching the attendance/notification bar.
+router.get("/leads", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isStaff(session)) {
+    return res.status(403).json({ error: "Staff access required." });
+  }
+
+  const leads = await prisma.lead.findMany({
+    orderBy: { createdAt: "desc" },
+    include: { course: { select: { title: true } } }
+  });
+
+  return res.json({
+    leads: leads.map((l) => ({
+      id: l.id,
+      name: l.name,
+      phone: l.phone,
+      courseTitle: l.course?.title ?? null,
+      source: l.source,
+      status: l.status,
+      notes: l.notes,
+      createdAt: l.createdAt.toISOString()
+    }))
+  });
+});
+
+router.patch("/leads/:id", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isStaff(session)) {
+    return res.status(403).json({ error: "Staff access required." });
+  }
+
+  const { id } = req.params;
+  const body = req.body ?? {};
+  const status = ["NEW", "CONTACTED", "CONVERTED", "DROPPED"].includes(body.status) ? body.status : undefined;
+  const notes = typeof body.notes === "string" ? body.notes : undefined;
+
+  const existing = await prisma.lead.findUnique({ where: { id } });
+  if (!existing) {
+    return res.status(404).json({ error: "Lead not found." });
+  }
+
+  const lead = await prisma.lead.update({
+    where: { id },
+    data: {
+      ...(status !== undefined ? { status } : {}),
+      ...(notes !== undefined ? { notes } : {})
+    }
+  });
+
+  return res.json({ lead });
+});
+
+// PRD §4.1 step 5 / §6.2 — every enrollment needs a welcome call booked
+// before class starts; a no-show gets a personal WhatsApp follow-up (the
+// admin UI builds a wa.me link from the student's phone for that, since
+// there's no WhatsApp Business API wired up to send it automatically).
+router.get("/welcome-calls", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isStaff(session)) {
+    return res.status(403).json({ error: "Staff access required." });
+  }
+
+  const enrollments = await prisma.enrollment.findMany({
+    where: { welcomeCallStatus: { not: "COMPLETED" } },
+    orderBy: { createdAt: "desc" },
+    include: { user: { select: { name: true, email: true, phone: true } }, course: { select: { title: true } } }
+  });
+
+  return res.json({
+    enrollments: enrollments.map((e) => ({
+      id: e.id,
+      studentName: e.user.name,
+      studentEmail: e.user.email,
+      studentPhone: e.user.phone,
+      courseTitle: e.course.title,
+      welcomeCallStatus: e.welcomeCallStatus,
+      welcomeCallAt: e.welcomeCallAt ? e.welcomeCallAt.toISOString() : null,
+      enrolledAt: e.createdAt.toISOString()
+    }))
+  });
+});
+
+router.patch("/enrollments/:id/welcome-call", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isStaff(session)) {
+    return res.status(403).json({ error: "Staff access required." });
+  }
+
+  const { id } = req.params;
+  const body = req.body ?? {};
+  const status = ["NOT_SCHEDULED", "SCHEDULED", "COMPLETED", "NO_SHOW"].includes(body.welcomeCallStatus)
+    ? body.welcomeCallStatus
+    : undefined;
+  const welcomeCallAt =
+    typeof body.welcomeCallAt === "string" && body.welcomeCallAt ? new Date(body.welcomeCallAt) : body.welcomeCallAt === null ? null : undefined;
+
+  if (!status && welcomeCallAt === undefined) {
+    return res.status(400).json({ error: "Nothing to update." });
+  }
+
+  const existing = await prisma.enrollment.findUnique({
+    where: { id },
+    include: { user: { select: { name: true, phone: true } }, course: { select: { title: true } } }
+  });
+  if (!existing) {
+    return res.status(404).json({ error: "Enrollment not found." });
+  }
+
+  const enrollment = await prisma.enrollment.update({
+    where: { id },
+    data: {
+      ...(status !== undefined ? { welcomeCallStatus: status } : {}),
+      ...(welcomeCallAt !== undefined ? { welcomeCallAt } : {})
+    }
+  });
+
+  // PRD §6.2: "Anyone who doesn't show gets a personal WhatsApp message" —
+  // sent the moment staff marks it, not a separate manual step. Best-effort;
+  // whatsappSent tells the admin UI whether to fall back to a manual
+  // click-to-WhatsApp link.
+  let whatsappSent: boolean | undefined;
+  if (status === "NO_SHOW" && existing.welcomeCallStatus !== "NO_SHOW" && existing.user.phone) {
+    const result = await sendWhatsAppMessage(
+      existing.user.phone,
+      `Hi ${existing.user.name.split(" ")[0]}, we noticed you missed your welcome call for ${existing.course.title}. ` +
+        `We're here to help you catch up — when's a good time to reschedule?`
+    );
+    whatsappSent = result.ok;
+  }
+
+  return res.json({ enrollment, whatsappSent });
 });
 
 router.get("/courses", async (req, res) => {

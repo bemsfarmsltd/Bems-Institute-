@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser, isStaff } from "@/lib/api-auth";
-import { checkAndNotifyMissedClasses } from "@/lib/attendance";
+import { checkAndNotifyMissedClasses, notifyWelcomeSessionNoShow } from "@/lib/attendance";
 
 const router = Router();
 
@@ -25,6 +25,7 @@ router.get("/sessions", async (req, res) => {
       title: s.title,
       scheduledAt: s.scheduledAt,
       meetingUrl: s.meetingUrl,
+      type: s.type,
       markedCount: s._count.attendance
     }))
   });
@@ -41,12 +42,13 @@ router.post("/sessions", async (req, res) => {
   const title = typeof body.title === "string" ? body.title.trim() : "";
   const scheduledAt = typeof body.scheduledAt === "string" ? new Date(body.scheduledAt) : null;
   const meetingUrl = typeof body.meetingUrl === "string" && body.meetingUrl.trim() ? body.meetingUrl.trim() : null;
+  const type = body.type === "WELCOME" ? "WELCOME" : "CLASS";
 
   if (!courseId || !title || !scheduledAt || Number.isNaN(scheduledAt.getTime())) {
     return res.status(400).json({ error: "courseId, title, and a valid scheduledAt are required." });
   }
 
-  const created = await prisma.liveSession.create({ data: { courseId, title, scheduledAt, meetingUrl } });
+  const created = await prisma.liveSession.create({ data: { courseId, title, scheduledAt, meetingUrl, type } });
   return res.json({ session: created });
 });
 
@@ -179,8 +181,20 @@ router.post("/sessions/:id/mark", async (req, res) => {
     });
   }
 
+  // Not awaited — both checks wait ~2s per student to confirm real WhatsApp
+  // delivery, which would make marking attendance for a class with several
+  // no-shows take tens of seconds if awaited in this loop. Already
+  // fire-and-forget (errors swallowed below); finishes in the background
+  // after the response is sent.
   for (const r of valid.filter((v: { userId: string; present: boolean }) => !v.present)) {
-    await checkAndNotifyMissedClasses(r.userId, liveSession.courseId).catch(() => null);
+    if (liveSession.type === "WELCOME") {
+      // A welcome session only happens once per cohort — unlike a regular
+      // class, a single miss is already the full no-show, so this notifies
+      // immediately rather than waiting for a "missed 2 in a row" pattern.
+      notifyWelcomeSessionNoShow(r.userId, liveSession.title).catch(() => null);
+    } else {
+      checkAndNotifyMissedClasses(r.userId, liveSession.courseId).catch(() => null);
+    }
   }
 
   return res.json({ ok: true, marked: valid.length, skippedNotEnrolled: skipped });

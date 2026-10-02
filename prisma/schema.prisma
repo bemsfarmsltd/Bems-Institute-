@@ -106,6 +106,7 @@ model User {
   communityMessages    CommunityMessage[]
   communityMessageLikes CommunityMessageLike[]
   paymentTransactions  PaymentTransaction[]
+  jobPlacements        JobPlacement[]
   // Which categories of staff-broadcast notifications (notifyStaff) this
   // user wants to receive — only affects staff-wide alerts, never a user's
   // own personal notifications (payment confirmed, submission graded, etc.),
@@ -169,9 +170,68 @@ model GraduateOutcome {
   @@index([courseId])
 }
 
+enum PlacementStatus {
+  SEEKING
+  INTRODUCED
+  HIRED
+}
+
+enum PlacementType {
+  BEMS_INTERNAL
+  PARTNER
+}
+
+enum PlacementFeeStatus {
+  NONE
+  INVOICED
+  PAID
+}
+
+// The PRD's "finished -> help into a job" pipeline (§6.2) and second
+// revenue stream (§3.4: BEMS hiring its own grads saves recruiter cost;
+// partner companies can be charged an introduction fee). A row is created
+// automatically (SEEKING) the moment a student earns a Certificate — see
+// POST /submissions/:id/grade — and staff move it forward from /admin.
+// Deliberately separate from GraduateOutcome: that model is a published,
+// consent-gated marketing record; this one is an internal pipeline/revenue
+// record that always exists once a student finishes, consent or not.
+model JobPlacement {
+  id            String              @id @default(cuid())
+  userId        String
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId      String
+  course        Course              @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  status        PlacementStatus     @default(SEEKING)
+  placementType PlacementType?
+  // Free text, same convention as QrScan.source / GraduateOutcome.company —
+  // "BEMS Group" or a partner company's name. No separate company directory
+  // yet; add one later if repeat-partner relationships need tracking.
+  employerName  String?
+  hiredAt       DateTime?
+  // What a PARTNER employer owes BEMS for this hire (Naira) — null for
+  // BEMS_INTERNAL hires or where no fee applies. Kept on the placement
+  // itself rather than in the PaymentTransaction ledger: that ledger is
+  // specifically "a student paid BEMS," a structurally different flow from
+  // "BEMS invoices a company."
+  feeAmount     Int?
+  feeStatus     PlacementFeeStatus  @default(NONE)
+  notes         String?             @db.Text
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@unique([userId, courseId])
+  @@index([courseId])
+  @@index([status])
+}
+
 // A single scheduled live class (Zoom or physical lab) for a course — the
 // PRD's "miss two classes -> automatic check-in" (§6.2) needs real sessions
 // to be absent FROM, not just lesson-video progress.
+enum LiveSessionType {
+  CLASS
+  WELCOME
+}
+
 model LiveSession {
   id          String   @id @default(cuid())
   courseId    String
@@ -181,6 +241,12 @@ model LiveSession {
   // External Zoom/Meet-style join link — this app doesn't host video itself,
   // it links out, same as most real LMS platforms.
   meetingUrl  String?
+  // PRD §4.2: "A welcome session before class starts: a live 'here's why
+  // you'll finish' session." A WELCOME session is scheduled/attended the
+  // same way as a CLASS one; marking a student absent from one triggers an
+  // immediate WhatsApp no-show message (not the "missed 2 in a row" rule
+  // regular classes use), since there's only ever one per cohort.
+  type        LiveSessionType @default(CLASS)
   createdAt   DateTime @default(now())
   attendance  AttendanceRecord[]
 
@@ -259,6 +325,8 @@ model Course {
   liveSessions LiveSession[]
   graduateOutcomes GraduateOutcome[]
   paymentTransactions PaymentTransaction[]
+  jobPlacements JobPlacement[]
+  leads Lead[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 }
@@ -311,11 +379,29 @@ model Enrollment {
   source           String?          @default("website") // banner/QR label — free text, see QrScan
   cohortId         String?
   cohort           Cohort?          @relation(fields: [cohortId], references: [id])
+  // PRD §4.1 step 5 / §6.2: "a welcome call before class starts... anyone
+  // who doesn't show gets a personal WhatsApp message." Staff-scheduled
+  // (see PATCH /admin/enrollments/:id/welcome-call), not self-booked.
+  welcomeCallStatus WelcomeCallStatus @default(NOT_SCHEDULED)
+  welcomeCallAt     DateTime?
+  // PRD §4.2: "A public goal: each student states their goal in the class
+  // group... saying it out loud, in front of others." Visible to every
+  // other student in the same cohort+course (see GET /lms/class-goals) —
+  // the lightest version of a "class group" this app has, short of
+  // building real per-cohort chat channels.
+  goalStatement     String?
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
   @@unique([userId, courseId])
   @@index([courseId])
+}
+
+enum WelcomeCallStatus {
+  NOT_SCHEDULED
+  SCHEDULED
+  COMPLETED
+  NO_SHOW
 }
 
 enum PaymentTransactionStatus {
@@ -362,6 +448,12 @@ model Cohort {
   endDate        DateTime
   targetStudents Int          @default(80)
   targetRevenue  Int          @default(0)
+  // PRD §4.1 step 1 ("See our advert," target 10,000) is an outdoor
+  // banner/flier impression count — no website can measure how many people
+  // saw a physical banner before scanning it. This is a manual staff
+  // estimate (e.g. from print-run size and foot traffic), set via
+  // PATCH /admin/cohort, not something the app observes.
+  estimatedAdViews Int        @default(0)
   enrollments    Enrollment[]
   createdAt      DateTime     @default(now())
 }
@@ -377,6 +469,50 @@ model QrScan {
   createdAt DateTime @default(now())
 
   @@index([source])
+}
+
+// PRD §4.1 step 2 ("Visit the sign-up page," target 2,000) — a real,
+// anonymous page-view log for the two actual funnel-entry pages (home,
+// subscriptions), independent of whether the visit carried a QR/UTM
+// source. visitorId is a random id generated client-side into
+// localStorage (see src/lib/visitor.ts) — no PII, no account link;
+// dedup-per-visitor-per-day is enforced in the route, not a DB constraint,
+// so no separate "day" column is needed.
+model PageView {
+  id        String   @id @default(cuid())
+  page      String // "home" | "subscriptions"
+  visitorId String
+  source    String? // UTM/QR source, if present on this visit
+  createdAt DateTime @default(now())
+
+  @@index([page, visitorId])
+  @@index([page, createdAt])
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  CONVERTED
+  DROPPED
+}
+
+// PRD §4.1 step 3 ("Register interest," target 600) — the lightweight
+// "ask just 3 things" lead form (name, phone, course interest) that sits
+// before the full payment/subscriptions checkout. No account is created
+// here; a lead only becomes a real User/Enrollment if they later check out.
+model Lead {
+  id        String     @id @default(cuid())
+  name      String
+  phone     String
+  courseId  String?
+  course    Course?    @relation(fields: [courseId], references: [id], onDelete: SetNull)
+  source    String?    @default("website") // banner/QR label, same convention as QrScan.source
+  status    LeadStatus @default(NEW)
+  notes     String?    @db.Text
+  createdAt DateTime   @default(now())
+
+  @@index([courseId])
+  @@index([status])
 }
 
 model UserProgress {
@@ -442,6 +578,11 @@ model QuizAttempt {
   @@index([quizId])
 }
 
+enum AssignmentType {
+  MILESTONE
+  CAPSTONE
+}
+
 model Assignment {
   id           String       @id @default(cuid())
   title        String
@@ -451,6 +592,14 @@ model Assignment {
   courseId     String
   course       Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
   submissions  Submission[]
+  // PRD §4.2: "Small projects along the way, not one big exam... every
+  // 2-3 weeks." type distinguishes a milestone (practice, graded but does
+  // NOT issue a certificate) from the final capstone (does). order sorts
+  // a course's assignments in the curriculum's actual sequence. Existing
+  // single-assignment courses default to CAPSTONE/99 (last) so they keep
+  // behaving exactly as before without a data migration.
+  type         AssignmentType @default(CAPSTONE)
+  order        Int          @default(99)
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
 

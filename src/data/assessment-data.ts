@@ -171,7 +171,52 @@ export const LMS_QUIZZES: Quiz[] = [
   }
 ];
 
+// PRD §4.2: "Small projects along the way, not one big exam... every
+// 2-3 weeks, so they can see themselves making progress." Each course gets
+// 2 graded milestones (order 1, 2) ahead of its existing capstone (order
+// 99) — real, scoped checkpoints that build toward the final project,
+// not just practice for its own sake. Milestones never issue a
+// certificate (see POST /submissions/:id/grade's type check); only the
+// capstone does.
 export const LMS_ASSIGNMENTS: Assignment[] = [
+  // ---- Web Development ----
+  {
+    id: "milestone-web-dev-1",
+    courseId: "web-dev",
+    title: "Milestone 1: Static Portfolio Page",
+    brief: "Build and deploy a single-page personal portfolio using semantic HTML5 and CSS (Flexbox/Grid) — no JavaScript required yet. This is the foundation your capstone's front-end will build on.",
+    requirements: [
+      "Public GitHub repository with a clean file structure and a README.",
+      "Live deployment (Vercel, Netlify, or GitHub Pages).",
+      "Fully responsive across mobile (375px+), tablet, and desktop.",
+      "Uses semantic elements (<header>, <main>, <section>, <footer>) — not generic <div> soup."
+    ],
+    rubric: [
+      { criteria: "Semantic HTML Structure", points: 40 },
+      { criteria: "Responsive Layout (Flexbox/Grid)", points: 40 },
+      { criteria: "Live Deployment Works", points: 20 }
+    ],
+    type: "MILESTONE",
+    order: 1
+  },
+  {
+    id: "milestone-web-dev-2",
+    courseId: "web-dev",
+    title: "Milestone 2: Dynamic Form with API Integration",
+    brief: "Add an interactive feature to your portfolio: a working contact form with client-side validation, and at least one component that fetches live data from a public API (e.g. weather, GitHub stats, a quote API) using fetch/async-await.",
+    requirements: [
+      "Form validates required fields and shows clear error states before submitting.",
+      "At least one fetch() call to a real public API, with a loading and an error state shown to the user.",
+      "Code pushed to the same GitHub repository as Milestone 1, with a new commit history showing the work."
+    ],
+    rubric: [
+      { criteria: "Form Validation & UX", points: 35 },
+      { criteria: "Working API Integration (fetch/async)", points: 45 },
+      { criteria: "Code Quality & Commit History", points: 20 }
+    ],
+    type: "MILESTONE",
+    order: 2
+  },
   {
     id: "assign-web-dev",
     courseId: "web-dev",
@@ -189,7 +234,46 @@ export const LMS_ASSIGNMENTS: Assignment[] = [
       { criteria: "Responsive UI & Cross-Device Compatibility", points: 25 },
       { criteria: "Interactive JavaScript Functionality & Error Handling", points: 25 },
       { criteria: "Live Production Deployment & Git Commit History", points: 25 }
-    ]
+    ],
+    type: "CAPSTONE",
+    order: 99
+  },
+  // ---- AI & Automation ----
+  {
+    id: "milestone-ai-automation-1",
+    courseId: "ai-automation",
+    title: "Milestone 1: Prompt Engineering Workbook",
+    brief: "Document a set of prompts solving 3 distinct, realistic business tasks (e.g. drafting customer replies, summarizing documents, classifying support tickets), each showing a 'before' naive prompt and an 'after' optimized one using few-shot examples or chain-of-thought.",
+    requirements: [
+      "3 tasks, each with a naive prompt, an optimized prompt, and the model's actual output for both.",
+      "A short written explanation of why the optimized version performs better.",
+      "Submitted as a shared doc or GitHub repo link."
+    ],
+    rubric: [
+      { criteria: "Quality & Realism of the 3 Business Tasks", points: 30 },
+      { criteria: "Effective Use of Few-Shot/Chain-of-Thought Technique", points: 45 },
+      { criteria: "Clarity of Written Reasoning", points: 25 }
+    ],
+    type: "MILESTONE",
+    order: 1
+  },
+  {
+    id: "milestone-ai-automation-2",
+    courseId: "ai-automation",
+    title: "Milestone 2: Single-Step Automation",
+    brief: "Build one working automation connecting two apps via Zapier or Make — for example, a form submission that triggers a Slack message or an email notification. This is the building block your capstone's multi-step pipeline will extend.",
+    requirements: [
+      "A live, working Zap/Scenario (not just a plan) connecting a trigger app to an action app.",
+      "A screen recording or screenshots showing it firing end-to-end with real test data.",
+      "A short note on what business problem this specific step solves."
+    ],
+    rubric: [
+      { criteria: "Automation Actually Works End-to-End", points: 50 },
+      { criteria: "Correct Trigger/Action Configuration", points: 30 },
+      { criteria: "Clarity of Business Justification", points: 20 }
+    ],
+    type: "MILESTONE",
+    order: 2
   },
   {
     id: "assign-ai-automation",
@@ -205,7 +289,47 @@ export const LMS_ASSIGNMENTS: Assignment[] = [
       { criteria: "Workflow Complexity & Reliable Error Handling", points: 30 },
       { criteria: "Prompt Optimization & Response Quality", points: 30 },
       { criteria: "Real-World Business Impact & Live Demo", points: 40 }
-    ]
+    ],
+    type: "CAPSTONE",
+    order: 99
+  },
+  // ---- Product Design (UI/UX) ----
+  {
+    id: "milestone-product-design-1",
+    courseId: "product-design",
+    title: "Milestone 1: User Research & Problem Framing",
+    brief: "Pick the real problem your capstone case study will solve, then do the research to back it up: at least 3 short user interviews or survey responses, one empathy map, and 1-2 user personas.",
+    requirements: [
+      "Notes or recordings from at least 3 real interviews/survey responses.",
+      "One completed empathy map.",
+      "1-2 user personas with goals, frustrations, and context.",
+      "A one-paragraph problem statement derived directly from the research."
+    ],
+    rubric: [
+      { criteria: "Depth & Realism of Research", points: 40 },
+      { criteria: "Quality of Personas/Empathy Map", points: 35 },
+      { criteria: "Sharp, Well-Grounded Problem Statement", points: 25 }
+    ],
+    type: "MILESTONE",
+    order: 1
+  },
+  {
+    id: "milestone-product-design-2",
+    courseId: "product-design",
+    title: "Milestone 2: Wireframes & Design System Basics",
+    brief: "Turn your research into low/mid-fidelity wireframes for the 3-5 key screens of your capstone project, plus the start of a design token library (colors, type scale, spacing).",
+    requirements: [
+      "Wireframes (low or mid-fidelity) for 3-5 key screens, shared as a Figma link.",
+      "A basic design token set: a color palette, a type scale, and spacing values.",
+      "A short note on how each screen maps back to a persona's goal from Milestone 1."
+    ],
+    rubric: [
+      { criteria: "Wireframe Clarity & Coverage of Key Screens", points: 40 },
+      { criteria: "Design Token Library Foundations", points: 30 },
+      { criteria: "Traceability Back to User Research", points: 30 }
+    ],
+    type: "MILESTONE",
+    order: 2
   },
   {
     id: "assign-product-design",
@@ -222,7 +346,46 @@ export const LMS_ASSIGNMENTS: Assignment[] = [
       { criteria: "UX Research Depth & Problem Framing", points: 30 },
       { criteria: "Figma Component & Auto-Layout Mastery", points: 40 },
       { criteria: "Visual Polish & Presentation Flow", points: 30 }
-    ]
+    ],
+    type: "CAPSTONE",
+    order: 99
+  },
+  // ---- Cybersecurity ----
+  {
+    id: "milestone-cybersecurity-1",
+    courseId: "cybersecurity",
+    title: "Milestone 1: Network Reconnaissance & Asset Inventory",
+    brief: "Using Nmap against an authorized sandbox/lab target (never a system you don't own or have explicit permission to scan), produce a full asset and service inventory — the foundation your capstone's vulnerability assessment will build on.",
+    requirements: [
+      "Full Nmap scan output (hosts, open ports, detected services/versions).",
+      "A clean asset inventory table derived from the scan.",
+      "A short note confirming the target was an authorized lab/sandbox environment."
+    ],
+    rubric: [
+      { criteria: "Scan Thoroughness & Correct Nmap Usage", points: 45 },
+      { criteria: "Accuracy & Clarity of Asset Inventory", points: 35 },
+      { criteria: "Documented Authorization/Scope", points: 20 }
+    ],
+    type: "MILESTONE",
+    order: 1
+  },
+  {
+    id: "milestone-cybersecurity-2",
+    courseId: "cybersecurity",
+    title: "Milestone 2: Threat Model & Risk Register",
+    brief: "Using the asset inventory from Milestone 1, build a basic threat model (e.g. STRIDE) for the target and produce a prioritized risk register ranking each finding by likelihood and impact.",
+    requirements: [
+      "A threat model covering at least the top 5 assets/services from Milestone 1.",
+      "A risk register with likelihood, impact, and an overall priority ranking per finding.",
+      "Clear reasoning for how each priority ranking was decided."
+    ],
+    rubric: [
+      { criteria: "Threat Model Completeness & Rigor", points: 40 },
+      { criteria: "Risk Register Quality & Prioritization Logic", points: 40 },
+      { criteria: "Clarity of Written Reasoning", points: 20 }
+    ],
+    type: "MILESTONE",
+    order: 2
   },
   {
     id: "assign-cybersecurity",
@@ -238,7 +401,9 @@ export const LMS_ASSIGNMENTS: Assignment[] = [
       { criteria: "Discovery Rigor & Network Mapping", points: 35 },
       { criteria: "Risk Scoring & Threat Classification", points: 35 },
       { criteria: "Remediation Precision & Quality of Report", points: 30 }
-    ]
+    ],
+    type: "CAPSTONE",
+    order: 99
   }
 ];
 

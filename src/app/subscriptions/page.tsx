@@ -9,6 +9,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PageViewTracker } from "@/components/PageViewTracker";
 import {
   CheckCircle2,
   CreditCard,
@@ -231,6 +232,7 @@ function SubscriptionsContent() {
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF8FF]">
       <Script src="https://js.paystack.co/v1/inline.js" strategy="afterInteractive" />
+      <PageViewTracker page="subscriptions" />
       <Navbar />
 
       {/* Header */}

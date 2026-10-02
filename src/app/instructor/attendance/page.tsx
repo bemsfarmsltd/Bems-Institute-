@@ -16,6 +16,7 @@ interface LiveSessionRow {
   title: string;
   scheduledAt: string;
   courseId: string;
+  type: "CLASS" | "WELCOME";
 }
 
 interface RosterEntry {
@@ -37,6 +38,7 @@ function InstructorAttendanceContent() {
   const [newTitle, setNewTitle] = useState("");
   const [newScheduledAt, setNewScheduledAt] = useState("");
   const [newMeetingUrl, setNewMeetingUrl] = useState("");
+  const [newType, setNewType] = useState<"CLASS" | "WELCOME">("CLASS");
   const [creating, setCreating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -96,7 +98,8 @@ function InstructorAttendanceContent() {
         courseId,
         title: newTitle,
         scheduledAt: new Date(newScheduledAt).toISOString(),
-        meetingUrl: newMeetingUrl.trim() || undefined
+        meetingUrl: newMeetingUrl.trim() || undefined,
+        type: newType
       })
     });
     setCreating(false);
@@ -107,6 +110,7 @@ function InstructorAttendanceContent() {
     setNewTitle("");
     setNewScheduledAt("");
     setNewMeetingUrl("");
+    setNewType("CLASS");
     await loadSessions(courseId);
   };
 
@@ -205,6 +209,22 @@ function InstructorAttendanceContent() {
                 placeholder="Meeting link (Zoom/Meet) — optional"
                 className="w-full px-3.5 py-2.5 rounded-xl border border-[#F1E2F5] text-xs focus:outline-none focus:border-[#AE54C6]"
               />
+              <div>
+                <label className="block text-[11px] font-bold text-[#645F80] mb-1">Session Type</label>
+                <select
+                  value={newType}
+                  onChange={(e) => setNewType(e.target.value as "CLASS" | "WELCOME")}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#F1E2F5] text-xs focus:outline-none focus:border-[#AE54C6] cursor-pointer"
+                >
+                  <option value="CLASS">Regular Class</option>
+                  <option value="WELCOME">Welcome Session (new cohort kickoff)</option>
+                </select>
+                {newType === "WELCOME" && (
+                  <p className="text-[10.5px] text-[#8580A3] mt-1">
+                    Anyone marked absent gets an immediate WhatsApp check-in, unlike a regular class.
+                  </p>
+                )}
+              </div>
               <Button type="submit" size="sm" disabled={creating} className="w-full">
                 {creating ? "Creating…" : "Create Session"}
               </Button>
@@ -225,7 +245,14 @@ function InstructorAttendanceContent() {
                       : "bg-white border-[#F1E2F5] hover:border-[#AE54C6]/40"
                   }`}
                 >
-                  <p className="text-xs font-bold text-[#303654]">{s.title}</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-xs font-bold text-[#303654]">{s.title}</p>
+                    {s.type === "WELCOME" && (
+                      <span className="px-1.5 py-0.5 rounded-md bg-[#F6ECF9] text-[#A16EBD] text-[9.5px] font-bold uppercase">
+                        Welcome
+                      </span>
+                    )}
+                  </div>
                   <p className="text-[11px] text-[#645F80]">{new Date(s.scheduledAt).toLocaleString()}</p>
                 </div>
               ))}

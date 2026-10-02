@@ -99,6 +99,11 @@ export interface Assignment {
     criteria: string;
     points: number;
   }[];
+  // PRD §4.2 "small projects every 2-3 weeks" — a MILESTONE is graded
+  // practice along the way; only a CAPSTONE issues a certificate. order
+  // sorts a course's assignments in actual curriculum sequence.
+  type: "MILESTONE" | "CAPSTONE";
+  order: number;
 }
 
 export interface Submission {
@@ -205,5 +210,12 @@ export interface AnalyticsSummary {
     revenue: number;
     conversionRate: number;
   }[];
+  // PRD §4.1 steps 1-2 ("See our advert" / "Visit the sign-up page").
+  // estimatedAdViews is a manual staff estimate (ad impressions aren't
+  // observable online); home/signupPageViews are real, deduped page-view
+  // counts (see PageView model, POST /lms/track-pageview).
+  estimatedAdViews: number;
+  homePageViews: number;
+  signupPageViews: number;
 }
 

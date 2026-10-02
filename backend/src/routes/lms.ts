@@ -12,6 +12,8 @@ import {
 import { createNotification, notifyStaff, formatRelativeTime } from "@/lib/notifications";
 import { creditReferralIfEligible } from "@/lib/referrals";
 import { computeLeaderboard } from "@/lib/leaderboard";
+import { ensurePlacementSeeking } from "@/lib/job-placements";
+import { sendWhatsAppMessage } from "@/lib/twilio";
 import type { QuizResult } from "@/types/lms";
 import type { NotificationCategory } from "@prisma/client";
 
@@ -394,7 +396,9 @@ router.post("/submissions/:id/grade", async (req, res) => {
 
   const existing = await prisma.submission.findUnique({
     where: { id },
-    include: { assignment: { select: { id: true, title: true, courseId: true, course: { select: { slug: true, title: true } } } } }
+    include: {
+      assignment: { select: { id: true, title: true, courseId: true, type: true, course: { select: { slug: true, title: true } } } }
+    }
   });
   if (!existing) {
     return res.status(404).json({ error: "Submission not found." });
@@ -406,16 +410,20 @@ router.post("/submissions/:id/grade", async (req, res) => {
     include: { user: { select: { name: true, email: true } }, assignment: { select: { courseId: true } } }
   });
 
+  const assignmentKind = existing.assignment.type === "CAPSTONE" ? "Capstone" : "Milestone";
   await createNotification({
     userId: existing.userId,
-    title: `Capstone Graded: ${score}/100`,
+    title: `${assignmentKind} Graded: ${score}/100`,
     message: feedback ? `${session.name}: "${feedback}"` : `${session.name} graded "${existing.assignment.title}" (${score}/100).`,
     category: "GRADING",
     linkUrl: `/learn/${existing.assignment.course.slug}/assignment/${existing.assignment.id}`
   });
 
+  // Only the capstone issues a certificate — a milestone project is real,
+  // graded practice along the way (PRD §4.2: "small projects... not one
+  // big exam"), not the final credential.
   let certificate = null;
-  if (score >= 70) {
+  if (score >= 70 && existing.assignment.type === "CAPSTONE") {
     const courseId = existing.assignment.courseId;
     const prefix = CERT_PREFIX_BY_COURSE[courseId] || "TECH";
     const randomCode = Math.floor(1000 + Math.random() * 9000);
@@ -435,6 +443,7 @@ router.post("/submissions/:id/grade", async (req, res) => {
       include: { user: { select: { name: true } }, course: { select: { title: true } } }
     });
     certificate = mapCertificate(cert);
+    await ensurePlacementSeeking(existing.userId, courseId);
 
     await createNotification({
       userId: existing.userId,
@@ -460,6 +469,151 @@ router.post("/track-scan", async (req, res) => {
   }
 
   await prisma.qrScan.create({ data: { source, courseId } });
+  return res.json({ ok: true });
+});
+
+// Public: PRD §4.1 step 3's lightweight lead form — "ask just 3 things."
+// No account/Enrollment is created here; this is the lower-commitment step
+// before the full checkout flow (/subscriptions). Rate-limiting is handled
+// the same way signup is (per-IP), since this is another unauthenticated
+// write endpoint anyone can hit.
+router.post("/register-interest", async (req, res) => {
+  const body = req.body ?? {};
+  const name = typeof body.name === "string" ? body.name.trim() : "";
+  const phone = typeof body.phone === "string" ? body.phone.trim() : "";
+  const courseId = typeof body.courseId === "string" && body.courseId ? body.courseId : null;
+  const source = typeof body.source === "string" && body.source.trim() ? body.source.trim() : "website";
+
+  if (!name || !phone) {
+    return res.status(400).json({ error: "name and phone are required." });
+  }
+
+  const lead = await prisma.lead.create({ data: { name, phone, courseId, source } });
+
+  const course = courseId ? await prisma.course.findUnique({ where: { id: courseId }, select: { title: true } }) : null;
+
+  // PRD §4.1 step 3's "instant WhatsApp reply" — a real, automatic send via
+  // Twilio (best-effort: the sandbox can only reach numbers that opted in,
+  // so whatsappSent tells the frontend whether to fall back to a manual
+  // click-to-WhatsApp link instead of silently doing nothing).
+  const whatsappResult = await sendWhatsAppMessage(
+    phone,
+    `Hi ${name.split(" ")[0]}! Thanks for registering interest in ${course?.title ?? "a BEMS FutureSkills track"} ` +
+      `— BEMS Admissions will reach out shortly. Reply here any time with questions!`
+  );
+
+  await notifyStaff({
+    title: "New Interest Registered",
+    message: `${name} (${phone}) registered interest${course ? ` in ${course.title}` : ""}.`,
+    category: "CLASS",
+    linkUrl: "/admin?tab=admissions"
+  });
+
+  return res.json({ ok: true, leadId: lead.id, whatsappSent: whatsappResult.ok });
+});
+
+// PRD §4.2: "A public goal: each student states their goal in the class
+// group... saying it out loud, in front of others." goalStatement lives on
+// the caller's own Enrollment for this course.
+router.patch("/my-goal", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!session) {
+    return res.status(401).json({ error: "Not authenticated." });
+  }
+
+  const body = req.body ?? {};
+  const courseId = typeof body.courseId === "string" ? body.courseId : "";
+  const goalStatement = typeof body.goalStatement === "string" ? body.goalStatement.trim().slice(0, 240) : "";
+
+  if (!courseId) {
+    return res.status(400).json({ error: "courseId is required." });
+  }
+
+  const enrollment = await prisma.enrollment.findUnique({ where: { userId_courseId: { userId: session.id, courseId } } });
+  if (!enrollment) {
+    return res.status(404).json({ error: "You're not enrolled in this course." });
+  }
+
+  const updated = await prisma.enrollment.update({
+    where: { id: enrollment.id },
+    data: { goalStatement: goalStatement || null }
+  });
+
+  return res.json({ goalStatement: updated.goalStatement });
+});
+
+// "The class group" this app actually has, short of real per-cohort chat:
+// every classmate's stated goal, for the caller's own cohort+course — the
+// same students they're enrolled alongside, not the whole site.
+router.get("/class-goals", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!session) {
+    return res.status(401).json({ error: "Not authenticated." });
+  }
+
+  const courseId = typeof req.query.courseId === "string" ? req.query.courseId : "";
+  if (!courseId) {
+    return res.status(400).json({ error: "courseId is required." });
+  }
+
+  const myEnrollment = await prisma.enrollment.findUnique({
+    where: { userId_courseId: { userId: session.id, courseId } },
+    select: { cohortId: true }
+  });
+  if (!myEnrollment) {
+    return res.status(404).json({ error: "You're not enrolled in this course." });
+  }
+
+  const classmates = await prisma.enrollment.findMany({
+    where: {
+      courseId,
+      cohortId: myEnrollment.cohortId,
+      goalStatement: { not: null }
+    },
+    select: { userId: true, goalStatement: true, user: { select: { name: true } } },
+    orderBy: { createdAt: "asc" }
+  });
+
+  return res.json({
+    goals: classmates.map((c) => ({
+      userId: c.userId,
+      name: c.user.name,
+      goalStatement: c.goalStatement,
+      isMe: c.userId === session.id
+    }))
+  });
+});
+
+const TRACKABLE_PAGES = new Set(["home", "subscriptions"]);
+
+// Public, fire-and-forget: real page-view count for the two actual
+// funnel-entry pages (PRD §4.1 step 2, "Visit the sign-up page"),
+// deduped per anonymous visitorId per UTC day so a refresh-happy visitor
+// doesn't inflate the number past what "N people visited" should mean.
+router.post("/track-pageview", async (req, res) => {
+  const body = req.body ?? {};
+  const page = typeof body.page === "string" ? body.page : "";
+  const visitorId = typeof body.visitorId === "string" ? body.visitorId.trim() : "";
+  const source = typeof body.source === "string" && body.source.trim() ? body.source.trim() : null;
+
+  if (!TRACKABLE_PAGES.has(page)) {
+    return res.status(400).json({ error: "page must be one of: home, subscriptions." });
+  }
+  if (!visitorId) {
+    return res.status(400).json({ error: "visitorId is required." });
+  }
+
+  const startOfToday = new Date();
+  startOfToday.setUTCHours(0, 0, 0, 0);
+
+  const alreadyCountedToday = await prisma.pageView.findFirst({
+    where: { page, visitorId, createdAt: { gte: startOfToday } },
+    select: { id: true }
+  });
+  if (!alreadyCountedToday) {
+    await prisma.pageView.create({ data: { page, visitorId, source } });
+  }
+
   return res.json({ ok: true });
 });
 

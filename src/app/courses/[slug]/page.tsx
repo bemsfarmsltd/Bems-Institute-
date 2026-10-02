@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use } from "react";
+import React, { use, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useLMS } from "@/context/LMSContext";
@@ -8,6 +8,8 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { apiFetch } from "@/lib/api-client";
+import { buildWhatsAppLink, BEMS_WHATSAPP_NUMBER } from "@/lib/whatsapp";
 import {
   PlayCircle,
   Lock,
@@ -18,7 +20,8 @@ import {
   ArrowLeft,
   Sparkles,
   MessageCircle,
-  BookOpen
+  BookOpen,
+  AlertTriangle
 } from "lucide-react";
 
 export default function CourseDetailPage({
@@ -39,6 +42,14 @@ export default function CourseDetailPage({
     getAssignmentForCourse,
     user
   } = useLMS();
+
+  const [showInterestModal, setShowInterestModal] = useState(false);
+  const [interestName, setInterestName] = useState("");
+  const [interestPhone, setInterestPhone] = useState("");
+  const [submittingInterest, setSubmittingInterest] = useState(false);
+  const [interestError, setInterestError] = useState<string | null>(null);
+  const [interestSubmitted, setInterestSubmitted] = useState(false);
+  const [interestWhatsappSent, setInterestWhatsappSent] = useState(false);
 
   const course = courses.find((c) => c.slug === slug);
 
@@ -76,6 +87,45 @@ export default function CourseDetailPage({
     await enrollInCourse(course.id);
     router.push(`/learn/${course.slug}/${firstLessonId}`);
   };
+
+  const openInterestModal = () => {
+    setInterestError(null);
+    setInterestSubmitted(false);
+    setShowInterestModal(true);
+  };
+
+  const handleSubmitInterest = async () => {
+    if (!interestName.trim() || !interestPhone.trim()) {
+      setInterestError("Please fill in your name and phone number.");
+      return;
+    }
+    setSubmittingInterest(true);
+    setInterestError(null);
+    try {
+      const res = await apiFetch("/api/lms/register-interest", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: interestName.trim(), phone: interestPhone.trim(), courseId: course.id })
+      });
+      if (res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setInterestWhatsappSent(Boolean(data.whatsappSent));
+        setInterestSubmitted(true);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setInterestError(data.error || "Something went wrong. Please try again.");
+      }
+    } catch {
+      setInterestError("Could not reach the server. Please try again.");
+    } finally {
+      setSubmittingInterest(false);
+    }
+  };
+
+  const interestWhatsAppUrl = buildWhatsAppLink(
+    BEMS_WHATSAPP_NUMBER,
+    `Hi BEMS! I'm ${interestName || "interested"} and I'd like to know more about the ${course.title} track.`
+  );
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF8FF]">
@@ -325,6 +375,14 @@ export default function CourseDetailPage({
                     </Button>
                   </Link>
 
+                  <button
+                    type="button"
+                    onClick={openInterestModal}
+                    className="w-full mt-2.5 py-2 text-xs font-bold text-[#AE54C6] hover:text-[#8f3ba3] cursor-pointer"
+                  >
+                    Not ready to pay yet? Just register your interest →
+                  </button>
+
                   <ul className="mt-6 pt-6 border-t border-[#F1E2F5] space-y-2.5 text-xs text-[#645F80]">
                     <li className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
@@ -349,6 +407,86 @@ export default function CourseDetailPage({
 
         </div>
       </main>
+
+      {showInterestModal && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-6 sm:p-7 shadow-2xl border border-[#F1E2F5]">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#F7EDF9]">
+              <h3 className="text-base font-black text-[#303654]">Register Your Interest</h3>
+              <button
+                onClick={() => setShowInterestModal(false)}
+                className="text-[#8580A3] hover:text-[#303654] text-lg font-bold cursor-pointer"
+              >
+                &times;
+              </button>
+            </div>
+
+            {interestSubmitted ? (
+              <div className="space-y-4 text-center py-2">
+                <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto" />
+                <p className="text-sm text-[#303654] font-bold">
+                  Thanks, {interestName.split(" ")[0]}! We&apos;ve got your interest in {course.title}.
+                </p>
+                <p className="text-xs text-[#645F80]">
+                  {interestWhatsappSent
+                    ? `We've just sent you a WhatsApp message at ${interestPhone} — check your chats!`
+                    : `We'll reach out to ${interestPhone} soon. You can also message us directly right now:`}
+                </p>
+                <a href={interestWhatsAppUrl} target="_blank" rel="noreferrer" className="block w-full">
+                  <Button variant="whatsapp" className="w-full gap-2">
+                    <MessageCircle className="w-4 h-4" />
+                    <span>Message Us on WhatsApp</span>
+                  </Button>
+                </a>
+              </div>
+            ) : (
+              <div className="space-y-3.5">
+                <p className="text-xs text-[#645F80]">
+                  Just leave your name and phone — no payment, no commitment. BEMS Admissions will reach out about{" "}
+                  <strong>{course.title}</strong>.
+                </p>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#645F80] mb-1.5">Full Name</label>
+                  <input
+                    type="text"
+                    value={interestName}
+                    onChange={(e) => setInterestName(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-lg border border-[#F1E2F5] text-sm focus:outline-none focus:border-[#AE54C6]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#645F80] mb-1.5">Phone Number</label>
+                  <input
+                    type="tel"
+                    value={interestPhone}
+                    onChange={(e) => setInterestPhone(e.target.value)}
+                    placeholder="e.g. 0801 234 5678"
+                    className="w-full px-3.5 py-2.5 rounded-lg border border-[#F1E2F5] text-sm focus:outline-none focus:border-[#AE54C6]"
+                  />
+                </div>
+
+                {interestError && (
+                  <div className="p-2.5 rounded-lg bg-red-50 border border-red-200 text-xs text-red-800 flex items-start gap-2">
+                    <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                    <span>{interestError}</span>
+                  </div>
+                )}
+
+                <Button
+                  onClick={handleSubmitInterest}
+                  disabled={submittingInterest}
+                  variant="purple"
+                  className="w-full mt-1"
+                >
+                  {submittingInterest ? "Submitting…" : "Register Interest"}
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>

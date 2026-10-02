@@ -6,6 +6,7 @@ import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useLMS } from "@/context/LMSContext";
 import { apiFetch } from "@/lib/api-client";
+import { buildWhatsAppLink } from "@/lib/whatsapp";
 import {
   Home,
   ShoppingBasket,
@@ -13,6 +14,8 @@ import {
   UserCheck,
   MessageSquare,
   BarChart3,
+  Briefcase,
+  ClipboardList,
   UserCog,
   Lock,
   Settings,
@@ -498,6 +501,7 @@ function AdminDashboardContent() {
     adminStudents,
     adminCourses,
     analytics,
+    refreshAdminData,
     addCourse,
     updateCourseStatus,
     updateStudentPayment,
@@ -697,6 +701,227 @@ function AdminDashboardContent() {
       })
       .catch(() => setLedgerLoaded(true));
   }, [activeTab, ledgerLoaded]);
+
+  interface Placement {
+    id: string;
+    studentName: string;
+    studentEmail: string;
+    courseTitle: string;
+    status: "SEEKING" | "INTRODUCED" | "HIRED";
+    placementType: "BEMS_INTERNAL" | "PARTNER" | null;
+    employerName: string | null;
+    hiredAt: string | null;
+    feeAmount: number | null;
+    feeStatus: "NONE" | "INVOICED" | "PAID";
+    notes: string | null;
+    createdAt: string;
+  }
+  const [placements, setPlacements] = useState<Placement[]>([]);
+  const [placementsLoaded, setPlacementsLoaded] = useState(false);
+  const placementsLoading =
+    (activeTab === "placements" || activeTab === "earnings" || activeTab === "analytics") && !placementsLoaded;
+  const [editingPlacement, setEditingPlacement] = useState<Placement | null>(null);
+  const [savingPlacement, setSavingPlacement] = useState(false);
+  const [placementForm, setPlacementForm] = useState({
+    status: "SEEKING" as Placement["status"],
+    placementType: "" as "" | "BEMS_INTERNAL" | "PARTNER",
+    employerName: "",
+    hiredAt: "",
+    feeAmount: "",
+    feeStatus: "NONE" as Placement["feeStatus"],
+    notes: ""
+  });
+  const openEditPlacement = (p: Placement) => {
+    setEditingPlacement(p);
+    setPlacementForm({
+      status: p.status,
+      placementType: p.placementType || "",
+      employerName: p.employerName || "",
+      hiredAt: p.hiredAt ? p.hiredAt.slice(0, 10) : "",
+      feeAmount: p.feeAmount !== null ? String(p.feeAmount) : "",
+      feeStatus: p.feeStatus,
+      notes: p.notes || ""
+    });
+  };
+
+  useEffect(() => {
+    if (!(activeTab === "placements" || activeTab === "earnings" || activeTab === "analytics") || placementsLoaded)
+      return;
+    apiFetch("/api/admin/placements")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data) setPlacements(data.placements || []);
+        setPlacementsLoaded(true);
+      })
+      .catch(() => setPlacementsLoaded(true));
+  }, [activeTab, placementsLoaded]);
+
+  const savePlacement = async () => {
+    if (!editingPlacement) return;
+    setSavingPlacement(true);
+    try {
+      const res = await apiFetch(`/api/admin/placements/${editingPlacement.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: placementForm.status,
+          placementType: placementForm.placementType || null,
+          employerName: placementForm.employerName.trim() || null,
+          hiredAt: placementForm.hiredAt || null,
+          feeAmount: placementForm.feeAmount.trim() === "" ? null : Number(placementForm.feeAmount),
+          feeStatus: placementForm.feeStatus,
+          notes: placementForm.notes.trim() || null
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setPlacements((prev) => prev.map((p) => (p.id === data.placement.id ? { ...p, ...data.placement } : p)));
+        setAdminNotice(`Updated placement for ${editingPlacement.studentName}.`);
+        setEditingPlacement(null);
+      }
+    } finally {
+      setSavingPlacement(false);
+    }
+  };
+
+  const [editingCohortTargets, setEditingCohortTargets] = useState(false);
+  const [cohortForm, setCohortForm] = useState({ estimatedAdViews: "", targetStudents: "", targetRevenue: "" });
+  const [savingCohort, setSavingCohort] = useState(false);
+  const openEditCohortTargets = () => {
+    setCohortForm({
+      estimatedAdViews: String(analytics.estimatedAdViews),
+      targetStudents: String(analytics.targetStudents),
+      targetRevenue: String(analytics.targetRevenue)
+    });
+    setEditingCohortTargets(true);
+  };
+  const saveCohortTargets = async () => {
+    setSavingCohort(true);
+    try {
+      const res = await apiFetch("/api/admin/cohort", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          estimatedAdViews: Number(cohortForm.estimatedAdViews),
+          targetStudents: Number(cohortForm.targetStudents),
+          targetRevenue: Number(cohortForm.targetRevenue)
+        })
+      });
+      if (res.ok) {
+        await refreshAdminData();
+        setAdminNotice("Cohort targets updated.");
+        setEditingCohortTargets(false);
+      }
+    } finally {
+      setSavingCohort(false);
+    }
+  };
+
+  interface Lead {
+    id: string;
+    name: string;
+    phone: string;
+    courseTitle: string | null;
+    source: string | null;
+    status: "NEW" | "CONTACTED" | "CONVERTED" | "DROPPED";
+    notes: string | null;
+    createdAt: string;
+  }
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [leadsLoaded, setLeadsLoaded] = useState(false);
+  const leadsLoading = activeTab === "admissions" && !leadsLoaded;
+
+  interface WelcomeCallEnrollment {
+    id: string;
+    studentName: string;
+    studentEmail: string;
+    studentPhone: string | null;
+    courseTitle: string;
+    welcomeCallStatus: "NOT_SCHEDULED" | "SCHEDULED" | "COMPLETED" | "NO_SHOW";
+    welcomeCallAt: string | null;
+    enrolledAt: string;
+  }
+  const [welcomeCalls, setWelcomeCalls] = useState<WelcomeCallEnrollment[]>([]);
+  const [welcomeCallsLoaded, setWelcomeCallsLoaded] = useState(false);
+  const welcomeCallsLoading = activeTab === "admissions" && !welcomeCallsLoaded;
+
+  useEffect(() => {
+    if (activeTab !== "admissions") return;
+    if (!leadsLoaded) {
+      apiFetch("/api/admin/leads")
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data) setLeads(data.leads || []);
+          setLeadsLoaded(true);
+        })
+        .catch(() => setLeadsLoaded(true));
+    }
+    if (!welcomeCallsLoaded) {
+      apiFetch("/api/admin/welcome-calls")
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data) setWelcomeCalls(data.enrollments || []);
+          setWelcomeCallsLoaded(true);
+        })
+        .catch(() => setWelcomeCallsLoaded(true));
+    }
+  }, [activeTab, leadsLoaded, welcomeCallsLoaded]);
+
+  const updateLeadStatus = async (leadId: string, status: Lead["status"]) => {
+    const res = await apiFetch(`/api/admin/leads/${leadId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status })
+    });
+    if (res.ok) {
+      setLeads((prev) => prev.map((l) => (l.id === leadId ? { ...l, status } : l)));
+    }
+  };
+
+  const [editingWelcomeCall, setEditingWelcomeCall] = useState<WelcomeCallEnrollment | null>(null);
+  const [welcomeCallForm, setWelcomeCallForm] = useState({ status: "SCHEDULED" as WelcomeCallEnrollment["welcomeCallStatus"], scheduledAt: "" });
+  const [savingWelcomeCall, setSavingWelcomeCall] = useState(false);
+  const openEditWelcomeCall = (e: WelcomeCallEnrollment) => {
+    setEditingWelcomeCall(e);
+    setWelcomeCallForm({
+      status: e.welcomeCallStatus === "NOT_SCHEDULED" ? "SCHEDULED" : e.welcomeCallStatus,
+      scheduledAt: e.welcomeCallAt ? e.welcomeCallAt.slice(0, 16) : ""
+    });
+  };
+  const saveWelcomeCall = async () => {
+    if (!editingWelcomeCall) return;
+    setSavingWelcomeCall(true);
+    try {
+      const res = await apiFetch(`/api/admin/enrollments/${editingWelcomeCall.id}/welcome-call`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          welcomeCallStatus: welcomeCallForm.status,
+          welcomeCallAt: welcomeCallForm.scheduledAt || null
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setWelcomeCalls((prev) =>
+          prev.map((w) =>
+            w.id === editingWelcomeCall.id
+              ? { ...w, welcomeCallStatus: welcomeCallForm.status, welcomeCallAt: welcomeCallForm.scheduledAt || null }
+              : w
+          )
+        );
+        setAdminNotice(
+          welcomeCallForm.status === "NO_SHOW"
+            ? data.whatsappSent
+              ? `Welcome call marked No Show — WhatsApp check-in sent to ${editingWelcomeCall.studentName}.`
+              : `Welcome call marked No Show for ${editingWelcomeCall.studentName} — WhatsApp couldn't be sent automatically (use the WhatsApp button on their row instead).`
+            : `Welcome call updated for ${editingWelcomeCall.studentName}.`
+        );
+        setEditingWelcomeCall(null);
+      }
+    } finally {
+      setSavingWelcomeCall(false);
+    }
+  };
 
   useEffect(() => {
     if (activeTab !== "settings" || settingsLoaded) return;
@@ -1051,6 +1276,34 @@ function AdminDashboardContent() {
             >
               <MessageSquare className="w-4 h-4 shrink-0" />
               <span>Reviews</span>
+            </button>
+
+            {/* Admissions */}
+            <button
+              type="button"
+              onClick={() => switchTab("admissions")}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
+                activeTab === "admissions"
+                  ? "text-[#AE54C6]"
+                  : "text-white/90 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              <ClipboardList className="w-4 h-4 shrink-0" />
+              <span>Admissions</span>
+            </button>
+
+            {/* Placements */}
+            <button
+              type="button"
+              onClick={() => switchTab("placements")}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
+                activeTab === "placements"
+                  ? "text-[#AE54C6]"
+                  : "text-white/90 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              <Briefcase className="w-4 h-4 shrink-0" />
+              <span>Placements</span>
             </button>
 
             {/* Earnings */}
@@ -3097,6 +3350,573 @@ function AdminDashboardContent() {
           )}
 
           {/* ========================================================= */}
+          {/* ADMISSIONS — PRD "register interest" + "welcome call"      */}
+          {/* ========================================================= */}
+          {activeTab === "admissions" && (
+            <div>
+              <h1 className="font-display text-[28px] sm:text-[32px] font-extrabold text-[#1D2026] tracking-tight mb-2">
+                Admissions
+              </h1>
+              <p className="text-[13.5px] text-[#747579] mb-6 max-w-2xl">
+                Leads come from the course pages&apos; &quot;register your interest&quot; form. Welcome
+                calls are owed to every enrolled student before class starts — mark a no-show and
+                send them a one-tap WhatsApp check-in.
+              </p>
+
+              {/* Leads */}
+              <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden mb-7">
+                <div className="bg-[#F8F9FA] px-6 py-4 border-b border-slate-200/80">
+                  <h2 className="font-display text-[18px] font-extrabold text-[#1D2026]">Leads</h2>
+                </div>
+                <div className="p-6">
+                  {leadsLoading ? (
+                    <div className="py-8 text-center text-[13.5px] text-[#747579]">Loading leads…</div>
+                  ) : leads.length === 0 ? (
+                    <div className="py-8 text-center text-[13.5px] text-[#747579]">
+                      No leads registered yet.
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse min-w-[760px]">
+                        <thead>
+                          <tr className="text-[#8580A3] text-[11px] font-bold uppercase tracking-wider">
+                            <th className="py-2 pr-4">Name</th>
+                            <th className="py-2 pr-4">Phone</th>
+                            <th className="py-2 pr-4">Course</th>
+                            <th className="py-2 pr-4">Source</th>
+                            <th className="py-2 pr-4">Status</th>
+                            <th className="py-2 pr-4">Date</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 text-[13.5px]">
+                          {leads.map((l) => {
+                            const waLink = l.phone
+                              ? buildWhatsAppLink(
+                                  l.phone,
+                                  `Hi ${l.name.split(" ")[0]}, this is BEMS Admissions following up on your interest${l.courseTitle ? ` in ${l.courseTitle}` : ""}!`
+                                )
+                              : null;
+                            return (
+                              <tr key={l.id}>
+                                <td className="py-2.5 pr-4 font-bold text-[#1D2026]">{l.name}</td>
+                                <td className="py-2.5 pr-4 text-[#475569]">
+                                  {waLink ? (
+                                    <a href={waLink} target="_blank" rel="noreferrer" className="text-[#25D366] font-semibold hover:underline">
+                                      {l.phone}
+                                    </a>
+                                  ) : (
+                                    l.phone
+                                  )}
+                                </td>
+                                <td className="py-2.5 pr-4 text-[#475569]">{l.courseTitle || "—"}</td>
+                                <td className="py-2.5 pr-4 text-[#475569]">{l.source || "—"}</td>
+                                <td className="py-2.5 pr-4">
+                                  <select
+                                    value={l.status}
+                                    onChange={(e) => updateLeadStatus(l.id, e.target.value as Lead["status"])}
+                                    className="px-2 py-1 rounded-md border border-slate-200 text-[12px] font-semibold cursor-pointer"
+                                  >
+                                    <option value="NEW">New</option>
+                                    <option value="CONTACTED">Contacted</option>
+                                    <option value="CONVERTED">Converted</option>
+                                    <option value="DROPPED">Dropped</option>
+                                  </select>
+                                </td>
+                                <td className="py-2.5 pr-4 text-[#8580A3] text-[12px]">
+                                  {new Date(l.createdAt).toLocaleDateString("en-GB", {
+                                    day: "2-digit",
+                                    month: "short",
+                                    year: "numeric"
+                                  })}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Welcome Calls */}
+              <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
+                <div className="bg-[#F8F9FA] px-6 py-4 border-b border-slate-200/80">
+                  <h2 className="font-display text-[18px] font-extrabold text-[#1D2026]">Welcome Calls</h2>
+                </div>
+                <div className="p-6">
+                  {welcomeCallsLoading ? (
+                    <div className="py-8 text-center text-[13.5px] text-[#747579]">Loading…</div>
+                  ) : welcomeCalls.length === 0 ? (
+                    <div className="py-8 text-center text-[13.5px] text-[#747579]">
+                      Every enrolled student has had their welcome call completed.
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse min-w-[820px]">
+                        <thead>
+                          <tr className="text-[#8580A3] text-[11px] font-bold uppercase tracking-wider">
+                            <th className="py-2 pr-4">Student</th>
+                            <th className="py-2 pr-4">Course</th>
+                            <th className="py-2 pr-4">Status</th>
+                            <th className="py-2 pr-4">Scheduled</th>
+                            <th className="py-2 pr-4 text-right">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 text-[13.5px]">
+                          {welcomeCalls.map((w) => {
+                            const statusClass =
+                              w.welcomeCallStatus === "SCHEDULED"
+                                ? "bg-[#F6ECF9] text-[#A16EBD]"
+                                : w.welcomeCallStatus === "NO_SHOW"
+                                ? "bg-[#FBE9EB] text-[#D6293E]"
+                                : "bg-slate-100 text-slate-600";
+                            const noShowWaLink = w.studentPhone
+                              ? buildWhatsAppLink(
+                                  w.studentPhone,
+                                  `Hi ${w.studentName.split(" ")[0]}, we noticed you missed your welcome call for ${w.courseTitle}. We're here to help you catch up — when's a good time to reschedule?`
+                                )
+                              : null;
+                            return (
+                              <tr key={w.id}>
+                                <td className="py-2.5 pr-4">
+                                  <div className="font-bold text-[#1D2026]">{w.studentName}</div>
+                                  <div className="text-[12px] text-[#747579]">{w.studentEmail}</div>
+                                </td>
+                                <td className="py-2.5 pr-4 text-[#475569]">{w.courseTitle}</td>
+                                <td className="py-2.5 pr-4">
+                                  <span className={`px-2.5 py-1 rounded-md text-[11.5px] font-bold ${statusClass}`}>
+                                    {w.welcomeCallStatus.replace("_", " ")}
+                                  </span>
+                                </td>
+                                <td className="py-2.5 pr-4 text-[#8580A3] text-[12px]">
+                                  {w.welcomeCallAt
+                                    ? new Date(w.welcomeCallAt).toLocaleString("en-GB", {
+                                        day: "2-digit",
+                                        month: "short",
+                                        hour: "2-digit",
+                                        minute: "2-digit"
+                                      })
+                                    : "—"}
+                                </td>
+                                <td className="py-2.5 pr-4 text-right space-x-2 whitespace-nowrap">
+                                  {w.welcomeCallStatus === "NO_SHOW" && noShowWaLink && (
+                                    <a
+                                      href={noShowWaLink}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="inline-block px-3 py-1.5 rounded-lg bg-[#25D366] text-white text-xs font-semibold hover:bg-[#20bd5a]"
+                                    >
+                                      WhatsApp
+                                    </a>
+                                  )}
+                                  <button
+                                    type="button"
+                                    onClick={() => openEditWelcomeCall(w)}
+                                    className="px-3 py-1.5 rounded-lg bg-[#AE54C6] text-white text-xs font-semibold hover:bg-[#A03BBC] cursor-pointer"
+                                  >
+                                    Manage
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Welcome Call Edit Modal */}
+          {editingWelcomeCall && (
+            <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <h3 className="text-base font-extrabold text-[#1D2026]">
+                    Welcome Call — {editingWelcomeCall.studentName}
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setEditingWelcomeCall(null)}
+                    className="text-[#8580A3] hover:text-[#1D2026] text-lg font-bold cursor-pointer"
+                  >
+                    &times;
+                  </button>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#645F80] mb-1.5">Status</label>
+                  <select
+                    value={welcomeCallForm.status}
+                    onChange={(e) =>
+                      setWelcomeCallForm((f) => ({ ...f, status: e.target.value as WelcomeCallEnrollment["welcomeCallStatus"] }))
+                    }
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm"
+                  >
+                    <option value="NOT_SCHEDULED">Not Scheduled</option>
+                    <option value="SCHEDULED">Scheduled</option>
+                    <option value="COMPLETED">Completed</option>
+                    <option value="NO_SHOW">No Show</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#645F80] mb-1.5">Date &amp; Time</label>
+                  <input
+                    type="datetime-local"
+                    value={welcomeCallForm.scheduledAt}
+                    onChange={(e) => setWelcomeCallForm((f) => ({ ...f, scheduledAt: e.target.value }))}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm"
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={saveWelcomeCall}
+                  disabled={savingWelcomeCall}
+                  className="w-full py-2.5 rounded-lg bg-[#AE54C6] text-white text-sm font-bold hover:bg-[#A03BBC] disabled:opacity-60 cursor-pointer"
+                >
+                  {savingWelcomeCall ? "Saving…" : "Save"}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================= */}
+          {/* PLACEMENTS — PRD "finished -> help into a job" pipeline    */}
+          {/* ========================================================= */}
+          {activeTab === "placements" && (
+            <div>
+              <h1 className="font-display text-[28px] sm:text-[32px] font-extrabold text-[#1D2026] tracking-tight mb-2">
+                Placements
+              </h1>
+              <p className="text-[13.5px] text-[#747579] mb-6 max-w-2xl">
+                Every student who earns a certificate lands here automatically as{" "}
+                <strong>Seeking</strong>. Move them forward as BEMS introduces them to a role —
+                either hired internally by BEMS Group, or placed with a partner company (who may
+                owe BEMS an introduction fee).
+              </p>
+
+              {/* PRD §4.1 step 9's actual target metric: "Get a job/earn
+                  within 90 days" (40% of finishers). createdAt on a
+                  placement is the moment the certificate was issued — i.e.
+                  "finished" — so hiredAt minus createdAt is real days-to-hire,
+                  not an estimate. */}
+              {placements.length > 0 &&
+                (() => {
+                  const totalFinishers = placements.length;
+                  const hiredWithin90 = placements.filter((p) => {
+                    if (p.status !== "HIRED" || !p.hiredAt) return false;
+                    const days = (new Date(p.hiredAt).getTime() - new Date(p.createdAt).getTime()) / 86400000;
+                    return days >= 0 && days <= 90;
+                  }).length;
+                  const pct = Math.round((hiredWithin90 / totalFinishers) * 100);
+                  return (
+                    <div className="bg-[#F7EDF9] rounded-xl p-5 mb-6 flex items-center justify-between flex-wrap gap-3">
+                      <div>
+                        <div className="text-[13px] font-bold text-[#1D2026]">
+                          Hired Within 90 Days
+                        </div>
+                        <div className="text-[11.5px] text-[#747579] mt-0.5">
+                          PRD target: 40% of finishers — measured from certificate issuance to hire date
+                        </div>
+                      </div>
+                      <div className="font-display text-[28px] font-extrabold text-[#AE54C6]">
+                        {hiredWithin90} / {totalFinishers}{" "}
+                        <span className="text-[16px] text-[#A16EBD]">({pct}%)</span>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+              <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
+                <div className="p-6">
+                  {placementsLoading ? (
+                    <div className="py-10 text-center text-[13.5px] text-[#747579]">
+                      Loading placements…
+                    </div>
+                  ) : placements.length === 0 ? (
+                    <div className="py-10 text-center text-[13.5px] text-[#747579]">
+                      No graduates yet — a placement is created automatically the first time a
+                      student earns a certificate.
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse min-w-[900px]">
+                        <thead>
+                          <tr className="bg-[#24292D] text-white text-[13.5px] font-bold">
+                            <th className="py-3.5 px-4 rounded-l-lg">Student</th>
+                            <th className="py-3.5 px-4">Course</th>
+                            <th className="py-3.5 px-4">Status</th>
+                            <th className="py-3.5 px-4">Employer</th>
+                            <th className="py-3.5 px-4">Hired</th>
+                            <th className="py-3.5 px-4">Fee</th>
+                            <th className="py-3.5 px-4 rounded-r-lg text-right">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 text-[14px]">
+                          {placements.map((p) => {
+                            const statusClass =
+                              p.status === "HIRED"
+                                ? "bg-[#F7EDF9] text-[#AE54C6]"
+                                : p.status === "INTRODUCED"
+                                ? "bg-[#FFF2E2] text-[#FD7E14]"
+                                : "bg-slate-100 text-slate-600";
+                            return (
+                              <tr key={p.id} className="hover:bg-slate-50/70">
+                                <td className="py-4 px-4">
+                                  <div className="font-bold text-[#1D2026]">{p.studentName}</div>
+                                  <div className="text-[12px] text-[#747579]">{p.studentEmail}</div>
+                                </td>
+                                <td className="py-4 px-4 text-[#475569]">{p.courseTitle}</td>
+                                <td className="py-4 px-4">
+                                  <span className={`px-2.5 py-1 rounded-md text-[11.5px] font-bold ${statusClass}`}>
+                                    {p.status}
+                                  </span>
+                                </td>
+                                <td className="py-4 px-4 text-[#475569]">
+                                  {p.employerName ? (
+                                    <>
+                                      {p.employerName}
+                                      {p.placementType && (
+                                        <span className="text-[11px] text-[#8580A3] block">
+                                          {p.placementType === "BEMS_INTERNAL" ? "BEMS Group" : "Partner"}
+                                        </span>
+                                      )}
+                                    </>
+                                  ) : (
+                                    "—"
+                                  )}
+                                </td>
+                                <td className="py-4 px-4 text-[#747579] text-[12.5px]">
+                                  {p.hiredAt
+                                    ? new Date(p.hiredAt).toLocaleDateString("en-GB", {
+                                        day: "2-digit",
+                                        month: "short",
+                                        year: "numeric"
+                                      })
+                                    : "—"}
+                                </td>
+                                <td className="py-4 px-4 text-[#475569]">
+                                  {p.feeAmount ? (
+                                    <>
+                                      ₦{p.feeAmount.toLocaleString()}
+                                      <span className="text-[11px] text-[#8580A3] block">{p.feeStatus}</span>
+                                    </>
+                                  ) : (
+                                    "—"
+                                  )}
+                                </td>
+                                <td className="py-4 px-4 text-right">
+                                  <button
+                                    type="button"
+                                    onClick={() => openEditPlacement(p)}
+                                    className="px-3 py-1.5 rounded-lg bg-[#AE54C6] text-white text-xs font-semibold hover:bg-[#A03BBC] cursor-pointer"
+                                  >
+                                    Manage
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Placement Edit Modal */}
+          {editingPlacement && (
+            <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <h3 className="text-base font-extrabold text-[#1D2026]">
+                    Manage Placement — {editingPlacement.studentName}
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setEditingPlacement(null)}
+                    className="text-[#8580A3] hover:text-[#1D2026] text-lg font-bold cursor-pointer"
+                  >
+                    &times;
+                  </button>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#645F80] mb-1.5">Status</label>
+                  <select
+                    value={placementForm.status}
+                    onChange={(e) =>
+                      setPlacementForm((f) => ({ ...f, status: e.target.value as Placement["status"] }))
+                    }
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm"
+                  >
+                    <option value="SEEKING">Seeking</option>
+                    <option value="INTRODUCED">Introduced</option>
+                    <option value="HIRED">Hired</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#645F80] mb-1.5">Employer Type</label>
+                  <select
+                    value={placementForm.placementType}
+                    onChange={(e) =>
+                      setPlacementForm((f) => ({ ...f, placementType: e.target.value as typeof f.placementType }))
+                    }
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm"
+                  >
+                    <option value="">Not set</option>
+                    <option value="BEMS_INTERNAL">BEMS Group (internal hire)</option>
+                    <option value="PARTNER">Partner company</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#645F80] mb-1.5">Employer Name</label>
+                  <input
+                    type="text"
+                    value={placementForm.employerName}
+                    onChange={(e) => setPlacementForm((f) => ({ ...f, employerName: e.target.value }))}
+                    placeholder="e.g. BEMS Group, or a partner company's name"
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#645F80] mb-1.5">Hired Date</label>
+                  <input
+                    type="date"
+                    value={placementForm.hiredAt}
+                    onChange={(e) => setPlacementForm((f) => ({ ...f, hiredAt: e.target.value }))}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm"
+                  />
+                </div>
+
+                {placementForm.placementType === "PARTNER" && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-[#645F80] mb-1.5">
+                        Introduction Fee (₦)
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={placementForm.feeAmount}
+                        onChange={(e) => setPlacementForm((f) => ({ ...f, feeAmount: e.target.value }))}
+                        placeholder="0"
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-[#645F80] mb-1.5">Fee Status</label>
+                      <select
+                        value={placementForm.feeStatus}
+                        onChange={(e) =>
+                          setPlacementForm((f) => ({ ...f, feeStatus: e.target.value as Placement["feeStatus"] }))
+                        }
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm"
+                      >
+                        <option value="NONE">None</option>
+                        <option value="INVOICED">Invoiced</option>
+                        <option value="PAID">Paid</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-xs font-bold text-[#645F80] mb-1.5">Notes</label>
+                  <textarea
+                    value={placementForm.notes}
+                    onChange={(e) => setPlacementForm((f) => ({ ...f, notes: e.target.value }))}
+                    rows={2}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm"
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={savePlacement}
+                  disabled={savingPlacement}
+                  className="w-full py-2.5 rounded-lg bg-[#AE54C6] text-white text-sm font-bold hover:bg-[#A03BBC] disabled:opacity-60 cursor-pointer"
+                >
+                  {savingPlacement ? "Saving…" : "Save Placement"}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Cohort Targets Edit Modal */}
+          {editingCohortTargets && (
+            <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <h3 className="text-base font-extrabold text-[#1D2026]">Edit Cohort Targets</h3>
+                  <button
+                    type="button"
+                    onClick={() => setEditingCohortTargets(false)}
+                    className="text-[#8580A3] hover:text-[#1D2026] text-lg font-bold cursor-pointer"
+                  >
+                    &times;
+                  </button>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#645F80] mb-1.5">
+                    Estimated Ad Views
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={cohortForm.estimatedAdViews}
+                    onChange={(e) => setCohortForm((f) => ({ ...f, estimatedAdViews: e.target.value }))}
+                    placeholder="e.g. banner/flier print-run × expected foot traffic"
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#645F80] mb-1.5">Target Students</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={cohortForm.targetStudents}
+                    onChange={(e) => setCohortForm((f) => ({ ...f, targetStudents: e.target.value }))}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#645F80] mb-1.5">Target Revenue (₦)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={cohortForm.targetRevenue}
+                    onChange={(e) => setCohortForm((f) => ({ ...f, targetRevenue: e.target.value }))}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm"
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={saveCohortTargets}
+                  disabled={savingCohort}
+                  className="w-full py-2.5 rounded-lg bg-[#AE54C6] text-white text-sm font-bold hover:bg-[#A03BBC] disabled:opacity-60 cursor-pointer"
+                >
+                  {savingCohort ? "Saving…" : "Save Targets"}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================= */}
           {/* VIEW 6: EARNINGS (Matches Images 1 & 4)                   */}
           {/* ========================================================= */}
           {(activeTab === "earnings" || activeTab === "analytics") && (
@@ -3107,7 +3927,7 @@ function AdminDashboardContent() {
 
               {/* 3 Real Summary Cards — computed from the actual payment
                   ledger/roster, not placeholder figures. */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-7">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-7">
                 <div className="bg-[#F7EDF9] rounded-xl p-6">
                   <div className="text-[14px] font-bold text-[#1D2026] mb-2">
                     Total Collected
@@ -3143,6 +3963,124 @@ function AdminDashboardContent() {
                     {analytics.targetRevenue > 0
                       ? `${Math.round((analytics.totalRevenue / analytics.targetRevenue) * 100)}% reached this cohort`
                       : "No cohort revenue target set"}
+                  </div>
+                </div>
+
+                <div className="bg-[#E9F7EF] rounded-xl p-6">
+                  <div className="text-[14px] font-bold text-[#1D2026] mb-2">
+                    Placement Fees Collected
+                  </div>
+                  <div className="font-display text-[32px] sm:text-[36px] font-extrabold text-emerald-700 leading-tight">
+                    ₦
+                    {placements
+                      .filter((p) => p.feeStatus === "PAID")
+                      .reduce((sum, p) => sum + (p.feeAmount || 0), 0)
+                      .toLocaleString()}
+                  </div>
+                  <div className="text-[12px] text-[#747579] mt-1">
+                    {placements.filter((p) => p.status === "HIRED").length} graduate
+                    {placements.filter((p) => p.status === "HIRED").length === 1 ? "" : "s"} hired &middot; the
+                    PRD&apos;s second revenue stream
+                  </div>
+                </div>
+              </div>
+
+              {/* Marketing Funnel — PRD §4.1 steps 1-2. Ad views can't be
+                  measured online (outdoor banners/fliers), so that number is
+                  a manual staff estimate; page visits are real, deduped
+                  counts (see PageView model). */}
+              <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden mb-7">
+                <div className="bg-[#F8F9FA] px-6 py-4 border-b border-slate-200/80 flex items-center justify-between">
+                  <div>
+                    <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
+                      Marketing Funnel
+                    </h2>
+                    <p className="text-[12.5px] text-[#747579] mt-0.5">
+                      PRD &sect;4.1 — &quot;See our advert&quot; &rarr; &quot;Visit the sign-up page&quot;
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={openEditCohortTargets}
+                    className="px-3 py-1.5 rounded-lg border border-slate-200 text-[#475569] text-xs font-semibold hover:bg-slate-50 cursor-pointer"
+                  >
+                    Edit Targets
+                  </button>
+                </div>
+
+                <div className="p-6 space-y-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <div className="bg-[#FFF2E2] rounded-xl p-5">
+                      <div className="text-[13px] font-bold text-[#1D2026] mb-1.5">
+                        Estimated Ad Views
+                      </div>
+                      <div className="font-display text-[26px] font-extrabold text-[#FD7E14] leading-tight">
+                        {analytics.estimatedAdViews.toLocaleString()}
+                      </div>
+                      <div className="text-[11px] text-[#747579] mt-1">
+                        Manual estimate — banner/flier impressions aren&apos;t measurable online
+                      </div>
+                    </div>
+                    <div className="bg-[#F6ECF9] rounded-xl p-5">
+                      <div className="text-[13px] font-bold text-[#1D2026] mb-1.5">
+                        Homepage Visits
+                      </div>
+                      <div className="font-display text-[26px] font-extrabold text-[#A16EBD] leading-tight">
+                        {analytics.homePageViews.toLocaleString()}
+                      </div>
+                      <div className="text-[11px] text-[#747579] mt-1">
+                        Real, deduped per visitor per day
+                      </div>
+                    </div>
+                    <div className="bg-[#F7EDF9] rounded-xl p-5">
+                      <div className="text-[13px] font-bold text-[#1D2026] mb-1.5">
+                        Signup Page Visits
+                      </div>
+                      <div className="font-display text-[26px] font-extrabold text-[#AE54C6] leading-tight">
+                        {analytics.signupPageViews.toLocaleString()}
+                      </div>
+                      <div className="text-[11px] text-[#747579] mt-1">
+                        /subscriptions — PRD&apos;s step 2 target
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Banner Channel Yield — already computed server-side,
+                      never had anywhere to actually render until now. */}
+                  <div>
+                    <h3 className="text-[13.5px] font-extrabold text-[#1D2026] mb-3">
+                      Banner / QR Source Yield
+                    </h3>
+                    {analytics.bannerChannelYield.length === 0 ? (
+                      <div className="text-[13px] text-[#747579] py-4">
+                        No banner/QR scans logged yet.
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse min-w-[600px]">
+                          <thead>
+                            <tr className="text-[#8580A3] text-[11px] font-bold uppercase tracking-wider">
+                              <th className="py-2 pr-4">Source</th>
+                              <th className="py-2 pr-4">Scans</th>
+                              <th className="py-2 pr-4">Registrations</th>
+                              <th className="py-2 pr-4">Conversion</th>
+                              <th className="py-2 pr-4">Revenue</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 text-[13.5px]">
+                            {analytics.bannerChannelYield.map((b) => (
+                              <tr key={b.source}>
+                                <td className="py-2.5 pr-4 font-bold text-[#1D2026]">{b.source}</td>
+                                <td className="py-2.5 pr-4 text-[#475569]">{b.scans}</td>
+                                <td className="py-2.5 pr-4 text-[#475569]">{b.registrations}</td>
+                                <td className="py-2.5 pr-4 text-[#475569]">{b.conversionRate}%</td>
+                                <td className="py-2.5 pr-4 text-[#475569]">₦{b.revenue.toLocaleString()}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

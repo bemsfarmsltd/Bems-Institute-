@@ -33,7 +33,10 @@ const EMPTY_ANALYTICS: AnalyticsSummary = {
   certificatesIssued: 0,
   trackDistribution: [],
   deliveryDistribution: [],
-  bannerChannelYield: []
+  bannerChannelYield: [],
+  estimatedAdViews: 0,
+  homePageViews: 0,
+  signupPageViews: 0
 };
 
 export interface EnrollOptions {
@@ -83,6 +86,7 @@ interface LMSContextType {
   getCourse: (courseId: string) => LMSCourse | undefined;
   getQuizForCourse: (courseId: string) => Quiz | undefined;
   getAssignmentForCourse: (courseId: string) => Assignment | undefined;
+  getAssignmentsForCourse: (courseId: string) => Assignment[];
   // Enrollment & progress — DB-backed, per user
   enrolledCourseIds: string[];
   enrollInCourse: (courseId: string, options?: EnrollOptions) => Promise<void>;
@@ -127,6 +131,10 @@ interface LMSContextType {
   adminStudents: AdminStudent[];
   adminCourses: AdminCourse[];
   analytics: AnalyticsSummary;
+  // Re-fetches roster/courses/analytics — used after an admin-only edit
+  // (e.g. PATCH /admin/cohort) that the normal per-user bootstrap wouldn't
+  // otherwise refresh.
+  refreshAdminData: () => Promise<void>;
   addCourse: (course: {
     title: string;
     slug: string;
@@ -508,8 +516,18 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
     (courseId: string) => quizzes.find((q) => q.courseId === courseId),
     [quizzes]
   );
+  // "The" assignment a course's existing single-CTA UI (dashboard's Phase 2
+  // card, course page's capstone button) means specifically the capstone —
+  // now that courses also have milestones, this has to filter by type
+  // rather than just grabbing the first match.
   const getAssignmentForCourse = useCallback(
-    (courseId: string) => assignments.find((a) => a.courseId === courseId),
+    (courseId: string) => assignments.find((a) => a.courseId === courseId && a.type === "CAPSTONE"),
+    [assignments]
+  );
+  // All of a course's assignments (milestones + capstone), in actual
+  // curriculum order — PRD §4.2's "small projects every 2-3 weeks."
+  const getAssignmentsForCourse = useCallback(
+    (courseId: string) => assignments.filter((a) => a.courseId === courseId).sort((a, b) => a.order - b.order),
     [assignments]
   );
 
@@ -667,6 +685,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
         getCourse,
         getQuizForCourse,
         getAssignmentForCourse,
+        getAssignmentsForCourse,
         enrolledCourseIds,
         refreshEnrollments,
         enrollInCourse,
@@ -692,6 +711,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
         adminStudents,
         adminCourses,
         analytics,
+        refreshAdminData: loadAdminData,
         addCourse,
         updateCourseStatus,
         updateStudentPayment

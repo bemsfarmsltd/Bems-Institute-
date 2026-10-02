@@ -105,7 +105,9 @@ export function mapAssignment(a: DbAssignment): Assignment {
     title: a.title,
     brief: a.brief,
     requirements: a.requirements,
-    rubric: a.rubric as { criteria: string; points: number }[]
+    rubric: a.rubric as { criteria: string; points: number }[],
+    type: a.type,
+    order: a.order
   };
 }
 

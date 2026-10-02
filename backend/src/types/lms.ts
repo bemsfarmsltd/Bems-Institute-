@@ -99,6 +99,8 @@ export interface Assignment {
     criteria: string;
     points: number;
   }[];
+  type: "MILESTONE" | "CAPSTONE";
+  order: number;
 }
 
 export interface Submission {
@@ -201,5 +203,8 @@ export interface AnalyticsSummary {
     revenue: number;
     conversionRate: number;
   }[];
+  estimatedAdViews: number;
+  homePageViews: number;
+  signupPageViews: number;
 }
 

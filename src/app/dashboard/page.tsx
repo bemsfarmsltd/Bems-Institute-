@@ -35,7 +35,8 @@ import {
   UserCog,
   Lock,
   Bell,
-  AlertTriangle
+  AlertTriangle,
+  Target
 } from "lucide-react";
 
 type NotifyCategory = "CLASS" | "GRADING" | "PAYMENT" | "GAMIFICATION" | "ATTENDANCE";
@@ -83,6 +84,7 @@ function StudentDashboardContent() {
     getCourseProgress,
     getQuizForCourse,
     getAssignmentForCourse,
+    getAssignmentsForCourse,
     quizResults,
     submissions,
     certificates
@@ -130,6 +132,16 @@ function StudentDashboardContent() {
     createdAt: string;
   }
   const [paymentHistory, setPaymentHistory] = useState<PaymentHistoryEntry[]>([]);
+
+  interface ClassGoal {
+    userId: string;
+    name: string;
+    goalStatement: string;
+    isMe: boolean;
+  }
+  const [myGoalDraft, setMyGoalDraft] = useState("");
+  const [classGoals, setClassGoals] = useState<ClassGoal[]>([]);
+  const [savingGoal, setSavingGoal] = useState(false);
 
   useEffect(() => {
     apiFetch("/api/lms/leaderboard")
@@ -179,6 +191,48 @@ function StudentDashboardContent() {
   const myQuiz = myCourse ? getQuizForCourse(myCourse.id) : undefined;
   const myAssignment = myCourse ? getAssignmentForCourse(myCourse.id) : undefined;
   const myQuizResult = myQuiz ? quizResults[myQuiz.id] : undefined;
+  // PRD §4.2 "small projects every 2-3 weeks" — milestones are separate
+  // from the capstone, so each needs its own submission lookup rather than
+  // assuming mySubmissions[0] is the capstone (it might be a milestone).
+  const myMilestones = myCourse ? getAssignmentsForCourse(myCourse.id).filter((a) => a.type === "MILESTONE") : [];
+  const myCapstoneSubmission = mySubmissions.find((s) => s.assignmentId === myAssignment?.id);
+
+  useEffect(() => {
+    if (!myCourse) return;
+    apiFetch(`/api/lms/class-goals?courseId=${myCourse.id}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!data) return;
+        setClassGoals(data.goals || []);
+        const mine = (data.goals || []).find((g: ClassGoal) => g.isMe);
+        if (mine) setMyGoalDraft(mine.goalStatement);
+      })
+      .catch(() => {
+        // class goals unavailable — the rest of the dashboard still works
+      });
+    // Depending on myCourse?.id (not the whole myCourse object, which is a
+    // fresh array-derived reference every render) — re-fetching only when
+    // the actual enrolled course changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [myCourse?.id]);
+
+  const handleSaveGoal = async () => {
+    if (!myCourse) return;
+    setSavingGoal(true);
+    try {
+      const res = await apiFetch("/api/lms/my-goal", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ courseId: myCourse.id, goalStatement: myGoalDraft })
+      });
+      if (res.ok) {
+        const refreshed = await apiFetch(`/api/lms/class-goals?courseId=${myCourse.id}`);
+        if (refreshed.ok) setClassGoals((await refreshed.json()).goals || []);
+      }
+    } finally {
+      setSavingGoal(false);
+    }
+  };
 
   const completedCoursesCount = enrolledCourses.filter(
     (c) => getCourseProgress(c.id).percent === 100
@@ -523,6 +577,90 @@ function StudentDashboardContent() {
 
             <ReferAFriendCard />
 
+            {/* Milestones — PRD §4.2 "small projects every 2-3 weeks,"
+                separate from the final capstone below. */}
+            {myCourse && myMilestones.length > 0 && (
+              <div className="bg-white rounded-2xl border border-[#F1E2F5] p-6 sm:p-8 shadow-xs">
+                <div className="flex items-center gap-2 pb-3 mb-4 border-b border-[#F7EDF9]">
+                  <FileText className="w-4 h-4 text-[#AE54C6]" />
+                  <h2 className="text-base font-extrabold text-[#303654]">
+                    Milestone Projects — {myCourse.title}
+                  </h2>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {myMilestones.map((m) => {
+                    const sub = mySubmissions.find((s) => s.assignmentId === m.id);
+                    return (
+                      <Link
+                        key={m.id}
+                        href={`/learn/${myCourse.slug}/assignment/${m.id}`}
+                        className="block p-4 rounded-xl border border-[#F1E2F5] hover:border-[#AE54C6]/40 transition-colors"
+                      >
+                        <div className="text-[10px] font-bold uppercase tracking-wider text-[#AE54C6] mb-1">
+                          Milestone {m.order}
+                        </div>
+                        <div className="text-sm font-bold text-[#303654] mb-2">{m.title}</div>
+                        {sub?.score != null ? (
+                          <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700">
+                            <CheckCircle2 className="w-3.5 h-3.5" /> Graded ({sub.score}/100)
+                          </span>
+                        ) : sub ? (
+                          <span className="text-xs font-semibold text-[#AE54C6]">Submitted — awaiting grade</span>
+                        ) : (
+                          <span className="text-xs font-semibold text-amber-600">Not submitted yet</span>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Class Goal — PRD §4.2: "each student states their goal in
+                the class group... saying it out loud, in front of others." */}
+            {myCourse && (
+              <div className="bg-white rounded-2xl border border-[#F1E2F5] p-6 sm:p-8 shadow-xs">
+                <div className="flex items-center gap-2 pb-3 mb-4 border-b border-[#F7EDF9]">
+                  <Target className="w-4 h-4 text-[#AE54C6]" />
+                  <h2 className="text-base font-extrabold text-[#303654]">
+                    Class Goal — {myCourse.title}
+                  </h2>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2 mb-5">
+                  <input
+                    type="text"
+                    value={myGoalDraft}
+                    onChange={(e) => setMyGoalDraft(e.target.value)}
+                    placeholder="State your goal out loud to your classmates — e.g. 'I will finish and land my first client by March.'"
+                    maxLength={240}
+                    className="flex-1 px-3.5 py-2.5 rounded-lg border border-[#F1E2F5] text-sm focus:outline-none focus:border-[#AE54C6]"
+                  />
+                  <Button onClick={handleSaveGoal} disabled={savingGoal} variant="purple" className="shrink-0">
+                    {savingGoal ? "Saving…" : "Save Goal"}
+                  </Button>
+                </div>
+                {classGoals.length === 0 ? (
+                  <p className="text-xs text-[#645F80]">
+                    No one in your cohort has stated a goal yet — be the first.
+                  </p>
+                ) : (
+                  <ul className="space-y-2.5">
+                    {classGoals.map((g) => (
+                      <li
+                        key={g.userId}
+                        className={`text-xs p-3 rounded-lg ${
+                          g.isMe ? "bg-[#FAF8FF] border border-[#F1E2F5]" : "bg-slate-50"
+                        }`}
+                      >
+                        <strong className="text-[#303654]">{g.isMe ? "You" : g.name}:</strong>{" "}
+                        <span className="text-[#645F80]">{g.goalStatement}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+
             {/* Phase 2 Assessment & Credentials Card */}
             {myCourse && (
               <div className="bg-white rounded-2xl border border-[#F1E2F5] p-6 sm:p-8 shadow-xs">
@@ -591,11 +729,13 @@ function StudentDashboardContent() {
                       <p className="text-xs text-[#645F80] mb-4">
                         Submit GitHub repository and live deployment URL.
                       </p>
-                      {mySubmissions.length > 0 ? (
+                      {myCapstoneSubmission?.score != null ? (
                         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold">
                           <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Graded (
-                          {mySubmissions[0].score}/100)
+                          {myCapstoneSubmission.score}/100)
                         </div>
+                      ) : myCapstoneSubmission ? (
+                        <span className="text-xs text-[#AE54C6] font-semibold">Submitted — awaiting grade</span>
                       ) : (
                         <span className="text-xs text-amber-600 font-semibold">Pending submission</span>
                       )}

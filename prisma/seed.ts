@@ -182,7 +182,9 @@ async function seedAssignments() {
         brief: assignment.brief,
         requirements: assignment.requirements,
         rubric: assignment.rubric,
-        courseId: assignment.courseId
+        courseId: assignment.courseId,
+        type: assignment.type,
+        order: assignment.order
       },
       create: {
         id: assignment.id,
@@ -190,7 +192,9 @@ async function seedAssignments() {
         brief: assignment.brief,
         requirements: assignment.requirements,
         rubric: assignment.rubric,
-        courseId: assignment.courseId
+        courseId: assignment.courseId,
+        type: assignment.type,
+        order: assignment.order
       }
     });
     console.log(`Seeded assignment: ${assignment.title}`);
