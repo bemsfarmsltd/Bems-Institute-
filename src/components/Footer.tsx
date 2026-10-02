@@ -30,28 +30,36 @@ export function Footer() {
             {/* Eduport-style colorful social icon squares */}
             <div className="flex items-center gap-2.5">
               <a
-                href="#courses"
+                href="https://web.facebook.com/bitvstudies"
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label="Facebook"
                 className="w-9 h-9 rounded-lg bg-white border border-slate-200 shadow-2xs hover:bg-[#5D82D1] hover:text-white text-[#5D82D1] flex items-center justify-center transition-colors text-xs font-extrabold"
               >
                 f
               </a>
               <a
-                href="#courses"
+                href="https://www.instagram.com/bemsinstitute"
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label="Instagram"
                 className="w-9 h-9 rounded-lg bg-white border border-slate-200 shadow-2xs hover:bg-[#C22B72] hover:text-white text-[#C22B72] flex items-center justify-center transition-colors text-xs font-extrabold"
               >
                 ig
               </a>
               <a
-                href="#courses"
+                href="https://twitter.com/bemsInstitute/"
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label="Twitter"
                 className="w-9 h-9 rounded-lg bg-white border border-slate-200 shadow-2xs hover:bg-[#40BFF5] hover:text-white text-[#40BFF5] flex items-center justify-center transition-colors text-xs font-extrabold"
               >
                 𝕏
               </a>
               <a
-                href="#courses"
+                href="https://www.linkedin.com/in/bemsumuahia"
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label="LinkedIn"
                 className="w-9 h-9 rounded-lg bg-white border border-slate-200 shadow-2xs hover:bg-[#238CC8] hover:text-white text-[#238CC8] flex items-center justify-center transition-colors text-xs font-extrabold"
               >
