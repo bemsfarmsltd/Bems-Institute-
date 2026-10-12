@@ -1,5 +1,5 @@
 // BEMS FutureSkills Progressive Web App Service Worker
-const CACHE_NAME = "bems-pwa-v1";
+const CACHE_NAME = "bems-pwa-v2";
 const STATIC_ASSETS = [
   "/",
   "/dashboard",
@@ -32,18 +32,31 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
+// Network-first: always try to fetch the live page/asset first, so a new
+// deploy is visible on the very next load. Only fall back to the cache
+// (then the offline page) when the network request actually fails — a
+// cache-first strategy here previously meant anyone who ever visited the
+// site stayed stuck on whatever was cached on their very first visit,
+// forever, since a cache hit was returned before the network was ever
+// checked again.
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(event.request).catch(() => {
-        return caches.match("/dashboard");
-      });
-    })
+    fetch(event.request)
+      .then((networkResponse) => {
+        if (networkResponse && networkResponse.ok) {
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone);
+          });
+        }
+        return networkResponse;
+      })
+      .catch(() => {
+        return caches.match(event.request).then((cachedResponse) => {
+          return cachedResponse || caches.match("/dashboard");
+        });
+      })
   );
 });
-
