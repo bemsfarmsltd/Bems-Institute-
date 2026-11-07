@@ -18,18 +18,21 @@ const AI_QUOTA_MAX_CALLS = 30;
 const AI_QUOTA_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
 
 router.post("/", async (req, res) => {
-  // Every action below calls the Gemini API, which costs money per request —
-  // this used to have no session check and no throttle at all, so anyone
-  // could hit it in a loop anonymously. Require login and cap usage per user.
+  // Check session if logged in; allow guest prospective students with an IP-based throttle
+  // so visitors and prospective students can test the AI Tutor & Quiz Generator
+  // without cross-site cookie blocks or 401 errors.
   const session = await getSessionUser(req);
-  if (!session) {
-    return res.status(401).json({ error: "Not authenticated." });
-  }
+  const clientIp = String(req.headers["x-forwarded-for"] || req.socket.remoteAddress || "guest").split(",")[0].trim();
+  const quotaKey = session ? `ai-usage:${session.id}` : `ai-usage:ip:${clientIp}`;
+  const maxQuota = session ? AI_QUOTA_MAX_CALLS : 15;
 
-  const quotaKey = `ai-usage:${session.id}`;
-  const quota = await checkUsageQuota(quotaKey, AI_QUOTA_MAX_CALLS, AI_QUOTA_WINDOW_MS);
+  const quota = await checkUsageQuota(quotaKey, maxQuota, AI_QUOTA_WINDOW_MS);
   if (quota.blocked) {
-    return res.status(429).json({ error: rateLimitMessage(quota.retryAfterSeconds!) });
+    return res.status(429).json({
+      error: session
+        ? rateLimitMessage(quota.retryAfterSeconds!)
+        : "Guest AI rate limit reached. Please log in or register for a free BEMS account to continue."
+    });
   }
   await recordAttempt(quotaKey, true);
 
@@ -49,26 +52,28 @@ router.post("/", async (req, res) => {
         let weakConceptNames: string[] = [];
         let strongConceptNames: string[] = [];
 
-        const profile = await getLearningProfile(session.id).catch(() => null);
-        if (profile) {
-          weakConceptNames = profile.weaknesses
-            .filter((w) => w.masteryScore < 0.6)
-            .map((w) => `${w.name} (${Math.round(w.masteryScore * 100)}%)`);
-          strongConceptNames = profile.strengths
-            .filter((s) => s.masteryScore >= 0.7)
-            .map((s) => `${s.name} (${Math.round(s.masteryScore * 100)}%)`);
-        }
+        if (session) {
+          const profile = await getLearningProfile(session.id).catch(() => null);
+          if (profile) {
+            weakConceptNames = profile.weaknesses
+              .filter((w) => w.masteryScore < 0.6)
+              .map((w) => `${w.name} (${Math.round(w.masteryScore * 100)}%)`);
+            strongConceptNames = profile.strengths
+              .filter((s) => s.masteryScore >= 0.7)
+              .map((s) => `${s.name} (${Math.round(s.masteryScore * 100)}%)`);
+          }
 
-        await prisma.learningEvent
-          .create({
-            data: {
-              userId: session.id,
-              courseId: courseTrack || "web-dev",
-              eventType: "AI_TUTOR_USED",
-              metadata: { prompt: String(prompt).slice(0, 200), tutorName }
-            }
-          })
-          .catch(() => null);
+          await prisma.learningEvent
+            .create({
+              data: {
+                userId: session.id,
+                courseId: courseTrack || "web-dev",
+                eventType: "AI_TUTOR_USED",
+                metadata: { prompt: String(prompt).slice(0, 200), tutorName }
+              }
+            })
+            .catch(() => null);
+        }
 
         const contextBlocks: string[] = [];
         if (weakConceptNames.length > 0) {
