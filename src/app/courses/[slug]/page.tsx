@@ -23,7 +23,8 @@ import {
   MessageCircle,
   BookOpen,
   AlertTriangle,
-  Star
+  Star,
+  GraduationCap
 } from "lucide-react";
 
 export default function CourseDetailPage({
@@ -344,6 +345,186 @@ export default function CourseDetailPage({
               </div>
             )}
 
+            {/* Reviews Section — Verified Student Feedback */}
+            <div className="bg-white rounded-3xl border border-[#F1E2F5] p-6 sm:p-8 shadow-xs w-full" data-tour="reviews">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-6 border-b border-[#F7EDF9]">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="p-1.5 rounded-lg bg-[#FAF8FF] border border-[#F1E2F5] text-[#AE54C6]">
+                      <GraduationCap className="w-5 h-5" />
+                    </span>
+                    <h3 className="text-xl sm:text-2xl font-black text-[#303654]">Student Reviews</h3>
+                  </div>
+                  <p className="text-xs text-[#645F80]">
+                    Verified feedback from students who completed this curriculum and earned their credentials.
+                  </p>
+                </div>
+
+                {reviews.length > 0 ? (
+                  <div className="flex items-center gap-3 bg-[#FAF8FF] px-4 py-2 rounded-2xl border border-[#F1E2F5] shrink-0 self-start sm:self-auto">
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <Star
+                          key={n}
+                          className={`w-4 h-4 ${
+                            n <= Math.round(reviewAverage) ? "fill-amber-400 text-amber-400" : "text-slate-200"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-base font-black text-[#303654]">{reviewAverage.toFixed(1)}</span>
+                      <span className="text-xs text-[#645F80] font-medium">
+                        ({reviews.length} {reviews.length === 1 ? "review" : "reviews"})
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-purple-50 text-[#AE54C6] border border-[#F1E2F5] shrink-0 self-start sm:self-auto">
+                    Verified Reviews Only 🎓
+                  </span>
+                )}
+              </div>
+
+              {/* Graduate Review Submission Form */}
+              {getCertificate(course.id) && (
+                <div className="mb-6 p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-[#FAF8FF] to-[#F5EDF9] border-2 border-[#E5C8ED] shadow-xs">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="text-base">🎉</span>
+                    <p className="text-sm font-black text-[#303654]">
+                      You earned this certificate — leave a review for future students!
+                    </p>
+                  </div>
+                  <p className="text-xs text-[#645F80] mb-4">
+                    Rate your learning experience and share what you built or enjoyed most.
+                  </p>
+
+                  <div className="flex flex-wrap items-center gap-3 mb-4">
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <button
+                          key={n}
+                          type="button"
+                          onClick={() => setMyRatingDraft(n)}
+                          className="p-1 hover:scale-115 active:scale-95 transition-transform cursor-pointer"
+                          title={`${n} Stars`}
+                        >
+                          <Star
+                            className={`w-6 h-6 sm:w-7 sm:h-7 ${
+                              n <= myRatingDraft ? "fill-amber-400 text-amber-400" : "text-slate-300 hover:text-amber-300"
+                            }`}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                    <span className="text-xs font-bold text-[#AE54C6]">
+                      {myRatingDraft === 5 && "🌟 Outstanding — Loved it!"}
+                      {myRatingDraft === 4 && "👍 Great Course & Tutor!"}
+                      {myRatingDraft === 3 && "🙂 Good Learning Experience"}
+                      {myRatingDraft === 2 && "😐 Needs Improvement"}
+                      {myRatingDraft === 1 && "⚠️ Disappointed"}
+                      {myRatingDraft === 0 && "Select your star rating"}
+                    </span>
+                  </div>
+
+                  <textarea
+                    value={myCommentDraft}
+                    onChange={(e) => setMyCommentDraft(e.target.value)}
+                    rows={3}
+                    placeholder="What did you build? What was your favorite lesson? Any tips for future students?"
+                    className="w-full px-4 py-3 rounded-xl border border-[#F1E2F5] bg-white text-sm text-[#303654] placeholder:text-[#8580A3] mb-3 focus:outline-none focus:border-[#AE54C6] focus:ring-2 focus:ring-[#AE54C6]/20 transition-all resize-none"
+                  />
+
+                  {reviewMsg && (
+                    <div className="p-3 mb-3 rounded-xl bg-purple-50 border border-purple-200 text-xs text-[#AE54C6] font-bold flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 shrink-0" />
+                      <span>{reviewMsg}</span>
+                    </div>
+                  )}
+
+                  <Button
+                    onClick={handleSubmitReview}
+                    disabled={submittingReview || myRatingDraft < 1}
+                    variant="purple"
+                    size="sm"
+                    className="font-bold shadow-xs px-5 text-xs"
+                  >
+                    {submittingReview ? "Submitting Review…" : "Submit Graduate Review"}
+                  </Button>
+                </div>
+              )}
+
+              {/* Reviews Display / Modern Empty State */}
+              {reviews.length === 0 ? (
+                <div className="py-8 px-4 text-center rounded-2xl bg-[#FAF8FF] border border-[#F1E2F5]">
+                  <div className="w-14 h-14 mx-auto mb-3.5 rounded-2xl bg-white border border-[#E5C8ED] flex items-center justify-center text-[#AE54C6] shadow-xs">
+                    <Star className="w-7 h-7 fill-amber-400/30 text-amber-500" />
+                  </div>
+                  <h4 className="text-base font-black text-[#303654] mb-1.5">
+                    No Reviews Yet — Be the First Graduate!
+                  </h4>
+                  <p className="text-xs sm:text-sm text-[#645F80] max-w-md mx-auto leading-relaxed mb-4">
+                    Reviews on BEMS are reserved exclusively for students who complete all video lessons and submit their verified capstone project.
+                  </p>
+                  <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#F1E2F5] text-[11px] font-bold text-[#AE54C6] shadow-2xs">
+                    <Award className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Complete all lessons & earn your certificate to review</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {reviews.map((r) => (
+                    <div
+                      key={r.id}
+                      className="p-4 sm:p-5 rounded-2xl bg-[#FAF8FF] border border-[#F1E2F5] transition-all hover:border-[#E5C8ED]"
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2.5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#AE54C6] to-[#303654] text-white font-black text-xs flex items-center justify-center shadow-xs shrink-0">
+                            {r.name.slice(0, 2).toUpperCase()}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-sm font-black text-[#303654]">{r.name}</span>
+                              <Badge variant="green" className="text-[10px] py-0.5 px-2 font-bold">
+                                Verified Graduate 🎓
+                              </Badge>
+                            </div>
+                            {r.createdAt && (
+                              <span className="text-[10px] text-[#8580A3]">
+                                {new Date(r.createdAt).toLocaleDateString(undefined, {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric"
+                                })}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1 bg-white px-2.5 py-1 rounded-xl border border-[#F1E2F5] self-start sm:self-auto">
+                          {[1, 2, 3, 4, 5].map((n) => (
+                            <Star
+                              key={n}
+                              className={`w-3.5 h-3.5 ${
+                                n <= r.rating ? "fill-amber-400 text-amber-400" : "text-slate-200"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+
+                      {r.comment && (
+                        <p className="text-xs sm:text-sm text-[#4A4568] leading-relaxed pl-0 sm:pl-12">
+                          &ldquo;{r.comment}&rdquo;
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
           </div>
 
           <div className="lg:col-span-4 sticky top-28">
@@ -471,94 +652,6 @@ export default function CourseDetailPage({
               )}
 
             </div>
-          </div>
-
-          {/* Reviews — only a student who earned this course's certificate
-              can leave one, visible immediately (no moderation queue). */}
-          <div className="mt-10 bg-white rounded-3xl border border-[#F1E2F5] p-6 sm:p-8 shadow-xs" data-tour="reviews">
-            <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
-              <h2 className="text-xl font-black text-[#303654]">Student Reviews</h2>
-              {reviews.length > 0 && (
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-0.5">
-                    {[1, 2, 3, 4, 5].map((n) => (
-                      <Star
-                        key={n}
-                        className={`w-4 h-4 ${
-                          n <= Math.round(reviewAverage) ? "fill-amber-400 text-amber-400" : "text-slate-200"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <span className="text-sm font-bold text-[#303654]">{reviewAverage.toFixed(1)}</span>
-                  <span className="text-xs text-[#645F80]">
-                    ({reviews.length} review{reviews.length === 1 ? "" : "s"})
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {getCertificate(course.id) && (
-              <div className="mb-6 p-4 rounded-2xl bg-[#FAF8FF] border border-[#F1E2F5]">
-                <p className="text-xs font-bold text-[#303654] mb-2">
-                  You earned this certificate — leave a review?
-                </p>
-                <div className="flex items-center gap-1 mb-3">
-                  {[1, 2, 3, 4, 5].map((n) => (
-                    <button key={n} type="button" onClick={() => setMyRatingDraft(n)}>
-                      <Star
-                        className={`w-6 h-6 cursor-pointer ${
-                          n <= myRatingDraft ? "fill-amber-400 text-amber-400" : "text-slate-300"
-                        }`}
-                      />
-                    </button>
-                  ))}
-                </div>
-                <textarea
-                  value={myCommentDraft}
-                  onChange={(e) => setMyCommentDraft(e.target.value)}
-                  rows={2}
-                  placeholder="What was your experience with this course? (optional)"
-                  className="w-full px-3.5 py-2.5 rounded-lg border border-[#F1E2F5] text-sm mb-3 focus:outline-none focus:border-[#AE54C6]"
-                />
-                {reviewMsg && <p className="text-xs text-[#AE54C6] font-semibold mb-3">{reviewMsg}</p>}
-                <Button
-                  onClick={handleSubmitReview}
-                  disabled={submittingReview || myRatingDraft < 1}
-                  variant="purple"
-                  size="sm"
-                >
-                  {submittingReview ? "Submitting…" : "Submit Review"}
-                </Button>
-              </div>
-            )}
-
-            {reviews.length === 0 ? (
-              <p className="text-xs text-[#645F80]">
-                No reviews yet — be the first graduate to share your experience.
-              </p>
-            ) : (
-              <div className="space-y-4">
-                {reviews.map((r) => (
-                  <div key={r.id} className="pb-4 border-b border-[#F7EDF9] last:border-0 last:pb-0">
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <span className="text-sm font-bold text-[#303654]">{r.name}</span>
-                      <div className="flex items-center gap-0.5">
-                        {[1, 2, 3, 4, 5].map((n) => (
-                          <Star
-                            key={n}
-                            className={`w-3.5 h-3.5 ${
-                              n <= r.rating ? "fill-amber-400 text-amber-400" : "text-slate-200"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                    {r.comment && <p className="text-xs text-[#645F80]">{r.comment}</p>}
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
 
         </div>
