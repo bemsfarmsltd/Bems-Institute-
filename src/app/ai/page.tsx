@@ -38,7 +38,11 @@ import {
   Square,
   ExternalLink,
   ShieldCheck,
-  Terminal
+  Terminal,
+  Volume2,
+  VolumeX,
+  Copy,
+  MessageSquare
 } from "lucide-react";
 import Button from "@/components/ui/button";
 import { Navbar } from "@/components/Navbar";
@@ -845,6 +849,225 @@ function generateClientFallbackFeedback(
   };
 }
 
+interface FacultyPersona {
+  id: string;
+  name: string;
+  title: string;
+  role: string;
+  trackId: string;
+  avatar: string;
+  accentGradient: string;
+  badgeBg: string;
+  avatarBg: string;
+  welcomeMessage: string;
+  suggestedQuestions: string[];
+}
+
+const FACULTY_PERSONAS: FacultyPersona[] = [
+  {
+    id: "mr-victor",
+    name: "Mr. Victor Okeke",
+    title: "Lead Web Dev & Next.js Instructor",
+    role: "Full-Stack Web Engineering",
+    trackId: "web-dev",
+    avatar: "VO",
+    accentGradient: "from-[#303654] to-[#4A2060]",
+    badgeBg: "bg-purple-100 text-[#AE54C6] border-purple-200",
+    avatarBg: "bg-[#303654] text-white ring-2 ring-[#AE54C6]/30",
+    welcomeMessage:
+      "Hello! I'm Mr. Victor Okeke, Lead Web Development Instructor at BEMS Institute of Technology. Whether you are debugging Flexbox/Grid on mobile viewports, writing asynchronous Paystack checkout handlers, or configuring Next.js Server Components for your Capstone — what are you building or debugging today?",
+    suggestedQuestions: [
+      "How do I center a div using CSS Flexbox vs modern CSS Grid?",
+      "Explain async/await with a real Paystack API fetch example",
+      "What are the requirements to pass the BEMS Capstone with 90%+?",
+      "How do Server Components differ from Client Components in Next.js?"
+    ]
+  },
+  {
+    id: "timi",
+    name: "Timi Adeleke",
+    title: "Lead AI Solutions & Automation Engineer",
+    role: "Generative AI & Autonomous Workflows",
+    trackId: "ai-automation",
+    avatar: "TA",
+    accentGradient: "from-[#134E4A] to-[#065F46]",
+    badgeBg: "bg-emerald-100 text-emerald-800 border-emerald-200",
+    avatarBg: "bg-emerald-700 text-white ring-2 ring-emerald-500/30",
+    welcomeMessage:
+      "Hello! I'm Timi Adeleke, Lead AI Solutions & Automation Engineer at BEMS Institute. Ready to build autonomous AI agents, integrate Gemini 2.5 Flash with structured schemas, or automate multi-step workflows with Make/Zapier webhooks? Ask me anything!",
+    suggestedQuestions: [
+      "How do I eliminate hallucinations using grounded few-shot prompts?",
+      "Explain webhooks vs REST API polling in simple everyday terms",
+      "How do I build an autonomous customer support agent with tool calling?",
+      "What is Retrieval-Augmented Generation (RAG) and how do vector embeddings work?"
+    ]
+  },
+  {
+    id: "temi",
+    name: "Temi Johnson",
+    title: "Lead UI/UX Product Designer",
+    role: "Design Systems & User Experience",
+    trackId: "graphic-design",
+    avatar: "TJ",
+    accentGradient: "from-[#78350F] to-[#92400E]",
+    badgeBg: "bg-amber-100 text-amber-900 border-amber-200",
+    avatarBg: "bg-amber-700 text-white ring-2 ring-amber-500/30",
+    welcomeMessage:
+      "Hello! I'm Temi Johnson, Lead Product Designer & UX Researcher at BEMS Institute. Working on wireframes, Figma Auto-Layout, typography scales, or interactive mobile prototypes? Let's make your product look high-class, accessible, and user-friendly!",
+    suggestedQuestions: [
+      "How do nested Auto-Layout frames work in Figma without breaking constraints?",
+      "What are the WCAG AAA contrast requirements for mobile button states?",
+      "How do I create an 8pt grid design token system for Next.js developers?",
+      "What micro-interactions make a mobile checkout feel snappy and trustworthy?"
+    ]
+  },
+  {
+    id: "engr-david",
+    name: "Engr. David Kalu",
+    title: "Lead Cybersecurity & Infrastructure Auditor",
+    role: "Security Defense & Ethical Hacking",
+    trackId: "cybersecurity",
+    avatar: "DK",
+    accentGradient: "from-[#1E3A8A] to-[#1E293B]",
+    badgeBg: "bg-blue-100 text-blue-900 border-blue-200",
+    avatarBg: "bg-blue-800 text-white ring-2 ring-blue-500/30",
+    welcomeMessage:
+      "Hello! I'm Engr. David Kalu, Lead Cybersecurity & Infrastructure Auditor at BEMS Institute. Let's harden your codebase against real-world vulnerabilities. Ask me about Linux permissions, SQL injection defense, JWT session security, or network port audits!",
+    suggestedQuestions: [
+      "How do I protect my Next.js API endpoints from SQL injection and XSS?",
+      "What are the essential Linux file permissions for a production Ubuntu server?",
+      "How does a zero-trust architecture protect web applications from credential stuffing?",
+      "How do I configure fail2ban and rate limiting on an Express/Node backend?"
+    ]
+  }
+];
+
+function generateClientFallbackTutorResponse(
+  prompt: string,
+  courseTrack: string = "web-dev",
+  tutorName: string = "Mr. Victor Okeke",
+  mode: "eli12" | "practical" | "academic" = "practical"
+): { text: string; suggestedPrompts: string[] } {
+  const p = prompt.toLowerCase();
+  let text = "";
+  let suggestedPrompts = [
+    "Can you show a complete code example?",
+    "How do I test this in Chrome DevTools?",
+    "What is the most common rookie bug to avoid?"
+  ];
+
+  if (p.includes("flexbox") || p.includes("center") || p.includes("css")) {
+    if (mode === "eli12") {
+      text = `Imagine you are packing your school backpack with textbooks! 🎒
+
+- **Flexbox** is like lining up your books in a single neat row. If you say \`justify-content: center\`, it pushes the whole row right to the middle of your bag!
+- If you say \`align-items: center\`, it makes sure the books aren't touching the top or bottom of the bag, but floating right in the middle height-wise!
+
+Here is the magic code:
+\`\`\`css
+.parent-box {
+  display: flex;
+  justify-content: center; /* Horizontally in the middle */
+  align-items: center;     /* Vertically in the middle */
+  min-height: 100vh;       /* Makes sure the box has height! */
+}
+\`\`\`
+Try pasting this into the BEMS Sandbox to see it live!`;
+    } else {
+      text = `Centering elements and structuring layouts in modern CSS is most reliably done with Flexbox or CSS Grid:
+
+\`\`\`css
+/* Modern Centering with Flexbox */
+.container {
+  display: flex;
+  justify-content: center; /* Centers along main axis (horizontal in row) */
+  align-items: center;     /* Centers along cross axis (vertical in row) */
+  min-height: 100vh;
+}
+\`\`\`
+
+Alternatively, with modern CSS Grid:
+\`\`\`css
+.grid-container {
+  display: grid;
+  place-items: center;
+}
+\`\`\`
+
+**BEMS Lab Workstation Tip:** In Chrome DevTools, click the small \`flex\` or \`grid\` badge next to your container element in the Elements tab to inspect live alignment overlays!`;
+    }
+    suggestedPrompts = [
+      "How does flex-direction affect justify-content?",
+      "Can we build a responsive navbar with this?",
+      "Show me how CSS Grid compares"
+    ];
+  } else if (p.includes("api") || p.includes("fetch") || p.includes("paystack") || p.includes("async")) {
+    if (mode === "eli12") {
+      text = `Think of an **API** like ordering food at a restaurant! 🍔
+
+1. You (the client) give your order to the waiter (the request).
+2. The waiter goes to the kitchen (the server) to get your jollof rice.
+3. While the kitchen cooks, you don't freeze like a statue! You chat with your friends (**asynchronous!**).
+4. When the food is ready, the waiter brings it back (**await!**).
+
+In code:
+\`\`\`javascript
+async function getStudentFood() {
+  const response = await fetch('/api/food');
+  const foodData = await response.json();
+  console.log("Got food:", foodData);
+}
+\`\`\``;
+    } else {
+      text = `When connecting live endpoints (like Paystack webhooks or REST APIs), always use \`async/await\` wrapped in a \`try...catch\` block to guard against network drops:
+
+\`\`\`javascript
+async function loadCourseCurriculum() {
+  try {
+    const response = await fetch('/api/courses');
+    if (!response.ok) {
+      throw new Error(\`Network error: \${response.status}\`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Failed to fetch curriculum:", error);
+  }
+}
+\`\`\`
+
+In production, never trust incoming client requests without validating the schema using Zod or TypeScript interfaces!`;
+    }
+    suggestedPrompts = [
+      "How do I handle loading state in React?",
+      "How do I post data with fetch headers?",
+      "How does Paystack inline verification work?"
+    ];
+  } else if (p.includes("hallucination") || p.includes("prompt") || p.includes("gemini") || p.includes("rag")) {
+    text = `Large Language Models (LLMs) hallucinate because they predict the most statistically probable next token, not necessarily objective truth.
+
+To ground Gemini 2.5 Flash reliably in BEMS applications:
+1. **System Persona Boundaries**: Constrain the model's domain explicitly: *"Answer strictly from provided context. If unknown, say 'I do not have verified records on this.'"*
+2. **Few-Shot Exemplars**: Provide 2-3 input/output pairs in the exact JSON format required.
+3. **Retrieval-Augmented Generation (RAG)**: Retrieve relevant curriculum chunks from vector embeddings and inject them into the prompt.`;
+    suggestedPrompts = [
+      "Show me a working few-shot prompt example",
+      "How does vector similarity search work?",
+      "How do I set up tool calling with Gemini?"
+    ];
+  } else {
+    text = `Hello! I'm ${tutorName} from BEMS Institute of Technology.
+
+Regarding: "${prompt}"
+
+In the BEMS curriculum, our approach is 100% practical. Whether you're debugging at our Umuahia physical lab workstations or building on your laptop at home, breaking complex problems down into small testable steps is the key to building like a senior engineer.
+
+Would you like me to walk through a runnable code example, explain with a real-world metaphor, or quiz you on this concept?`;
+  }
+
+  return { text, suggestedPrompts };
+}
+
 function AIHubContent() {
   const searchParams = useSearchParams();
   const { user, getCourseProgress } = useLMS();
@@ -857,16 +1080,15 @@ function AIHubContent() {
   );
 
   // 1. AI Tutor State
-  const [tutorName, setTutorName] = useState(
-    initialCourse === "ai-automation"
-      ? "Dr. Amaka"
-      : initialCourse === "digital-marketing"
-      ? "Mrs. Funke"
-      : initialCourse === "graphic-design"
-      ? "Mr. Tunde"
-      : "Mr. Victor"
-  );
-  const [track, setTrack] = useState(initialCourse);
+  const initialPersona =
+    FACULTY_PERSONAS.find((f) => f.trackId === initialCourse) || FACULTY_PERSONAS[0];
+
+  const [selectedPersona, setSelectedPersona] = useState<FacultyPersona>(initialPersona);
+  const [tutorName, setTutorName] = useState(initialPersona.name);
+  const [track, setTrack] = useState(initialPersona.trackId);
+  const [explanationMode, setExplanationMode] = useState<"eli12" | "practical" | "academic">("practical");
+  const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
+  const [copiedSnippetId, setCopiedSnippetId] = useState<string | null>(null);
   const [tutorInput, setTutorInput] = useState("");
   const [tutorMessages, setTutorMessages] = useState<AIChatMessage[]>([
     {
@@ -874,8 +1096,10 @@ function AIHubContent() {
       role: "assistant",
       content: initialLessonTitle
         ? `Hello! I see you're studying "${initialLessonTitle}". Ask me to explain any concept from this lesson, walk through code examples, or test you with a quick question!`
-        : "Hello! I'm Mr. Victor Okeke, Lead Web Development Instructor at BEMS Institute of Technology. What are you building or debugging today? Ask me any question about HTML, CSS, JavaScript, Next.js, or your capstone!",
-      timestamp: "Just now"
+        : initialPersona.welcomeMessage,
+      timestamp: "Just now",
+      tutorPersona: initialPersona.name,
+      suggestedPrompts: initialPersona.suggestedQuestions
     }
   ]);
   const [isTutorLoading, setIsTutorLoading] = useState(false);
@@ -886,16 +1110,59 @@ function AIHubContent() {
           `Give me a practical code example for "${initialLessonTitle}"`,
           `Quiz me with 1 question on "${initialLessonTitle}"`
         ]
-      : [
-          "How do I center a div using CSS Flexbox vs Grid?",
-          "Explain async/await with a real Paystack API fetch example",
-          "What are the requirements to pass the Capstone project?"
-        ]
+      : initialPersona.suggestedQuestions
   );
   const [ragSources, setRagSources] = useState<
     { id: string; title: string; sourceType: string; lessonUrl?: string }[]
   >([]);
   const [weakConcepts, setWeakConcepts] = useState<string[]>([]);
+
+  const handleSelectFacultyPersona = (persona: FacultyPersona) => {
+    setSelectedPersona(persona);
+    setTutorName(persona.name);
+    setTrack(persona.trackId);
+    setSuggestedPrompts(persona.suggestedQuestions);
+    setTutorMessages([
+      {
+        id: `welcome-${persona.id}-${Date.now()}`,
+        role: "assistant",
+        content: persona.welcomeMessage,
+        timestamp: "Just now",
+        tutorPersona: persona.name,
+        suggestedPrompts: persona.suggestedQuestions
+      }
+    ]);
+  };
+
+  const handleToggleSpeech = (msgId: string, text: string) => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+
+    if (speakingMessageId === msgId) {
+      window.speechSynthesis.cancel();
+      setSpeakingMessageId(null);
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    const cleanText = text
+      .replace(/```[\s\S]*?```/g, "Code example available in chat.")
+      .replace(/[#*`_>]/g, "");
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    utterance.onend = () => setSpeakingMessageId(null);
+    utterance.onerror = () => setSpeakingMessageId(null);
+    setSpeakingMessageId(msgId);
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const handleCopySnippet = (snippet: string, snippetId: string) => {
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(snippet);
+      setCopiedSnippetId(snippetId);
+      setTimeout(() => setCopiedSnippetId(null), 2000);
+    }
+  };
 
   // 2. Quiz Generator State
   const [quizTrack, setQuizTrack] = useState<string>("web-dev");
@@ -995,13 +1262,22 @@ function AIHubContent() {
     if (!customPrompt) setTutorInput("");
     setIsTutorLoading(true);
 
+    const modePromptEnrichment =
+      explanationMode === "eli12"
+        ? `\n\n[INSTRUCTION: Please explain this in simple, fun terms with a real-world or relatable Nigerian analogy so a 12-year-old student or beginner can intuitively grasp it.]`
+        : explanationMode === "academic"
+        ? `\n\n[INSTRUCTION: Please provide a deep-dive engineering breakdown covering architectural principles, computational complexity, and best practices.]`
+        : `\n\n[INSTRUCTION: Please provide a practical, code-first answer with clear snippets and DevTools advice.]`;
+
+    const enrichedUserPrompt = `${textToSend}${modePromptEnrichment}`;
+
     try {
       const res = await apiFetch("/api/ai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "tutor",
-          prompt: textToSend,
+          prompt: enrichedUserPrompt,
           courseTrack: track,
           tutorName: tutorName,
           history: tutorMessages
@@ -1015,7 +1291,9 @@ function AIHubContent() {
         id: `bot-${Date.now()}`,
         role: "assistant",
         content: data.text,
-        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        tutorPersona: tutorName,
+        suggestedPrompts: data.suggestedPrompts
       };
 
       setTutorMessages((prev) => [...prev, botMsg]);
@@ -1029,16 +1307,18 @@ function AIHubContent() {
         setWeakConcepts(data.weakConcepts);
       }
     } catch (err) {
-      console.error(err);
-      setTutorMessages((prev) => [
-        ...prev,
-        {
-          id: `bot-err-${Date.now()}`,
-          role: "assistant",
-          content: "I ran into a temporary connection issue. Please check your internet connection and try asking again.",
-          timestamp: "Just now"
-        }
-      ]);
+      console.warn("Backend tutor error, activating smart local fallback engine:", err);
+      const fallback = generateClientFallbackTutorResponse(textToSend, track, tutorName, explanationMode);
+      const botMsg: AIChatMessage = {
+        id: `bot-fallback-${Date.now()}`,
+        role: "assistant",
+        content: fallback.text,
+        timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        tutorPersona: tutorName,
+        suggestedPrompts: fallback.suggestedPrompts
+      };
+      setTutorMessages((prev) => [...prev, botMsg]);
+      setSuggestedPrompts(fallback.suggestedPrompts);
     } finally {
       setIsTutorLoading(false);
     }
@@ -1452,71 +1732,155 @@ app.use('/api/v1/transfer', limiter);`);
         {/* TAB 1: AI TUTOR CHAT */}
         {/* ========================================================================= */}
         {activeTab === "tutor" && (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 sm:gap-8">
             {/* Sidebar Controls */}
             <div className="lg:col-span-1 space-y-6 order-2 lg:order-1">
-              <div className="bg-white rounded-2xl p-6 border border-gray-200/80 shadow-sm space-y-4">
-                <h3 className="font-bold text-brand-dark text-sm flex items-center space-x-2">
-                  <Bot className="w-4 h-4 text-brand-purple" />
-                  <span>Choose Faculty Persona</span>
-                </h3>
-
-                <div className="space-y-2">
-                  {[
-                    { name: "Mr. Victor", role: "Web Dev & Next.js Lead", avatar: "VO" },
-                    { name: "Timi", role: "AI & Automation Engineer", avatar: "TA" },
-                    { name: "Temi", role: "UI/UX Product Design Lead", avatar: "TE" },
-                    { name: "Specialist Faculty", role: "Cybersecurity Auditor", avatar: "SF" }
-                  ].map((tutor) => (
-                    <button
-                      key={tutor.name}
-                      onClick={() => setTutorName(tutor.name)}
-                      className={`w-full text-left p-3 rounded-xl flex items-center space-x-3 transition-all ${
-                        tutorName === tutor.name
-                          ? "bg-brand-purple/10 border-2 border-brand-purple text-brand-dark"
-                          : "bg-gray-50 border border-gray-100 text-gray-700 hover:bg-gray-100"
-                      }`}
-                    >
-                      <div className="w-10 h-10 rounded-full bg-brand-navy text-white flex items-center justify-center font-bold text-xs shrink-0">
-                        {tutor.avatar}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold truncate">{tutor.name}</p>
-                        <p className="text-[11px] text-gray-500 truncate">{tutor.role}</p>
-                      </div>
-                    </button>
-                  ))}
+              {/* Faculty Persona Selection Card */}
+              <div className="bg-white rounded-3xl p-5 sm:p-6 border border-[#F1E2F5] shadow-xs space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-[#303654] text-sm flex items-center space-x-2">
+                    <Bot className="w-4 h-4 text-[#AE54C6]" />
+                    <span>Choose Faculty Persona</span>
+                  </h3>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                    Live Faculty
+                  </span>
                 </div>
 
+                <div className="space-y-2.5">
+                  {FACULTY_PERSONAS.map((persona) => {
+                    const isSelected = selectedPersona.id === persona.id;
+                    return (
+                      <button
+                        key={persona.id}
+                        type="button"
+                        onClick={() => handleSelectFacultyPersona(persona)}
+                        className={`w-full text-left p-3.5 rounded-2xl flex items-center space-x-3 transition-all relative ${
+                          isSelected
+                            ? "bg-purple-50/80 border-2 border-[#AE54C6] text-[#303654] shadow-xs"
+                            : "bg-gray-50/70 border border-gray-100 text-gray-700 hover:bg-gray-100/80 hover:border-purple-200"
+                        }`}
+                      >
+                        <div
+                          className={`w-11 h-11 rounded-2xl flex items-center justify-center font-black text-xs shrink-0 shadow-xs transition-transform ${
+                            isSelected ? "scale-105" : "opacity-90"
+                          } ${persona.avatarBg}`}
+                        >
+                          {persona.avatar}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-1">
+                            <p className="text-xs font-black truncate text-[#303654]">{persona.name}</p>
+                            {isSelected && (
+                              <span className="w-2 h-2 rounded-full bg-[#AE54C6] animate-ping" />
+                            )}
+                          </div>
+                          <p className="text-[11px] text-gray-500 truncate font-medium">{persona.title}</p>
+                          <span
+                            className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border mt-1 ${persona.badgeBg}`}
+                          >
+                            {persona.role}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Explanation Mode Switcher */}
+                <div className="pt-4 border-t border-gray-100 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-[#303654] flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-[#AE54C6]" />
+                      <span>Explanation Mode</span>
+                    </label>
+                    <span className="text-[10px] text-gray-400 font-medium">Cognitive Style</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1.5 p-1 bg-gray-100/80 rounded-xl border border-gray-200/60">
+                    <button
+                      type="button"
+                      onClick={() => setExplanationMode("eli12")}
+                      className={`text-[11px] font-bold py-1.5 px-2 rounded-lg transition-all text-center ${
+                        explanationMode === "eli12"
+                          ? "bg-white text-[#AE54C6] shadow-xs border border-purple-200/50"
+                          : "text-gray-600 hover:text-[#303654]"
+                      }`}
+                      title="Explain Like I'm 12 - Simple everyday analogies"
+                    >
+                      🧒 ELI-12
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setExplanationMode("practical")}
+                      className={`text-[11px] font-bold py-1.5 px-2 rounded-lg transition-all text-center ${
+                        explanationMode === "practical"
+                          ? "bg-white text-[#AE54C6] shadow-xs border border-purple-200/50"
+                          : "text-gray-600 hover:text-[#303654]"
+                      }`}
+                      title="Practical Builder - Code-first snippets & workflows"
+                    >
+                      🛠️ Builder
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setExplanationMode("academic")}
+                      className={`text-[11px] font-bold py-1.5 px-2 rounded-lg transition-all text-center ${
+                        explanationMode === "academic"
+                          ? "bg-white text-[#AE54C6] shadow-xs border border-purple-200/50"
+                          : "text-gray-600 hover:text-[#303654]"
+                      }`}
+                      title="Deep Dive - Engineering specifications and architecture"
+                    >
+                      🎓 Deep Dive
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-gray-500 italic pt-1">
+                    {explanationMode === "eli12" && "Explains complex tech with friendly real-world Nigerian analogies."}
+                    {explanationMode === "practical" && "Shows clean, runnable code snippets ready for the BEMS Sandbox."}
+                    {explanationMode === "academic" && "Engineering breakdown covering architectural trade-offs."}
+                  </p>
+                </div>
+
+                {/* Subject Context Selector */}
                 <div className="pt-4 border-t border-gray-100">
                   <label className="text-xs font-bold text-gray-700 block mb-2">Subject Context</label>
                   <select
                     value={track}
-                    onChange={(e) => setTrack(e.target.value)}
-                    className="w-full text-xs p-2.5 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-brand-purple/30"
+                    onChange={(e) => {
+                      const newTrack = e.target.value;
+                      const matchedPersona = FACULTY_PERSONAS.find((p) => p.trackId === newTrack);
+                      if (matchedPersona) {
+                        handleSelectFacultyPersona(matchedPersona);
+                      } else {
+                        setTrack(newTrack);
+                      }
+                    }}
+                    className="w-full text-xs p-2.5 rounded-xl border border-gray-200 bg-white font-medium text-[#303654] focus:outline-none focus:ring-2 focus:ring-[#AE54C6]/30"
                   >
                     <option value="web-dev">Full-Stack Web Development</option>
-                    <option value="ai-prompt">AI & Prompt Engineering</option>
-                    <option value="ui-ux">UI/UX Product Design</option>
-                    <option value="cybersecurity">Cybersecurity & Defense</option>
+                    <option value="ai-automation">AI Solutions & Autonomous Workflows</option>
+                    <option value="graphic-design">UI/UX Product Design Systems</option>
+                    <option value="cybersecurity">Cybersecurity & Defense Audit</option>
                   </select>
                 </div>
               </div>
 
               {/* Fast Prompt Suggestions */}
-              <div className="bg-brand-lavender/30 rounded-2xl p-5 border border-brand-purple/10 space-y-3">
-                <div className="flex items-center space-x-2 text-xs font-bold text-brand-navy">
-                  <Lightbulb className="w-4 h-4 text-brand-purple" />
-                  <span>Suggested Questions</span>
+              <div className="bg-[#FAF8FF] rounded-3xl p-5 border border-purple-100/80 shadow-xs space-y-3">
+                <div className="flex items-center space-x-2 text-xs font-bold text-[#303654]">
+                  <Lightbulb className="w-4 h-4 text-[#AE54C6]" />
+                  <span>Suggested Questions for {selectedPersona.name.split(" ")[0]}</span>
                 </div>
                 <div className="space-y-2">
                   {suggestedPrompts.map((promptText, i) => (
                     <button
                       key={i}
+                      type="button"
                       onClick={() => handleSendTutorMessage(promptText)}
-                      className="w-full text-left p-2.5 rounded-lg bg-white border border-brand-purple/10 text-xs text-gray-700 hover:border-brand-purple hover:text-brand-purple transition-colors shadow-2xs"
+                      className="w-full text-left p-3 rounded-xl bg-white border border-purple-100 text-xs font-medium text-gray-700 hover:border-[#AE54C6] hover:text-[#AE54C6] hover:bg-purple-50/30 transition-all shadow-2xs group flex items-start gap-2"
                     >
-                      {promptText}
+                      <span className="text-[#AE54C6] font-bold group-hover:translate-x-0.5 transition-transform shrink-0">&rarr;</span>
+                      <span className="leading-relaxed">{promptText}</span>
                     </button>
                   ))}
                 </div>
@@ -1524,82 +1888,203 @@ app.use('/api/v1/transfer', limiter);`);
             </div>
 
             {/* Chat Conversation Area */}
-            <div className="lg:col-span-3 bg-white rounded-2xl border border-gray-200/80 shadow-sm flex flex-col h-[560px] sm:h-[650px] overflow-hidden order-1 lg:order-2">
+            <div className="lg:col-span-3 bg-white rounded-3xl border border-[#F1E2F5] shadow-xs flex flex-col h-[600px] sm:h-[700px] overflow-hidden order-1 lg:order-2">
               {/* Chat Header */}
-              <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
+              <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/70 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center space-x-3.5">
+                  <div
+                    className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-xs shrink-0 shadow-xs ${selectedPersona.avatarBg}`}
+                  >
+                    {selectedPersona.avatar}
+                  </div>
                   <div>
-                    <h3 className="text-sm font-bold text-brand-dark">{tutorName} (BEMS AI Tutor)</h3>
-                    <p className="text-[11px] text-gray-500">October 2026 Cohort • Active Workspace</p>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-black text-[#303654]">{selectedPersona.name}</h3>
+                      <span title="Verified Faculty Lead" className="inline-flex items-center">
+                        <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                      </span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#AE54C6] bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200">
+                        BEMS AI Faculty
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-gray-500 font-medium">
+                      {selectedPersona.title} • <span className="text-emerald-600 font-bold">🟢 Online</span>
+                    </p>
                   </div>
                 </div>
-                <button
-                  onClick={() =>
-                    setTutorMessages([
-                      {
-                        id: "welcome-reset",
-                        role: "assistant",
-                        content: `Hello! I am ${tutorName}. How can I assist your coding journey today?`,
-                        timestamp: "Just now"
-                      }
-                    ])
-                  }
-                  className="text-xs text-gray-400 hover:text-brand-purple flex items-center space-x-1"
-                >
-                  <RefreshCw className="w-3 h-3" />
-                  <span>Clear Chat</span>
-                </button>
+
+                <div className="flex items-center gap-2">
+                  <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-white border border-gray-200 text-[#303654]">
+                    {explanationMode === "eli12" && "🧒 ELI-12"}
+                    {explanationMode === "practical" && "🛠️ Practical Builder"}
+                    {explanationMode === "academic" && "🎓 Deep Dive"}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setTutorMessages([
+                        {
+                          id: `welcome-reset-${Date.now()}`,
+                          role: "assistant",
+                          content: selectedPersona.welcomeMessage,
+                          timestamp: "Just now",
+                          tutorPersona: selectedPersona.name,
+                          suggestedPrompts: selectedPersona.suggestedQuestions
+                        }
+                      ])
+                    }
+                    className="text-xs font-semibold text-gray-500 hover:text-[#AE54C6] bg-white border border-gray-200 hover:border-purple-200 px-3 py-1.5 rounded-xl flex items-center space-x-1.5 transition-colors shadow-2xs"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Clear Chat</span>
+                  </button>
+                </div>
               </div>
 
               {/* Message List */}
-              <div className="flex-1 p-6 overflow-y-auto space-y-4">
-                {tutorMessages.map((msg) => (
-                  <div
-                    key={msg.id}
-                    className={`flex items-start space-x-3 ${msg.role === "user" ? "flex-row-reverse space-x-reverse" : ""}`}
-                  >
+              <div className="flex-1 p-5 sm:p-6 overflow-y-auto space-y-5 bg-gradient-to-b from-white via-white to-purple-50/20">
+                {tutorMessages.map((msg) => {
+                  const isUser = msg.role === "user";
+                  const personaForMsg =
+                    FACULTY_PERSONAS.find((p) => p.name === msg.tutorPersona) || selectedPersona;
+
+                  return (
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-                        msg.role === "user" ? "bg-brand-purple text-white" : "bg-brand-navy text-white"
-                      }`}
+                      key={msg.id}
+                      className={`flex items-start space-x-3.5 ${isUser ? "flex-row-reverse space-x-reverse" : ""}`}
                     >
-                      {msg.role === "user" ? "ME" : tutorName.substring(0, 2).toUpperCase()}
+                      <div
+                        className={`w-9 h-9 rounded-2xl flex items-center justify-center text-xs font-black shrink-0 shadow-xs ${
+                          isUser
+                            ? "bg-[#303654] text-white ring-2 ring-purple-300/30"
+                            : personaForMsg.avatarBg
+                        }`}
+                      >
+                        {isUser ? "ME" : personaForMsg.avatar}
+                      </div>
+
+                      <div
+                        className={`max-w-[85%] rounded-3xl p-4 sm:p-5 text-xs md:text-sm leading-relaxed shadow-xs transition-all ${
+                          isUser
+                            ? "bg-[#303654] text-white rounded-tr-none"
+                            : "bg-white border border-[#F1E2F5] text-gray-800 rounded-tl-none"
+                        }`}
+                      >
+                        {/* Instructor Message Header (if assistant) */}
+                        {!isUser && (
+                          <div className="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-gray-100">
+                            <div className="flex items-center gap-2">
+                              <span className="font-black text-xs text-[#303654]">
+                                {msg.tutorPersona || selectedPersona.name}
+                              </span>
+                              <span
+                                className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${personaForMsg.badgeBg}`}
+                              >
+                                {personaForMsg.role}
+                              </span>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => handleToggleSpeech(msg.id, msg.content)}
+                              className={`flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full transition-all border ${
+                                speakingMessageId === msg.id
+                                  ? "bg-purple-100 text-[#AE54C6] border-purple-300 animate-pulse"
+                                  : "bg-gray-50 text-gray-500 border-gray-200 hover:text-[#AE54C6] hover:border-purple-200 hover:bg-purple-50/50"
+                              }`}
+                              title={speakingMessageId === msg.id ? "Stop voice readout" : "Listen to explanation"}
+                            >
+                              {speakingMessageId === msg.id ? (
+                                <>
+                                  <VolumeX className="w-3.5 h-3.5 text-[#AE54C6]" />
+                                  <span>Stop</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Volume2 className="w-3.5 h-3.5 text-gray-400" />
+                                  <span>Listen</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        )}
+
+                        {isUser ? (
+                          <div className="whitespace-pre-wrap font-sans font-medium">{msg.content}</div>
+                        ) : (
+                          <div className="space-y-3">
+                            <ChatMarkdown content={msg.content} />
+
+                            {/* BEMS Sandbox Action Link */}
+                            {msg.content.includes("```") && (
+                              <div className="pt-2 flex flex-wrap items-center gap-2 border-t border-gray-100">
+                                <Link
+                                  href="/sandbox"
+                                  target="_blank"
+                                  className="inline-flex items-center gap-1.5 text-[11px] font-bold text-white bg-gradient-to-r from-[#303654] to-[#4A2060] hover:to-[#AE54C6] px-3 py-1.5 rounded-xl shadow-xs transition-all"
+                                >
+                                  <Terminal className="w-3.5 h-3.5 text-purple-200" />
+                                  <span>Test in BEMS Sandbox ⚡</span>
+                                  <ExternalLink className="w-3 h-3 opacity-70" />
+                                </Link>
+                                <button
+                                  type="button"
+                                  onClick={() => handleCopySnippet(msg.content, msg.id)}
+                                  className="inline-flex items-center gap-1 text-[11px] font-bold text-gray-600 hover:text-[#AE54C6] bg-gray-50 hover:bg-purple-50 px-3 py-1.5 rounded-xl border border-gray-200 hover:border-purple-200 transition-colors"
+                                >
+                                  {copiedSnippetId === msg.id ? (
+                                    <>
+                                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                      <span className="text-emerald-700">Copied!</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Copy className="w-3.5 h-3.5" />
+                                      <span>Copy Code</span>
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        <div className="flex items-center justify-between mt-2 pt-1">
+                          <span
+                            className={`text-[10px] font-medium ${
+                              isUser ? "text-purple-200" : "text-gray-400"
+                            }`}
+                          >
+                            {msg.timestamp}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <div
-                      className={`max-w-[80%] rounded-2xl p-4 text-xs md:text-sm leading-relaxed shadow-xs ${
-                        msg.role === "user"
-                          ? "bg-brand-navy text-white rounded-tr-none"
-                          : "bg-gray-50 border border-gray-100 text-gray-800 rounded-tl-none"
-                      }`}
-                    >
-                      {msg.role === "user" ? (
-                        <div className="whitespace-pre-wrap font-sans">{msg.content}</div>
-                      ) : (
-                        <ChatMarkdown content={msg.content} />
-                      )}
-                      <span className={`block text-[10px] mt-2 ${msg.role === "user" ? "text-purple-200" : "text-gray-400"}`}>
-                        {msg.timestamp}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
 
                 {isTutorLoading && (
-                  <div className="flex items-center space-x-3 text-gray-400 text-xs py-2">
-                    <Loader2 className="w-4 h-4 animate-spin text-brand-purple" />
-                    <span>{tutorName} is thinking and formulating guidance...</span>
+                  <div className="flex items-center space-x-3 text-gray-500 text-xs py-3 px-4 rounded-2xl bg-purple-50/50 border border-purple-100 max-w-fit">
+                    <Loader2 className="w-4 h-4 animate-spin text-[#AE54C6]" />
+                    <span className="font-medium">
+                      {selectedPersona.name} is formulating guidance in{" "}
+                      <strong className="text-[#AE54C6]">
+                        {explanationMode === "eli12" ? "ELI-12" : explanationMode === "academic" ? "Deep Dive" : "Practical Builder"}
+                      </strong>{" "}
+                      mode...
+                    </span>
                   </div>
                 )}
+
                 {ragSources.length > 0 && (
-                  <div className="p-3.5 rounded-xl bg-purple-50/70 border border-brand-purple/20 space-y-2">
+                  <div className="p-4 rounded-2xl bg-purple-50/80 border border-purple-200 space-y-2.5">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-brand-purple flex items-center gap-1.5">
-                        <BookOpen className="w-3.5 h-3.5" />
-                        Grounded in BEMS Course Material (RAG)
+                      <span className="text-[11px] font-black uppercase tracking-wider text-[#AE54C6] flex items-center gap-1.5">
+                        <BookOpen className="w-4 h-4" />
+                        Grounded in BEMS Curriculum (RAG Knowledge Base)
                       </span>
                       {weakConcepts.length > 0 && (
-                        <span className="text-[11px] font-semibold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-full">
+                        <span className="text-[11px] font-bold text-amber-900 bg-amber-100 border border-amber-200 px-2.5 py-0.5 rounded-full">
                           Targeting weak concepts: {weakConcepts.join(", ")}
                         </span>
                       )}
@@ -1610,14 +2095,15 @@ app.use('/api/v1/transfer', limiter);`);
                           <a
                             key={src.id}
                             href={src.lessonUrl}
-                            className="text-xs px-2.5 py-1 rounded-lg bg-white border border-brand-purple/20 text-brand-dark hover:border-brand-purple hover:text-brand-purple font-medium transition-colors"
+                            className="text-xs px-3 py-1.5 rounded-xl bg-white border border-purple-200 text-[#303654] hover:border-[#AE54C6] hover:text-[#AE54C6] font-bold transition-all shadow-2xs inline-flex items-center gap-1.5"
                           >
-                            📖 {src.title} &rarr;
+                            <span>📖 {src.title}</span>
+                            <ArrowRight className="w-3 h-3 text-[#AE54C6]" />
                           </a>
                         ) : (
                           <span
                             key={src.id}
-                            className="text-xs px-2.5 py-1 rounded-lg bg-white border border-gray-200 text-gray-700"
+                            className="text-xs px-3 py-1.5 rounded-xl bg-white border border-gray-200 text-gray-700 font-medium"
                           >
                             📝 {src.title}
                           </span>
@@ -1629,28 +2115,28 @@ app.use('/api/v1/transfer', limiter);`);
               </div>
 
               {/* LearnIQ Pedagogical Quick-Action Pills + Input Box */}
-              <div className="p-4 border-t border-gray-100 bg-white space-y-3">
+              <div className="p-4 sm:p-5 border-t border-gray-100 bg-white space-y-3">
                 <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
                   {[
                     {
-                      label: "Explain simpler",
-                      prompt: "Explain that last concept in simpler beginner terms using a real-world analogy."
+                      label: "💡 Explain simpler",
+                      prompt: "Can you explain that last concept in simpler terms using a real-world Nigerian analogy?"
                     },
                     {
-                      label: "Give me an example",
+                      label: "💻 Practical Code",
                       prompt: "Give me a clean, practical code example I can run in the BEMS Sandbox."
                     },
                     {
-                      label: "Quiz me",
+                      label: "⚡ Quiz Me",
                       prompt: "Ask me 1 quick diagnostic question on this concept to test my understanding."
                     },
                     {
-                      label: "Give me a hint",
-                      prompt: "Give me a step-by-step hint without revealing the full answer right away."
+                      label: "🧩 Step-by-Step Hint",
+                      prompt: "Give me a step-by-step hint without revealing the full solution right away."
                     },
                     {
-                      label: "Show me where I went wrong",
-                      prompt: "Based on my weak concepts and quiz history, show me where I might be going wrong and how to fix my mental model."
+                      label: "🎯 Review Weak Concepts",
+                      prompt: "Based on my weak concepts and recent performance, what should I practice next?"
                     }
                   ].map((action) => (
                     <button
@@ -1658,7 +2144,7 @@ app.use('/api/v1/transfer', limiter);`);
                       type="button"
                       disabled={isTutorLoading}
                       onClick={() => handleSendTutorMessage(action.prompt)}
-                      className="px-3 py-1.5 rounded-full bg-brand-lavender/50 hover:bg-brand-purple hover:text-white border border-brand-purple/20 text-brand-dark text-xs font-semibold transition-colors whitespace-nowrap shrink-0 disabled:opacity-50"
+                      className="px-3.5 py-1.5 rounded-full bg-purple-50/80 hover:bg-[#AE54C6] hover:text-white border border-purple-200/70 text-[#303654] text-xs font-bold transition-all whitespace-nowrap shrink-0 disabled:opacity-50 shadow-2xs"
                     >
                       {action.label}
                     </button>
@@ -1672,21 +2158,39 @@ app.use('/api/v1/transfer', limiter);`);
                   }}
                   className="flex items-center space-x-3"
                 >
-                  <input
-                    type="text"
-                    value={tutorInput}
-                    onChange={(e) => setTutorInput(e.target.value)}
-                    placeholder={`Ask ${tutorName} a technical question (e.g. Next.js, CSS Flexbox, APIs)...`}
-                    className="flex-1 px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-purple/40"
-                    disabled={isTutorLoading}
-                  />
+                  <div className="relative flex-1">
+                    <input
+                      type="text"
+                      value={tutorInput}
+                      onChange={(e) => setTutorInput(e.target.value)}
+                      placeholder={`Ask ${selectedPersona.name} a question (e.g. Next.js, APIs, Capstone)...`}
+                      className="w-full px-4 py-3.5 pr-10 rounded-2xl border border-gray-200 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#AE54C6]/40 shadow-xs"
+                      disabled={isTutorLoading}
+                    />
+                    {tutorInput && (
+                      <button
+                        type="button"
+                        onClick={() => setTutorInput("")}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        <XCircle className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
                   <Button
                     type="submit"
                     variant="purple"
                     disabled={isTutorLoading || !tutorInput.trim()}
-                    className="shrink-0 px-5"
+                    className="shrink-0 px-6 py-3.5 rounded-2xl shadow-xs font-bold"
                   >
-                    {isTutorLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                    {isTutorLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <div className="flex items-center gap-1.5">
+                        <span>Send</span>
+                        <Send className="w-4 h-4" />
+                      </div>
+                    )}
                   </Button>
                 </form>
               </div>

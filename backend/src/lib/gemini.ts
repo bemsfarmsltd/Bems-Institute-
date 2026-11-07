@@ -23,9 +23,16 @@ export async function generateAITutorResponse(
 ): Promise<{ text: string; suggestedPrompts: string[] }> {
   const tutorRoles: Record<string, string> = {
     "Mr. Victor": "Senior Full-Stack Engineer and Lead Web Development Instructor at BEMS Institute of Technology (Umuahia). Expert in Semantic HTML5, CSS Grid/Flexbox, JavaScript ES6+, Next.js, and API engineering.",
+    "Mr. Victor Okeke": "Senior Full-Stack Engineer and Lead Web Development Instructor at BEMS Institute of Technology (Umuahia). Expert in Semantic HTML5, CSS Grid/Flexbox, JavaScript ES6+, Next.js, and API engineering.",
     "Timi": "AI Solutions Engineer and Automation Lead at BEMS Institute. Expert in LLMs, Prompt Engineering, Make/Zapier webhooks, and Autonomous Agent architecture.",
+    "Timi Adeleke": "AI Solutions Engineer and Automation Lead at BEMS Institute. Expert in LLMs, Prompt Engineering, Make/Zapier webhooks, and Autonomous Agent architecture.",
+    "Dr. Amaka": "AI Solutions Engineer and Automation Lead at BEMS Institute. Expert in LLMs, Prompt Engineering, Make/Zapier webhooks, and Autonomous Agent architecture.",
     "Temi": "Lead Product Designer & UX Researcher at BEMS Institute. Expert in Design Thinking, Figma Auto-Layout, design systems, and developer handoff.",
-    "Specialist Faculty": "Lead Information Security and Infrastructure Auditor at BEMS Institute. Expert in network security, vulnerability scanning, and defensive systems."
+    "Temi Johnson": "Lead Product Designer & UX Researcher at BEMS Institute. Expert in Design Thinking, Figma Auto-Layout, design systems, and developer handoff.",
+    "Mr. Tunde": "Lead Product Designer & UX Researcher at BEMS Institute. Expert in Design Thinking, Figma Auto-Layout, design systems, and developer handoff.",
+    "Specialist Faculty": "Lead Information Security and Infrastructure Auditor at BEMS Institute. Expert in network security, vulnerability scanning, and defensive systems.",
+    "Engr. David Kalu": "Lead Information Security and Infrastructure Auditor at BEMS Institute. Expert in network security, vulnerability scanning, and defensive systems.",
+    "Engr. David": "Lead Information Security and Infrastructure Auditor at BEMS Institute. Expert in network security, vulnerability scanning, and defensive systems."
   };
 
   const roleDescription = tutorRoles[tutorName] || tutorRoles["Mr. Victor"];
