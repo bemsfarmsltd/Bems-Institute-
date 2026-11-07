@@ -30,7 +30,7 @@ export async function generateAITutorResponse(
   const roleDescription = tutorRoles[tutorName] || tutorRoles["Mr. Victor"];
 
   const systemInstruction = `You are ${tutorName}, ${roleDescription}.
-You are tutoring a student enrolled in the BEMS FutureSkills Accelerator (October 2026 Cohort).
+You are tutoring a student enrolled in the BEMS FutureSkills Accelerator (${courseTrack} track, October 2026 Cohort).
 Always be encouraging, highly technical, practical, and clear.
 When providing code, write clean, modern, well-commented code snippets with markdown formatting.
 Refer where relevant to practical lab exercises in Umuahia, real-world deployment on Vercel/Netlify, and best practices.`;
@@ -209,9 +209,18 @@ Respond ONLY with valid JSON in this exact structure:
 
       const responseText = response.text;
       if (responseText) {
+        interface RawGeminiQuizQuestion {
+          id?: string;
+          prompt?: string;
+          options?: unknown[];
+          correctOption?: number;
+          explanation?: string;
+        }
+
         const parsed = JSON.parse(responseText);
         if (Array.isArray(parsed.questions) && parsed.questions.length > 0) {
-          const validatedQuestions = parsed.questions.slice(0, safeCount).map((q: any, idx: number) => ({
+          const rawQuestions = parsed.questions as RawGeminiQuizQuestion[];
+          const validatedQuestions = rawQuestions.slice(0, safeCount).map((q, idx) => ({
             id: q.id || `gen-q-${idx + 1}`,
             prompt: String(q.prompt || `Question ${idx + 1}`),
             options: Array.isArray(q.options) && q.options.length >= 4
@@ -635,7 +644,7 @@ export async function evaluateCodeSubmission(
   return {
     overallScore: total,
     readinessVerdict: total >= 80 ? "READY_FOR_GRADING" : "MINOR_REVISION_RECOMMENDED",
-    summary: `Great work! Your project shows strong adherence to BEMS standards. It demonstrates modular structure, clean semantic separation, and thoughtful design consistency.`,
+    summary: `Great work on your ${track} project! Your project shows strong adherence to BEMS standards. It demonstrates modular structure, clean semantic separation, and thoughtful design consistency.`,
     reviewedAt: new Date().toISOString(),
     criteriaAnalysis: [
       {

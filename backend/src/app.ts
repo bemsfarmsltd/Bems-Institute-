@@ -79,6 +79,7 @@ app.use("/api/community", communityRoutes);
 app.use("/api/payments", paymentsRoutes);
 
 app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  void _next;
   console.error("Unhandled error:", err);
   if (res.headersSent) return;
   res.status(500).json({ error: "Internal server error" });

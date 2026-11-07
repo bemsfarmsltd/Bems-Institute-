@@ -97,5 +97,11 @@ export function retrieveCourseKnowledge(
   return scored
     .sort((a, b) => b.score - a.score)
     .slice(0, limit)
-    .map(({ score: _score, ...snippet }) => snippet);
+    .map((s) => ({
+      id: s.id,
+      title: s.title,
+      content: s.content,
+      sourceType: s.sourceType,
+      lessonUrl: s.lessonUrl
+    }));
 }
