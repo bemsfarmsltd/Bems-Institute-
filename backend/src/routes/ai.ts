@@ -136,11 +136,11 @@ router.post("/", async (req, res) => {
       }
 
       case "feedback": {
-        const { submissionContent, track } = body;
+        const { submissionContent, track, projectTitle } = body;
         if (!submissionContent) {
           return res.status(400).json({ error: "Submission code or URL is required" });
         }
-        const feedback = await evaluateCodeSubmission(submissionContent, track);
+        const feedback = await evaluateCodeSubmission(submissionContent, track || "Web Development", projectTitle);
         return res.json(feedback);
       }
 

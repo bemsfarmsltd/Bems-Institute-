@@ -64,6 +64,10 @@ export interface AIFeedbackResult {
   criteriaAnalysis: AIFeedbackCriterion[];
   actionItems: string[];
   reviewedAt: string;
+  trackTitle?: string;
+  projectTitle?: string;
+  certificateHonors?: "DISTINCTION" | "MERIT" | "PASS" | "NEEDS_REVISION";
+  leadMentorName?: string;
 }
 
 export interface PersonalizedRecommendation {
