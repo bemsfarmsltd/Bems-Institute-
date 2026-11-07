@@ -229,7 +229,7 @@ export function OnboardingTour({
         <button
           type="button"
           onClick={handleTriggerReplay}
-          className="fixed bottom-6 left-6 z-40 inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-white/95 backdrop-blur-md border border-purple-200/90 shadow-[0_4px_20px_rgba(121,40,202,0.18)] hover:shadow-[0_8px_25px_rgba(121,40,202,0.28)] text-[#7928CA] hover:text-[#5B21B6] text-xs font-black transition-all hover:scale-105 active:scale-95 cursor-pointer group"
+          className="fixed bottom-20 lg:bottom-6 left-4 lg:left-6 z-30 lg:z-40 inline-flex items-center gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full bg-white/95 backdrop-blur-md border border-purple-200/90 shadow-[0_4px_20px_rgba(121,40,202,0.18)] hover:shadow-[0_8px_25px_rgba(121,40,202,0.28)] text-[#7928CA] hover:text-[#5B21B6] text-xs font-black transition-all hover:scale-105 active:scale-95 cursor-pointer group"
           title="Replay Academy Quest Tour"
         >
           <span className="w-5 h-5 rounded-full bg-gradient-to-tr from-[#7928CA] to-[#066AC9] text-white flex items-center justify-center text-[10px] shadow-2xs group-hover:rotate-12 transition-transform">

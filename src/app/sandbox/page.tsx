@@ -134,6 +134,7 @@ btn.addEventListener('click', () => {
 
 export default function CodingSandboxPage() {
   const [activeTab, setActiveTab] = useState<"html" | "css" | "js">("html");
+  const [mobileView, setMobileView] = useState<"editor" | "preview">("editor");
   const [htmlCode, setHtmlCode] = useState(TEMPLATES["bems-hero"].html);
   const [cssCode, setCssCode] = useState(TEMPLATES["bems-hero"].css);
   const [jsCode, setJsCode] = useState(TEMPLATES["bems-hero"].js);
@@ -244,9 +245,37 @@ export default function CodingSandboxPage() {
 
       {/* IDE Split Workspace */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[720px]">
+        {/* Mobile View Toggle */}
+        <div className="lg:hidden flex items-center p-1 rounded-2xl bg-white border border-[#F1E2F5] shadow-xs mb-4">
+          <button
+            type="button"
+            onClick={() => setMobileView("editor")}
+            className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              mobileView === "editor"
+                ? "bg-[#303654] text-white shadow-xs"
+                : "text-[#645F80] hover:text-[#303654]"
+            }`}
+          >
+            <Code2 className="w-3.5 h-3.5" />
+            <span>Code Editor</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setMobileView("preview")}
+            className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+              mobileView === "preview"
+                ? "bg-[#AE54C6] text-white shadow-xs"
+                : "text-[#645F80] hover:text-[#303654]"
+            }`}
+          >
+            <Eye className="w-3.5 h-3.5" />
+            <span>Live Output</span>
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[560px] sm:h-[620px] lg:h-[720px]">
           {/* Left Column: Code Editors */}
-          <div className="bg-[#303654] rounded-3xl border border-white/10 shadow-xl flex flex-col overflow-hidden">
+          <div className={`${mobileView === "editor" ? "flex" : "hidden"} lg:flex bg-[#303654] rounded-3xl border border-white/10 shadow-xl flex-col overflow-hidden`}>
             {/* Editor Tabs */}
             <div className="flex items-center justify-between p-2 px-4 border-b border-white/10 bg-black/30">
               <div className="flex items-center gap-1">
@@ -316,7 +345,7 @@ export default function CodingSandboxPage() {
           </div>
 
           {/* Right Column: Live Output & Console */}
-          <div className="flex flex-col gap-4">
+          <div className={`${mobileView === "preview" ? "flex" : "hidden"} lg:flex flex-col gap-4`}>
             {/* Live Preview Iframe */}
             <div className="flex-1 bg-white rounded-3xl border border-[#F1E2F5] shadow-xs flex flex-col overflow-hidden">
               <div className="p-3 px-5 border-b border-[#F7EDF9] bg-[#FAF8FF] flex items-center justify-between text-xs font-bold text-[#303654]">

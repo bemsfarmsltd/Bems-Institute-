@@ -232,7 +232,7 @@ export default function CourseDetailPage({
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-1 w-full">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 pb-24 lg:pb-12 flex-1 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
           
           <div className="lg:col-span-8 space-y-8">
@@ -564,9 +564,58 @@ export default function CourseDetailPage({
         </div>
       </main>
 
+      {/* Sticky Mobile Enrollment / Resume Bottom Bar */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-purple-200/90 p-3 px-4 shadow-[0_-4px_25px_rgba(0,0,0,0.12)] flex items-center justify-between gap-3">
+        {enrolled ? (
+          <>
+            <div className="min-w-0">
+              <span className="text-[11px] font-bold text-emerald-700 block truncate">
+                Enrolled · {progress.percent}% Completed
+              </span>
+              <span className="text-xs font-black text-[#303654] truncate block">
+                {course.title}
+              </span>
+            </div>
+            <Link href={`/learn/${course.slug}/${firstLessonId}`} className="shrink-0">
+              <Button size="sm" variant="purple" className="text-xs font-bold px-4 py-2">
+                Continue Learning
+              </Button>
+            </Link>
+          </>
+        ) : (
+          <>
+            <div>
+              <div className="flex items-baseline gap-1">
+                <span className="text-lg font-black text-[#303654]">
+                  ₦{course.priceFull.toLocaleString()}
+                </span>
+                <span className="text-[10px] text-[#8580A3] font-bold">one-time</span>
+              </div>
+              <span className="text-[10px] text-[#AE54C6] font-semibold block">
+                or ₦{course.deposit.toLocaleString()} deposit
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={openInterestModal}
+                className="text-[11px] font-bold text-[#AE54C6] hover:underline px-2 py-1"
+              >
+                Inquire
+              </button>
+              <Link href={`/subscriptions?course=${course.id}`}>
+                <Button size="sm" variant="purple" className="text-xs font-bold px-4 py-2 shadow-xs">
+                  Enroll Now
+                </Button>
+              </Link>
+            </div>
+          </>
+        )}
+      </div>
+
       {showInterestModal && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-sm w-full p-6 sm:p-7 shadow-2xl border border-[#F1E2F5]">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-6 sm:p-7 shadow-2xl border border-[#F1E2F5] max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#F7EDF9]">
               <h3 className="text-base font-black text-[#303654]">Register Your Interest</h3>
               <button

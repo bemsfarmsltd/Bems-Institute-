@@ -363,26 +363,26 @@ function StudentDashboardContent() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-1 w-full">
         {/* Profile Row */}
-        <div className="-mt-14 mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-6">
-          <div className="flex items-end gap-5">
+        <div className="-mt-12 sm:-mt-14 mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-5 sm:gap-6">
+          <div className="flex items-center sm:items-end gap-3.5 sm:gap-5">
             <div className="relative shrink-0">
               <UserAvatar
                 user={user ? { name: user.name, avatarUrl: user.avatarUrl } : { name: "Student", avatarUrl: null }}
-                size={112}
+                size={88}
                 editable
-                className="ring-4 ring-white shadow-lg text-2xl"
+                className="ring-4 ring-white shadow-lg text-xl sm:text-2xl"
               />
               {xp && (
-                <span className="pointer-events-none absolute -bottom-1 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-bold shadow-sm whitespace-nowrap">
+                <span className="pointer-events-none absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 sm:px-2.5 py-0.5 rounded-full bg-emerald-500 text-white text-[9px] sm:text-[10px] font-bold shadow-sm whitespace-nowrap">
                   {xp.levelTitle}
                 </span>
               )}
             </div>
-            <div className="pb-1">
-              <h1 className="text-2xl sm:text-3xl font-black text-[#303654]">
+            <div className="pb-1 min-w-0">
+              <h1 className="text-xl sm:text-3xl font-black text-[#303654] truncate">
                 {user?.name || "Student"}
               </h1>
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1.5 text-xs sm:text-sm text-[#645F80] font-semibold">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs sm:text-sm text-[#645F80] font-semibold">
                 {xp && <span>{xp.points} XP</span>}
                 <span>{completedCoursesCount} Completed courses</span>
                 <span>{totalCompletedLessons} Completed lessons</span>
@@ -390,16 +390,60 @@ function StudentDashboardContent() {
             </div>
           </div>
 
-          <a href="#my-courses-list">
-            <Button variant="outline" className="shrink-0">
+          <a href="#my-courses-list" className="self-start sm:self-auto">
+            <Button variant="outline" size="sm" className="shrink-0 text-xs sm:text-sm">
               View my courses
             </Button>
           </a>
         </div>
 
+        {/* Mobile Dashboard Quick Navigation Bar */}
+        <div className="lg:hidden flex items-center gap-2 overflow-x-auto no-scrollbar pb-3 mb-6">
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#303654] text-white text-xs font-bold whitespace-nowrap shadow-xs shrink-0"
+          >
+            <LayoutDashboard className="w-3.5 h-3.5" /> Dashboard
+          </Link>
+          <Link
+            href="/subscriptions"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-[#F1E2F5] text-[#303654] text-xs font-semibold whitespace-nowrap hover:border-[#AE54C6] shrink-0"
+          >
+            <CreditCard className="w-3.5 h-3.5 text-[#AE54C6]" /> Subscriptions
+          </Link>
+          {myCourse && myFirstLessonId && (
+            <Link
+              href={`/learn/${myCourse.slug}/${myFirstLessonId}`}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#F7EDF9] border border-purple-200 text-[#AE54C6] text-xs font-bold whitespace-nowrap shrink-0"
+            >
+              <FileText className="w-3.5 h-3.5" /> Resume Course
+            </Link>
+          )}
+          {myCourse && myQuiz && (
+            <Link
+              href={`/learn/${myCourse.slug}/quiz/${myQuiz.id}`}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-[#F1E2F5] text-[#303654] text-xs font-semibold whitespace-nowrap shrink-0"
+            >
+              <HelpCircle className="w-3.5 h-3.5 text-amber-500" /> Quiz
+            </Link>
+          )}
+          <Link
+            href="/courses"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-[#F1E2F5] text-[#303654] text-xs font-semibold whitespace-nowrap shrink-0"
+          >
+            <Compass className="w-3.5 h-3.5 text-blue-500" /> Catalog
+          </Link>
+          <Link
+            href="/dashboard#edit-profile"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-[#F1E2F5] text-[#303654] text-xs font-semibold whitespace-nowrap shrink-0"
+          >
+            <UserCog className="w-3.5 h-3.5 text-slate-500" /> Profile
+          </Link>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-8 pb-14">
-          {/* Sidebar */}
-          <aside className="bg-[#303654] rounded-2xl p-3 h-fit lg:sticky lg:top-28 space-y-1">
+          {/* Desktop Sidebar */}
+          <aside className="hidden lg:block bg-[#303654] rounded-2xl p-3 h-fit lg:sticky lg:top-28 space-y-1">
             <SidebarLink href="/dashboard" icon={<LayoutDashboard className="w-4 h-4" />} label="Dashboard" active />
             <SidebarLink href="/subscriptions" icon={<CreditCard className="w-4 h-4" />} label="My Subscriptions" />
             <SidebarLink

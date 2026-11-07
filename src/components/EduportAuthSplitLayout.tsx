@@ -250,10 +250,10 @@ export default function EduportAuthSplitLayout({
 }) {
   return (
     <div className="min-h-screen w-full bg-white grid grid-cols-1 lg:grid-cols-2 font-sans text-[#1D2026]">
-      {/* Left 50% Community Panel */}
-      <div className="bg-[#F7EDF9] flex flex-col justify-between items-center px-6 sm:px-12 py-10 lg:py-14 relative overflow-hidden">
-        {/* Top Brand Link */}
-        <div className="w-full max-w-[520px] flex items-center justify-between">
+      {/* Community Panel: Shown on right of desktop, below form on mobile */}
+      <div className="bg-[#F7EDF9] flex flex-col justify-between items-center px-6 sm:px-12 py-10 lg:py-14 relative overflow-hidden order-2 lg:order-1">
+        {/* Top Brand Link (Desktop) */}
+        <div className="w-full max-w-[520px] hidden lg:flex items-center justify-between">
           <Link href="/" className="inline-flex items-center gap-2.5 group">
             <div className="relative w-8 h-8 rounded-lg overflow-hidden bg-white shadow-sm shrink-0">
               <Image src="/images/bems-logo.jpg" alt="BEMS Logo" fill sizes="32px" className="object-contain" />
@@ -262,60 +262,63 @@ export default function EduportAuthSplitLayout({
               BEMS<span className="text-[#AE54C6]">.</span>
             </span>
           </Link>
-          <Link
-            href="/"
-            className="text-[13px] font-semibold text-[#475569] hover:text-[#AE54C6] transition-colors lg:hidden"
-          >
-            ← Back to Home
-          </Link>
         </div>
 
         {/* Center Heading + Illustration */}
         <div className="w-full max-w-[520px] my-auto py-6 text-center">
-          <h2 className="font-display text-[28px] sm:text-[34px] font-extrabold text-[#1D2026] tracking-tight leading-[1.2] mb-2">
-            Welcome to our largest community
+          <h2 className="font-display text-[24px] sm:text-[34px] font-extrabold text-[#1D2026] tracking-tight leading-[1.2] mb-2">
+            Welcome to our student community
           </h2>
-          <p className="text-[#64748B] text-[15px] mb-8">
-            Let&apos;s learn something new today!
+          <p className="text-[#64748B] text-[14px] sm:text-[15px] mb-6 sm:mb-8">
+            Learn with mentors, practice in labs, and earn recognized credentials.
           </p>
 
           <EduportCommunityIllustration />
         </div>
 
         {/* Bottom Avatar Stack + Community Count */}
-        <div className="w-full max-w-[520px] flex flex-wrap items-center justify-center gap-4 pt-2">
+        <div className="w-full max-w-[520px] flex flex-wrap items-center justify-center gap-3 sm:gap-4 pt-2">
           <div className="flex items-center -space-x-2.5">
             {COMMUNITY_AVATAR_SEEDS.map((seed, idx) => (
               <img
                 key={idx}
                 src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(seed)}&backgroundColor=7928CA,18143D,671FB0&textColor=ffffff`}
                 alt="BEMS student"
-                className="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-sm"
+                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover ring-2 ring-white shadow-sm"
               />
             ))}
           </div>
-          <p className="text-[14px] font-medium text-[#1D2026]">
-            <span className="font-bold">80+</span> students joining the October 2026 cohort, now it&apos;s your turn.
+          <p className="text-[13px] sm:text-[14px] font-medium text-[#1D2026]">
+            <span className="font-bold">80+</span> students joining the October 2026 cohort.
           </p>
         </div>
       </div>
 
-      {/* Right 50% Form Panel */}
-      <div className="bg-white flex flex-col justify-between px-6 sm:px-12 lg:px-16 xl:px-24 py-10 lg:py-14">
-        <div className="w-full max-w-[460px] mx-auto flex justify-end">
+      {/* Form Panel: Priority Order 1 on mobile so users can sign in immediately */}
+      <div className="bg-white flex flex-col justify-between px-6 sm:px-12 lg:px-16 xl:px-24 py-8 sm:py-10 lg:py-14 order-1 lg:order-2">
+        <div className="w-full max-w-[460px] mx-auto flex items-center justify-between pb-2 lg:pb-0">
+          <Link href="/" className="inline-flex items-center gap-2 group lg:hidden">
+            <div className="relative w-8 h-8 rounded-lg overflow-hidden bg-white shadow-sm shrink-0">
+              <Image src="/images/bems-logo.jpg" alt="BEMS Logo" fill sizes="32px" className="object-contain" />
+            </div>
+            <span className="font-display font-extrabold text-[17px] tracking-tight text-[#1D2026]">
+              BEMS<span className="text-[#AE54C6]">.</span>
+            </span>
+          </Link>
+
           <Link
             href="/"
-            className="hidden lg:inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#64748B] hover:text-[#AE54C6] transition-colors"
+            className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#64748B] hover:text-[#AE54C6] transition-colors ml-auto"
           >
             ← Back to Home
           </Link>
         </div>
 
-        <div className="w-full max-w-[460px] mx-auto my-auto py-6">
+        <div className="w-full max-w-[460px] mx-auto my-auto py-4 sm:py-6">
           {children}
         </div>
 
-        <div className="w-full max-w-[460px] mx-auto text-center lg:text-left text-[12px] text-[#94A3B8]">
+        <div className="w-full max-w-[460px] mx-auto text-center lg:text-left text-[11px] sm:text-[12px] text-[#94A3B8] pt-4">
           © {new Date().getFullYear()} BEMS Institute of Technology. All rights reserved.
         </div>
       </div>

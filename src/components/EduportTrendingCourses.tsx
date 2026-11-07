@@ -126,24 +126,25 @@ export function EduportTrendingCourses() {
                 </div>
 
                 {/* Card Footer: Tutor + Price / Enroll */}
-                <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-lg bg-[#AE54C6] text-white text-xs font-extrabold flex items-center justify-center">
+                <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-[#AE54C6] text-white text-xs font-extrabold flex items-center justify-center shrink-0">
                       {initials(course.tutor)}
                     </div>
-                    <span className="text-xs font-bold text-[#24292D]">{course.tutor}</span>
+                    <span className="text-xs font-bold text-[#24292D] truncate">{course.tutor}</span>
                   </div>
 
-                  <div>
-                    <span className="text-lg font-extrabold text-[#AE54C6] group-hover:hidden">
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-base sm:text-lg font-extrabold text-[#AE54C6]">
                       ₦{course.priceFull.toLocaleString()}
                     </span>
                     <Link
                       href={`/subscriptions?course=${course.slug}`}
-                      className="hidden group-hover:inline-flex items-center gap-1.5 bg-[#F7EDF9] hover:bg-[#AE54C6] text-[#AE54C6] hover:text-white text-xs font-bold px-3.5 py-2 rounded-lg transition-colors"
+                      className="inline-flex items-center gap-1.5 bg-[#F7EDF9] hover:bg-[#AE54C6] text-[#AE54C6] hover:text-white text-xs font-bold px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg transition-colors cursor-pointer"
+                      title={`Enroll in ${course.title}`}
                     >
                       <ShoppingCart className="w-3.5 h-3.5" />
-                      <span>Enroll Course</span>
+                      <span className="hidden sm:inline">Enroll</span>
                     </Link>
                   </div>
                 </div>

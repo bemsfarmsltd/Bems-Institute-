@@ -113,10 +113,28 @@ export default function CommunityPage() {
       </div>
 
       {/* Main Forum Workspace */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 bg-white rounded-3xl border border-[#F1E2F5] shadow-xs overflow-hidden h-[700px]">
-          {/* Left Channels Sidebar */}
-          <div className="p-4 border-r border-[#F7EDF9] bg-[#FAF8FF] flex flex-col justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-1 w-full">
+        {/* Mobile Horizontal Channels Bar */}
+        <div className="lg:hidden flex items-center gap-2 overflow-x-auto no-scrollbar pb-3 mb-4">
+          {channels.map((chan) => (
+            <button
+              key={chan.id}
+              onClick={() => setActiveChannelId(chan.id)}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer ${
+                activeChannelId === chan.id
+                  ? "bg-[#AE54C6] text-white shadow-xs"
+                  : "bg-white border border-[#F1E2F5] text-[#4A4568] hover:text-[#303654]"
+              }`}
+            >
+              <Hash className="w-3.5 h-3.5 opacity-70" />
+              <span>{chan.name}</span>
+            </button>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 bg-white rounded-3xl border border-[#F1E2F5] shadow-xs overflow-hidden h-[580px] sm:h-[680px] lg:h-[720px]">
+          {/* Left Channels Sidebar (Desktop) */}
+          <div className="hidden lg:flex p-4 border-r border-[#F7EDF9] bg-[#FAF8FF] flex-col justify-between">
             <div className="space-y-4">
               <div className="px-2">
                 <span className="text-xs font-black uppercase tracking-wider text-[#645F80]">
@@ -129,7 +147,7 @@ export default function CommunityPage() {
                   <button
                     key={chan.id}
                     onClick={() => setActiveChannelId(chan.id)}
-                    className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                    className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
                       activeChannelId === chan.id
                         ? "bg-[#AE54C6] text-white shadow-xs"
                         : "text-[#4A4568] hover:bg-white hover:text-[#303654]"

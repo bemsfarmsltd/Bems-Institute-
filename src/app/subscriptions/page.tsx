@@ -486,7 +486,7 @@ function SubscriptionsContent() {
       {/* Checkout Modal */}
       {showPaymentModal && selectedPlan && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-[#F1E2F5] animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-3xl max-w-md w-full p-5 sm:p-8 shadow-2xl border border-[#F1E2F5] max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#F7EDF9]">
               <h3 className="text-lg font-black text-[#303654]">
                 Confirm Enrollment

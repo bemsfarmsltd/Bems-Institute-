@@ -300,18 +300,18 @@ function AIHubContent() {
       <Navbar />
       <div className="max-w-7xl mx-auto w-full flex-1 py-10 px-4 sm:px-6 lg:px-8 space-y-8">
         {/* Header Hero */}
-        <div className="rounded-3xl bg-gradient-to-r from-brand-navy via-brand-dark to-purple-900 text-white p-8 md:p-12 shadow-xl relative overflow-hidden">
+        <div className="rounded-3xl bg-gradient-to-r from-brand-navy via-brand-dark to-purple-900 text-white p-6 sm:p-8 md:p-12 shadow-xl relative overflow-hidden">
           <div className="absolute -right-16 -top-16 w-80 h-80 bg-brand-purple/20 rounded-full blur-3xl pointer-events-none" />
           <div className="relative z-10 max-w-3xl">
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-brand-purple/30 border border-brand-purple/40 text-purple-200 text-xs font-semibold uppercase tracking-wider mb-4">
               <Sparkles className="w-3.5 h-3.5" />
               <span>BEMS AI Academic Suite • Phase 4</span>
             </div>
-            <h1 className="text-3xl md:text-5xl font-black tracking-tight leading-tight">
-              AI Technical Tutor & Learning Companion
+            <h1 className="text-2xl sm:text-3xl md:text-5xl font-black tracking-tight leading-tight">
+              AI Technical Tutor &amp; Learning Companion
             </h1>
-            <p className="mt-4 text-base md:text-lg text-purple-100/90 leading-relaxed">
-              Powered by the official Google Gemini 2.5 Flash SDK and custom-trained on the BEMS FutureSkills curriculum. Get 24/7 technical tutoring, custom practice quizzes, pre-submission capstone audits, and personalized study roadmaps.
+            <p className="mt-3 sm:mt-4 text-sm sm:text-base md:text-lg text-purple-100/90 leading-relaxed">
+              Powered by Google Gemini and custom-trained on the BEMS FutureSkills curriculum. Get 24/7 technical tutoring, custom practice quizzes, pre-submission capstone audits, and personalized study roadmaps.
             </p>
           </div>
         </div>
@@ -385,7 +385,7 @@ function AIHubContent() {
         {activeTab === "tutor" && (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Sidebar Controls */}
-            <div className="lg:col-span-1 space-y-6">
+            <div className="lg:col-span-1 space-y-6 order-2 lg:order-1">
               <div className="bg-white rounded-2xl p-6 border border-gray-200/80 shadow-sm space-y-4">
                 <h3 className="font-bold text-brand-dark text-sm flex items-center space-x-2">
                   <Bot className="w-4 h-4 text-brand-purple" />
@@ -455,7 +455,7 @@ function AIHubContent() {
             </div>
 
             {/* Chat Conversation Area */}
-            <div className="lg:col-span-3 bg-white rounded-2xl border border-gray-200/80 shadow-sm flex flex-col h-[650px] overflow-hidden">
+            <div className="lg:col-span-3 bg-white rounded-2xl border border-gray-200/80 shadow-sm flex flex-col h-[560px] sm:h-[650px] overflow-hidden order-1 lg:order-2">
               {/* Chat Header */}
               <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
                 <div className="flex items-center space-x-3">

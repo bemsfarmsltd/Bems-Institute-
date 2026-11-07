@@ -459,10 +459,8 @@ export function Navbar() {
 
         {/* Mobile Drawer Menu */}
         {mobileMenuOpen && (
-          <div className="lg:hidden py-4 border-t border-slate-200 space-y-3 animate-in fade-in slide-in-from-top-2 duration-150">
-            {/* Search — the desktop search box is hidden below the sm
-                breakpoint, so this is the only search entry point on true
-                mobile widths. */}
+          <div className="lg:hidden py-4 border-t border-slate-200 space-y-4 animate-in fade-in slide-in-from-top-2 duration-150 max-h-[calc(100vh-5.5rem)] overflow-y-auto overscroll-contain pb-10">
+            {/* Search — mobile entry point */}
             <form
               onSubmit={handleNavSearch}
               className="flex items-center bg-[#F5F7F9] border border-slate-200 rounded-xl px-3.5 py-2.5 focus-within:border-[#AE54C6] transition-colors"
@@ -471,125 +469,209 @@ export function Navbar() {
                 type="text"
                 value={navSearch}
                 onChange={(e) => setNavSearch(e.target.value)}
-                placeholder="Search courses"
+                placeholder="Search courses & subjects"
                 className="w-full text-xs text-[#24292D] placeholder:text-slate-400 focus:outline-none bg-transparent"
               />
               <button
                 type="submit"
                 aria-label="Search courses"
-                className="text-slate-500 hover:text-[#AE54C6]"
+                className="text-slate-500 hover:text-[#AE54C6] p-1"
               >
                 <Search className="w-4 h-4" />
               </button>
             </form>
 
             {isHydrated && user && (
-              <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-[#F5F7F9] border border-slate-200">
-                <div className="flex items-center gap-2.5">
-                  <UserAvatar user={user} size={32} className="text-[11px]" />
-                  <div>
-                    <div className="text-xs font-bold text-[#24292D]">{user.name}</div>
-                    <div className="text-[10px] font-bold text-[#AE54C6] uppercase">
+              <div className="flex items-center justify-between px-3.5 py-3 rounded-2xl bg-[#F7EDF9]/60 border border-[#F1E2F5]">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <UserAvatar user={user} size={36} className="text-xs shrink-0" />
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold text-[#24292D] truncate">{user.name}</div>
+                    <div className="text-[10px] font-bold text-[#AE54C6] uppercase truncate">
                       {user.role} · {user.email}
                     </div>
                   </div>
                 </div>
-                <Button variant="outline" size="sm" onClick={handleLogout} className="text-xs gap-1">
+                <Button variant="outline" size="sm" onClick={handleLogout} className="text-xs gap-1 shrink-0 px-2.5">
                   <LogOut className="w-3.5 h-3.5" /> Sign Out
                 </Button>
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-2 text-xs font-bold">
-              <Link
-                href="/courses"
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#AE54C6] flex items-center gap-1.5"
-              >
-                <BookOpen className="w-3.5 h-3.5 text-[#AE54C6]" /> Course Categories
-              </Link>
-              <Link
-                href="/dashboard"
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#AE54C6] flex items-center gap-1.5"
-              >
-                <LayoutDashboard className="w-3.5 h-3.5 text-[#AE54C6]" /> Student Dashboard
-              </Link>
-              <Link
-                href="/ai"
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#AE54C6] flex items-center gap-1.5"
-              >
-                <Bot className="w-3.5 h-3.5 text-[#AE54C6]" /> AI Tutor &amp; Hub
-              </Link>
-              <Link
-                href="/sandbox"
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#AE54C6] flex items-center gap-1.5"
-              >
-                <Code2 className="w-3.5 h-3.5 text-[#AE54C6]" /> Coding Sandbox
-              </Link>
-              <Link
-                href="/live"
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#AE54C6] flex items-center gap-1.5"
-              >
-                <Video className="w-3.5 h-3.5 text-[#AE54C6]" /> Live Classes
-              </Link>
-              <Link
-                href="/community"
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#AE54C6] flex items-center gap-1.5"
-              >
-                <MessageSquare className="w-3.5 h-3.5 text-[#AE54C6]" /> Community Chat
-              </Link>
-              <Link
-                href="/leaderboard"
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#AE54C6] flex items-center gap-1.5"
-              >
-                <Trophy className="w-3.5 h-3.5 text-[#AE54C6]" /> Leaderboard
-              </Link>
-              <Link
-                href="/subscriptions"
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#AE54C6] flex items-center gap-1.5"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-[#AE54C6]" /> Plans &amp; Enroll
-              </Link>
-              <Link
-                href="/login"
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#AE54C6] flex items-center gap-1.5"
-              >
-                <UserIcon className="w-3.5 h-3.5 text-[#AE54C6]" /> Login / Signup
-              </Link>
-              <Link
-                href="/qr-studio"
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#AE54C6] flex items-center gap-1.5"
-              >
-                <QrCode className="w-3.5 h-3.5 text-[#AE54C6]" /> Banner QR Studio
-              </Link>
-              {(user?.role === "INSTRUCTOR" || user?.role === "ADMIN" || !user) && (
+            {/* Section 1: Core Navigation */}
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-[#8580A3] px-1 block mb-2">
+                Academy &amp; Learning
+              </span>
+              <div className="grid grid-cols-2 gap-2 text-xs font-bold">
                 <Link
-                  href="/instructor"
+                  href="/courses"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#AE54C6] flex items-center gap-1.5"
+                  className={`px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-all ${
+                    isActive("/courses")
+                      ? "bg-[#F7EDF9] border-[#AE54C6]/40 text-[#AE54C6]"
+                      : "bg-[#F5F7F9] border-transparent text-[#24292D] hover:text-[#AE54C6]"
+                  }`}
                 >
-                  <GraduationCap className="w-3.5 h-3.5 text-[#AE54C6]" /> Instructor Studio
+                  <BookOpen className="w-4 h-4 text-[#AE54C6] shrink-0" />
+                  <span className="truncate">Courses</span>
                 </Link>
-              )}
-              {(user?.role === "ADMIN" || !user) && (
                 <Link
-                  href="/admin"
+                  href={dashboardHref}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="px-3 py-2.5 rounded-xl bg-[#F5F7F9] text-[#24292D] hover:text-[#AE54C6] flex items-center gap-1.5"
+                  className={`px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-all ${
+                    isActive("/dashboard")
+                      ? "bg-[#F7EDF9] border-[#AE54C6]/40 text-[#AE54C6]"
+                      : "bg-[#F5F7F9] border-transparent text-[#24292D] hover:text-[#AE54C6]"
+                  }`}
                 >
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#AE54C6]" /> Admin Portal
+                  <LayoutDashboard className="w-4 h-4 text-[#AE54C6] shrink-0" />
+                  <span className="truncate">Dashboard</span>
                 </Link>
-              )}
+                <Link
+                  href="/subscriptions"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-all ${
+                    isActive("/subscriptions")
+                      ? "bg-[#F7EDF9] border-[#AE54C6]/40 text-[#AE54C6]"
+                      : "bg-[#F5F7F9] border-transparent text-[#24292D] hover:text-[#AE54C6]"
+                  }`}
+                >
+                  <Sparkles className="w-4 h-4 text-[#AE54C6] shrink-0" />
+                  <span className="truncate">Enroll &amp; Tuition</span>
+                </Link>
+                <Link
+                  href={user ? dashboardHref : "/login"}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-all ${
+                    isActive("/login")
+                      ? "bg-[#F7EDF9] border-[#AE54C6]/40 text-[#AE54C6]"
+                      : "bg-[#F5F7F9] border-transparent text-[#24292D] hover:text-[#AE54C6]"
+                  }`}
+                >
+                  <UserIcon className="w-4 h-4 text-[#AE54C6] shrink-0" />
+                  <span className="truncate">{user ? "My Account" : "Sign In"}</span>
+                </Link>
+              </div>
             </div>
+
+            {/* Section 2: Student Tech Toolbelt */}
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-[#8580A3] px-1 block mb-2">
+                Tech Toolbelt
+              </span>
+              <div className="grid grid-cols-2 gap-2 text-xs font-bold">
+                <Link
+                  href="/ai"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-all ${
+                    isActive("/ai")
+                      ? "bg-[#F7EDF9] border-[#AE54C6]/40 text-[#AE54C6]"
+                      : "bg-[#F5F7F9] border-transparent text-[#24292D] hover:text-[#AE54C6]"
+                  }`}
+                >
+                  <Bot className="w-4 h-4 text-[#AE54C6] shrink-0" />
+                  <span className="truncate">AI Tutor</span>
+                </Link>
+                <Link
+                  href="/sandbox"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-all ${
+                    isActive("/sandbox")
+                      ? "bg-[#F7EDF9] border-[#AE54C6]/40 text-[#AE54C6]"
+                      : "bg-[#F5F7F9] border-transparent text-[#24292D] hover:text-[#AE54C6]"
+                  }`}
+                >
+                  <Code2 className="w-4 h-4 text-[#AE54C6] shrink-0" />
+                  <span className="truncate">Code Sandbox</span>
+                </Link>
+                <Link
+                  href="/live"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-all ${
+                    isActive("/live")
+                      ? "bg-[#F7EDF9] border-[#AE54C6]/40 text-[#AE54C6]"
+                      : "bg-[#F5F7F9] border-transparent text-[#24292D] hover:text-[#AE54C6]"
+                  }`}
+                >
+                  <Video className="w-4 h-4 text-[#AE54C6] shrink-0" />
+                  <span className="truncate">Live Studio</span>
+                </Link>
+                <Link
+                  href="/community"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-all ${
+                    isActive("/community")
+                      ? "bg-[#F7EDF9] border-[#AE54C6]/40 text-[#AE54C6]"
+                      : "bg-[#F5F7F9] border-transparent text-[#24292D] hover:text-[#AE54C6]"
+                  }`}
+                >
+                  <MessageSquare className="w-4 h-4 text-[#AE54C6] shrink-0" />
+                  <span className="truncate">Community</span>
+                </Link>
+                <Link
+                  href="/leaderboard"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-all ${
+                    isActive("/leaderboard")
+                      ? "bg-[#F7EDF9] border-[#AE54C6]/40 text-[#AE54C6]"
+                      : "bg-[#F5F7F9] border-transparent text-[#24292D] hover:text-[#AE54C6]"
+                  }`}
+                >
+                  <Trophy className="w-4 h-4 text-[#AE54C6] shrink-0" />
+                  <span className="truncate">Leaderboard</span>
+                </Link>
+                <Link
+                  href="/qr-studio"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-all ${
+                    isActive("/qr-studio")
+                      ? "bg-[#F7EDF9] border-[#AE54C6]/40 text-[#AE54C6]"
+                      : "bg-[#F5F7F9] border-transparent text-[#24292D] hover:text-[#AE54C6]"
+                  }`}
+                >
+                  <QrCode className="w-4 h-4 text-[#AE54C6] shrink-0" />
+                  <span className="truncate">QR Studio</span>
+                </Link>
+              </div>
+            </div>
+
+            {/* Section 3: Staff & Instructor Portal */}
+            {(user?.role === "INSTRUCTOR" || user?.role === "ADMIN" || !user) && (
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#8580A3] px-1 block mb-2">
+                  Staff &amp; Faculty
+                </span>
+                <div className="grid grid-cols-2 gap-2 text-xs font-bold">
+                  <Link
+                    href="/instructor"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-all ${
+                      isActive("/instructor")
+                        ? "bg-[#F7EDF9] border-[#AE54C6]/40 text-[#AE54C6]"
+                        : "bg-[#F5F7F9] border-transparent text-[#24292D] hover:text-[#AE54C6]"
+                    }`}
+                  >
+                    <GraduationCap className="w-4 h-4 text-[#AE54C6] shrink-0" />
+                    <span className="truncate">Instructor Studio</span>
+                  </Link>
+                  {(user?.role === "ADMIN" || !user) && (
+                    <Link
+                      href="/admin"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-all ${
+                        isActive("/admin")
+                          ? "bg-[#F7EDF9] border-[#AE54C6]/40 text-[#AE54C6]"
+                          : "bg-[#F5F7F9] border-transparent text-[#24292D] hover:text-[#AE54C6]"
+                      }`}
+                    >
+                      <ShieldCheck className="w-4 h-4 text-[#AE54C6] shrink-0" />
+                      <span className="truncate">Admin Portal</span>
+                    </Link>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

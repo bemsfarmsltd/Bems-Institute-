@@ -101,7 +101,7 @@ export function Hero() {
               <path d="M12 0L14.2 8.2L21.5 4.5L16.5 11L24 13.5L15.8 15L19.5 22.5L12.8 17.2L9.5 24L9.2 15.8L1.5 18.5L7.2 12.2L0 8.5L8.2 8.2L6.5 0.5L12 6.8L12 0Z" />
             </svg>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-extrabold text-[#24292D] tracking-tight leading-[1.18] mb-6">
+            <h1 className="text-3xl sm:text-5xl lg:text-[56px] font-extrabold text-[#24292D] tracking-tight leading-[1.18] mb-6">
               Learn in Umuahia, <br />
               <span className="relative inline-block px-2 mt-1">
                 {/* Eduport Hand-Painted Yellow Brushstroke Highlight */}
@@ -148,28 +148,28 @@ export function Hero() {
             </div>
 
             {/* Eduport Dual Action Buttons */}
-            <div className="flex flex-wrap items-center gap-5">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-5">
               <Link
                 href="/subscriptions"
                 data-tour="hero-cta"
-                className="inline-flex items-center justify-center rounded-lg bg-[#AE54C6] hover:bg-[#A03BBC] text-white font-bold text-sm px-7 py-3.5 transition-all duration-200 shadow-2xs"
+                className="inline-flex items-center justify-center rounded-lg bg-[#AE54C6] hover:bg-[#A03BBC] text-white font-bold text-xs sm:text-sm px-5 sm:px-7 py-3 sm:py-3.5 transition-all duration-200 shadow-2xs"
               >
                 Get Started
               </Link>
 
               <Link
                 href="#courses"
-                className="inline-flex items-center gap-3.5 group text-sm font-bold text-[#24292D] hover:text-[#AE54C6] transition-colors"
+                className="inline-flex items-center gap-2.5 sm:gap-3.5 group text-xs sm:text-sm font-bold text-[#24292D] hover:text-[#AE54C6] transition-colors"
               >
-                <span className="w-12 h-12 rounded-full bg-[#AE54C6] text-white flex items-center justify-center ring-8 ring-[#AE54C6]/15 group-hover:scale-105 transition-transform">
-                  <Play className="w-4 h-4 fill-white ml-0.5" />
+                <span className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#AE54C6] text-white flex items-center justify-center ring-4 sm:ring-8 ring-[#AE54C6]/15 group-hover:scale-105 transition-transform">
+                  <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-white ml-0.5" />
                 </span>
                 <span>Explore Courses</span>
               </Link>
 
               <Link
                 href="/qr-studio"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#747579] hover:text-[#AE54C6] transition-colors ml-auto sm:ml-2"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#747579] hover:text-[#AE54C6] transition-colors"
               >
                 <QrCode className="w-4 h-4 text-[#AE54C6]" />
                 <span>Banner QR Studio</span>
@@ -188,23 +188,23 @@ export function Hero() {
           </div>
 
           {/* Right Column: Eduport Organic Navy Shape + Student Portrait + Floating Badges */}
-          <div className="lg:col-span-6 relative flex justify-center">
-            <div className="relative w-full max-w-[490px]">
+          <div className="lg:col-span-6 relative flex justify-center w-full px-2 sm:px-0">
+            <div className="relative w-full max-w-[490px] flex justify-center">
               {/* Organic Eduport Navy Shape Container */}
-              <div className="relative mx-auto w-[320px] h-[360px] sm:w-[410px] sm:h-[440px] rounded-[46%_54%_48%_52%/54%_46%_54%_46%] bg-[#334E5B] overflow-hidden shadow-xl">
+              <div className="relative mx-auto w-[270px] h-[310px] sm:w-[410px] sm:h-[440px] rounded-[46%_54%_48%_52%/54%_46%_54%_46%] bg-[#334E5B] overflow-hidden shadow-xl">
                 <Image
                   src="/images/eduport-hero-student.jpg"
                   alt="BEMS Institute Tech Student"
                   fill
                   priority
-                  sizes="(min-width: 640px) 410px, 320px"
+                  sizes="(min-width: 640px) 410px, 270px"
                   className="object-cover object-top scale-105"
                 />
 
                 {/* Hand-Drawn Yellow Lightbulb Doodle (Top-Left inside circle) */}
                 <svg
                   aria-hidden="true"
-                  className="absolute top-16 left-12 w-12 h-12 text-[#F7C32E] opacity-90 pointer-events-none"
+                  className="absolute top-10 left-8 sm:top-16 sm:left-12 w-8 h-8 sm:w-12 sm:h-12 text-[#F7C32E] opacity-90 pointer-events-none"
                   viewBox="0 0 64 64"
                   fill="none"
                   stroke="currentColor"
@@ -222,8 +222,8 @@ export function Hero() {
               </div>
 
               {/* Floating Tech Icon 1: React / Atom (Left) */}
-              <div aria-hidden="true" className="absolute top-1/3 -left-2 sm:-left-6 bg-white rounded-xl p-3 shadow-lg border border-slate-100 flex items-center justify-center">
-                <svg className="w-7 h-7 text-[#2B2848]" viewBox="0 0 24 24" fill="none">
+              <div aria-hidden="true" className="absolute top-1/3 left-0 sm:-left-6 bg-white rounded-xl p-2 sm:p-3 shadow-lg border border-slate-100 flex items-center justify-center">
+                <svg className="w-5 h-5 sm:w-7 sm:h-7 text-[#2B2848]" viewBox="0 0 24 24" fill="none">
                   <circle cx="12" cy="12" r="2.2" fill="currentColor" />
                   <ellipse
                     cx="12"
@@ -255,7 +255,7 @@ export function Hero() {
               </div>
 
               {/* Floating Tech Icon 2: Code / Shield (Top-Right) */}
-              <div aria-hidden="true" className="absolute -top-2 right-4 sm:right-6 bg-white rounded-xl p-2.5 shadow-lg border border-slate-100 flex items-center justify-center">
+              <div aria-hidden="true" className="absolute -top-2 right-2 sm:right-6 bg-white rounded-xl p-2 sm:p-2.5 shadow-lg border border-slate-100 flex items-center justify-center">
                 <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
                   <path
                     d="M12 2L3 5.2L4.4 17.2L12 21.5L19.6 17.2L21 5.2L12 2Z"
@@ -269,8 +269,8 @@ export function Hero() {
               </div>
 
               {/* Floating Tech Icon 3: Figma (Bottom-Right) */}
-              <div aria-hidden="true" className="absolute bottom-20 -right-1 sm:-right-4 bg-white rounded-xl p-2.5 shadow-lg border border-slate-100 flex items-center justify-center">
-                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+              <div aria-hidden="true" className="absolute bottom-16 sm:bottom-20 right-1 sm:-right-4 bg-white rounded-xl p-2 sm:p-2.5 shadow-lg border border-slate-100 flex items-center justify-center">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none">
                   <path
                     d="M8.5 2C6.8 2 5.5 3.3 5.5 5C5.5 6.7 6.8 8 8.5 8H11.5V2H8.5Z"
                     fill="#F24E1E"
@@ -292,7 +292,7 @@ export function Hero() {
               </div>
 
               {/* Floating card: October 2026 cohort avatar stack */}
-              <div className="absolute top-24 -right-2 sm:-right-8 bg-[#AE54C6] text-white rounded-2xl p-4 shadow-xl w-52 overflow-hidden">
+              <div className="absolute top-16 sm:top-24 right-0 sm:-right-8 bg-[#AE54C6] text-white rounded-2xl p-3 sm:p-4 shadow-xl w-44 sm:w-52 overflow-hidden">
                 {/* Subtle topographic wave pattern */}
                 <svg
                   aria-hidden="true"
@@ -306,43 +306,43 @@ export function Hero() {
                     strokeWidth="1.5"
                   />
                 </svg>
-                <p className="text-xs font-bold text-white mb-2.5 relative z-10">
+                <p className="text-[11px] sm:text-xs font-bold text-white mb-2 relative z-10">
                   October 2026 Cohort
                 </p>
-                <div className="flex items-center -space-x-2 relative z-10">
-                  <div className="w-8 h-8 rounded-full border-2 border-white bg-[#F7C32E] text-[#24292D] text-[10px] font-extrabold flex items-center justify-center">
+                <div className="flex items-center -space-x-1.5 sm:-space-x-2 relative z-10">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-white bg-[#F7C32E] text-[#24292D] text-[9px] sm:text-[10px] font-extrabold flex items-center justify-center">
                     CO
                   </div>
-                  <div className="w-8 h-8 rounded-full border-2 border-white bg-[#D6293E] text-white text-[10px] font-extrabold flex items-center justify-center">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-white bg-[#D6293E] text-white text-[9px] sm:text-[10px] font-extrabold flex items-center justify-center">
                     AN
                   </div>
-                  <div className="w-8 h-8 rounded-full border-2 border-white bg-[#A16EBD] text-white text-[10px] font-extrabold flex items-center justify-center">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-white bg-[#A16EBD] text-white text-[9px] sm:text-[10px] font-extrabold flex items-center justify-center">
                     EK
                   </div>
-                  <div className="w-8 h-8 rounded-full border-2 border-white bg-[#1D3B53] text-white text-[10px] font-extrabold flex items-center justify-center">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-white bg-[#1D3B53] text-white text-[9px] sm:text-[10px] font-extrabold flex items-center justify-center">
                     UI
                   </div>
-                  <div className="w-9 h-9 rounded-full border-2 border-white bg-[#AE54C6] text-white text-[10px] font-extrabold flex items-center justify-center">
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border-2 border-white bg-[#AE54C6] text-white text-[9px] sm:text-[10px] font-extrabold flex items-center justify-center">
                     80+
                   </div>
                 </div>
               </div>
 
               {/* Eduport Frosted Floating Card: "Congratulations · Your admission completed" */}
-              <div className="absolute bottom-3 left-0 sm:-left-6 bg-white/90 backdrop-blur-md border border-white rounded-2xl p-3.5 pr-5 shadow-xl flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-full bg-[#F7C32E] text-white flex items-center justify-center shrink-0 shadow-sm">
-                  <Mail className="w-5 h-5" />
+              <div className="absolute bottom-2 left-0 sm:-left-6 bg-white/95 backdrop-blur-md border border-white rounded-2xl p-2.5 sm:p-3.5 pr-4 sm:pr-5 shadow-xl flex items-center gap-2.5 sm:gap-3.5 max-w-[260px] sm:max-w-none">
+                <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-[#F7C32E] text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <Mail className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
-                <div>
-                  <div className="flex items-center justify-between gap-3">
-                    <h4 className="text-xs sm:text-sm font-extrabold text-[#24292D]">
+                <div className="min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <h4 className="text-[11px] sm:text-sm font-extrabold text-[#24292D] truncate">
                       Congratulations
                     </h4>
-                    <span className="w-4 h-4 rounded-full bg-[#AE54C6] text-white flex items-center justify-center text-[10px] font-bold">
+                    <span className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-[#AE54C6] text-white flex items-center justify-center text-[9px] sm:text-[10px] font-bold shrink-0">
                       ✓
                     </span>
                   </div>
-                  <p className="text-xs text-[#747579] mt-0.5">Your admission completed</p>
+                  <p className="text-[10px] sm:text-xs text-[#747579] mt-0.5 truncate">Your admission completed</p>
                 </div>
               </div>
             </div>

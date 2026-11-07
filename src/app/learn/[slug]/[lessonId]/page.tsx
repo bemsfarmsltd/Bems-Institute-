@@ -221,11 +221,11 @@ export default function LessonViewPage({
                   </h2>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto">
                   <Button
                     onClick={() => toggleLessonComplete(currentLesson.id)}
                     variant={isCompleted ? "secondary" : "outline"}
-                    className="border-[#E5C8ED]"
+                    className="flex-1 sm:flex-initial border-[#E5C8ED] text-xs"
                   >
                     {isCompleted ? (
                       <>
@@ -243,7 +243,7 @@ export default function LessonViewPage({
                   <Button
                     onClick={handleNextOrFinish}
                     variant="purple"
-                    className="shadow-sm"
+                    className="flex-1 sm:flex-initial shadow-sm text-xs"
                   >
                     {nextLesson ? (
                       <>
