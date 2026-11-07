@@ -92,8 +92,8 @@ function InstructorDashboardContent() {
               </Link>
 
               <Link href="/instructor/attendance">
-                <Button variant="outline" className="bg-transparent border-white/20 text-white hover:bg-white/10">
-                  <UserCheck className="w-4 h-4 mr-1.5" /> Attendance
+                <Button variant="outline" className="bg-white text-[#303654] hover:text-[#AE54C6] hover:bg-[#FAF8FF] hover:border-[#AE54C6] font-bold text-xs shadow-xs">
+                  <UserCheck className="w-4 h-4 mr-1.5 text-[#AE54C6]" /> Attendance
                 </Button>
               </Link>
 
@@ -101,7 +101,7 @@ function InstructorDashboardContent() {
                 <Link href="/admin">
                   <Button
                     variant="outline"
-                    className="bg-transparent border-white/20 text-white hover:bg-white/10"
+                    className="bg-white text-[#303654] hover:text-[#AE54C6] hover:bg-[#FAF8FF] hover:border-[#AE54C6] font-bold text-xs shadow-xs"
                   >
                     Admin Master Console &rarr;
                   </Button>

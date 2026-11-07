@@ -112,9 +112,9 @@ export default function CertificateViewPage({
               onClick={handlePrint}
               variant="outline"
               size="sm"
-              className="bg-transparent border-white/20 text-white hover:bg-white/10"
+              className="bg-white text-[#303654] hover:text-[#AE54C6] hover:bg-[#FAF8FF] hover:border-[#AE54C6] font-bold text-xs shadow-xs"
             >
-              <Printer className="w-4 h-4 mr-1.5" /> Print / Save PDF
+              <Printer className="w-4 h-4 mr-1.5 text-[#AE54C6]" /> Print / Save PDF
             </Button>
             <Button
               onClick={handleShare}

@@ -137,7 +137,7 @@ export default function LiveClassesPage() {
                 </Button>
               )}
               <Link href="/dashboard">
-                <Button variant="outline" className="bg-transparent border-white/20 text-white hover:bg-white/10 text-xs">
+                <Button variant="outline" className="bg-white text-[#303654] hover:text-[#AE54C6] hover:bg-[#FAF8FF] hover:border-[#AE54C6] font-bold text-xs shadow-xs">
                   Dashboard
                 </Button>
               </Link>

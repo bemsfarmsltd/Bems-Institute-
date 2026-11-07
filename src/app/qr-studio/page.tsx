@@ -172,12 +172,12 @@ export default function QRStudioPage() {
               variant="outline"
               size="sm"
               onClick={() => window.print()}
-              className="border-white/20 text-white hover:bg-white/10 text-xs"
+              className="bg-white text-[#303654] hover:text-[#AE54C6] hover:bg-[#FAF8FF] hover:border-[#AE54C6] font-bold text-xs shadow-xs"
             >
-              <Printer className="w-4 h-4 mr-1.5" /> Print QR Sheet
+              <Printer className="w-4 h-4 mr-1.5 text-[#AE54C6]" /> Print QR Sheet
             </Button>
             <Link href="/admin?tab=analytics">
-              <Button variant="purple" size="sm" className="text-xs shadow-md">
+              <Button variant="purple" size="sm" className="text-xs font-bold shadow-md">
                 <BarChart3 className="w-4 h-4 mr-1.5" /> View Scan Analytics
               </Button>
             </Link>

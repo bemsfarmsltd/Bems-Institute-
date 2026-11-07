@@ -89,8 +89,8 @@ function InstructorGradingContent() {
           </div>
 
           <Link href="/instructor">
-            <Button variant="outline" size="sm" className="bg-white/10 text-white border-white/20 hover:bg-white/20">
-              <ArrowLeft className="w-4 h-4 mr-1.5" /> Back to Instructor Studio
+            <Button variant="outline" size="sm" className="bg-white text-[#303654] hover:text-[#AE54C6] hover:bg-[#FAF8FF] hover:border-[#AE54C6] font-bold text-xs shadow-xs">
+              <ArrowLeft className="w-4 h-4 mr-1.5 text-[#AE54C6]" /> Back to Instructor Studio
             </Button>
           </Link>
         </div>
