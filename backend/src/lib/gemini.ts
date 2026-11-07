@@ -3,6 +3,7 @@ import {
   AIChatMessage,
   GeneratedQuiz,
   AIStudyPlan,
+  StudyPlanWeek,
   AIFeedbackResult,
   PersonalizedRecommendation
 } from "@/types/ai";
@@ -556,46 +557,387 @@ Respond with ONLY a JSON object of this exact shape, no markdown fences, no comm
 // 3. AI STUDY ASSISTANT & SCHEDULE BUILDER
 // ============================================================================
 
+interface RawGeminiStudyPlanWeek {
+  weekNumber?: number;
+  title?: string;
+  focusArea?: string;
+  estimatedHours?: number;
+  dailyBreakdown?: Array<{ day?: string; task?: string; duration?: string }>;
+  milestoneProject?: string;
+  labWorkstationTip?: string;
+  keySkills?: string[];
+  checkpointQuizTopic?: string;
+}
+
+interface RawGeminiStudyPlan {
+  tutorTip?: string;
+  estimatedGraduation?: string;
+  levelBadge?: string;
+  totalWeeks?: number;
+  weeks?: RawGeminiStudyPlanWeek[];
+}
+
 export async function generatePersonalizedStudyPlan(
   studentName: string,
   trackTitle: string,
   hoursPerWeek: number = 8,
-  learningPace: "Accelerated" | "Standard" | "Flexible Weekend" = "Standard"
+  learningPace: "Accelerated" | "Standard" | "Flexible Weekend" = "Standard",
+  targetGoal: string = "Launch First Full App / SaaS"
 ): Promise<AIStudyPlan> {
   const isWeekend = learningPace === "Flexible Weekend";
+  const isAccelerated = learningPace === "Accelerated";
+  const numWeeks = isAccelerated ? 6 : isWeekend ? 12 : 10;
 
-  return {
-    id: `plan-${Date.now()}`,
-    studentName,
-    trackTitle,
-    hoursPerWeek,
-    totalWeeks: 12,
-    learningPace,
-    createdAt: new Date().toISOString(),
-    tutorTip: `Consistency beats cramming! In the BEMS Umuahia lab, students who spend ${hoursPerWeek} focused hours every week finish their capstones 3 weeks ahead of schedule.`,
-    weeks: [
+  if (ai) {
+    try {
+      const prompt = `You are the Lead Academic Architect at BEMS Institute of Technology (Umuahia, Nigeria).
+Create a personalized, inspiring, step-by-step study roadmap for student "${studentName}".
+Track: "${trackTitle}"
+Weekly commitment: ${hoursPerWeek} hours/week
+Pace: "${learningPace}"
+Target Goal: "${targetGoal}"
+
+Provide a realistic curriculum with 4 to 6 core weekly modules calibrated to this schedule.
+For each week provide:
+1. weekNumber (integer starting at 1)
+2. title (concise week topic)
+3. focusArea (practical skills mastered)
+4. estimatedHours (${hoursPerWeek})
+5. dailyBreakdown (2-4 concrete daily tasks with 'day', 'task', and 'duration')
+6. milestoneProject (a tangible deliverable or mini-project to build)
+7. labWorkstationTip (a practical workstation or local tooling tip)
+8. keySkills (array of 2-3 key technologies or libraries)
+9. checkpointQuizTopic (topic for the weekly check-in quiz)
+
+Also provide:
+- tutorTip: An encouraging, practical tip referencing BEMS Umuahia lab culture, consistency, and real-world African tech opportunities.
+- estimatedGraduation: Target completion timeframe (e.g. "December 2026").
+- levelBadge: e.g. "Level 1: Code Cadet 🛡️".
+
+Respond ONLY with valid JSON in this exact structure:
+{
+  "tutorTip": "string",
+  "estimatedGraduation": "string",
+  "levelBadge": "string",
+  "totalWeeks": number,
+  "weeks": [
+    {
+      "weekNumber": 1,
+      "title": "string",
+      "focusArea": "string",
+      "estimatedHours": number,
+      "dailyBreakdown": [
+        { "day": "string", "task": "string", "duration": "string" }
+      ],
+      "milestoneProject": "string",
+      "labWorkstationTip": "string",
+      "keySkills": ["string"],
+      "checkpointQuizTopic": "string"
+    }
+  ]
+}`;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        config: {
+          responseMimeType: "application/json",
+          temperature: 0.7
+        }
+      });
+
+      const responseText = response.text;
+      if (responseText) {
+        const parsed: RawGeminiStudyPlan = JSON.parse(responseText);
+        if (Array.isArray(parsed.weeks) && parsed.weeks.length > 0) {
+          const validatedWeeks: StudyPlanWeek[] = parsed.weeks.map((w, idx) => ({
+            weekNumber: typeof w.weekNumber === "number" ? w.weekNumber : idx + 1,
+            title: typeof w.title === "string" ? w.title : `Module ${idx + 1}`,
+            focusArea: typeof w.focusArea === "string" ? w.focusArea : "Core hands-on competencies",
+            estimatedHours: typeof w.estimatedHours === "number" ? w.estimatedHours : hoursPerWeek,
+            dailyBreakdown: Array.isArray(w.dailyBreakdown)
+              ? w.dailyBreakdown.map((d) => ({
+                  day: typeof d.day === "string" ? d.day : "Day",
+                  task: typeof d.task === "string" ? d.task : "Complete module lesson & lab practice",
+                  duration: typeof d.duration === "string" ? d.duration : "2 Hours"
+                }))
+              : [
+                  { day: isWeekend ? "Saturday" : "Tuesday", task: "Review theory and complete code walkthrough", duration: `${Math.ceil(hoursPerWeek / 2)} Hours` },
+                  { day: isWeekend ? "Sunday" : "Thursday", task: "Practical workstation lab exercises & quiz", duration: `${Math.floor(hoursPerWeek / 2)} Hours` }
+                ],
+            milestoneProject: typeof w.milestoneProject === "string" ? w.milestoneProject : "Working mini-application showcase",
+            labWorkstationTip: typeof w.labWorkstationTip === "string" ? w.labWorkstationTip : "Test in Chrome DevTools responsive preview mode.",
+            keySkills: Array.isArray(w.keySkills) ? w.keySkills.filter((s): s is string => typeof s === "string") : [],
+            checkpointQuizTopic: typeof w.checkpointQuizTopic === "string" ? w.checkpointQuizTopic : w.title || "Foundations"
+          }));
+
+          return {
+            id: `gemini-plan-${Date.now()}`,
+            studentName,
+            trackTitle,
+            hoursPerWeek,
+            totalWeeks: typeof parsed.totalWeeks === "number" ? parsed.totalWeeks : numWeeks,
+            learningPace,
+            createdAt: new Date().toISOString(),
+            tutorTip: parsed.tutorTip || `Consistency beats cramming! In the BEMS Umuahia lab, students spending ${hoursPerWeek} focused hours every week finish their capstones 3 weeks ahead of schedule.`,
+            estimatedGraduation: parsed.estimatedGraduation || (isAccelerated ? "6 Weeks from today" : "12 Weeks from today"),
+            levelBadge: parsed.levelBadge || "Level 1: Code Cadet 🛡️",
+            targetGoal,
+            weeks: validatedWeeks
+          };
+        }
+      }
+    } catch (err) {
+      console.warn("Gemini study plan generation failed, falling back to structured syllabus:", err);
+    }
+  }
+
+  // High-fidelity curriculum fallbacks by Track & Pace
+  const trackKey = trackTitle.toLowerCase();
+  let weeks: StudyPlanWeek[] = [];
+
+  if (trackKey.includes("ai") || trackKey.includes("automation")) {
+    weeks = [
       {
         weekNumber: 1,
-        title: "Development Environment & Foundations",
-        focusArea: "Workstation setup, VS Code extensions, Git workflow & syntax fundamentals",
+        title: "LLM Foundations & Prompt Engineering",
+        focusArea: "Context windows, tokenization, system prompts, few-shot vs zero-shot formatting",
         estimatedHours: hoursPerWeek,
         dailyBreakdown: isWeekend
           ? [
-              { day: "Saturday Morning", task: "Watch Module 1 lessons & set up local lab tools", duration: "3 Hours" },
-              { day: "Saturday Afternoon", task: "Build initial semantic layout exercises", duration: "2 Hours" },
+              { day: "Saturday Morning", task: "Study Gemini 2.5 architecture & prompt temperature controls", duration: "3 Hours" },
+              { day: "Saturday Afternoon", task: "Build structured JSON extraction prompts in Google AI Studio", duration: "2 Hours" },
+              { day: "Sunday Evening", task: "Complete Week 1 prompt evaluation benchmark and quiz", duration: "3 Hours" }
+            ]
+          : [
+              { day: "Monday", task: "Explore LLM tokens, hallucinations, and system instructions", duration: "2 Hours" },
+              { day: "Wednesday", task: "Design few-shot exemplars for structured JSON outputs", duration: "3 Hours" },
+              { day: "Friday", task: "Prompt security & prompt injection defense workshop", duration: "3 Hours" }
+            ],
+        milestoneProject: "Automated customer email classification and structured triage prompt",
+        labWorkstationTip: "Use Workstation 3 in the BEMS Lab for high-speed fiber access to Gemini API endpoints.",
+        keySkills: ["Prompt Engineering", "Gemini 2.5 Flash", "JSON Mode"],
+        checkpointQuizTopic: "Prompt Engineering & Structured Outputs"
+      },
+      {
+        weekNumber: 2,
+        title: "Workflow Automation with Make & Zapier",
+        focusArea: "Webhooks, REST triggers, payload parsing, conditional routers, error retries",
+        estimatedHours: hoursPerWeek,
+        dailyBreakdown: isWeekend
+          ? [
+              { day: "Saturday", task: "Set up Make.com scenarios triggered by Paystack webhook events", duration: "4 Hours" },
+              { day: "Sunday", task: "Format automated WhatsApp notifications with Twilio integration", duration: "4 Hours" }
+            ]
+          : [
+              { day: "Tuesday", task: "Configure inbound webhook listeners & test payload schemas", duration: "2.5 Hours" },
+              { day: "Thursday", task: "Add Gemini API node for automated sentiment summarization", duration: "3 Hours" },
+              { day: "Saturday", task: "End-to-end stress testing and Take AI Practice Quiz", duration: "2.5 Hours" }
+            ],
+        milestoneProject: "Zero-code invoice generation pipeline sending automated receipts upon payment",
+        labWorkstationTip: "Set up Webhook.site on your browser tab to inspect raw headers before routing.",
+        keySkills: ["Make.com", "Webhooks", "REST APIs"],
+        checkpointQuizTopic: "Webhooks & Automation Architecture"
+      },
+      {
+        weekNumber: 3,
+        title: "Retrieval-Augmented Generation (RAG) & Embeddings",
+        focusArea: "Text chunking strategies, vector embeddings, vector databases (Pinecone/Chroma), grounded search",
+        estimatedHours: hoursPerWeek,
+        dailyBreakdown: [
+          { day: isWeekend ? "Saturday" : "Wednesday", task: "Implement text chunking with overlap & generate embeddings", duration: `${Math.ceil(hoursPerWeek / 2)} Hours` },
+          { day: isWeekend ? "Sunday" : "Friday", task: "Query vector index and ground Gemini prompt with top-k snippets", duration: `${Math.floor(hoursPerWeek / 2)} Hours` }
+        ],
+        milestoneProject: "Interactive AI Knowledge Bot trained on custom BEMS course PDFs",
+        labWorkstationTip: "Keep chunk size around 500 characters with 50-character overlap for optimal recall.",
+        keySkills: ["Vector Embeddings", "RAG Architecture", "Vector Search"],
+        checkpointQuizTopic: "RAG & Vector Retrieval"
+      },
+      {
+        weekNumber: 4,
+        title: "Autonomous AI Agents & Tool Calling",
+        focusArea: "Function calling (tools), multi-agent loops, stateful conversations, memory management",
+        estimatedHours: hoursPerWeek,
+        dailyBreakdown: [
+          { day: isWeekend ? "Saturday" : "Tuesday", task: "Define OpenAPI JSON tool schemas for real-time weather and currency APIs", duration: `${Math.ceil(hoursPerWeek / 2)} Hours` },
+          { day: isWeekend ? "Sunday" : "Thursday", task: "Build autonomous agent loop that executes tools and synthesizes final answer", duration: `${Math.floor(hoursPerWeek / 2)} Hours` }
+        ],
+        milestoneProject: "Autonomous Nigerian Market Research Agent executing live currency conversions",
+        labWorkstationTip: "Inspect raw tool_call objects in console to verify arguments before model execution.",
+        keySkills: ["Function Calling", "Tool Calling", "Autonomous Loops"],
+        checkpointQuizTopic: "AI Agents & Function Calling"
+      }
+    ];
+  } else if (trackKey.includes("design") || trackKey.includes("ui") || trackKey.includes("ux")) {
+    weeks = [
+      {
+        weekNumber: 1,
+        title: "Design Thinking, User Personas & Wireframing",
+        focusArea: "User journey mapping, low-fidelity wireframing, information architecture, Figma basics",
+        estimatedHours: hoursPerWeek,
+        dailyBreakdown: isWeekend
+          ? [
+              { day: "Saturday", task: "Interview 2 students & draft empathy maps and user personas", duration: "4 Hours" },
+              { day: "Sunday", task: "Sketch paper wireframes & create 8-screen wireframe flow in Figma", duration: "4 Hours" }
+            ]
+          : [
+              { day: "Monday", task: "User research methods and pain-point identification", duration: "2 Hours" },
+              { day: "Wednesday", task: "Low-fidelity wireframing for mobile fintech app", duration: "3 Hours" },
+              { day: "Friday", task: "Peer critique session in BEMS Design Studio", duration: "3 Hours" }
+            ],
+        milestoneProject: "Complete UX case study wireframe for a local student food delivery app",
+        labWorkstationTip: "Review wireframes at 100% zoom scale on mobile devices via Figma Mirror app.",
+        keySkills: ["Figma Wireframes", "UX Research", "Information Architecture"],
+        checkpointQuizTopic: "Design Thinking & Wireframing"
+      },
+      {
+        weekNumber: 2,
+        title: "Figma Auto-Layout & Design Systems",
+        focusArea: "Auto-layout nested frames, responsive constraints, typography scales, color token architecture",
+        estimatedHours: hoursPerWeek,
+        dailyBreakdown: isWeekend
+          ? [
+              { day: "Saturday", task: "Build modular component library (buttons, cards, navigation bars)", duration: "4 Hours" },
+              { day: "Sunday", task: "Configure Figma component variants, boolean props, and instance swap", duration: "4 Hours" }
+            ]
+          : [
+              { day: "Tuesday", task: "Figma Auto-Layout horizontal and vertical resizing behaviors", duration: "2.5 Hours" },
+              { day: "Thursday", task: "Establishing 8pt grid system and accessible WCAG color contrast", duration: "3 Hours" },
+              { day: "Saturday", task: "Responsive component stress testing across 375px and 1440px", duration: "2.5 Hours" }
+            ],
+        milestoneProject: "High-class UI Component Design System with 20+ production-ready variants",
+        labWorkstationTip: "Check color contrast using the Stark Figma plugin to ensure AAA accessibility.",
+        keySkills: ["Figma Auto-Layout", "Design Tokens", "Design Systems"],
+        checkpointQuizTopic: "Auto-Layout & Design Tokens"
+      },
+      {
+        weekNumber: 3,
+        title: "Interactive Prototyping & Micro-Interactions",
+        focusArea: "Smart Animate, interactive components, hover/press states, prototype page transitions",
+        estimatedHours: hoursPerWeek,
+        dailyBreakdown: [
+          { day: isWeekend ? "Saturday" : "Wednesday", task: "Build interactive modals, bottom sheets, and animated card transitions", duration: `${Math.ceil(hoursPerWeek / 2)} Hours` },
+          { day: isWeekend ? "Sunday" : "Friday", task: "Conduct prototype usability tests and record user interaction heatmaps", duration: `${Math.floor(hoursPerWeek / 2)} Hours` }
+        ],
+        milestoneProject: "Clickable, high-fidelity mobile banking prototype with realistic pin checkout",
+        labWorkstationTip: "Use Smart Animate with 300ms ease-out timing curve for natural-feeling animations.",
+        keySkills: ["Smart Animate", "Interactive Prototyping", "Usability Testing"],
+        checkpointQuizTopic: "Prototyping & Micro-Interactions"
+      },
+      {
+        weekNumber: 4,
+        title: "Developer Handoff & Capstone Design Showcase",
+        focusArea: "Design tokens export, CSS inspection, asset exporting (SVG/WebP), Behance case study formatting",
+        estimatedHours: hoursPerWeek,
+        dailyBreakdown: [
+          { day: isWeekend ? "Saturday" : "Tuesday", task: "Annotate design specs for Next.js developers (margins, paddings, tokens)", duration: `${Math.ceil(hoursPerWeek / 2)} Hours` },
+          { day: isWeekend ? "Sunday" : "Thursday", task: "Publish polished Behance presentation and present to lead instructor", duration: `${Math.floor(hoursPerWeek / 2)} Hours` }
+        ],
+        milestoneProject: "Complete Behance-ready UI/UX Portfolio Case Study with live prototype link",
+        labWorkstationTip: "Export SVGs with outline strokes and optimized paths to minimize web bundle size.",
+        keySkills: ["Developer Handoff", "Design Specs", "Portfolio Presentation"],
+        checkpointQuizTopic: "Developer Handoff & Specifications"
+      }
+    ];
+  } else if (trackKey.includes("cyber") || trackKey.includes("security")) {
+    weeks = [
+      {
+        weekNumber: 1,
+        title: "Linux Foundations & Network Fundamentals",
+        focusArea: "Linux CLI, file permissions, TCP/IP stack, DNS resolution, Wireshark packet capture",
+        estimatedHours: hoursPerWeek,
+        dailyBreakdown: isWeekend
+          ? [
+              { day: "Saturday", task: "Master Linux terminal commands, SSH keys, and user permissions", duration: "4 Hours" },
+              { day: "Sunday", task: "Capture and analyze HTTP vs HTTPS packets using Wireshark", duration: "4 Hours" }
+            ]
+          : [
+              { day: "Monday", task: "Linux administration, chmod, chown, and process management", duration: "2 Hours" },
+              { day: "Wednesday", task: "OSI model layers and TCP handshake analysis", duration: "3 Hours" },
+              { day: "Friday", task: "Hands-on packet filtering and network subnetting lab", duration: "3 Hours" }
+            ],
+        milestoneProject: "Hardened Ubuntu server sandbox with custom firewall rules and SSH keys",
+        labWorkstationTip: "Practice on BEMS Isolated Lab Network 2 to safely run network scans.",
+        keySkills: ["Linux CLI", "Wireshark", "TCP/IP"],
+        checkpointQuizTopic: "Linux & Networking Fundamentals"
+      },
+      {
+        weekNumber: 2,
+        title: "Web Security & OWASP Top 10 Defenses",
+        focusArea: "SQL injection, Cross-Site Scripting (XSS), CSRF tokens, secure session management",
+        estimatedHours: hoursPerWeek,
+        dailyBreakdown: isWeekend
+          ? [
+              { day: "Saturday", task: "Exploit and remediate SQL injection in intentionally vulnerable lab app", duration: "4 Hours" },
+              { day: "Sunday", task: "Implement Content Security Policy (CSP) and sanitization headers", duration: "4 Hours" }
+            ]
+          : [
+              { day: "Tuesday", task: "Analyze Reflected vs Stored XSS attack vectors", duration: "2.5 Hours" },
+              { day: "Thursday", task: "SQL query parameterization and ORM vulnerability audit", duration: "3 Hours" },
+              { day: "Saturday", task: "Take AI Practice Quiz on OWASP Top 10 standards", duration: "2.5 Hours" }
+            ],
+        milestoneProject: "Comprehensive vulnerability assessment report with proof-of-concept remediation",
+        labWorkstationTip: "Always run Burp Suite proxy on port 8080 with scope limited to localhost.",
+        keySkills: ["OWASP Top 10", "Input Sanitization", "Burp Suite"],
+        checkpointQuizTopic: "Web Application Security & OWASP"
+      },
+      {
+        weekNumber: 3,
+        title: "Vulnerability Scanning & Penetration Testing",
+        focusArea: "Nmap port scanning, vulnerability discovery, Nessus/OpenVAS audits, CVE analysis",
+        estimatedHours: hoursPerWeek,
+        dailyBreakdown: [
+          { day: isWeekend ? "Saturday" : "Wednesday", task: "Run structured Nmap syn-scans and service version detection", duration: `${Math.ceil(hoursPerWeek / 2)} Hours` },
+          { day: isWeekend ? "Sunday" : "Friday", task: "Draft executive summary and technical vulnerability matrix", duration: `${Math.floor(hoursPerWeek / 2)} Hours` }
+        ],
+        milestoneProject: "Executive penetration test report simulating an audit of a fintech banking gateway",
+        labWorkstationTip: "Verify target IP addresses before starting scans to avoid unapproved network traffic.",
+        keySkills: ["Nmap", "Vulnerability Scanning", "CVE Analysis"],
+        checkpointQuizTopic: "Penetration Testing & Port Scanning"
+      },
+      {
+        weekNumber: 4,
+        title: "Defensive Security, Incident Response & Capstone",
+        focusArea: "SIEM logging, intrusion detection, auth rate limiting, incident response playbooks",
+        estimatedHours: hoursPerWeek,
+        dailyBreakdown: [
+          { day: isWeekend ? "Saturday" : "Tuesday", task: "Configure fail2ban, rate limiting, and automated IP ban rules", duration: `${Math.ceil(hoursPerWeek / 2)} Hours` },
+          { day: isWeekend ? "Sunday" : "Thursday", task: "Present incident response post-mortem to BEMS security faculty", duration: `${Math.floor(hoursPerWeek / 2)} Hours` }
+        ],
+        milestoneProject: "Full security audit handbook and live production defensive firewall configuration",
+        labWorkstationTip: "Review /var/log/auth.log to inspect simulated brute-force attempt captures.",
+        keySkills: ["Fail2ban", "SIEM Logging", "Incident Response"],
+        checkpointQuizTopic: "Defensive Security & Incident Response"
+      }
+    ];
+  } else {
+    // Default: Full-Stack Web Development
+    weeks = [
+      {
+        weekNumber: 1,
+        title: "Development Environment & Semantic Foundations",
+        focusArea: "Workstation setup, VS Code extensions, Git workflow & HTML5 semantic architecture",
+        estimatedHours: hoursPerWeek,
+        dailyBreakdown: isWeekend
+          ? [
+              { day: "Saturday Morning", task: "Watch Module 1 lessons & set up local lab tools and git", duration: "3 Hours" },
+              { day: "Saturday Afternoon", task: "Build initial semantic layout exercises and forms", duration: "2 Hours" },
               { day: "Sunday Evening", task: "Git commit exercises & take Week 1 self-quiz", duration: "3 Hours" }
             ]
           : [
-              { day: "Monday", task: "Watch Lesson 1 & configure VS Code workspace", duration: "2 Hours" },
-              { day: "Wednesday", task: "Practical lab exercises on semantic architecture", duration: "3 Hours" },
+              { day: "Monday", task: "Watch Lesson 1 & configure VS Code workspace with Prettier and ESLint", duration: "2 Hours" },
+              { day: "Wednesday", task: "Practical lab exercises on semantic HTML5 architecture and accessibility", duration: "3 Hours" },
               { day: "Friday", task: "Review with Mr. Victor & submit Module 1 check-in", duration: "3 Hours" }
             ],
-        milestoneProject: "Personal developer portfolio skeleton with semantic HTML5"
+        milestoneProject: "Personal developer portfolio skeleton with semantic HTML5 and Git history",
+        labWorkstationTip: "Workstation B2 is pre-configured with Node.js v20 LTS and GitHub Desktop.",
+        keySkills: ["HTML5 Semantics", "Git & GitHub", "VS Code"],
+        checkpointQuizTopic: "Semantic HTML & Git Foundations"
       },
       {
         weekNumber: 2,
         title: "Modern Layouts & Responsive Breakpoints",
-        focusArea: "CSS Flexbox, CSS Grid, mobile-first design (375px to 1200px+)",
+        focusArea: "CSS Flexbox, CSS Grid, mobile-first responsive design (375px to 1440px+)",
         estimatedHours: hoursPerWeek,
         dailyBreakdown: isWeekend
           ? [
@@ -604,23 +946,86 @@ export async function generatePersonalizedStudyPlan(
             ]
           : [
               { day: "Tuesday", task: "Flexbox container & item properties in Chrome DevTools", duration: "2.5 Hours" },
-              { day: "Thursday", task: "CSS Grid template areas and auto-fit minmax()", duration: "3 Hours" },
+              { day: "Thursday", task: "CSS Grid template areas and auto-fit minmax() systems", duration: "3 Hours" },
               { day: "Saturday", task: "Mobile breakpoint testing & Take AI Practice Quiz", duration: "2.5 Hours" }
             ],
-        milestoneProject: "Fully responsive multi-card product showcase page"
+        milestoneProject: "Fully responsive multi-card product showcase page with responsive navbar",
+        labWorkstationTip: "Always test in Chrome DevTools Device Mode at 375px before styling larger desktop views.",
+        keySkills: ["CSS Flexbox", "CSS Grid", "Responsive Design"],
+        checkpointQuizTopic: "CSS Flexbox & Responsive Grid"
       },
       {
         weekNumber: 3,
-        title: "Dynamic JavaScript & API Integrations",
-        focusArea: "DOM manipulation, event listeners, async/await, and REST API fetch",
+        title: "Modern JavaScript (ES6+) & DOM Interaction",
+        focusArea: "Arrow functions, array methods (map, filter, reduce), destructuring, event listeners",
         estimatedHours: hoursPerWeek,
         dailyBreakdown: [
-          { day: "Midweek", task: "Asynchronous JavaScript & handling JSON payloads", duration: `${hoursPerWeek / 2} Hours` },
-          { day: "Weekend", task: "Connecting live endpoints with Paystack popup triggers", duration: `${hoursPerWeek / 2} Hours` }
+          { day: isWeekend ? "Saturday" : "Tuesday", task: "Hands-on ES6+ syntax drills, closures, and object destructuring", duration: `${Math.ceil(hoursPerWeek / 2)} Hours` },
+          { day: isWeekend ? "Sunday" : "Thursday", task: "Dynamic DOM manipulation: dynamic cart counter and item filters", duration: `${Math.floor(hoursPerWeek / 2)} Hours` }
         ],
-        milestoneProject: "Interactive event ticket booking modal with live pricing calculations"
+        milestoneProject: "Interactive task manager with local storage persistence and filter chips",
+        labWorkstationTip: "Open the browser Console tab to inspect event bubbling and target objects.",
+        keySkills: ["JavaScript ES6+", "DOM Events", "LocalStorage"],
+        checkpointQuizTopic: "JavaScript ES6+ & DOM Events"
+      },
+      {
+        weekNumber: 4,
+        title: "Async JavaScript, REST APIs & Paystack Integration",
+        focusArea: "Promises, async/await, fetch API, handling JSON payloads, payment popup triggers",
+        estimatedHours: hoursPerWeek,
+        dailyBreakdown: [
+          { day: isWeekend ? "Saturday" : "Wednesday", task: "Asynchronous JavaScript & handling live REST endpoint responses", duration: `${Math.ceil(hoursPerWeek / 2)} Hours` },
+          { day: isWeekend ? "Sunday" : "Friday", task: "Connecting live endpoints with Paystack test popup triggers", duration: `${Math.floor(hoursPerWeek / 2)} Hours` }
+        ],
+        milestoneProject: "Interactive event ticket booking modal with live pricing and Paystack checkout trigger",
+        labWorkstationTip: "Use Paystack test secret keys in .env.local; never commit secret keys to Git.",
+        keySkills: ["Async/Await", "Fetch API", "Paystack Checkout"],
+        checkpointQuizTopic: "Async JavaScript & REST APIs"
+      },
+      {
+        weekNumber: 5,
+        title: "React Fundamentals, Components & State",
+        focusArea: "JSX syntax, props vs state, useState, useEffect, custom hooks, component lifecycles",
+        estimatedHours: hoursPerWeek,
+        dailyBreakdown: [
+          { day: isWeekend ? "Saturday" : "Tuesday", task: "Deconstruct UI into reusable functional components and pass props", duration: `${Math.ceil(hoursPerWeek / 2)} Hours` },
+          { day: isWeekend ? "Sunday" : "Thursday", task: "State management with useState and useEffect data fetching", duration: `${Math.floor(hoursPerWeek / 2)} Hours` }
+        ],
+        milestoneProject: "Multi-step interactive onboarding and subscription selector in React",
+        labWorkstationTip: "Install React Developer Tools extension in Chrome to inspect component props live.",
+        keySkills: ["React 19", "useState", "useEffect"],
+        checkpointQuizTopic: "React Components & Hooks"
+      },
+      {
+        weekNumber: 6,
+        title: "Next.js App Router, Tailwind & Capstone Launch",
+        focusArea: "Server vs Client Components, routing, Tailwind CSS utility classes, Vercel deployment",
+        estimatedHours: hoursPerWeek,
+        dailyBreakdown: [
+          { day: isWeekend ? "Saturday" : "Wednesday", task: "Build Next.js pages with Tailwind styling and dynamic routes", duration: `${Math.ceil(hoursPerWeek / 2)} Hours` },
+          { day: isWeekend ? "Sunday" : "Friday", task: "Deploy production build to Vercel and present Capstone to Mr. Victor", duration: `${Math.floor(hoursPerWeek / 2)} Hours` }
+        ],
+        milestoneProject: "Live BEMS Capstone Web Application deployed with 100% Lighthouse score",
+        labWorkstationTip: "Run npm run build locally before pushing to Vercel to catch TypeScript errors early.",
+        keySkills: ["Next.js App Router", "Tailwind CSS", "Vercel Deployment"],
+        checkpointQuizTopic: "Next.js & Production Deployment"
       }
-    ]
+    ];
+  }
+
+  return {
+    id: `plan-${Date.now()}`,
+    studentName,
+    trackTitle,
+    hoursPerWeek,
+    totalWeeks: numWeeks,
+    learningPace,
+    createdAt: new Date().toISOString(),
+    tutorTip: `Consistency beats cramming! In the BEMS Umuahia lab, students who spend ${hoursPerWeek} focused hours every week finish their capstones 3 weeks ahead of schedule.`,
+    estimatedGraduation: isAccelerated ? "6 Weeks from today" : "12 Weeks from today",
+    levelBadge: "Level 1: Code Cadet 🛡️",
+    targetGoal,
+    weeks
   };
 }
 

@@ -26,7 +26,16 @@ import {
   XCircle,
   Zap,
   Check,
-  HelpCircle
+  HelpCircle,
+  Printer,
+  Download,
+  Flame,
+  GraduationCap,
+  Clock,
+  Target,
+  Layers,
+  CheckSquare,
+  Square
 } from "lucide-react";
 import Button from "@/components/ui/button";
 import { Navbar } from "@/components/Navbar";
@@ -39,6 +48,7 @@ import {
   AIChatMessage,
   GeneratedQuiz,
   AIStudyPlan,
+  StudyPlanWeek,
   AIFeedbackResult,
   PersonalizedRecommendation
 } from "@/types/ai";
@@ -312,6 +322,358 @@ function generateClientFallbackQuiz(
   };
 }
 
+function generateClientFallbackStudyPlan(
+  studentName: string,
+  track: string,
+  hoursPerWeek: number = 8,
+  pace: "Accelerated" | "Standard" | "Flexible Weekend" = "Standard",
+  targetGoal: string = "Launch First Full App / SaaS"
+): AIStudyPlan {
+  const isWeekend = pace === "Flexible Weekend";
+  const isAccelerated = pace === "Accelerated";
+  const numWeeks = isAccelerated ? 6 : isWeekend ? 12 : 10;
+  const trackKey = track.toLowerCase();
+
+  let trackTitle = "Full-Stack Web Development";
+  let weeks: StudyPlanWeek[] = [];
+
+  if (trackKey.includes("ai") || trackKey.includes("automation")) {
+    trackTitle = "Generative AI & Automation";
+    weeks = [
+      {
+        weekNumber: 1,
+        title: "LLM Foundations & Prompt Engineering",
+        focusArea: "Context windows, tokenization, system prompts, few-shot vs zero-shot formatting",
+        estimatedHours: hoursPerWeek,
+        dailyBreakdown: isWeekend
+          ? [
+              { day: "Saturday Morning", task: "Study Gemini 2.5 architecture & prompt temperature controls", duration: "3 Hours" },
+              { day: "Saturday Afternoon", task: "Build structured JSON extraction prompts in Google AI Studio", duration: "2 Hours" },
+              { day: "Sunday Evening", task: "Complete Week 1 prompt evaluation benchmark and quiz", duration: "3 Hours" }
+            ]
+          : [
+              { day: "Monday", task: "Explore LLM tokens, hallucinations, and system instructions", duration: "2 Hours" },
+              { day: "Wednesday", task: "Design few-shot exemplars for structured JSON outputs", duration: "3 Hours" },
+              { day: "Friday", task: "Prompt security & prompt injection defense workshop", duration: "3 Hours" }
+            ],
+        milestoneProject: "Automated customer email classification and structured triage prompt",
+        labWorkstationTip: "Use Workstation 3 in the BEMS Lab for high-speed fiber access to Gemini API endpoints.",
+        keySkills: ["Prompt Engineering", "Gemini 2.5 Flash", "JSON Mode"],
+        checkpointQuizTopic: "Prompt Engineering & Structured Outputs"
+      },
+      {
+        weekNumber: 2,
+        title: "Workflow Automation with Make & Zapier",
+        focusArea: "Webhooks, REST triggers, payload parsing, conditional routers, error retries",
+        estimatedHours: hoursPerWeek,
+        dailyBreakdown: isWeekend
+          ? [
+              { day: "Saturday", task: "Set up Make.com scenarios triggered by Paystack webhook events", duration: "4 Hours" },
+              { day: "Sunday", task: "Format automated WhatsApp notifications with Twilio integration", duration: "4 Hours" }
+            ]
+          : [
+              { day: "Tuesday", task: "Configure inbound webhook listeners & test payload schemas", duration: "2.5 Hours" },
+              { day: "Thursday", task: "Add Gemini API node for automated sentiment summarization", duration: "3 Hours" },
+              { day: "Saturday", task: "End-to-end stress testing and Take AI Practice Quiz", duration: "2.5 Hours" }
+            ],
+        milestoneProject: "Zero-code invoice generation pipeline sending automated receipts upon payment",
+        labWorkstationTip: "Set up Webhook.site on your browser tab to inspect raw headers before routing.",
+        keySkills: ["Make.com", "Webhooks", "REST APIs"],
+        checkpointQuizTopic: "Webhooks & Automation Architecture"
+      },
+      {
+        weekNumber: 3,
+        title: "Retrieval-Augmented Generation (RAG) & Embeddings",
+        focusArea: "Text chunking strategies, vector embeddings, vector databases (Pinecone/Chroma), grounded search",
+        estimatedHours: hoursPerWeek,
+        dailyBreakdown: [
+          { day: isWeekend ? "Saturday" : "Wednesday", task: "Implement text chunking with overlap & generate embeddings", duration: `${Math.ceil(hoursPerWeek / 2)} Hours` },
+          { day: isWeekend ? "Sunday" : "Friday", task: "Query vector index and ground Gemini prompt with top-k snippets", duration: `${Math.floor(hoursPerWeek / 2)} Hours` }
+        ],
+        milestoneProject: "Interactive AI Knowledge Bot trained on custom BEMS course PDFs",
+        labWorkstationTip: "Keep chunk size around 500 characters with 50-character overlap for optimal recall.",
+        keySkills: ["Vector Embeddings", "RAG Architecture", "Vector Search"],
+        checkpointQuizTopic: "RAG & Vector Retrieval"
+      },
+      {
+        weekNumber: 4,
+        title: "Autonomous AI Agents & Tool Calling",
+        focusArea: "Function calling (tools), multi-agent loops, stateful conversations, memory management",
+        estimatedHours: hoursPerWeek,
+        dailyBreakdown: [
+          { day: isWeekend ? "Saturday" : "Tuesday", task: "Define OpenAPI JSON tool schemas for real-time weather and currency APIs", duration: `${Math.ceil(hoursPerWeek / 2)} Hours` },
+          { day: isWeekend ? "Sunday" : "Thursday", task: "Build autonomous agent loop that executes tools and synthesizes final answer", duration: `${Math.floor(hoursPerWeek / 2)} Hours` }
+        ],
+        milestoneProject: "Autonomous Nigerian Market Research Agent executing live currency conversions",
+        labWorkstationTip: "Inspect raw tool_call objects in console to verify arguments before model execution.",
+        keySkills: ["Function Calling", "Tool Calling", "Autonomous Loops"],
+        checkpointQuizTopic: "AI Agents & Function Calling"
+      }
+    ];
+  } else if (trackKey.includes("design") || trackKey.includes("ui") || trackKey.includes("graphic")) {
+    trackTitle = "UI/UX & Product Design";
+    weeks = [
+      {
+        weekNumber: 1,
+        title: "Design Thinking, User Personas & Wireframing",
+        focusArea: "User journey mapping, low-fidelity wireframing, information architecture, Figma basics",
+        estimatedHours: hoursPerWeek,
+        dailyBreakdown: isWeekend
+          ? [
+              { day: "Saturday", task: "Interview 2 students & draft empathy maps and user personas", duration: "4 Hours" },
+              { day: "Sunday", task: "Sketch paper wireframes & create 8-screen wireframe flow in Figma", duration: "4 Hours" }
+            ]
+          : [
+              { day: "Monday", task: "User research methods and pain-point identification", duration: "2 Hours" },
+              { day: "Wednesday", task: "Low-fidelity wireframing for mobile fintech app", duration: "3 Hours" },
+              { day: "Friday", task: "Peer critique session in BEMS Design Studio", duration: "3 Hours" }
+            ],
+        milestoneProject: "Complete UX case study wireframe for a local student food delivery app",
+        labWorkstationTip: "Review wireframes at 100% zoom scale on mobile devices via Figma Mirror app.",
+        keySkills: ["Figma Wireframes", "UX Research", "Information Architecture"],
+        checkpointQuizTopic: "Design Thinking & Wireframing"
+      },
+      {
+        weekNumber: 2,
+        title: "Figma Auto-Layout & Design Systems",
+        focusArea: "Auto-layout nested frames, responsive constraints, typography scales, color token architecture",
+        estimatedHours: hoursPerWeek,
+        dailyBreakdown: isWeekend
+          ? [
+              { day: "Saturday", task: "Build modular component library (buttons, cards, navigation bars)", duration: "4 Hours" },
+              { day: "Sunday", task: "Configure Figma component variants, boolean props, and instance swap", duration: "4 Hours" }
+            ]
+          : [
+              { day: "Tuesday", task: "Figma Auto-Layout horizontal and vertical resizing behaviors", duration: "2.5 Hours" },
+              { day: "Thursday", task: "Establishing 8pt grid system and accessible WCAG color contrast", duration: "3 Hours" },
+              { day: "Saturday", task: "Responsive component stress testing across 375px and 1440px", duration: "2.5 Hours" }
+            ],
+        milestoneProject: "High-class UI Component Design System with 20+ production-ready variants",
+        labWorkstationTip: "Check color contrast using the Stark Figma plugin to ensure AAA accessibility.",
+        keySkills: ["Figma Auto-Layout", "Design Tokens", "Design Systems"],
+        checkpointQuizTopic: "Auto-Layout & Design Tokens"
+      },
+      {
+        weekNumber: 3,
+        title: "Interactive Prototyping & Micro-Interactions",
+        focusArea: "Smart Animate, interactive components, hover/press states, prototype page transitions",
+        estimatedHours: hoursPerWeek,
+        dailyBreakdown: [
+          { day: isWeekend ? "Saturday" : "Wednesday", task: "Build interactive modals, bottom sheets, and animated card transitions", duration: `${Math.ceil(hoursPerWeek / 2)} Hours` },
+          { day: isWeekend ? "Sunday" : "Friday", task: "Conduct prototype usability tests and record user interaction heatmaps", duration: `${Math.floor(hoursPerWeek / 2)} Hours` }
+        ],
+        milestoneProject: "Clickable, high-fidelity mobile banking prototype with realistic pin checkout",
+        labWorkstationTip: "Use Smart Animate with 300ms ease-out timing curve for natural-feeling animations.",
+        keySkills: ["Smart Animate", "Interactive Prototyping", "Usability Testing"],
+        checkpointQuizTopic: "Prototyping & Micro-Interactions"
+      },
+      {
+        weekNumber: 4,
+        title: "Developer Handoff & Capstone Design Showcase",
+        focusArea: "Design tokens export, CSS inspection, asset exporting (SVG/WebP), Behance case study formatting",
+        estimatedHours: hoursPerWeek,
+        dailyBreakdown: [
+          { day: isWeekend ? "Saturday" : "Tuesday", task: "Annotate design specs for Next.js developers (margins, paddings, tokens)", duration: `${Math.ceil(hoursPerWeek / 2)} Hours` },
+          { day: isWeekend ? "Sunday" : "Thursday", task: "Publish polished Behance presentation and present to lead instructor", duration: `${Math.floor(hoursPerWeek / 2)} Hours` }
+        ],
+        milestoneProject: "Complete Behance-ready UI/UX Portfolio Case Study with live prototype link",
+        labWorkstationTip: "Export SVGs with outline strokes and optimized paths to minimize web bundle size.",
+        keySkills: ["Developer Handoff", "Design Specs", "Portfolio Presentation"],
+        checkpointQuizTopic: "Developer Handoff & Specifications"
+      }
+    ];
+  } else if (trackKey.includes("cyber") || trackKey.includes("security")) {
+    trackTitle = "Cybersecurity Defense";
+    weeks = [
+      {
+        weekNumber: 1,
+        title: "Linux Foundations & Network Fundamentals",
+        focusArea: "Linux CLI, file permissions, TCP/IP stack, DNS resolution, Wireshark packet capture",
+        estimatedHours: hoursPerWeek,
+        dailyBreakdown: isWeekend
+          ? [
+              { day: "Saturday", task: "Master Linux terminal commands, SSH keys, and user permissions", duration: "4 Hours" },
+              { day: "Sunday", task: "Capture and analyze HTTP vs HTTPS packets using Wireshark", duration: "4 Hours" }
+            ]
+          : [
+              { day: "Monday", task: "Linux administration, chmod, chown, and process management", duration: "2 Hours" },
+              { day: "Wednesday", task: "OSI model layers and TCP handshake analysis", duration: "3 Hours" },
+              { day: "Friday", task: "Hands-on packet filtering and network subnetting lab", duration: "3 Hours" }
+            ],
+        milestoneProject: "Hardened Ubuntu server sandbox with custom firewall rules and SSH keys",
+        labWorkstationTip: "Practice on BEMS Isolated Lab Network 2 to safely run network scans.",
+        keySkills: ["Linux CLI", "Wireshark", "TCP/IP"],
+        checkpointQuizTopic: "Linux & Networking Fundamentals"
+      },
+      {
+        weekNumber: 2,
+        title: "Web Security & OWASP Top 10 Defenses",
+        focusArea: "SQL injection, Cross-Site Scripting (XSS), CSRF tokens, secure session management",
+        estimatedHours: hoursPerWeek,
+        dailyBreakdown: isWeekend
+          ? [
+              { day: "Saturday", task: "Exploit and remediate SQL injection in intentionally vulnerable lab app", duration: "4 Hours" },
+              { day: "Sunday", task: "Implement Content Security Policy (CSP) and sanitization headers", duration: "4 Hours" }
+            ]
+          : [
+              { day: "Tuesday", task: "Analyze Reflected vs Stored XSS attack vectors", duration: "2.5 Hours" },
+              { day: "Thursday", task: "SQL query parameterization and ORM vulnerability audit", duration: "3 Hours" },
+              { day: "Saturday", task: "Take AI Practice Quiz on OWASP Top 10 standards", duration: "2.5 Hours" }
+            ],
+        milestoneProject: "Comprehensive vulnerability assessment report with proof-of-concept remediation",
+        labWorkstationTip: "Always run Burp Suite proxy on port 8080 with scope limited to localhost.",
+        keySkills: ["OWASP Top 10", "Input Sanitization", "Burp Suite"],
+        checkpointQuizTopic: "Web Application Security & OWASP"
+      },
+      {
+        weekNumber: 3,
+        title: "Vulnerability Scanning & Penetration Testing",
+        focusArea: "Nmap port scanning, vulnerability discovery, Nessus/OpenVAS audits, CVE analysis",
+        estimatedHours: hoursPerWeek,
+        dailyBreakdown: [
+          { day: isWeekend ? "Saturday" : "Wednesday", task: "Run structured Nmap syn-scans and service version detection", duration: `${Math.ceil(hoursPerWeek / 2)} Hours` },
+          { day: isWeekend ? "Sunday" : "Friday", task: "Draft executive summary and technical vulnerability matrix", duration: `${Math.floor(hoursPerWeek / 2)} Hours` }
+        ],
+        milestoneProject: "Executive penetration test report simulating an audit of a fintech banking gateway",
+        labWorkstationTip: "Verify target IP addresses before starting scans to avoid unapproved network traffic.",
+        keySkills: ["Nmap", "Vulnerability Scanning", "CVE Analysis"],
+        checkpointQuizTopic: "Penetration Testing & Port Scanning"
+      },
+      {
+        weekNumber: 4,
+        title: "Defensive Security, Incident Response & Capstone",
+        focusArea: "SIEM logging, intrusion detection, auth rate limiting, incident response playbooks",
+        estimatedHours: hoursPerWeek,
+        dailyBreakdown: [
+          { day: isWeekend ? "Saturday" : "Tuesday", task: "Configure fail2ban, rate limiting, and automated IP ban rules", duration: `${Math.ceil(hoursPerWeek / 2)} Hours` },
+          { day: isWeekend ? "Sunday" : "Thursday", task: "Present incident response post-mortem to BEMS security faculty", duration: `${Math.floor(hoursPerWeek / 2)} Hours` }
+        ],
+        milestoneProject: "Full security audit handbook and live production defensive firewall configuration",
+        labWorkstationTip: "Review /var/log/auth.log to inspect simulated brute-force attempt captures.",
+        keySkills: ["Fail2ban", "SIEM Logging", "Incident Response"],
+        checkpointQuizTopic: "Defensive Security & Incident Response"
+      }
+    ];
+  } else {
+    // Default: Full-Stack Web Development
+    trackTitle = "Full-Stack Web Development";
+    weeks = [
+      {
+        weekNumber: 1,
+        title: "Development Environment & Semantic Foundations",
+        focusArea: "Workstation setup, VS Code extensions, Git workflow & HTML5 semantic architecture",
+        estimatedHours: hoursPerWeek,
+        dailyBreakdown: isWeekend
+          ? [
+              { day: "Saturday Morning", task: "Watch Module 1 lessons & set up local lab tools and git", duration: "3 Hours" },
+              { day: "Saturday Afternoon", task: "Build initial semantic layout exercises and forms", duration: "2 Hours" },
+              { day: "Sunday Evening", task: "Git commit exercises & take Week 1 self-quiz", duration: "3 Hours" }
+            ]
+          : [
+              { day: "Monday", task: "Watch Lesson 1 & configure VS Code workspace with Prettier and ESLint", duration: "2 Hours" },
+              { day: "Wednesday", task: "Practical lab exercises on semantic HTML5 architecture and accessibility", duration: "3 Hours" },
+              { day: "Friday", task: "Review with Mr. Victor & submit Module 1 check-in", duration: "3 Hours" }
+            ],
+        milestoneProject: "Personal developer portfolio skeleton with semantic HTML5 and Git history",
+        labWorkstationTip: "Workstation B2 is pre-configured with Node.js v20 LTS and GitHub Desktop.",
+        keySkills: ["HTML5 Semantics", "Git & GitHub", "VS Code"],
+        checkpointQuizTopic: "Semantic HTML & Git Foundations"
+      },
+      {
+        weekNumber: 2,
+        title: "Modern Layouts & Responsive Breakpoints",
+        focusArea: "CSS Flexbox, CSS Grid, mobile-first responsive design (375px to 1440px+)",
+        estimatedHours: hoursPerWeek,
+        dailyBreakdown: isWeekend
+          ? [
+              { day: "Saturday", task: "Master flexbox navigation & 2D Grid card systems", duration: "4 Hours" },
+              { day: "Sunday", task: "Test fluid media queries on mobile and tablet screens", duration: "4 Hours" }
+            ]
+          : [
+              { day: "Tuesday", task: "Flexbox container & item properties in Chrome DevTools", duration: "2.5 Hours" },
+              { day: "Thursday", task: "CSS Grid template areas and auto-fit minmax() systems", duration: "3 Hours" },
+              { day: "Saturday", task: "Mobile breakpoint testing & Take AI Practice Quiz", duration: "2.5 Hours" }
+            ],
+        milestoneProject: "Fully responsive multi-card product showcase page with responsive navbar",
+        labWorkstationTip: "Always test in Chrome DevTools Device Mode at 375px before styling larger desktop views.",
+        keySkills: ["CSS Flexbox", "CSS Grid", "Responsive Design"],
+        checkpointQuizTopic: "CSS Flexbox & Responsive Grid"
+      },
+      {
+        weekNumber: 3,
+        title: "Modern JavaScript (ES6+) & DOM Interaction",
+        focusArea: "Arrow functions, array methods (map, filter, reduce), destructuring, event listeners",
+        estimatedHours: hoursPerWeek,
+        dailyBreakdown: [
+          { day: isWeekend ? "Saturday" : "Tuesday", task: "Hands-on ES6+ syntax drills, closures, and object destructuring", duration: `${Math.ceil(hoursPerWeek / 2)} Hours` },
+          { day: isWeekend ? "Sunday" : "Thursday", task: "Dynamic DOM manipulation: dynamic cart counter and item filters", duration: `${Math.floor(hoursPerWeek / 2)} Hours` }
+        ],
+        milestoneProject: "Interactive task manager with local storage persistence and filter chips",
+        labWorkstationTip: "Open the browser Console tab to inspect event bubbling and target objects.",
+        keySkills: ["JavaScript ES6+", "DOM Events", "LocalStorage"],
+        checkpointQuizTopic: "JavaScript ES6+ & DOM Events"
+      },
+      {
+        weekNumber: 4,
+        title: "Async JavaScript, REST APIs & Paystack Integration",
+        focusArea: "Promises, async/await, fetch API, handling JSON payloads, payment popup triggers",
+        estimatedHours: hoursPerWeek,
+        dailyBreakdown: [
+          { day: isWeekend ? "Saturday" : "Wednesday", task: "Asynchronous JavaScript & handling live REST endpoint responses", duration: `${Math.ceil(hoursPerWeek / 2)} Hours` },
+          { day: isWeekend ? "Sunday" : "Friday", task: "Connecting live endpoints with Paystack test popup triggers", duration: `${Math.floor(hoursPerWeek / 2)} Hours` }
+        ],
+        milestoneProject: "Interactive event ticket booking modal with live pricing and Paystack checkout trigger",
+        labWorkstationTip: "Use Paystack test secret keys in .env.local; never commit secret keys to Git.",
+        keySkills: ["Async/Await", "Fetch API", "Paystack Checkout"],
+        checkpointQuizTopic: "Async JavaScript & REST APIs"
+      },
+      {
+        weekNumber: 5,
+        title: "React Fundamentals, Components & State",
+        focusArea: "JSX syntax, props vs state, useState, useEffect, custom hooks, component lifecycles",
+        estimatedHours: hoursPerWeek,
+        dailyBreakdown: [
+          { day: isWeekend ? "Saturday" : "Tuesday", task: "Deconstruct UI into reusable functional components and pass props", duration: `${Math.ceil(hoursPerWeek / 2)} Hours` },
+          { day: isWeekend ? "Sunday" : "Thursday", task: "State management with useState and useEffect data fetching", duration: `${Math.floor(hoursPerWeek / 2)} Hours` }
+        ],
+        milestoneProject: "Multi-step interactive onboarding and subscription selector in React",
+        labWorkstationTip: "Install React Developer Tools extension in Chrome to inspect component props live.",
+        keySkills: ["React 19", "useState", "useEffect"],
+        checkpointQuizTopic: "React Components & Hooks"
+      },
+      {
+        weekNumber: 6,
+        title: "Next.js App Router, Tailwind & Capstone Launch",
+        focusArea: "Server vs Client Components, routing, Tailwind CSS utility classes, Vercel deployment",
+        estimatedHours: hoursPerWeek,
+        dailyBreakdown: [
+          { day: isWeekend ? "Saturday" : "Wednesday", task: "Build Next.js pages with Tailwind styling and dynamic routes", duration: `${Math.ceil(hoursPerWeek / 2)} Hours` },
+          { day: isWeekend ? "Sunday" : "Friday", task: "Deploy production build to Vercel and present Capstone to Mr. Victor", duration: `${Math.floor(hoursPerWeek / 2)} Hours` }
+        ],
+        milestoneProject: "Live BEMS Capstone Web Application deployed with 100% Lighthouse score",
+        labWorkstationTip: "Run npm run build locally before pushing to Vercel to catch TypeScript errors early.",
+        keySkills: ["Next.js App Router", "Tailwind CSS", "Vercel Deployment"],
+        checkpointQuizTopic: "Next.js & Production Deployment"
+      }
+    ];
+  }
+
+  return {
+    id: `plan-${Date.now()}`,
+    studentName,
+    trackTitle,
+    hoursPerWeek,
+    totalWeeks: numWeeks,
+    learningPace: pace,
+    createdAt: new Date().toISOString(),
+    tutorTip: `Consistency beats cramming! In the BEMS Umuahia lab, students who spend ${hoursPerWeek} focused hours every week finish their capstones 3 weeks ahead of schedule.`,
+    estimatedGraduation: isAccelerated ? "6 Weeks from today" : "12 Weeks from today",
+    levelBadge: "Level 1: Code Cadet 🛡️",
+    targetGoal,
+    weeks
+  };
+}
+
 function AIHubContent() {
   const searchParams = useSearchParams();
   const { user, getCourseProgress } = useLMS();
@@ -380,8 +742,39 @@ function AIHubContent() {
   const [studentName, setStudentName] = useState(user?.name || "Chinedu Okeke");
   const [studyHours, setStudyHours] = useState(8);
   const [studyPace, setStudyPace] = useState<"Accelerated" | "Standard" | "Flexible Weekend">("Standard");
+  const [studyTrack, setStudyTrack] = useState<string>("web-dev");
+  const [targetGoal, setTargetGoal] = useState<string>("Launch First Full App / SaaS");
   const [studyPlan, setStudyPlan] = useState<AIStudyPlan | null>(null);
   const [isStudyLoading, setIsStudyLoading] = useState(false);
+  const [completedTasks, setCompletedTasks] = useState<Record<string, boolean>>({});
+  const [selectedWeekFilter, setSelectedWeekFilter] = useState<number | "all">("all");
+
+  useEffect(() => {
+    if (studyPlan?.id && typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem(`bems_study_tasks_${studyPlan.id}`);
+        if (stored) {
+          setCompletedTasks(JSON.parse(stored));
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, [studyPlan?.id]);
+
+  const toggleTaskCompletion = (taskKey: string) => {
+    setCompletedTasks((prev) => {
+      const next = { ...prev, [taskKey]: !prev[taskKey] };
+      if (typeof window !== "undefined" && studyPlan?.id) {
+        try {
+          localStorage.setItem(`bems_study_tasks_${studyPlan.id}`, JSON.stringify(next));
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (user?.name) {
@@ -537,6 +930,15 @@ Could you please explain the concept in simple terms, why the correct answer is 
   // Handler: Generate Study Plan
   const handleGenerateStudyPlan = async () => {
     setIsStudyLoading(true);
+    const trackTitle =
+      studyTrack === "ai-automation"
+        ? "Generative AI & Automation"
+        : studyTrack === "graphic-design"
+        ? "UI/UX & Product Design"
+        : studyTrack === "cybersecurity"
+        ? "Cybersecurity Defense"
+        : "Full-Stack Web Development";
+
     try {
       const res = await apiFetch("/api/ai", {
         method: "POST",
@@ -544,20 +946,101 @@ Could you please explain the concept in simple terms, why the correct answer is 
         body: JSON.stringify({
           action: "study-plan",
           studentName,
-          trackTitle: track === "web-dev" ? "Full-Stack Web Development" : "Generative AI & Automation",
+          trackTitle,
           hoursPerWeek: studyHours,
-          learningPace: studyPace
+          learningPace: studyPace,
+          targetGoal
         })
       });
 
-      if (!res.ok) throw new Error("Plan generation failed");
+      if (!res.ok) throw new Error("Plan generation returned non-200");
       const data = await res.json();
       setStudyPlan(data);
+      setCompletedTasks({});
     } catch (err) {
-      console.error(err);
+      console.warn("Backend study plan generation failed, using intelligent client curriculum fallback:", err);
+      const fallback = generateClientFallbackStudyPlan(
+        studentName,
+        studyTrack,
+        studyHours,
+        studyPace,
+        targetGoal
+      );
+      setStudyPlan(fallback);
+      setCompletedTasks({});
     } finally {
       setIsStudyLoading(false);
     }
+  };
+
+  const handleAskTutorAboutWeek = (week: StudyPlanWeek) => {
+    const mentorMap: Record<string, string> = {
+      "web-dev": "Mr. Victor",
+      "ai-automation": "Dr. Amaka",
+      "graphic-design": "Mr. Tunde",
+      "cybersecurity": "Specialist Faculty"
+    };
+    const targetMentor = mentorMap[studyTrack] || tutorName;
+    setTutorName(targetMentor);
+    setTrack(studyTrack);
+
+    const promptText = `Hi ${targetMentor}, I'm working on Week ${week.weekNumber} of my study plan: "${week.title}" (${week.focusArea}).
+
+My milestone deliverable is: "${week.milestoneProject}".
+Workstation Tip: "${week.labWorkstationTip || 'Hands-on workstation practice'}".
+
+Can you give me practical advice, common rookie mistakes to avoid, and step-by-step guidance on how to complete this week's milestone with distinction?`;
+
+    setActiveTab("tutor");
+    handleSendTutorMessage(promptText);
+  };
+
+  const handleTestWeekQuiz = (week: StudyPlanWeek) => {
+    setQuizTopic(week.checkpointQuizTopic || week.title);
+    setQuizTrack(studyTrack);
+    setActiveTab("quiz");
+  };
+
+  const handleDownloadCalendar = () => {
+    if (!studyPlan) return;
+    const now = new Date();
+    const pad = (n: number) => (n < 10 ? `0${n}` : `${n}`);
+    const stamp = `${now.getUTCFullYear()}${pad(now.getUTCMonth() + 1)}${pad(now.getUTCDate())}T${pad(now.getUTCHours())}${pad(now.getUTCMinutes())}00Z`;
+
+    const events = studyPlan.weeks.map((week, idx) => {
+      const weekStart = new Date(now.getTime() + idx * 7 * 24 * 60 * 60 * 1000);
+      const startStr = `${weekStart.getUTCFullYear()}${pad(weekStart.getUTCMonth() + 1)}${pad(weekStart.getUTCDate())}T090000Z`;
+      const endStr = `${weekStart.getUTCFullYear()}${pad(weekStart.getUTCMonth() + 1)}${pad(weekStart.getUTCDate())}T110000Z`;
+
+      return `BEGIN:VEVENT
+UID:bems-week-${week.weekNumber}-${studyPlan.id}@bems.edu.ng
+DTSTAMP:${stamp}
+DTSTART:${startStr}
+DTEND:${endStr}
+SUMMARY:BEMS Study: Week ${week.weekNumber} - ${week.title}
+DESCRIPTION:${week.focusArea}. Milestone: ${week.milestoneProject}.
+LOCATION:BEMS Umuahia Tech Lab / Online Workstation
+END:VEVENT`;
+    }).join("\n");
+
+    const icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//BEMS Institute of Technology//AI Study Architect//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:BEMS Study Roadmap - ${studentName}
+${events}
+END:VCALENDAR`;
+
+    const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `BEMS_Study_Schedule_${studentName.replace(/\s+/g, "_")}.ics`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   // Handler: Code Feedback
@@ -1584,118 +2067,667 @@ Could you please explain the concept in simple terms, why the correct answer is 
         )}
 
         {/* ========================================================================= */}
-        {/* TAB 3: AI STUDY ASSISTANT */}
+        {/* ========================================================================= */}
+        {/* TAB 3: AI STUDY ASSISTANT & PACE ARCHITECT */}
         {/* ========================================================================= */}
         {activeTab === "study-plan" && (
-          <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm p-6 md:p-8 space-y-6">
-            <div className="max-w-2xl space-y-4">
-              <h2 className="text-xl font-bold text-brand-dark flex items-center space-x-2">
-                <Calendar className="w-5 h-5 text-brand-purple" />
-                <span>AI Study Schedule & Pace Architect</span>
-              </h2>
-              <p className="text-sm text-gray-600">
-                Create a custom 12-week study roadmap calibrated to your available hours and learning preference, with lab workstations and milestone deliverables.
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Your Name</label>
-                  <input
-                    type="text"
-                    value={studentName}
-                    onChange={(e) => setStudentName(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-purple/30"
-                  />
+          <div className="space-y-8">
+            {/* Top Form: Study Schedule & Pace Architect Studio */}
+            <div className="bg-white rounded-3xl border border-gray-200/90 shadow-sm p-6 sm:p-8 md:p-10 space-y-8">
+              {/* Header */}
+              <div className="max-w-3xl space-y-3">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100/80 text-brand-purple text-xs font-bold uppercase tracking-wider">
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span>AI Academic Architect</span>
+                  <span className="text-gray-400">•</span>
+                  <span>BEMS FutureSkills Cohort</span>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Available Hours / Week</label>
-                  <input
-                    type="number"
-                    min={4}
-                    max={30}
-                    value={studyHours}
-                    onChange={(e) => setStudyHours(Number(e.target.value))}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-purple/30"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Schedule Mode</label>
-                  <select
-                    value={studyPace}
-                    onChange={(e) => setStudyPace(e.target.value as any)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-purple/30 bg-white"
-                  >
-                    <option value="Standard">Standard Weekday</option>
-                    <option value="Flexible Weekend">Weekend Intensive</option>
-                    <option value="Accelerated">Accelerated (Fast-Track)</option>
-                  </select>
-                </div>
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-[#303654] tracking-tight flex items-center gap-2.5">
+                  <Sparkles className="w-6 h-6 text-[#AE54C6]" />
+                  <span>AI Study Schedule & Pace Architect</span>
+                </h2>
+                <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
+                  Generate a personalized, gamified study roadmap calibrated to your weekly hours, learning pace, and milestone deliverables. Track daily micro-tasks, unlock physical Umuahia lab tips, and build momentum toward your Capstone certification.
+                </p>
               </div>
 
-              <Button
-                variant="purple"
-                onClick={handleGenerateStudyPlan}
-                disabled={isStudyLoading}
-              >
-                {isStudyLoading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    <span>Structuring Weekly Schedule...</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    <span>Generate Custom Study Roadmap</span>
-                  </>
-                )}
-              </Button>
-            </div>
-
-            {studyPlan && (
-              <div className="mt-8 pt-8 border-t border-gray-100 space-y-6">
-                <div className="p-4 rounded-xl bg-purple-50/70 border border-purple-200/80 flex items-start space-x-3">
-                  <Lightbulb className="w-5 h-5 text-brand-purple shrink-0 mt-0.5" />
-                  <div>
-                    <h4 className="text-xs font-bold text-brand-navy uppercase tracking-wider">Tutor Guidance</h4>
-                    <p className="text-xs text-gray-700 mt-1">{studyPlan.tutorTip}</p>
+              {/* Form Controls */}
+              <div className="space-y-6 pt-2">
+                {/* 1. Track Selector */}
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2.5">
+                    1. Select Your Learning Track
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    {[
+                      {
+                        id: "web-dev",
+                        title: "Web Development",
+                        mentor: "Mr. Victor",
+                        skills: "HTML, CSS, React, Next.js, Node",
+                        icon: Code2,
+                        activeBorder: "border-[#AE54C6] bg-purple-50/60 ring-2 ring-[#AE54C6]/20",
+                        activeBadge: "bg-[#AE54C6] text-white"
+                      },
+                      {
+                        id: "ai-automation",
+                        title: "AI & Automation",
+                        mentor: "Dr. Amaka",
+                        skills: "LLMs, Prompt Eng, Agents, Make",
+                        icon: BrainCircuit,
+                        activeBorder: "border-emerald-500 bg-emerald-50/60 ring-2 ring-emerald-500/20",
+                        activeBadge: "bg-emerald-600 text-white"
+                      },
+                      {
+                        id: "graphic-design",
+                        title: "UI/UX Design",
+                        mentor: "Mr. Tunde",
+                        skills: "Figma, Wireframing, Systems, Apps",
+                        icon: Layers,
+                        activeBorder: "border-amber-500 bg-amber-50/60 ring-2 ring-amber-500/20",
+                        activeBadge: "bg-amber-600 text-white"
+                      },
+                      {
+                        id: "cybersecurity",
+                        title: "Cyber Defense",
+                        mentor: "Specialist Faculty",
+                        skills: "Linux, OWASP, Wireshark, Audits",
+                        icon: Award,
+                        activeBorder: "border-blue-600 bg-blue-50/60 ring-2 ring-blue-600/20",
+                        activeBadge: "bg-blue-600 text-white"
+                      }
+                    ].map((t) => {
+                      const Icon = t.icon;
+                      const isSelected = studyTrack === t.id;
+                      return (
+                        <button
+                          key={t.id}
+                          type="button"
+                          onClick={() => setStudyTrack(t.id)}
+                          className={`text-left p-4 rounded-2xl border transition-all cursor-pointer hover:border-gray-300 relative ${
+                            isSelected
+                              ? t.activeBorder
+                              : "border-gray-200 bg-white hover:bg-gray-50/70"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between mb-2">
+                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isSelected ? t.activeBadge : "bg-gray-100 text-gray-700"}`}>
+                              <Icon className="w-5 h-5" />
+                            </div>
+                            {isSelected && (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#AE54C6] text-white">
+                                Active
+                              </span>
+                            )}
+                          </div>
+                          <div className="font-bold text-sm text-[#303654]">{t.title}</div>
+                          <div className="text-[11px] text-gray-500 mt-0.5">Mentor: {t.mentor}</div>
+                          <div className="text-[10px] text-gray-400 mt-2 truncate">{t.skills}</div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {studyPlan.weeks.map((week) => (
-                    <div
-                      key={week.weekNumber}
-                      className="p-5 rounded-2xl border border-gray-200 bg-white shadow-xs space-y-4 hover:border-brand-purple/40 transition-colors"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="px-2.5 py-1 rounded-md bg-brand-navy text-white text-[11px] font-bold">
-                          Week {week.weekNumber}
-                        </span>
-                        <span className="text-xs text-gray-500 font-medium">{week.estimatedHours} hrs</span>
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-bold text-brand-dark">{week.title}</h4>
-                        <p className="text-xs text-gray-500 mt-1">{week.focusArea}</p>
-                      </div>
+                {/* 2. Student Name & Target Goal */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">
+                      2. Your Student Name
+                    </label>
+                    <input
+                      type="text"
+                      value={studentName}
+                      onChange={(e) => setStudentName(e.target.value)}
+                      placeholder="e.g. Chinedu Okeke"
+                      className="w-full px-4 py-3 rounded-2xl border border-gray-200 text-sm font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#AE54C6]/30 bg-gray-50/50"
+                    />
+                  </div>
 
-                      <div className="space-y-2 border-t border-gray-100 pt-3">
-                        {week.dailyBreakdown.map((item, idx) => (
-                          <div key={idx} className="text-xs flex items-start space-x-2">
-                            <span className="font-bold text-brand-purple shrink-0">{item.day}:</span>
-                            <span className="text-gray-600">{item.task} ({item.duration})</span>
-                          </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">
+                      Target Milestone Goal
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        "Launch First Full App / SaaS",
+                        "Ace BEMS Capstone (90%+)",
+                        "Build Job-Ready Portfolio",
+                        "Fast-Track Foundations"
+                      ].map((goal) => {
+                        const isSelected = targetGoal === goal;
+                        return (
+                          <button
+                            key={goal}
+                            type="button"
+                            onClick={() => setTargetGoal(goal)}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                              isSelected
+                                ? "bg-[#303654] text-white shadow-xs"
+                                : "bg-gray-100 text-gray-600 hover:bg-gray-200/80"
+                            }`}
+                          >
+                            {goal}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. Schedule Mode & Weekly Hours Commitment */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                  <div className="lg:col-span-2 space-y-2">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">
+                      3. Learning Pace & Mode
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {[
+                        {
+                          id: "Accelerated",
+                          title: "Accelerated Sprint",
+                          badge: "6-8 Weeks",
+                          icon: Flame,
+                          desc: "Intensive sprint for full-time learners ready to launch fast."
+                        },
+                        {
+                          id: "Standard",
+                          title: "Standard Balanced",
+                          badge: "10-12 Weeks",
+                          icon: Target,
+                          desc: "Recommended for university & secondary school students."
+                        },
+                        {
+                          id: "Flexible Weekend",
+                          title: "Weekend Intensive",
+                          badge: "12-14 Weeks",
+                          icon: Clock,
+                          desc: "Saturdays & Sundays focused with physical Umuahia lab hours."
+                        }
+                      ].map((mode) => {
+                        const Icon = mode.icon;
+                        const isSelected = studyPace === mode.id;
+                        return (
+                          <button
+                            key={mode.id}
+                            type="button"
+                            onClick={() => setStudyPace(mode.id as any)}
+                            className={`text-left p-3.5 rounded-2xl border transition-all cursor-pointer ${
+                              isSelected
+                                ? "border-[#AE54C6] bg-purple-50/70 ring-2 ring-[#AE54C6]/20 shadow-xs"
+                                : "border-gray-200 bg-white hover:bg-gray-50"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between mb-1.5">
+                              <span className="font-bold text-xs text-[#303654] flex items-center gap-1.5">
+                                <Icon className={`w-3.5 h-3.5 ${isSelected ? "text-[#AE54C6]" : "text-gray-500"}`} />
+                                {mode.title}
+                              </span>
+                            </div>
+                            <div className="text-[11px] font-bold text-[#AE54C6] mb-1">{mode.badge}</div>
+                            <div className="text-[11px] text-gray-500 leading-snug">{mode.desc}</div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-700">
+                      Weekly Hours Commitment
+                    </label>
+                    <div className="p-4 rounded-2xl bg-gray-50/70 border border-gray-200/80 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-600 font-medium">Available Focus Hours:</span>
+                        <span className="text-base font-extrabold text-[#AE54C6]">{studyHours} hrs/week</span>
+                      </div>
+                      <div className="grid grid-cols-4 gap-1.5">
+                        {[6, 8, 12, 16].map((hrs) => (
+                          <button
+                            key={hrs}
+                            type="button"
+                            onClick={() => setStudyHours(hrs)}
+                            className={`py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                              studyHours === hrs
+                                ? "bg-[#AE54C6] text-white shadow-xs"
+                                : "bg-white text-gray-700 border border-gray-200 hover:bg-gray-100"
+                            }`}
+                          >
+                            {hrs}h
+                          </button>
                         ))}
                       </div>
-
-                      <div className="p-2.5 rounded-lg bg-brand-lavender/30 text-[11px] text-brand-dark font-medium border border-brand-purple/10">
-                        <span className="font-bold text-brand-purple block">Milestone Goal:</span>
-                        {week.milestoneProject}
-                      </div>
+                      <input
+                        type="range"
+                        min={4}
+                        max={24}
+                        step={1}
+                        value={studyHours}
+                        onChange={(e) => setStudyHours(Number(e.target.value))}
+                        className="w-full accent-[#AE54C6] cursor-pointer"
+                      />
                     </div>
-                  ))}
+                  </div>
+                </div>
+
+                {/* Submit Action */}
+                <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <Button
+                    variant="purple"
+                    size="lg"
+                    onClick={handleGenerateStudyPlan}
+                    disabled={isStudyLoading}
+                    className="w-full sm:w-auto shadow-md hover:shadow-lg cursor-pointer text-sm font-bold"
+                  >
+                    {isStudyLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        <span>Structuring Gamified Roadmap with Gemini...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        <span>Generate Custom Study Roadmap</span>
+                      </>
+                    )}
+                  </Button>
+
+                  <div className="text-xs text-gray-500 flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span>Includes interactive checklists, workstation lab tips & PDF export</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* If no plan is generated yet, show inspirational curriculum feature preview */}
+            {!studyPlan && !isStudyLoading && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="p-6 rounded-3xl bg-gradient-to-br from-purple-50/80 to-white border border-purple-100/90 shadow-xs space-y-3">
+                  <div className="w-10 h-10 rounded-2xl bg-[#AE54C6]/10 text-[#AE54C6] flex items-center justify-center">
+                    <Trophy className="w-5 h-5" />
+                  </div>
+                  <h4 className="font-bold text-[#303654] text-base">Gamified Daily Micro-Tasks</h4>
+                  <p className="text-xs text-gray-600 leading-relaxed">
+                    Break 12 weeks of software engineering into bite-sized daily tasks. Earn +50 XP per completed task and watch your student level rise from Code Cadet to BEMS Legend.
+                  </p>
+                </div>
+
+                <div className="p-6 rounded-3xl bg-gradient-to-br from-blue-50/80 to-white border border-blue-100/90 shadow-xs space-y-3">
+                  <div className="w-10 h-10 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center">
+                    <Lightbulb className="w-5 h-5" />
+                  </div>
+                  <h4 className="font-bold text-[#303654] text-base">Physical Umuahia Lab Tips</h4>
+                  <p className="text-xs text-gray-600 leading-relaxed">
+                    Calibrated for BEMS Workstations B2 and C4. Discover exact terminal tools, Chrome DevTools profiling tricks, and Paystack webhook test setups.
+                  </p>
+                </div>
+
+                <div className="p-6 rounded-3xl bg-gradient-to-br from-emerald-50/80 to-white border border-emerald-100/90 shadow-xs space-y-3">
+                  <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                    <Bot className="w-5 h-5" />
+                  </div>
+                  <h4 className="font-bold text-[#303654] text-base">1-Click Tutor & Quiz Loops</h4>
+                  <p className="text-xs text-gray-600 leading-relaxed">
+                    Stuck on a week's milestone? Click one button to jump into chat with Mr. Victor or Dr. Amaka, or launch an instant checkpoint practice quiz.
+                  </p>
                 </div>
               </div>
             )}
+
+            {/* Generated Study Plan Dashboard */}
+            {studyPlan && (() => {
+              const allTasks = studyPlan.weeks.flatMap((w) =>
+                w.dailyBreakdown.map((d, idx) => ({
+                  key: `${w.weekNumber}-${idx}`,
+                  weekNumber: w.weekNumber,
+                  ...d
+                }))
+              );
+              const totalTasksCount = allTasks.length;
+              const completedTasksCount = Object.values(completedTasks).filter(Boolean).length;
+              const progressPercent = totalTasksCount > 0 ? Math.min(100, Math.round((completedTasksCount / totalTasksCount) * 100)) : 0;
+              const earnedXp = completedTasksCount * 50;
+
+              let dynamicLevel = "Level 1: Code Cadet 🛡️";
+              if (progressPercent >= 100) dynamicLevel = "Level 5: BEMS Legend 🏆";
+              else if (progressPercent >= 75) dynamicLevel = "Level 4: Full-Stack Architect 🚀";
+              else if (progressPercent >= 50) dynamicLevel = "Level 3: Component Crafter 🎨";
+              else if (progressPercent >= 25) dynamicLevel = "Level 2: Bug Buster 🐛";
+
+              const displayedWeeks = selectedWeekFilter === "all"
+                ? studyPlan.weeks
+                : studyPlan.weeks.filter((w) => w.weekNumber === selectedWeekFilter);
+
+              return (
+                <div className="space-y-8 animate-fadeIn">
+                  {/* Gamified Hero Dashboard Banner */}
+                  <div className="p-6 sm:p-8 md:p-10 rounded-3xl bg-gradient-to-br from-[#303654] via-[#242A45] to-[#4A2060] text-white shadow-xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+                    
+                    <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+                      <div className="space-y-2 max-w-2xl">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs font-bold text-purple-200">
+                            {studyPlan.trackTitle}
+                          </span>
+                          <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-xs font-bold">
+                            {studyPlan.learningPace} Mode
+                          </span>
+                          <span className="text-xs text-white/60">
+                            {studyPlan.hoursPerWeek} hrs/week
+                          </span>
+                        </div>
+                        <h3 className="text-2xl sm:text-3xl font-black tracking-tight">
+                          {studyPlan.studentName}&apos;s Personalized Roadmap
+                        </h3>
+                        <p className="text-sm text-white/80 flex items-center gap-2">
+                          <Target className="w-4 h-4 text-purple-300 shrink-0" />
+                          <span>Goal: <strong>{studyPlan.targetGoal || targetGoal}</strong></span>
+                          <span className="text-white/40">•</span>
+                          <span>Target: {studyPlan.estimatedGraduation || `${studyPlan.totalWeeks} Weeks`}</span>
+                        </p>
+                      </div>
+
+                      {/* Gamification Level & XP Badge */}
+                      <div className="w-full lg:w-auto p-4 sm:p-5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 flex items-center justify-between lg:justify-start gap-4">
+                        <div className="space-y-1">
+                          <div className="text-[11px] uppercase tracking-wider text-purple-200 font-bold">Student Rank</div>
+                          <div className="text-sm sm:text-base font-extrabold text-white flex items-center gap-1.5">
+                            {dynamicLevel}
+                          </div>
+                        </div>
+                        <div className="h-8 w-px bg-white/20" />
+                        <div className="space-y-1 text-right lg:text-left">
+                          <div className="text-[11px] uppercase tracking-wider text-purple-200 font-bold">XP Earned</div>
+                          <div className="text-base sm:text-lg font-black text-amber-300 flex items-center gap-1">
+                            <Flame className="w-4 h-4 text-amber-400" />
+                            <span>{earnedXp} XP</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div className="mt-8 pt-6 border-t border-white/15 space-y-2">
+                      <div className="flex items-center justify-between text-xs font-bold">
+                        <span className="text-purple-200 flex items-center gap-1.5">
+                          <Trophy className="w-4 h-4 text-amber-300" />
+                          <span>Overall Roadmap Completion</span>
+                        </span>
+                        <span className="text-white font-extrabold">{completedTasksCount} of {totalTasksCount} tasks ({progressPercent}%)</span>
+                      </div>
+                      <div className="w-full h-3 rounded-full bg-white/15 overflow-hidden p-0.5">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-[#AE54C6] via-purple-400 to-emerald-400 transition-all duration-500 ease-out shadow-xs"
+                          style={{ width: `${progressPercent}%` }}
+                        />
+                      </div>
+                      {progressPercent === 100 && (
+                        <div className="mt-3 p-3 rounded-xl bg-emerald-500/20 border border-emerald-400/30 text-emerald-200 text-xs font-bold flex items-center gap-2">
+                          <Award className="w-4 h-4 text-emerald-300 shrink-0" />
+                          <span>Incredible achievement! You have completed all weekly roadmap milestones. You are ready to present your BEMS Capstone!</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Quick Action Toolbar */}
+                    <div className="mt-6 flex flex-wrap items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={handleDownloadCalendar}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 text-xs font-bold text-white transition-all cursor-pointer hover:scale-[1.02]"
+                      >
+                        <Calendar className="w-4 h-4 text-purple-200" />
+                        <span>Sync to Study Calendar (.ics)</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => window.print()}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 text-xs font-bold text-white transition-all cursor-pointer hover:scale-[1.02]"
+                      >
+                        <Printer className="w-4 h-4 text-purple-200" />
+                        <span>Print / Save PDF Roadmap</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.scrollTo({ top: 0, behavior: "smooth" });
+                        }}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-medium text-white/80 transition-all cursor-pointer ml-auto"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5 text-white/60" />
+                        <span>Adjust Pace or Target</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Tutor Guidance Banner */}
+                  <div className="p-5 rounded-2xl bg-purple-50/80 border border-purple-200/90 flex items-start space-x-3.5 shadow-xs">
+                    <div className="w-9 h-9 rounded-xl bg-[#AE54C6] text-white flex items-center justify-center shrink-0 mt-0.5">
+                      <Lightbulb className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-extrabold text-[#303654] uppercase tracking-wider">
+                        Lead Instructor Guidance
+                      </h4>
+                      <p className="text-xs sm:text-sm text-gray-700 mt-1 leading-relaxed">
+                        {studyPlan.tutorTip}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Week Stepper Filter Tabs */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-extrabold text-[#303654] uppercase tracking-wider flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-[#AE54C6]" />
+                        <span>Weekly Syllabus & Milestone Modules ({studyPlan.weeks.length} Weeks)</span>
+                      </h4>
+                      <span className="text-xs text-gray-500 font-medium">Click tasks to check off & earn XP</span>
+                    </div>
+
+                    <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedWeekFilter("all")}
+                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer ${
+                          selectedWeekFilter === "all"
+                            ? "bg-[#303654] text-white shadow-xs"
+                            : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-100"
+                        }`}
+                      >
+                        All Weeks ({studyPlan.weeks.length})
+                      </button>
+                      {studyPlan.weeks.map((w) => {
+                        const wTasks = w.dailyBreakdown.map((_, idx) => `${w.weekNumber}-${idx}`);
+                        const wDone = wTasks.every((k) => completedTasks[k]);
+                        const isSelected = selectedWeekFilter === w.weekNumber;
+                        return (
+                          <button
+                            key={w.weekNumber}
+                            type="button"
+                            onClick={() => setSelectedWeekFilter(w.weekNumber)}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all flex items-center gap-1.5 cursor-pointer ${
+                              isSelected
+                                ? "bg-[#AE54C6] text-white shadow-xs"
+                                : wDone
+                                ? "bg-emerald-50 border border-emerald-300 text-emerald-700 hover:bg-emerald-100"
+                                : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-100"
+                            }`}
+                          >
+                            <span>Week {w.weekNumber}</span>
+                            {wDone && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Weekly Milestone Cards Grid */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {displayedWeeks.map((week) => {
+                      const weekTaskKeys = week.dailyBreakdown.map((_, idx) => `${week.weekNumber}-${idx}`);
+                      const isWeekCompleted = weekTaskKeys.every((k) => completedTasks[k]);
+                      const isWeekInProgress = weekTaskKeys.some((k) => completedTasks[k]) && !isWeekCompleted;
+
+                      return (
+                        <div
+                          key={week.weekNumber}
+                          className={`rounded-3xl border transition-all duration-200 p-6 sm:p-7 space-y-5 bg-white shadow-xs hover:shadow-md ${
+                            isWeekCompleted
+                              ? "border-emerald-300 ring-2 ring-emerald-500/10"
+                              : isWeekInProgress
+                              ? "border-[#AE54C6]/40 ring-2 ring-[#AE54C6]/10"
+                              : "border-gray-200/90 hover:border-gray-300"
+                          }`}
+                        >
+                          {/* Card Header */}
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <span className="px-3 py-1 rounded-lg bg-[#303654] text-white text-xs font-extrabold tracking-wide">
+                                  Week {week.weekNumber}
+                                </span>
+                                {isWeekCompleted ? (
+                                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-extrabold flex items-center gap-1">
+                                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                    Completed
+                                  </span>
+                                ) : isWeekInProgress ? (
+                                  <span className="px-2.5 py-0.5 rounded-full bg-purple-100 text-brand-purple text-[11px] font-extrabold flex items-center gap-1">
+                                    <Zap className="w-3 h-3 text-brand-purple" />
+                                    In Progress
+                                  </span>
+                                ) : (
+                                  <span className="px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-600 text-[11px] font-medium">
+                                    Upcoming
+                                  </span>
+                                )}
+                              </div>
+                              <h4 className="text-base sm:text-lg font-bold text-[#303654] pt-1">
+                                {week.title}
+                              </h4>
+                            </div>
+
+                            <span className="text-xs font-bold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-lg shrink-0">
+                              {week.estimatedHours} hrs
+                            </span>
+                          </div>
+
+                          {/* Focus Area */}
+                          <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
+                            {week.focusArea}
+                          </p>
+
+                          {/* Key Skills Tags */}
+                          {week.keySkills && week.keySkills.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 pt-1">
+                              {week.keySkills.map((sk) => (
+                                <span
+                                  key={sk}
+                                  className="px-2.5 py-0.5 rounded-md bg-gray-100 text-[10px] font-semibold text-gray-700"
+                                >
+                                  #{sk}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Daily Micro-Tasks Checklist */}
+                          <div className="space-y-2 border-t border-gray-100 pt-4">
+                            <div className="text-[11px] font-extrabold uppercase tracking-wider text-gray-500 mb-2">
+                              Daily Micro-Tasks (Click to check off)
+                            </div>
+                            <div className="space-y-2">
+                              {week.dailyBreakdown.map((item, idx) => {
+                                const taskKey = `${week.weekNumber}-${idx}`;
+                                const isChecked = !!completedTasks[taskKey];
+
+                                return (
+                                  <button
+                                    key={idx}
+                                    type="button"
+                                    onClick={() => toggleTaskCompletion(taskKey)}
+                                    className={`w-full text-left p-3 rounded-xl border text-xs flex items-start gap-3 transition-all cursor-pointer ${
+                                      isChecked
+                                        ? "bg-emerald-50/70 border-emerald-200 text-gray-500 line-through"
+                                        : "bg-gray-50/60 hover:bg-gray-100/80 border-gray-200 text-gray-800"
+                                    }`}
+                                  >
+                                    <div className="shrink-0 mt-0.5">
+                                      {isChecked ? (
+                                        <CheckSquare className="w-4 h-4 text-emerald-600" />
+                                      ) : (
+                                        <Square className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+                                      )}
+                                    </div>
+                                    <div className="flex-1">
+                                      <span className="font-bold text-[#AE54C6] mr-1.5">{item.day}:</span>
+                                      <span className={isChecked ? "text-gray-500" : "text-gray-800 font-medium"}>
+                                        {item.task}
+                                      </span>
+                                    </div>
+                                    <span className="text-[10px] font-bold text-gray-400 shrink-0 ml-1">
+                                      {item.duration}
+                                    </span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          {/* Milestone Project */}
+                          <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200/80 text-xs text-amber-950 space-y-1">
+                            <div className="font-extrabold text-amber-900 flex items-center gap-1.5">
+                              <Trophy className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                              <span>Milestone Deliverable:</span>
+                            </div>
+                            <div className="text-gray-800 font-medium pl-5">
+                              {week.milestoneProject}
+                            </div>
+                          </div>
+
+                          {/* Lab Workstation Tip */}
+                          {week.labWorkstationTip && (
+                            <div className="p-3 rounded-2xl bg-blue-50/60 border border-blue-200/70 text-xs text-blue-950 flex items-start gap-2.5">
+                              <Lightbulb className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                              <div>
+                                <span className="font-bold text-blue-900 mr-1">Workstation Tip:</span>
+                                <span className="text-gray-700">{week.labWorkstationTip}</span>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Action Buttons for Week */}
+                          <div className="pt-2 flex flex-col sm:flex-row items-center gap-2.5">
+                            <button
+                              type="button"
+                              onClick={() => handleAskTutorAboutWeek(week)}
+                              className="w-full sm:w-auto flex-1 inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-xs font-bold text-[#AE54C6] transition-all cursor-pointer hover:scale-[1.01]"
+                            >
+                              <Bot className="w-3.5 h-3.5 text-[#AE54C6]" />
+                              <span>Ask Tutor About Week {week.weekNumber}</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleTestWeekQuiz(week)}
+                              className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-xs font-bold text-gray-700 transition-all cursor-pointer"
+                            >
+                              <BrainCircuit className="w-3.5 h-3.5 text-gray-600" />
+                              <span>Practice Quiz</span>
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         )}
 

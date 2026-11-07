@@ -124,12 +124,13 @@ router.post("/", async (req, res) => {
       }
 
       case "study-plan": {
-        const { studentName, trackTitle, hoursPerWeek, learningPace } = body;
+        const { studentName, trackTitle, hoursPerWeek, learningPace, targetGoal } = body;
         const plan = await generatePersonalizedStudyPlan(
           studentName || "FutureSkills Scholar",
           trackTitle || "Full-Stack Web Development",
           hoursPerWeek || 8,
-          learningPace || "Standard"
+          learningPace || "Standard",
+          targetGoal || "Launch First Full App / SaaS"
         );
         return res.json(plan);
       }

@@ -29,6 +29,9 @@ export interface StudyPlanWeek {
     duration: string;
   }[];
   milestoneProject: string;
+  labWorkstationTip?: string;
+  keySkills?: string[];
+  checkpointQuizTopic?: string;
 }
 
 export interface AIStudyPlan {
@@ -41,6 +44,9 @@ export interface AIStudyPlan {
   weeks: StudyPlanWeek[];
   tutorTip: string;
   createdAt: string;
+  targetGoal?: string;
+  estimatedGraduation?: string;
+  levelBadge?: string;
 }
 
 export interface AIFeedbackCriterion {
