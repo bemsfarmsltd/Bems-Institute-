@@ -159,7 +159,7 @@ export default function LessonViewPage({
               <Button
                 variant="purple"
                 size="sm"
-                className="shadow-xs text-xs"
+                className="shadow-xs text-xs font-bold"
               >
                 <Sparkles className="w-3.5 h-3.5 mr-1.5" /> Ask AI Tutor
               </Button>
@@ -168,18 +168,18 @@ export default function LessonViewPage({
               <Button
                 variant="outline"
                 size="sm"
-                className="border-purple-400/40 text-purple-200 hover:bg-white/10"
+                className="bg-white text-[#303654] hover:text-[#AE54C6] hover:bg-[#FAF8FF] hover:border-[#AE54C6] font-bold text-xs shadow-xs"
               >
-                <Award className="w-4 h-4 mr-1.5 text-yellow-400" /> Take Assessment
+                <Award className="w-4 h-4 mr-1.5 text-amber-500" /> Take Assessment
               </Button>
             </Link>
             <Link href={`/learn/${slug}/assignment/assign-${slug}`}>
               <Button
                 variant="outline"
                 size="sm"
-                className="border-purple-400/40 text-purple-200 hover:bg-white/10"
+                className="bg-white text-[#303654] hover:text-[#AE54C6] hover:bg-[#FAF8FF] hover:border-[#AE54C6] font-bold text-xs shadow-xs"
               >
-                <FileCheck className="w-4 h-4 mr-1.5 text-purple-300" /> Capstone
+                <FileCheck className="w-4 h-4 mr-1.5 text-[#AE54C6]" /> Capstone
               </Button>
             </Link>
           </div>
