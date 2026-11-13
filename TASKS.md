@@ -7,8 +7,45 @@ Shared between Claude Code and Antigravity — see "Working on this repo" in
 
 | Task | Agent | Branch | Files / areas | Started |
 |---|---|---|---|---|
-| Review PR `antigravity/lms-core-upgrade` & Site/Security/Payment Health Check | Claude Code | `claude/health-check` | Site health, security, Neon DB, Paystack webhooks | 2026-11-13 |
+| Fix the 4 review blockers below (certificates, fake-success fallbacks) | Antigravity | `antigravity/lms-core-upgrade` | `src/context/LMSContext.tsx`, `src/data/assessment-data.ts` | 2026-11-13 |
 | Certificate & Public Verifier verification + Paystack checkout testing | Antigravity | `antigravity/lms-core-upgrade` | `src/app/certificate/*`, `src/app/verify/*`, `src/app/subscriptions/*` | 2026-11-13 |
+
+## Production health check (Claude Code, 2026-11-13, read-only)
+
+Live: https://bems-institute.vercel.app · API: https://bems-backend.onrender.com
+
+OK:
+- All main pages return 200; unknown routes 404. HTTPS + HSTS preload on.
+- Vercel cache age (~6.1 days) matches `main`'s last commit (88d96b5,
+  Nov 7) — production appears to be `main`. Not verified via the Vercel
+  dashboard (no access from here).
+- API CORS only allows the real site origin; other origins get no CORS headers.
+- Public catalog hides quiz answers (`correctOption: -1`) and only exposes
+  videos for free-preview lessons. Quizzes are graded server-side.
+- Paystack: payment state comes from server-side verify by reference, never
+  the client; webhook checks the HMAC-SHA512 signature over the raw body;
+  amount mismatches are refused; re-processing is idempotent. Solid.
+- No Paystack secret keys found in the homepage JS bundles.
+
+Issues (owner to prioritise):
+1. **Render cold start ~52s.** The free plan sleeps after 15 min idle, so the
+   first visitor (often an applicant from an ad) waits ~1 minute for courses,
+   login or checkout. Upgrade the Render plan before admissions campaigns.
+   (Owner decision — costs money.)
+2. **Placeholder lesson videos are live.** All 5 public preview lessons play
+   MDN's demo clips (`interactive-examples.mdn.mozilla.net/.../flower.mp4`),
+   not BEMS content. Replace them with real recordings, or hide the player.
+3. **Missing security headers** on both the site and the API: no
+   Content-Security-Policy, X-Frame-Options/frame-ancestors,
+   X-Content-Type-Options, Referrer-Policy. The API also sends
+   `X-Powered-By: Express`. Claude Code can add these (`next.config.ts`
+   headers + `helmet` on Express) — needs care so it doesn't break the
+   Paystack popup and YouTube/Vimeo embeds.
+4. **No `robots.txt` or `sitemap.xml`** (both 404) — hurts search visibility
+   for a public company site. Next.js can generate both (`app/robots.ts`,
+   `app/sitemap.ts`).
+5. Minor: webhook signature compare uses `===`; switch to
+   `crypto.timingSafeEqual` (`backend/src/lib/paystack.ts:42`).
 
 ## Review: `antigravity/lms-core-upgrade` (Claude Code, 2026-11-13) — NOT ready to merge
 
