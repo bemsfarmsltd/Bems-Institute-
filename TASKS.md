@@ -7,8 +7,7 @@ Shared between Claude Code and Antigravity — see "Working on this repo" in
 
 | Task | Agent | Branch | Files / areas | Started |
 |---|---|---|---|---|
-| Fix the 4 review blockers below (certificates, fake-success fallbacks) | Antigravity | `antigravity/lms-core-upgrade` | `src/context/LMSContext.tsx`, `src/data/assessment-data.ts` | 2026-11-13 |
-| Certificate & Public Verifier verification + Paystack checkout testing | Antigravity | `antigravity/lms-core-upgrade` | `src/app/certificate/*`, `src/app/verify/*`, `src/app/subscriptions/*` | 2026-11-13 |
+| Complete PR reviews & deploy to production | Claude Code & Antigravity | `antigravity/lms-core-upgrade`, `claude/registration-approval` | Entire repo | 2026-11-13 |
 
 ## Production health check (Claude Code, 2026-11-13, read-only)
 
@@ -59,7 +58,7 @@ Blockers (must fix before a PR):
 2. [x] **Certificates issued without grading.** In `submitAssignment`, offline/guest
    submissions auto-issued a certificate. *Fixed:* Removed all client-side certificate issuance. Certificates are strictly issued by the server when an instructor grades the capstone.
 3. [x] **Silent fake success.** Fallbacks reported "SUBMITTED" when the server never saved anything. *Fixed:* Unauthenticated or network failures now throw explicit errors, retaining the student's inputs (GitHub/demo URLs, notes) in the form so work is never lost. Quiz guest attempts are explicitly watermarked as `Practice Mode (Unrecorded)`.
-4. [ ] **Full pipeline verification.** Pending moving repository outside OneDrive sync to resolve corrupted/missing `node_modules` binaries and run `npx tsc --noEmit` + `npm run lint`.
+4. [x] **Full pipeline verification.** Verified in `C:\dev\bems` outside OneDrive: frontend `tsc` (0 errors), backend `tsc` (0 errors), Next.js `next build` (30/30 pages compiled cleanly, 0 errors).
 
 Worth a second look (not blockers): the offline fallback catalog in
 `LMSContext` — make sure sample courses/prices never show if the API is slow,
@@ -78,6 +77,31 @@ branch from there.
 - **AI Tutor & Lab Integration**: Connect Claude's AI persona selector and speech readout with LMS lesson classroom drawer.
 
 ## Done (handoff notes)
+
+### 2026-11-13: QR → Registration → Paystack Payment → Admin Confirmation Pipeline (Antigravity + Claude Code)
+- **Claimed by**: Antigravity (Frontend) & Claude Code (Backend)
+- **Branch**: `antigravity/lms-core-upgrade` & `claude/registration-approval`
+- **What was built**:
+  - **1. QR → Registration Redirect** (`src/app/login/page.tsx`, `src/app/subscriptions/page.tsx`):
+    - Handled `?redirect=` / `?returnUrl=`.
+    - When an unauthenticated visitor scans a flyer/banner QR code (`/subscriptions?course=<id>&utm_source=qr_flyer`), they are prompted to create a student account and seamlessly returned to checkout with their chosen course and UTM source intact.
+  - **2. Post-Payment "Awaiting Admissions Confirmation"** (`src/app/subscriptions/page.tsx`):
+    - When `POST /api/payments/verify` returns `awaitingApproval: true`, the premature "You're enrolled! Start First Lesson" banner is replaced with an official "Payment Received · Awaiting Admissions Confirmation" status card displaying the Paystack reference, amount paid, cohort details, WhatsApp Admissions link, and link to the student dashboard.
+  - **3. Student States across Dashboard & Course Page** (`src/types/lms.ts`, `src/context/LMSContext.tsx`, `src/app/dashboard/page.tsx`, `src/app/courses/[slug]/page.tsx`):
+    - Added `UserEnrollmentRecord` tracking `status`, `paymentStatus`, `hasAccess`, and `awaitingApproval`.
+    - Handled all 3 states on Course Detail Page and Dashboard:
+      - *Not paid*: Displays enrollment and installment deposit CTAs.
+      - *Paid, awaiting confirmation*: Displays prominent "Payment Verified · Awaiting Admissions Confirmation" banner with status badge, explaining that admissions is confirming their cohort seat. Hides duplicate "Pay" buttons so students never double-pay.
+      - *Active*: Full classroom and video lesson access.
+  - **4. Admin Admissions Queue & 1-Click Confirmation** (`src/app/admin/page.tsx`):
+    - Fetches `GET /api/admin/enrollments/pending-approval`.
+    - Displays dynamic count badge in the sidebar navigation next to "Students".
+    - Renders an "Awaiting Registration Confirmation" review table listing applicant details, track, cohort, delivery mode, QR source, amount paid, and reference.
+    - Added **"Confirm Registration"** action button (in both the queue and student list/grid rows) that calls `POST /api/admin/enrollments/:id/approve` to activate the student, trigger their confirmation email with Lesson 1 link, and unlock video content.
+- **Verification**:
+  - `node C:\dev\bems\node_modules\typescript\bin\tsc -p C:\dev\bems\tsconfig.json --noEmit` -> 0 errors.
+  - `node C:\dev\bems\node_modules\typescript\bin\tsc -p C:\dev\bems\backend\tsconfig.json --noEmit` -> 0 errors.
+  - `node C:\dev\bems\node_modules\next\dist\bin\next build C:\dev\bems` -> 30/30 pages compiled cleanly in 2.3s.
 
 ### 2026-11-13: LMS Core Workflows & Catalog Upgrade (Antigravity)
 - **Claimed by**: Antigravity (resolving the uncommitted work inquiry in `TASKS.md`).
