@@ -44,8 +44,7 @@ export default function CourseDetailPage({
     getQuizForCourse,
     getAssignmentForCourse,
     getCertificate,
-    user,
-    userEnrollments
+    user
   } = useLMS();
 
   const [showInterestModal, setShowInterestModal] = useState(false);
@@ -145,12 +144,6 @@ export default function CourseDetailPage({
   }
 
   const enrolled = isEnrolled(course.id);
-  // Paid, but admissions hasn't confirmed the registration yet — lessons
-  // stay locked, and showing the checkout again would look like the payment
-  // was lost.
-  const awaitingRecord = enrolled
-    ? undefined
-    : userEnrollments.find((e) => e.courseId === course.id && e.awaitingApproval);
   const progress = getCourseProgress(course.id);
   const firstLessonId = course.modules[0]?.lessons[0]?.id || "les-1";
   const totalLessons = course.modules.reduce((acc, m) => acc + m.lessons.length, 0);
@@ -595,23 +588,6 @@ export default function CourseDetailPage({
                     </Button>
                   </Link>
                 </div>
-              ) : awaitingRecord ? (
-                <div>
-                  <Badge variant="purple" className="mb-3 inline-flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    AWAITING CONFIRMATION
-                  </Badge>
-                  <h3 className="text-lg font-black text-[#303654] mb-1">Payment received</h3>
-                  <p className="text-xs text-[#645F80] mb-4">
-                    ₦{awaitingRecord.amountPaid.toLocaleString()} paid. Admissions is confirming your registration, and
-                    we&apos;ll email you as soon as your lessons unlock.
-                  </p>
-                  <Link href="/dashboard" className="block w-full">
-                    <Button size="lg" variant="purple" className="w-full">
-                      Go to Dashboard
-                    </Button>
-                  </Link>
-                </div>
               ) : (
                 <div>
                   <span className="text-xs font-bold text-[#AE54C6] uppercase tracking-wider block mb-1">
@@ -696,22 +672,6 @@ export default function CourseDetailPage({
             <Link href={`/learn/${course.slug}/${firstLessonId}`} className="shrink-0">
               <Button size="sm" variant="purple" className="text-xs font-bold px-4 py-2">
                 Continue Learning
-              </Button>
-            </Link>
-          </>
-        ) : awaitingRecord ? (
-          <>
-            <div className="min-w-0">
-              <span className="text-[11px] font-bold text-amber-700 block truncate">
-                Paid · Awaiting confirmation
-              </span>
-              <span className="text-[10px] text-[#645F80] block truncate">
-                We&apos;ll email you when lessons unlock
-              </span>
-            </div>
-            <Link href="/dashboard">
-              <Button size="sm" variant="purple" className="text-xs font-bold px-4 py-2 shadow-xs">
-                Dashboard
               </Button>
             </Link>
           </>
