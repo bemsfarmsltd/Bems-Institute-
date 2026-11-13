@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { prisma } from "@/lib/prisma";
-import { getSessionUser, isStaff } from "@/lib/api-auth";
+import { getSessionUser, isStaff, isAdmin } from "@/lib/api-auth";
 import { checkAndNotifyMissedClasses, notifyWelcomeSessionNoShow } from "@/lib/attendance";
 
 const router = Router();
@@ -156,7 +156,13 @@ router.get("/sessions/:id/roster", async (req, res) => {
 
   const [enrollments, records] = await Promise.all([
     prisma.enrollment.findMany({
-      where: { courseId: liveSession.courseId },
+      // Students who can be in class: an abandoned checkout or an unconfirmed
+      // registration also has an enrollment row, but isn't in the class.
+      where: {
+        courseId: liveSession.courseId,
+        paymentStatus: { in: ["PARTIAL", "PAID_FULL"] },
+        status: { notIn: ["PENDING", "WITHDRAWN"] }
+      },
       include: { user: { select: { id: true, name: true, email: true } } }
     }),
     prisma.attendanceRecord.findMany({ where: { sessionId: liveSession.id } })
@@ -169,7 +175,8 @@ router.get("/sessions/:id/roster", async (req, res) => {
     roster: enrollments.map((e) => ({
       userId: e.user.id,
       name: e.user.name,
-      email: e.user.email,
+      // Contact details are admin-only (docs/admin-audit.md B9).
+      email: isAdmin(session) ? e.user.email : "",
       present: recordByUser.has(e.user.id) ? recordByUser.get(e.user.id) : null
     }))
   });

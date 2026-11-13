@@ -56,7 +56,7 @@ payment actions are admin-only. The problems are what the console *shows*:
 | B6 | Medium | Recording a bank payment can silently *lower* what a student paid, can mark PARTIAL when the full amount is in, and two quick clicks can write the payment to the ledger twice. | Validate, and do the update and the ledger entry in one transaction. |
 | B7 | Medium | The welcome-call list includes people who opened a checkout and never paid, so staff would phone non-customers. | Paid registrations only. |
 | B8 | Medium | New admins sign up with one shared code that never expires, and there's no way to see or remove admins and instructors. | Staff list with deactivate/reactivate (below). Owner should change `ADMIN_ACCESS_CODE` on Render after onboarding and whenever staff leave. |
-| B9 | Low | Instructors can read the full payment ledger, revenue and every student's contact details. | **Owner decision.** Left as is until the owner decides. |
+| B9 | Medium | Instructors can read the full payment ledger, revenue and every student's contact details. | **Owner decided: admin-only.** Analytics, payment ledger, cohorts, placements, leads, welcome calls and the graduate admin lists are admin-only. Instructors still get the roster and attendance list, but only students in class, with email, phone and money fields blank. |
 
 ### Frontend (Antigravity)
 

@@ -2,7 +2,7 @@ import { describe, it, expect, afterAll } from "vitest";
 import { prisma } from "@/lib/prisma";
 import { confirmPaymentTransaction } from "@/lib/payment-ledger";
 import { toCsv } from "@/lib/csv";
-import { createTestStudent, createTestAdmin, cleanupTestData, SessionAgent } from "./helpers";
+import { createTestStudent, createTestAdmin, cleanupTestData, SessionAgent, TEST_PASSWORD } from "./helpers";
 
 // Regression tests for docs/admin-audit.md (backend items B1-B8).
 
@@ -252,5 +252,64 @@ describe("CSV export", () => {
     );
     const row = csv.split("\r\n")[1];
     expect(row).toBe(`"'=HYPERLINK(""http://evil"",""x"")",-500,'@SUM(A1)`);
+  });
+});
+
+describe("instructors can't see money or contact details (B9)", () => {
+  const liveSessionIds: string[] = [];
+  afterAll(async () => {
+    await prisma.liveSession.deleteMany({ where: { id: { in: liveSessionIds } } });
+    await cleanupTestData();
+  });
+
+  it("blocks money/contact routes and redacts the rosters", async () => {
+    const { agent: admin } = await createTestAdmin("audit-b9-admin");
+    const { userId: instructorId, email: instructorEmail } = await createTestStudent("audit-b9-instructor");
+    await prisma.user.update({ where: { id: instructorId }, data: { role: "INSTRUCTOR" } });
+    const instructor = new SessionAgent();
+    await instructor.post("/api/auth/login", { email: instructorEmail, password: TEST_PASSWORD });
+
+    for (const path of [
+      "/api/admin/analytics",
+      "/api/admin/payment-ledger",
+      "/api/admin/cohorts",
+      "/api/admin/placements",
+      "/api/admin/leads",
+      "/api/admin/welcome-calls",
+      "/api/graduates/admin",
+      "/api/graduates/eligible"
+    ]) {
+      expect((await instructor.get(path)).status, path).toBe(403);
+      expect((await admin.get(path)).status, path).toBe(200);
+    }
+
+    // One confirmed student in class, one abandoned checkout.
+    const { agent: student, email: studentEmail } = await createTestStudent("audit-b9-student");
+    const enrollment = await payFull(student);
+    expect((await admin.post(`/api/admin/enrollments/${enrollment.id}/approve`)).status).toBe(200);
+    const { agent: browser, email: browserEmail } = await createTestStudent("audit-b9-browser");
+    await browser.post("/api/payments/init", { courseId: "web-dev", paymentPlan: "full" });
+
+    const adminRoster = (await admin.get("/api/admin/roster")).body.roster;
+    expect(adminRoster.map((s: { email: string }) => s.email)).toEqual(
+      expect.arrayContaining([studentEmail, browserEmail])
+    );
+
+    const roster = (await instructor.get("/api/admin/roster")).body.roster;
+    const row = roster.find((s: { id: string }) => s.id === enrollment.id);
+    expect(row).toBeDefined();
+    expect(row).toMatchObject({ email: "", phone: "", amountPaid: 0, totalDue: 0, paymentReference: null });
+    expect(roster.some((s: { name: string }) => s.name.includes("audit-b9-browser"))).toBe(false);
+
+    const live = await prisma.liveSession.create({
+      data: { courseId: "web-dev", title: "B9 test", scheduledAt: new Date() }
+    });
+    liveSessionIds.push(live.id);
+    const att = (await instructor.get(`/api/attendance/sessions/${live.id}/roster`)).body.roster;
+    const attRow = att.find((r: { userId: string }) => r.userId === enrollment.userId);
+    expect(attRow?.email).toBe("");
+    expect(att.some((r: { name: string }) => r.name.includes("audit-b9-browser"))).toBe(false);
+    const adminAtt = (await admin.get(`/api/attendance/sessions/${live.id}/roster`)).body.roster;
+    expect(adminAtt.find((r: { userId: string }) => r.userId === enrollment.userId)?.email).toBe(studentEmail);
   });
 });

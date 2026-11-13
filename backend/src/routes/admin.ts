@@ -1,7 +1,7 @@
 import { Router } from "express";
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
-import { getSessionUser, isStaff, isAdmin } from "@/lib/api-auth";
+import { getSessionUser, isStaff, isAdmin, hasCourseAccess } from "@/lib/api-auth";
 import { computeAdminRoster } from "@/lib/admin-roster";
 import { DELIVERY_MODE_LABEL, mapAdminCourse } from "@/lib/lms-mappers";
 import { createNotification } from "@/lib/notifications";
@@ -20,8 +20,8 @@ const WAIVER_CHANNEL = "second_chance_waiver";
 
 router.get("/analytics", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isStaff(session)) {
-    return res.status(403).json({ error: "Staff access required." });
+  if (!isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
   }
 
   const [roster, courses, cohort, certificatesIssued, scans, homePageViews, signupPageViews, ledger, lessonsCompleted] =
@@ -208,8 +208,8 @@ router.patch("/cohort", async (req, res) => {
 // starts the next intake round.
 router.get("/cohorts", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isStaff(session)) {
-    return res.status(403).json({ error: "Staff access required." });
+  if (!isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
   }
 
   const cohorts = await prisma.cohort.findMany({
@@ -265,7 +265,24 @@ router.get("/roster", async (req, res) => {
     return res.status(403).json({ error: "Staff access required." });
   }
   const roster = await computeAdminRoster();
-  return res.json({ roster });
+  if (isAdmin(session)) {
+    return res.json({ roster });
+  }
+
+  // Instructors (owner decision, docs/admin-audit.md B9): only students who
+  // can actually be in class, with no contact details and no money figures.
+  return res.json({
+    roster: roster
+      .filter((s) => hasCourseAccess({ status: s.enrollmentStatus, paymentStatus: s.paymentStatus }))
+      .map((s) => ({
+        ...s,
+        email: "",
+        phone: "",
+        amountPaid: 0,
+        totalDue: 0,
+        paymentReference: null
+      }))
+  });
 });
 
 // Same data as GET /roster, as a downloadable CSV for board reporting /
@@ -330,8 +347,8 @@ async function loadPaymentLedger() {
 // This is the ledger the Earnings tab reads from instead of placeholder data.
 router.get("/payment-ledger", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isStaff(session)) {
-    return res.status(403).json({ error: "Staff access required." });
+  if (!isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
   }
 
   return res.json({ transactions: await loadPaymentLedger() });
@@ -367,8 +384,8 @@ router.get("/payment-ledger/export", async (req, res) => {
 // Certificate (see ensurePlacementSeeking in POST /submissions/:id/grade).
 router.get("/placements", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isStaff(session)) {
-    return res.status(403).json({ error: "Staff access required." });
+  if (!isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
   }
 
   const placements = await prisma.jobPlacement.findMany({
@@ -510,12 +527,12 @@ router.post("/placements/:id/promote-to-instructor", async (req, res) => {
 });
 
 // PRD §4.1 step 3 — staff work the lead queue the "register interest" form
-// feeds (POST /lms/register-interest). Not financial, so staff (not just
-// admin) can read and update, matching the attendance/notification bar.
+// feeds (POST /lms/register-interest). Admin-only: it's a list of people's
+// phone numbers (owner decision, docs/admin-audit.md B9).
 router.get("/leads", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isStaff(session)) {
-    return res.status(403).json({ error: "Staff access required." });
+  if (!isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
   }
 
   const leads = await prisma.lead.findMany({
@@ -539,8 +556,8 @@ router.get("/leads", async (req, res) => {
 
 router.patch("/leads/:id", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isStaff(session)) {
-    return res.status(403).json({ error: "Staff access required." });
+  if (!isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
   }
 
   const { id } = req.params;
@@ -570,8 +587,8 @@ router.patch("/leads/:id", async (req, res) => {
 // there's no WhatsApp Business API wired up to send it automatically).
 router.get("/welcome-calls", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isStaff(session)) {
-    return res.status(403).json({ error: "Staff access required." });
+  if (!isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
   }
 
   const enrollments = await prisma.enrollment.findMany({
@@ -602,8 +619,8 @@ router.get("/welcome-calls", async (req, res) => {
 
 router.patch("/enrollments/:id/welcome-call", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isStaff(session)) {
-    return res.status(403).json({ error: "Staff access required." });
+  if (!isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
   }
 
   const { id } = req.params;
