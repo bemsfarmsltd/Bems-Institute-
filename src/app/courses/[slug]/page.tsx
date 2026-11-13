@@ -24,8 +24,13 @@ import {
   BookOpen,
   AlertTriangle,
   Star,
-  GraduationCap
+  GraduationCap,
+  ArrowRight,
+  ShieldCheck,
+  Check,
+  Zap
 } from "lucide-react";
+import { LMS_COURSES } from "@/data/lms-data";
 
 export default function CourseDetailPage({
   params
@@ -71,7 +76,9 @@ export default function CourseDetailPage({
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewMsg, setReviewMsg] = useState<string | null>(null);
 
-  const course = courses.find((c) => c.slug === slug);
+  const course =
+    courses.find((c) => c.slug === slug || c.id === slug) ||
+    LMS_COURSES.find((c) => c.slug === slug || c.id === slug);
 
   useEffect(() => {
     if (!course) return;
@@ -146,6 +153,9 @@ export default function CourseDetailPage({
   const enrolled = isEnrolled(course.id);
   const progress = getCourseProgress(course.id);
   const firstLessonId = course.modules[0]?.lessons[0]?.id || "les-1";
+  const firstFreeLesson = course.modules
+    .flatMap((m) => m.lessons)
+    .find((l) => l.isFreePreview);
   const totalLessons = course.modules.reduce((acc, m) => acc + m.lessons.length, 0);
   const courseQuiz = getQuizForCourse(course.id);
   const courseAssignment = getAssignmentForCourse(course.id);
@@ -230,6 +240,53 @@ export default function CourseDetailPage({
               <span><strong>Schedule:</strong> {course.schedule}</span>
             </div>
           </div>
+
+          {/* Hero Action CTAs */}
+          <div className="mt-8 pt-6 border-t border-white/10 flex flex-wrap items-center gap-3">
+            {enrolled ? (
+              <div className="flex flex-wrap items-center gap-3">
+                <Link href={`/learn/${course.slug}/${firstLessonId}`}>
+                  <Button variant="purple" size="lg" className="shadow-xl text-sm font-black gap-2">
+                    <PlayCircle className="w-5 h-5 text-emerald-400" />
+                    <span>Continue Learning ({progress.percent}%)</span>
+                    <ArrowRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </Link>
+                {courseQuiz && (
+                  <Link href={`/learn/${course.slug}/quiz/${courseQuiz.id}`}>
+                    <Button variant="outline" size="lg" className="bg-white/10 border-white/20 text-white hover:bg-white/20 text-sm font-bold">
+                      <Award className="w-4 h-4 mr-1.5 text-amber-400" /> Take Assessment
+                    </Button>
+                  </Link>
+                )}
+              </div>
+            ) : (
+              <div className="flex flex-wrap items-center gap-3">
+                <Link href={`/subscriptions?course=${course.id}`}>
+                  <Button variant="purple" size="lg" className="shadow-xl text-sm font-black gap-2 bg-[#AE54C6] hover:bg-[#9E3FB6]">
+                    <Sparkles className="w-4 h-4 text-emerald-400" />
+                    <span>Enroll Now &bull; ₦{course.priceFull.toLocaleString()}</span>
+                    <ArrowRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </Link>
+
+                <Link href={`/subscriptions?course=${course.id}&plan=installment`}>
+                  <Button variant="outline" size="lg" className="bg-white/10 border-white/20 text-white hover:bg-white/20 text-sm font-bold">
+                    <span>Pay in Parts &bull; ₦{course.deposit.toLocaleString()} deposit</span>
+                  </Button>
+                </Link>
+
+                {firstFreeLesson && (
+                  <Link href={`/learn/${course.slug}/${firstFreeLesson.id}`}>
+                    <Button variant="secondary" size="lg" className="bg-white text-[#303654] hover:bg-[#FAF8FF] text-sm font-bold gap-1.5">
+                      <PlayCircle className="w-4 h-4 text-[#AE54C6]" />
+                      <span>Free Preview Lesson</span>
+                    </Button>
+                  </Link>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -312,14 +369,16 @@ export default function CourseDetailPage({
                             </span>
                             {canWatch ? (
                               <Link href={`/learn/${course.slug}/${lesson.id}`}>
-                                <Button size="sm" variant={completed ? "outline" : "primary"}>
+                                <Button size="sm" variant={completed ? "outline" : "primary"} className="text-xs font-bold">
                                   {completed ? "Review" : "Watch"}
                                 </Button>
                               </Link>
                             ) : (
-                              <Button size="sm" variant="outline" disabled>
-                                Locked
-                              </Button>
+                              <Link href={`/learn/${course.slug}/${lesson.id}`}>
+                                <Button size="sm" variant="outline" className="border-amber-200 text-amber-800 hover:bg-amber-50 gap-1 text-xs font-bold">
+                                  <Lock className="w-3 h-3 text-amber-600" /> Unlock
+                                </Button>
+                              </Link>
                             )}
                           </div>
                         </div>
@@ -617,19 +676,38 @@ export default function CourseDetailPage({
                     </Button>
                   )}
 
-                  <Link href={`/subscriptions?course=${course.id}`} className="block w-full" data-tour="checkout-link">
-                    <Button size="lg" className="w-full">
-                      Full Checkout & Paystack Portal
-                    </Button>
-                  </Link>
+                  <div className="space-y-2">
+                    <Link href={`/subscriptions?course=${course.id}`} className="block w-full" data-tour="checkout-link">
+                      <Button size="lg" variant="purple" className="w-full text-xs font-black shadow-lg gap-2 bg-[#AE54C6] hover:bg-[#9E3FB6]">
+                        <Sparkles className="w-4 h-4 text-emerald-300" />
+                        <span>Enroll in Course &bull; ₦{course.priceFull.toLocaleString()}</span>
+                        <ArrowRight className="w-4 h-4 ml-auto" />
+                      </Button>
+                    </Link>
+
+                    <Link href={`/subscriptions?course=${course.id}&plan=installment`} className="block w-full">
+                      <Button size="md" variant="outline" className="w-full text-xs font-bold border-[#AE54C6]/30 text-[#303654] hover:bg-[#FAF8FF]">
+                        <span>Pay in Installments &bull; ₦{course.deposit.toLocaleString()} Deposit</span>
+                      </Button>
+                    </Link>
+
+                    {firstFreeLesson && (
+                      <Link href={`/learn/${course.slug}/${firstFreeLesson.id}`} className="block w-full">
+                        <Button size="sm" variant="secondary" className="w-full text-xs font-bold gap-1.5 text-[#303654]">
+                          <PlayCircle className="w-4 h-4 text-[#AE54C6]" />
+                          <span>Watch Free Preview Lesson</span>
+                        </Button>
+                      </Link>
+                    )}
+                  </div>
 
                   <button
                     type="button"
                     onClick={openInterestModal}
                     data-tour="register-interest"
-                    className="w-full mt-2.5 py-2 text-xs font-bold text-[#AE54C6] hover:text-[#8f3ba3] cursor-pointer"
+                    className="w-full mt-3 py-2 text-xs font-bold text-[#AE54C6] hover:text-[#8f3ba3] cursor-pointer text-center block"
                   >
-                    Not ready to pay yet? Just register your interest →
+                    Not ready to pay yet? Register your interest &rarr;
                   </button>
 
                   <ul className="mt-6 pt-6 border-t border-[#F1E2F5] space-y-2.5 text-xs text-[#645F80]">

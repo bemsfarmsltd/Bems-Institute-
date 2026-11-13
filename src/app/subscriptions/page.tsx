@@ -48,6 +48,8 @@ declare global {
 function SubscriptionsContent() {
   const searchParams = useSearchParams();
   const courseQuery = searchParams.get("course");
+  const planQuery = searchParams.get("plan");
+  const initialPlan: PaymentPlan | null = planQuery === "full" || planQuery === "installment" ? planQuery : null;
   // Reads either ?source= (old flyer links) or ?utm_source= (current QR
   // Studio convention). Outdoor banners land on the homepage first, not
   // here — AttributionCapture logs and persists those — so when there's no
@@ -58,7 +60,7 @@ function SubscriptionsContent() {
   const [effectiveSource, setEffectiveSource] = useState<string | null>(null);
 
   const [selectedCourseId, setSelectedCourseId] = useState<string>(courseQuery || "web-dev");
-  const [selectedPlan, setSelectedPlan] = useState<PaymentPlan | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<PaymentPlan | null>(initialPlan);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"PAYSTACK" | "BANK">("PAYSTACK");
   const [isProcessing, setIsProcessing] = useState(false);
