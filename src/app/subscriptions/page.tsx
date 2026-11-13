@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
 import Script from "next/script";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useLMS } from "@/context/LMSContext";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -19,9 +19,12 @@ import {
   ArrowRight,
   BookOpen,
   PlayCircle,
-  AlertTriangle
+  AlertTriangle,
+  UserCheck,
+  Clock
 } from "lucide-react";
 import { apiFetch } from "@/lib/api-client";
+import { buildWhatsAppLink, BEMS_WHATSAPP_NUMBER } from "@/lib/whatsapp";
 import { SubscriptionsTour } from "@/components/tours/SubscriptionsTour";
 
 type PaymentPlan = "full" | "installment";
@@ -46,6 +49,7 @@ declare global {
 }
 
 function SubscriptionsContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const courseQuery = searchParams.get("course");
   const planQuery = searchParams.get("plan");
@@ -56,7 +60,7 @@ function SubscriptionsContent() {
   // param on THIS page load, fall back to what was persisted there instead
   // of losing the attribution.
   const sourceParam = readAttributionParam(searchParams);
-  const { courses, enrollInCourse, isEnrolled, refreshEnrollments } = useLMS();
+  const { user, courses, enrollInCourse, isEnrolled, refreshEnrollments } = useLMS();
   const [effectiveSource, setEffectiveSource] = useState<string | null>(null);
 
   const [selectedCourseId, setSelectedCourseId] = useState<string>(courseQuery || "web-dev");
@@ -73,6 +77,8 @@ function SubscriptionsContent() {
     courseTitle: string;
     courseSlug: string;
     firstLessonId: string;
+    awaitingApproval: boolean;
+    paymentReference?: string;
   } | null>(null);
 
   useEffect(() => {
@@ -127,7 +133,10 @@ function SubscriptionsContent() {
   const dueTodayAmount = (plan: PaymentPlan) =>
     plan === "full" ? planAmount("full") : selectedCourse?.deposit ?? 0;
 
-  const finalizeEnrollmentUI = (plan: PaymentPlan) => {
+  const finalizeEnrollmentUI = (
+    plan: PaymentPlan,
+    options?: { awaitingApproval?: boolean; paymentReference?: string }
+  ) => {
     if (!selectedCourse) return;
     const firstLessonId = selectedCourse.modules[0]?.lessons[0]?.id || "les-1";
     setConfirmedEnrollment({
@@ -135,7 +144,9 @@ function SubscriptionsContent() {
       amount: dueTodayAmount(plan),
       courseTitle: selectedCourse.title,
       courseSlug: selectedCourse.slug,
-      firstLessonId
+      firstLessonId,
+      awaitingApproval: options?.awaitingApproval ?? true,
+      paymentReference: options?.paymentReference
     });
     setShowPaymentModal(false);
     setIsProcessing(false);
@@ -162,7 +173,10 @@ function SubscriptionsContent() {
         return;
       }
       await refreshEnrollments();
-      finalizeEnrollmentUI(plan);
+      finalizeEnrollmentUI(plan, {
+        awaitingApproval: verifyData.awaitingApproval ?? true,
+        paymentReference: reference
+      });
     } catch {
       setPaymentError(
         `We couldn't reach our server to confirm this payment. If money left your account, contact admissions with reference ${reference}.`
@@ -176,6 +190,15 @@ function SubscriptionsContent() {
     setPaymentError(null);
     setIsProcessing(true);
 
+    if (!user) {
+      const currentPath =
+        typeof window !== "undefined"
+          ? window.location.pathname + window.location.search
+          : `/subscriptions?course=${selectedCourse.id}`;
+      router.push(`/login?mode=signup&redirect=${encodeURIComponent(currentPath)}`);
+      return;
+    }
+
     if (paymentMethod === "BANK") {
       if (!bankReference.trim()) {
         setPaymentError("Please enter the transfer reference or narration you used.");
@@ -188,7 +211,10 @@ function SubscriptionsContent() {
         paymentPlan: selectedPlan,
         bankReference: bankReference.trim()
       });
-      finalizeEnrollmentUI(selectedPlan);
+      finalizeEnrollmentUI(selectedPlan, {
+        awaitingApproval: true,
+        paymentReference: bankReference.trim()
+      });
       return;
     }
 
@@ -261,33 +287,115 @@ function SubscriptionsContent() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-1 w-full space-y-10">
         {/* Inline Confirmation Banner */}
         {confirmedEnrollment && (
-          <div className="rounded-3xl border-2 border-emerald-500 bg-emerald-50/90 p-6 sm:p-8 shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-6 animate-in fade-in duration-200">
-            <div className="space-y-1.5">
-              <div className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-emerald-800">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>Enrollment Confirmed · ₦{confirmedEnrollment.amount.toLocaleString()} ({confirmedEnrollment.planLabel})</span>
+          confirmedEnrollment.awaitingApproval ? (
+            <div className="rounded-3xl border-2 border-[#AE54C6] bg-gradient-to-br from-[#FAF8FF] via-white to-[#F6ECF9] p-6 sm:p-8 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 animate-in fade-in duration-300">
+              <div className="space-y-2">
+                <div className="inline-flex flex-wrap items-center gap-2 text-xs font-black uppercase tracking-wider text-[#7928CA]">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>Payment Verified · ₦{confirmedEnrollment.amount.toLocaleString()} ({confirmedEnrollment.planLabel})</span>
+                  <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold inline-flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    Awaiting Admissions Confirmation
+                  </span>
+                </div>
+                <h2 className="text-xl sm:text-2xl font-black text-[#303654]">
+                  Payment Received for {confirmedEnrollment.courseTitle}!
+                </h2>
+                <p className="text-xs sm:text-sm text-[#4A4568] max-w-2xl leading-relaxed">
+                  Thank you! We&apos;ve verified your payment. A payment receipt has been dispatched to your email. BEMS Admissions has received your application and will review and confirm your cohort placement shortly. You will receive an official email once confirmed and your learning content is unlocked.
+                </p>
+                {confirmedEnrollment.paymentReference && (
+                  <p className="text-[11.5px] text-[#645F80] flex items-center gap-1.5 pt-1">
+                    <span>Payment Reference:</span>
+                    <code className="font-mono font-bold text-[#303654] bg-white px-2 py-0.5 rounded border border-[#F1E2F5]">
+                      {confirmedEnrollment.paymentReference}
+                    </code>
+                  </p>
+                )}
               </div>
-              <h2 className="text-xl sm:text-2xl font-black text-[#303654]">
-                You&apos;re enrolled in {confirmedEnrollment.courseTitle}!
-              </h2>
-              <p className="text-xs sm:text-sm text-[#4A4568]">
-                Your classroom modules, interactive assessments, and AI Tutor context are now unlocked.
-              </p>
+              <div className="flex flex-wrap items-center gap-3 shrink-0">
+                <Link href="/dashboard">
+                  <Button variant="purple" className="gap-2 text-xs font-bold shadow-sm">
+                    <span>Go to Dashboard</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Button>
+                </Link>
+                <a
+                  href={buildWhatsAppLink(
+                    BEMS_WHATSAPP_NUMBER,
+                    `Hello BEMS Admissions, I just completed my tuition payment for ${confirmedEnrollment.courseTitle} (Ref: ${confirmedEnrollment.paymentReference || "N/A"}). Could you confirm my registration?`
+                  )}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button variant="outline" className="text-xs font-bold border-[#AE54C6]/40 hover:bg-[#FAF8FF]">
+                    <MessageCircle className="w-3.5 h-3.5 mr-1.5 text-emerald-600" />
+                    <span>Chat with Admissions</span>
+                  </Button>
+                </a>
+              </div>
             </div>
-            <div className="flex flex-wrap items-center gap-3 shrink-0">
-              <Link href={`/learn/${confirmedEnrollment.courseSlug}/${confirmedEnrollment.firstLessonId}`}>
-                <Button variant="purple" className="gap-2 text-xs font-bold">
-                  <PlayCircle className="w-4 h-4" />
-                  <span>Start First Lesson</span>
-                </Button>
-              </Link>
-              <Link href="/dashboard">
-                <Button variant="outline" className="text-xs font-bold">
-                  <span>Go to Dashboard</span>
-                  <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
-                </Button>
-              </Link>
+          ) : (
+            <div className="rounded-3xl border-2 border-emerald-500 bg-emerald-50/90 p-6 sm:p-8 shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-6 animate-in fade-in duration-200">
+              <div className="space-y-1.5">
+                <div className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-emerald-800">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <span>Enrollment Confirmed · ₦{confirmedEnrollment.amount.toLocaleString()} ({confirmedEnrollment.planLabel})</span>
+                </div>
+                <h2 className="text-xl sm:text-2xl font-black text-[#303654]">
+                  You&apos;re enrolled in {confirmedEnrollment.courseTitle}!
+                </h2>
+                <p className="text-xs sm:text-sm text-[#4A4568]">
+                  Your classroom modules, interactive assessments, and AI Tutor context are now unlocked.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-3 shrink-0">
+                <Link href={`/learn/${confirmedEnrollment.courseSlug}/${confirmedEnrollment.firstLessonId}`}>
+                  <Button variant="purple" className="gap-2 text-xs font-bold">
+                    <PlayCircle className="w-4 h-4" />
+                    <span>Start First Lesson</span>
+                  </Button>
+                </Link>
+                <Link href="/dashboard">
+                  <Button variant="outline" className="text-xs font-bold">
+                    <span>Go to Dashboard</span>
+                    <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+                  </Button>
+                </Link>
+              </div>
             </div>
+          )
+        )}
+
+        {/* Guest Registration Callout */}
+        {!user && (
+          <div className="rounded-2xl border border-[#AE54C6]/30 bg-white p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-in fade-in duration-200">
+            <div className="flex items-center gap-3.5">
+              <div className="w-11 h-11 rounded-full bg-[#F6ECF9] text-[#AE54C6] flex items-center justify-center shrink-0">
+                <UserCheck className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="text-sm font-extrabold text-[#303654]">
+                  Scanning from a flyer or campus banner?
+                </div>
+                <div className="text-xs text-[#645F80] mt-0.5">
+                  Sign in or create your student profile first so your payment receipt and cohort admissions confirmation attach to your account.
+                </div>
+              </div>
+            </div>
+            <Link
+              href={`/login?mode=signup&redirect=${encodeURIComponent(
+                typeof window !== "undefined"
+                  ? window.location.pathname + window.location.search
+                  : `/subscriptions?course=${selectedCourseId}`
+              )}`}
+              className="shrink-0 w-full sm:w-auto"
+            >
+              <Button variant="purple" className="w-full sm:w-auto text-xs font-bold gap-1.5">
+                <span>Register / Sign In</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Button>
+            </Link>
           </div>
         )}
 

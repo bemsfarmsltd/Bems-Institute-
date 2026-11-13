@@ -48,7 +48,9 @@ router.post("/init", async (req, res) => {
     create: {
       userId: session.id,
       courseId,
-      status: "ACTIVE",
+      // Stays PENDING through payment until an admin confirms the
+      // registration — see POST /admin/enrollments/:id/approve.
+      status: "PENDING",
       source,
       deliveryMode,
       paymentPlan,
@@ -116,13 +118,18 @@ router.post("/verify", async (req, res) => {
 
   const enrollment = await prisma.enrollment.findUnique({
     where: { userId_courseId: { userId: session.id, courseId: txn.courseId } },
-    select: { paymentStatus: true, amountPaid: true, totalDue: true }
+    select: { paymentStatus: true, amountPaid: true, totalDue: true, status: true }
   });
 
   return res.json({
     ok: result.ok,
     reason: result.ok ? undefined : result.reason,
     paymentStatus: enrollment?.paymentStatus ?? "PENDING",
+    // "PENDING" after a successful first payment = paid, waiting for an
+    // admin to confirm the registration. The frontend shows that state
+    // instead of sending the student into a still-locked classroom.
+    enrollmentStatus: enrollment?.status ?? "PENDING",
+    awaitingApproval: enrollment?.status === "PENDING" && enrollment.paymentStatus !== "PENDING",
     amountPaid: enrollment?.amountPaid ?? 0,
     totalDue: enrollment?.totalDue ?? 0
   });

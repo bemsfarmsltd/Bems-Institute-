@@ -11,7 +11,8 @@ import {
   Assignment,
   AdminStudent,
   AdminCourse,
-  AnalyticsSummary
+  AnalyticsSummary,
+  UserEnrollmentRecord
 } from "@/types/lms";
 import type { LearningProfileSummary } from "@/lib/learning-engine";
 import type { AppNotification } from "@/types/advanced";
@@ -91,6 +92,7 @@ interface LMSContextType {
   getAssignmentsForCourse: (courseId: string) => Assignment[];
   // Enrollment & progress — DB-backed, per user
   enrolledCourseIds: string[];
+  userEnrollments: UserEnrollmentRecord[];
   enrollInCourse: (courseId: string, options?: EnrollOptions) => Promise<void>;
   // Re-fetches enrollment/progress/quiz/submission state from the server —
   // used after a real Paystack payment is verified, since that path updates
@@ -170,6 +172,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
   const [certificates, setCertificates] = useState<Certificate[]>([]);
 
   const [enrolledCourseIds, setEnrolledCourseIds] = useState<string[]>([]);
+  const [userEnrollments, setUserEnrollments] = useState<UserEnrollmentRecord[]>([]);
   const [completedLessonIds, setCompletedLessonIds] = useState<string[]>([]);
   const [quizResults, setQuizResults] = useState<Record<string, QuizResult>>({});
   const [submissions, setSubmissions] = useState<Submission[]>([]);
@@ -292,6 +295,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
         if (lmsMeRes.ok) {
           const lmsMe = await lmsMeRes.json();
           setEnrolledCourseIds(lmsMe.enrolledCourseIds || []);
+          setUserEnrollments(lmsMe.enrollments || []);
           setCompletedLessonIds(lmsMe.completedLessonIds || []);
           setQuizResults(lmsMe.quizResults || {});
           setSubmissions(lmsMe.submissions || []);
@@ -508,6 +512,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     setUser(null);
     setEnrolledCourseIds([]);
+    setUserEnrollments([]);
     setCompletedLessonIds([]);
     setQuizResults({});
     setSubmissions([]);
@@ -772,6 +777,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
         getAssignmentForCourse,
         getAssignmentsForCourse,
         enrolledCourseIds,
+        userEnrollments,
         refreshEnrollments,
         enrollInCourse,
         isEnrolled,
