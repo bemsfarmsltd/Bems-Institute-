@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 
 function InstructorDashboardContent() {
-  const { adminStudents, submissions, adminCourses, user } = useLMS();
+  const { adminStudents, submissions, adminCourses, user, certificates } = useLMS();
 
   const [selectedTutor, setSelectedTutor] = useState<string>("Mr. Victor");
   const [selectedCourseFilter, setSelectedCourseFilter] = useState<string>("web-dev");
@@ -335,11 +335,26 @@ function InstructorDashboardContent() {
                           </Button>
                         </Link>
                       ) : student.certificateIssued ? (
-                        <Link href="/certificate/cert-001">
-                          <Button variant="outline" size="sm" className="text-xs">
-                            View Cert
-                          </Button>
-                        </Link>
+                        (() => {
+                          const cert = certificates.find(
+                            (c) =>
+                              (student.certificateId && (c.id === student.certificateId || c.certNumber === student.certificateId)) ||
+                              (student.certificateNumber && (c.id === student.certificateNumber || c.certNumber === student.certificateNumber)) ||
+                              (c.courseId === student.courseId && c.studentName.toLowerCase() === student.name.toLowerCase())
+                          );
+                          const certTarget = student.certificateId || student.certificateNumber || cert?.id || cert?.certNumber;
+                          return certTarget ? (
+                            <Link href={`/certificate/${certTarget}`}>
+                              <Button variant="outline" size="sm" className="text-xs">
+                                View Cert
+                              </Button>
+                            </Link>
+                          ) : (
+                            <Button variant="outline" size="sm" className="text-xs" disabled title="Certificate record pending">
+                              View Cert
+                            </Button>
+                          );
+                        })()
                       ) : student.phone ? (
                         // Phone numbers are only sent to admins (docs/admin-audit.md B9).
                         <a

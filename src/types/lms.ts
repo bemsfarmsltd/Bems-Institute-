@@ -180,6 +180,8 @@ export interface AdminStudent {
   quizScore?: number;
   capstoneStatus: "NOT_STARTED" | "SUBMITTED" | "GRADED";
   certificateIssued: boolean;
+  certificateId?: string;
+  certificateNumber?: string;
   qrSource: string;
   enrolledAt: string;
 }
