@@ -1,4 +1,4 @@
-import { Quiz, Assignment, Certificate } from "@/types/lms";
+import { Quiz, Assignment } from "@/types/lms";
 
 export const LMS_QUIZZES: Quiz[] = [
   {
@@ -404,57 +404,6 @@ export const LMS_ASSIGNMENTS: Assignment[] = [
     ],
     type: "CAPSTONE",
     order: 99
-  }
-];
-
-export const LMS_CERTIFICATES: Certificate[] = [
-  {
-    id: "cert-wd-8819",
-    certNumber: "BEMS-CERT-2026-WD-8819",
-    userId: "usr-alumni-01",
-    studentName: "Emmanuel Ndukwe",
-    courseId: "web-dev",
-    courseTitle: "Website & Web Application Development",
-    gradeTitle: "Distinction",
-    finalScore: 94,
-    issuedAt: "2026-04-15T10:00:00.000Z",
-    qrVerifyUrl: "/verify/BEMS-CERT-2026-WD-8819"
-  },
-  {
-    id: "cert-ai-7721",
-    certNumber: "BEMS-CERT-2026-AI-7721",
-    userId: "usr-alumni-02",
-    studentName: "Chidinma Okonkwo",
-    courseId: "ai-automation",
-    courseTitle: "AI & Automation Mastery",
-    gradeTitle: "Distinction",
-    finalScore: 96,
-    issuedAt: "2026-04-18T14:30:00.000Z",
-    qrVerifyUrl: "/verify/BEMS-CERT-2026-AI-7721"
-  },
-  {
-    id: "cert-pd-6542",
-    certNumber: "BEMS-CERT-2026-PD-6542",
-    userId: "usr-alumni-03",
-    studentName: "Kelechi Eze",
-    courseId: "product-design",
-    courseTitle: "UI/UX & Product Design",
-    gradeTitle: "Credit",
-    finalScore: 88,
-    issuedAt: "2026-04-20T11:15:00.000Z",
-    qrVerifyUrl: "/verify/BEMS-CERT-2026-PD-6542"
-  },
-  {
-    id: "cert-cs-4110",
-    certNumber: "BEMS-CERT-2026-CS-4110",
-    userId: "usr-alumni-04",
-    studentName: "Praise Onyekachi",
-    courseId: "cybersecurity",
-    courseTitle: "Cybersecurity Fundamentals",
-    gradeTitle: "Distinction",
-    finalScore: 92,
-    issuedAt: "2026-04-22T16:00:00.000Z",
-    qrVerifyUrl: "/verify/BEMS-CERT-2026-CS-4110"
   }
 ];
 

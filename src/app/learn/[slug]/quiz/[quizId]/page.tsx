@@ -157,8 +157,10 @@ export default function QuizAssessmentPage({
       setLatestResult(res);
       setSubmitted(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
-    } catch {
-      setError("Could not submit your assessment. Please try again.");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Could not submit your assessment. Please try again.";
+      setError(msg);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } finally {
       setIsSubmitting(false);
     }
@@ -259,6 +261,11 @@ export default function QuizAssessmentPage({
                     >
                       {latestResult.passed ? "PASSED WITH DISTINCTION" : "BELOW PASSING THRESHOLD"}
                     </span>
+                    {(!user || latestResult.userId === "guest") && (
+                      <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
+                        Practice Mode (Unrecorded)
+                      </span>
+                    )}
                     <span className="text-xs text-[#645F80] font-medium">
                       Exam Requirement: {quiz.passingScore}%
                     </span>

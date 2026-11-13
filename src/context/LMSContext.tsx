@@ -17,7 +17,7 @@ import type { LearningProfileSummary } from "@/lib/learning-engine";
 import type { AppNotification } from "@/types/advanced";
 import { apiFetch } from "@/lib/api-client";
 import { LMS_COURSES } from "@/data/lms-data";
-import { LMS_QUIZZES, LMS_ASSIGNMENTS, LMS_CERTIFICATES } from "@/data/assessment-data";
+import { LMS_QUIZZES, LMS_ASSIGNMENTS } from "@/data/assessment-data";
 
 const EMPTY_LEARNING_PROFILE: LearningProfileSummary = {
   strengths: [],
@@ -167,7 +167,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
   const [courses, setCourses] = useState<LMSCourse[]>(LMS_COURSES);
   const [quizzes, setQuizzes] = useState<Quiz[]>(LMS_QUIZZES);
   const [assignments, setAssignments] = useState<Assignment[]>(LMS_ASSIGNMENTS);
-  const [certificates, setCertificates] = useState<Certificate[]>(LMS_CERTIFICATES);
+  const [certificates, setCertificates] = useState<Certificate[]>([]);
 
   const [enrolledCourseIds, setEnrolledCourseIds] = useState<string[]>([]);
   const [completedLessonIds, setCompletedLessonIds] = useState<string[]>([]);
@@ -336,11 +336,8 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
         if (catalog.assignments && Array.isArray(catalog.assignments) && catalog.assignments.length > 0) {
           setAssignments(catalog.assignments);
         }
-        if (catalog.certificates && Array.isArray(catalog.certificates) && catalog.certificates.length > 0) {
-          setCertificates((prev) => {
-            const incomingIds = new Set(catalog.certificates.map((c: Certificate) => c.id));
-            return [...catalog.certificates, ...prev.filter((c) => !incomingIds.has(c.id))];
-          });
+        if (catalog.certificates && Array.isArray(catalog.certificates)) {
+          setCertificates(catalog.certificates);
         }
       } catch {
         // catalog unavailable — leave state empty rather than crash
@@ -601,26 +598,36 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
   };
 
   const submitQuiz = async (quizId: string, answers: Record<string, number>): Promise<QuizResult> => {
-    try {
-      const res = await apiFetch("/api/lms/quiz-attempts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ quizId, answers })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.result) {
-          setQuizResults((prev) => ({ ...prev, [quizId]: data.result }));
-          refreshLearningProfile();
-          refreshNotifications();
-          return data.result;
+    // Authenticated flow: must save to server database
+    if (user) {
+      try {
+        const res = await apiFetch("/api/lms/quiz-attempts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ quizId, answers })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.result) {
+            setQuizResults((prev) => ({ ...prev, [quizId]: data.result }));
+            refreshLearningProfile();
+            refreshNotifications();
+            return data.result;
+          }
         }
+        let errMsg = "Could not record quiz attempt on the server.";
+        try {
+          const errData = await res.json();
+          if (errData.error) errMsg = errData.error;
+        } catch {}
+        throw new Error(errMsg);
+      } catch (err: unknown) {
+        if (err instanceof Error) throw err;
+        throw new Error("Network error: Could not reach the server to submit your quiz.");
       }
-    } catch {
-      // server unreachable or guest session, fall back to client calculation
     }
 
-    // Client-side fallback: calculate score using question answer key
+    // Guest / Unauthenticated practice mode: evaluate client-side for practice only
     const targetQuiz =
       quizzes.find((q) => q.id === quizId) || LMS_QUIZZES.find((q) => q.id === quizId);
     if (!targetQuiz) {
@@ -634,17 +641,17 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
     const score = Math.round((correctCount / targetQuiz.questions.length) * 100);
     const passed = score >= targetQuiz.passingScore;
 
-    const fallbackResult: QuizResult = {
+    const practiceResult: QuizResult = {
       quizId,
-      userId: user?.id || "guest",
+      userId: "guest",
       score,
       passed,
       selectedAnswers: answers,
       attemptedAt: new Date().toISOString()
     };
 
-    setQuizResults((prev) => ({ ...prev, [quizId]: fallbackResult }));
-    return fallbackResult;
+    setQuizResults((prev) => ({ ...prev, [quizId]: practiceResult }));
+    return practiceResult;
   };
 
   const getQuizResult = (quizId: string) => {
@@ -661,75 +668,49 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
     liveDemoUrl: string,
     notes: string
   ): Promise<Submission> => {
+    if (!user) {
+      throw new Error("You must be signed in to submit an assignment for grading.");
+    }
+
+    let res: Response;
     try {
-      const res = await apiFetch("/api/lms/submissions", {
+      res = await apiFetch("/api/lms/submissions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ assignmentId, githubUrl, liveDemoUrl, notes })
       });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.submission) {
-          setSubmissions((prev) => [
-            data.submission,
-            ...prev.filter((s) => s.id !== data.submission.id)
-          ]);
-          if (data.certificate) {
-            setCertificates((prev) => [
-              data.certificate,
-              ...prev.filter((c) => c.id !== data.certificate.id)
-            ]);
-          }
-          refreshNotifications();
-          return data.submission;
-        }
-      }
     } catch {
-      // server unreachable or guest session
+      throw new Error(
+        "Network connection failed. Your project could not be sent to the server. Please check your internet connection and try again."
+      );
     }
 
-    const courseKey = assignmentId.replace(/^(assign|milestone)-/, "").replace(/-\d+$/, "");
-    const fallbackSubmission: Submission = {
-      id: `sub-${Date.now()}`,
-      assignmentId,
-      courseId: courseKey,
-      userId: user?.id || "guest",
-      studentName: user?.name || "Student",
-      studentEmail: user?.email || "student@bems.edu.ng",
-      githubUrl,
-      liveDemoUrl,
-      notes,
-      status: "SUBMITTED",
-      submittedAt: new Date().toISOString()
-    };
-    setSubmissions((prev) => [
-      fallbackSubmission,
-      ...prev.filter((s) => s.assignmentId !== assignmentId)
-    ]);
+    if (!res.ok) {
+      let message = "Submission was not accepted by the server.";
+      try {
+        const errJson = await res.json();
+        if (errJson.error) message = errJson.error;
+      } catch {}
+      throw new Error(message);
+    }
 
-    // If capstone assignment submitted, issue a local certificate so student can see and verify it immediately
-    if (assignmentId.includes("capstone") || assignmentId.startsWith("assign-")) {
-      const matchedCourse = courses.find((c) => c.id === courseKey || c.slug === courseKey);
-      const certNum = `BEMS-CERT-2026-${courseKey.slice(0, 2).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
-      const localCert: Certificate = {
-        id: `cert-${Date.now()}`,
-        certNumber: certNum,
-        userId: user?.id || "guest",
-        studentName: user?.name || "Student",
-        courseId: courseKey,
-        courseTitle: matchedCourse?.title || "FutureSkills Accelerator",
-        gradeTitle: "Distinction",
-        finalScore: 94,
-        issuedAt: new Date().toISOString(),
-        qrVerifyUrl: `/verify/${certNum}`
-      };
+    const data = await res.json();
+    if (!data.submission) {
+      throw new Error("Server did not return a valid submission confirmation.");
+    }
+
+    setSubmissions((prev) => [
+      data.submission,
+      ...prev.filter((s) => s.id !== data.submission.id)
+    ]);
+    if (data.certificate) {
       setCertificates((prev) => [
-        localCert,
-        ...prev.filter((c) => c.courseId !== courseKey || c.userId !== localCert.userId)
+        data.certificate,
+        ...prev.filter((c) => c.id !== data.certificate.id)
       ]);
     }
-
-    return fallbackSubmission;
+    refreshNotifications();
+    return data.submission;
   };
 
   const gradeSubmission = async (submissionId: string, score: number, feedback: string) => {
@@ -767,11 +748,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
   };
 
   const getCertificate = (courseId: string) =>
-    certificates.find(
-      (c) =>
-        (c.courseId === courseId || c.courseId === courseId.replace(/^course-/, "")) &&
-        (!user?.id || c.userId === user?.id || c.userId === "guest" || c.userId === "usr-guest")
-    );
+    certificates.find((c) => c.courseId === courseId && user?.id && c.userId === user.id);
 
   return (
     <LMSContext.Provider

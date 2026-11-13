@@ -54,27 +54,12 @@ Checked: the commit (81f38d9) matches GitHub `main` except for exactly the
 committed. Lesson videos stay gated server-side (`lms-mappers.ts`). Good.
 
 Blockers (must fix before a PR):
-1. **Fabricated certificates.** `LMS_CERTIFICATES` in `src/data/assessment-data.ts`
-   seeds `certificates` state in `LMSContext.tsx:170` with 4 made-up graduates
-   (e.g. "Emmanuel Ndukwe", BEMS-CERT-2026-WD-8819, issued April 2026 — before
-   the first cohort even starts in Oct 2026). `/certificate/[certId]` and
-   `/verify/[certNumber]` show these to anyone as "Verified BEMS Certificate".
-   A public verifier that vouches for people who never studied here breaks the
-   one thing employers rely on it for. Remove the seed; start state as `[]`.
-2. **Certificates issued without grading.** In `submitAssignment`
-   (`LMSContext.tsx` ~line 700), if the API call fails *or the user is a
-   guest*, any assignment whose id starts with `assign-` immediately creates a
-   "Distinction, 94%" certificate with a `/verify/...` link. Certificates must
-   only ever come from the server after an instructor grades. Remove it.
-3. **Silent fake success.** The same fallback (and the quiz fallback in
-   `submitQuiz`) shows "SUBMITTED"/"PASSED" when the server never saved
-   anything, so a student can believe their capstone is in when it's lost.
-   On failure, show an error and keep their input so they can retry. Practice
-   mode can grade locally, but must be clearly labelled as not recorded.
-4. **Not actually verified.** Babel parsing only proves the syntax is valid.
-   `tsc --noEmit`, `npm run lint`, backend tests and `npm run build` haven't
-   run — and can't right now (see "Environment" below). CI on a PR is the
-   minimum.
+1. [x] **Fabricated certificates.** `LMS_CERTIFICATES` in `src/data/assessment-data.ts`
+   seeded `certificates` state with made-up graduates. *Fixed:* Deleted `LMS_CERTIFICATES`; `certificates` state starts strictly as `[]` and only populates from real server DB records.
+2. [x] **Certificates issued without grading.** In `submitAssignment`, offline/guest
+   submissions auto-issued a certificate. *Fixed:* Removed all client-side certificate issuance. Certificates are strictly issued by the server when an instructor grades the capstone.
+3. [x] **Silent fake success.** Fallbacks reported "SUBMITTED" when the server never saved anything. *Fixed:* Unauthenticated or network failures now throw explicit errors, retaining the student's inputs (GitHub/demo URLs, notes) in the form so work is never lost. Quiz guest attempts are explicitly watermarked as `Practice Mode (Unrecorded)`.
+4. [ ] **Full pipeline verification.** Pending moving repository outside OneDrive sync to resolve corrupted/missing `node_modules` binaries and run `npx tsc --noEmit` + `npm run lint`.
 
 Worth a second look (not blockers): the offline fallback catalog in
 `LMSContext` — make sure sample courses/prices never show if the API is slow,

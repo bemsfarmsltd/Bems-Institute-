@@ -203,8 +203,10 @@ export default function AssignmentSubmissionPage({
         `${isCapstone ? "Capstone project" : "Milestone project"} submitted! Lead instructor ${course.tutor} has been notified for formal evaluation.`
       );
       window.scrollTo({ top: 0, behavior: "smooth" });
-    } catch {
-      setError("Could not submit your project. Please verify your connection and try again.");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Could not submit your project. Please verify your connection and try again.";
+      setError(msg);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } finally {
       setIsSubmitting(false);
     }
