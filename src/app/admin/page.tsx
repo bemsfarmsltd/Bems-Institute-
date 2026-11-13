@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, Suspense } from "react";
+import React, { useState, useEffect, useCallback, useMemo, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useLMS } from "@/context/LMSContext";
 import { apiFetch, API_BASE_URL } from "@/lib/api-client";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
+import { UserAvatar } from "@/components/UserAvatar";
 import {
   Home,
   ShoppingBasket,
@@ -27,6 +28,7 @@ import {
   ChevronUp,
   Monitor,
   User as UserIcon,
+  Users,
   Clock,
   BookOpen,
   Star,
@@ -46,410 +48,251 @@ import {
   X,
   Edit3,
   Trash2,
+  Shield,
 } from "lucide-react";
 
 interface EduportStudentCard {
   id: string;
   name: string;
   location: string;
-  avatar: string;
+  avatar?: string;
+  avatarUrl?: string | null;
   payments: string;
   totalCourse: number;
   progress: number;
   joinDate: string;
-  email?: string;
-  enrollmentId?: string;
-  paymentStatus?: "PAID_FULL" | "PARTIAL" | "PENDING" | "REFUNDED";
-  coursePrice?: number;
-  amountPaidRaw?: number;
+  email: string;
+  enrollmentId: string;
+  paymentStatus: "PAID_FULL" | "PARTIAL" | "PENDING" | "REFUNDED";
+  coursePrice: number;
+  amountPaidRaw: number;
   paymentReference?: string | null;
-  enrollmentStatus?: "PENDING" | "ACTIVE" | "COMPLETED" | "DROPPED" | "WITHDRAWN";
-  secondChanceUsed?: boolean;
+  enrollmentStatus: "PENDING" | "ACTIVE" | "COMPLETED" | "DROPPED" | "WITHDRAWN";
+  secondChanceUsed: boolean;
+  courseTitle?: string;
 }
 
-interface EduportInstructorCard {
+interface StaffMember {
   id: string;
   name: string;
-  role: string;
-  avatar: string;
-  totalStudents: number;
-  totalCourses: number;
-  rating: number;
-  verified?: boolean;
+  email: string;
+  role: "ADMIN" | "INSTRUCTOR";
+  avatarUrl?: string | null;
+  active: boolean;
+  createdAt: string;
 }
 
-const EDUPORT_STUDENTS: EduportStudentCard[] = [
-  {
-    id: "stu-1",
-    name: "Blessing Adeyemi",
-    location: "Mumbai",
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Blessing%20Adeyemi&backgroundColor=18143D&textColor=ffffff",
-    payments: "$6205",
-    totalCourse: 21,
-    progress: 85,
-    joinDate: "29 Aug 2021",
-  },
-  {
-    id: "stu-2",
-    name: "Tunde Bakare",
-    location: "Delhi",
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Tunde%20Bakare&backgroundColor=671FB0&textColor=ffffff",
-    payments: "$1256",
-    totalCourse: 16,
-    progress: 60,
-    joinDate: "15 July 2021",
-  },
-  {
-    id: "stu-3",
-    name: "Emeka Nwosu",
-    location: "New York",
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Emeka%20Nwosu&backgroundColor=7928CA&textColor=ffffff",
-    payments: "$9256",
-    totalCourse: 38,
-    progress: 74,
-    joinDate: "22 June 2021",
-  },
-  {
-    id: "stu-4",
-    name: "Ngozi Eze",
-    location: "California",
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Ngozi%20Eze&backgroundColor=18143D&textColor=ffffff",
-    payments: "$10688",
-    totalCourse: 7,
-    progress: 45,
-    joinDate: "18 April 2021",
-  },
-  {
-    id: "stu-5",
-    name: "Chiamaka Nnamdi",
-    location: "Chennai",
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Chiamaka%20Nnamdi&backgroundColor=671FB0&textColor=ffffff",
-    payments: "$856",
-    totalCourse: 5,
-    progress: 90,
-    joinDate: "05 Aug 2021",
-  },
-  {
-    id: "stu-6",
-    name: "Ifeanyi Okafor",
-    location: "Canada",
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Ifeanyi%20Okafor&backgroundColor=7928CA&textColor=ffffff",
-    payments: "$3578",
-    totalCourse: 14,
-    progress: 30,
-    joinDate: "18 Jan 2021",
-  },
-];
+interface AdminReviewItem {
+  id: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+  student: { id: string; name: string; email: string };
+  course: { id: string; title: string };
+}
 
-const EDUPORT_INSTRUCTORS: EduportInstructorCard[] = [
+const BEMS_OPERATIONAL_NOTICES = [
   {
-    id: "inst-1",
-    name: "Ngozi Eze",
-    role: "Web Designer",
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Ngozi%20Eze&backgroundColor=18143D&textColor=ffffff",
-    totalStudents: 5354,
-    totalCourses: 15,
-    rating: 4.5,
-    verified: true,
-  },
-  {
-    id: "inst-2",
-    name: "Blessing Adeyemi",
-    role: "Web Developer",
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Blessing%20Adeyemi&backgroundColor=671FB0&textColor=ffffff",
-    totalStudents: 15523,
-    totalCourses: 10,
-    rating: 4.5,
-    verified: false,
-  },
-  {
-    id: "inst-3",
-    name: "Emeka Nwosu",
-    role: "Developer and Instructor",
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Emeka%20Nwosu&backgroundColor=7928CA&textColor=ffffff",
-    totalStudents: 2546,
-    totalCourses: 9,
-    rating: 4.5,
-    verified: false,
-  },
-  {
-    id: "inst-4",
-    name: "Tunde Bakare",
-    role: "Full Stack Web Developer",
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Tunde%20Bakare&backgroundColor=18143D&textColor=ffffff",
-    totalStudents: 12786,
-    totalCourses: 7,
-    rating: 4.5,
-    verified: false,
-  },
-  {
-    id: "inst-5",
-    name: "Chiamaka Nnamdi",
-    role: "Engineering Architect",
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Chiamaka%20Nnamdi&backgroundColor=671FB0&textColor=ffffff",
-    totalStudents: 21245,
-    totalCourses: 5,
-    rating: 4.8,
-    verified: true,
-  },
-  {
-    id: "inst-6",
-    name: "Amarachi Chukwu",
-    role: "Medical Science",
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Amarachi%20Chukwu&backgroundColor=7928CA&textColor=ffffff",
-    totalStudents: 8546,
-    totalCourses: 6,
-    rating: 4.5,
-    verified: true,
-  },
-];
-
-const TOP_INSTRUCTORS_LIST = [
-  {
-    name: "Ngozi Eze",
-    courses: 25,
-    rating: "4.5/5.0",
-    verified: true,
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Ngozi%20Eze&backgroundColor=18143D&textColor=ffffff",
-  },
-  {
-    name: "Emeka Nwosu",
-    courses: 18,
-    rating: "4.5/5.0",
-    verified: false,
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Emeka%20Nwosu&backgroundColor=671FB0&textColor=ffffff",
-  },
-  {
-    name: "Chiamaka Nnamdi",
-    courses: 21,
-    rating: "4.8/5.0",
-    verified: true,
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Blessing%20Adeyemi&backgroundColor=7928CA&textColor=ffffff",
-  },
-  {
-    name: "Tunde Bakare",
-    courses: 15,
-    rating: "4.5/5.0",
-    verified: false,
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Tunde%20Bakare&backgroundColor=18143D&textColor=ffffff",
-  },
-  {
-    name: "Amarachi Chukwu",
-    courses: 29,
-    rating: "4.5/5.0",
-    verified: true,
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Chiamaka%20Nnamdi&backgroundColor=671FB0&textColor=ffffff",
-  },
-];
-
-const SUPPORT_REQUESTS = [
-  {
-    id: "req-1",
-    name: "Ngozi Eze",
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Ngozi%20Eze&backgroundColor=7928CA&textColor=ffffff",
-    initials: null,
-    badgeBg: "",
-    badgeText: "",
-    message: "New ticket #759 from Ngozi Eze for General Enquiry",
-    boldPart: null,
-    time: "8 hour ago",
-  },
-  {
-    id: "req-2",
-    name: "Emeka Nwosu",
-    avatar: null,
-    initials: "DB",
-    badgeBg: "bg-[#F6ECF9]",
-    badgeText: "text-[#A16EBD]",
-    message: "Comment from Tunde Bakare on ticket #659",
-    boldPart: null,
-    time: "8 hour ago",
-  },
-  {
-    id: "req-3",
-    name: "Emeka Nwosu",
-    avatar: null,
-    initials: "WB",
+    id: "not-1",
+    title: "MOUAU Physical Lab Onboarding",
+    detail: "Cohort 1 physical lab workstation orientation at MOUAU campus hub.",
+    time: "Admissions Notice",
+    icon: BookOpen,
     badgeBg: "bg-[#FFF2E2]",
     badgeText: "text-[#FD7E14]",
-    message: "assign you a new ticket for Cohort Onboarding",
-    boldPrefix: "Admissions Desk",
-    boldSuffix: "Cohort Onboarding",
-    time: "5 hour ago",
   },
   {
-    id: "req-4",
-    name: "Emeka Nwosu",
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Tunde%20Bakare&backgroundColor=18143D&textColor=ffffff",
-    initials: null,
-    badgeBg: "",
-    badgeText: "",
-    message: "Thanks for contact us with your issues.",
-    boldPart: null,
-    time: "9 hour ago",
+    id: "not-2",
+    title: "Paystack Bank Transfer Reconciliations",
+    detail: "Staff must verify bank statement narrations before confirming registrations.",
+    time: "Finance Desk",
+    icon: DollarSign,
+    badgeBg: "bg-[#E5F6F8]",
+    badgeText: "text-[#17A2B8]",
+  },
+  {
+    id: "not-3",
+    title: "Virtual Live Cohort Zoom Links",
+    detail: "Calendar invites dispatched to all confirmed virtual students for first live lecture.",
+    time: "Academic Dept",
+    icon: Globe,
+    badgeBg: "bg-[#F7EDF9]",
+    badgeText: "text-[#AE54C6]",
   },
 ];
 
-const EARNINGS_POINTS = [
-  { month: "Jan", value: 2909, x: 52, y: 118 },
-  { month: "Feb", value: 1259, x: 108, y: 208 },
-  { month: "Mar", value: 950, x: 164, y: 224 },
-  { month: "Apr", value: 1563, x: 220, y: 190 },
-  { month: "Jun", value: 1825, x: 276, y: 176 },
-  { month: "Jul", value: 2526, x: 332, y: 138 },
-  { month: "Aug", value: 2010, x: 388, y: 166 },
-  { month: "Sep", value: 3260, x: 444, y: 98 },
-  { month: "Oct", value: 3005, x: 500, y: 112 },
-  { month: "Nov", value: 3860, x: 556, y: 66 },
-  { month: "Dec", value: 4039, x: 612, y: 56 },
-];
+function RevenueByMonthChart({ data }: { data?: { month: string; amount: number }[] }) {
+  const chartData = data && data.length > 0 ? data : [];
+  if (chartData.length === 0) {
+    return (
+      <div className="py-16 text-center text-[13.5px] text-[#747579]">
+        No monthly revenue records available yet.
+      </div>
+    );
+  }
 
-function EarningsLineChart() {
-  // Smooth cubic bezier path through EARNINGS_POINTS
-  const linePath =
-    "M 52 118 C 75 118, 86 208, 108 208 C 130 208, 142 224, 164 224 C 186 224, 198 190, 220 190 C 242 190, 254 176, 276 176 C 298 176, 310 138, 332 138 C 354 138, 366 166, 388 166 C 410 166, 422 98, 444 98 C 466 98, 478 112, 500 112 C 522 112, 534 66, 556 66 C 578 66, 590 56, 612 56";
-  const areaPath = `${linePath} L 612 268 L 52 268 Z`;
-
-  const yLabels = [
-    { label: "4800", y: 18 },
-    { label: "4000", y: 60 },
-    { label: "3200", y: 102 },
-    { label: "2400", y: 144 },
-    { label: "1600", y: 186 },
-    { label: "800", y: 228 },
-    { label: "0", y: 268 },
-  ];
+  const maxVal = Math.max(...chartData.map((d) => d.amount), 50000);
+  const chartHeight = 175;
+  const chartWidth = 650;
+  const barWidth = 32;
+  const step = chartWidth / chartData.length;
 
   return (
     <div className="w-full overflow-x-auto">
       <svg
-        viewBox="0 0 650 305"
+        viewBox={`0 0 ${chartWidth} 230`}
         className="w-full min-w-[540px] h-auto select-none"
         fill="none"
       >
-        <defs>
-          <linearGradient id="eduportEarningsGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#AE54C6" stopOpacity="0.32" />
-            <stop offset="100%" stopColor="#AE54C6" stopOpacity="0.03" />
-          </linearGradient>
-        </defs>
+        {/* Horizontal gridlines */}
+        {[0, 0.25, 0.5, 0.75, 1].map((pct) => {
+          const y = 20 + (1 - pct) * chartHeight;
+          const val = Math.round(maxVal * pct);
+          return (
+            <g key={pct}>
+              <text
+                x="45"
+                y={y + 4}
+                textAnchor="end"
+                fill="#9A9EA4"
+                fontSize="10"
+                fontFamily="sans-serif"
+              >
+                ₦{(val / 1000).toFixed(0)}k
+              </text>
+              <line
+                x1="55"
+                y1={y}
+                x2={chartWidth - 20}
+                y2={y}
+                stroke="#F1F3F5"
+                strokeWidth="1"
+              />
+            </g>
+          );
+        })}
 
-        {/* Horizontal Y Grid Lines & Labels */}
-        {yLabels.map((row) => (
-          <g key={row.label}>
-            <text
-              x="36"
-              y={row.y + 4}
-              textAnchor="end"
-              fill="#9A9EA4"
-              fontSize="10.5"
-              fontFamily="sans-serif"
-            >
-              {row.label}
-            </text>
-            <line
-              x1="48"
-              y1={row.y}
-              x2="625"
-              y2={row.y}
-              stroke="#F0F2F5"
-              strokeWidth="1"
-            />
-          </g>
-        ))}
+        {/* Bars */}
+        {chartData.map((item, idx) => {
+          const barHeight = Math.max((item.amount / maxVal) * chartHeight, item.amount > 0 ? 6 : 2);
+          const x = 55 + idx * step + (step - barWidth) / 2;
+          const y = 20 + chartHeight - barHeight;
+          const [, m] = item.month.split("-");
+          const monthNames = [
+            "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+          ];
+          const mLabel = m ? monthNames[parseInt(m, 10) - 1] || item.month : item.month;
 
-        {/* Shaded Area */}
-        <path d={areaPath} fill="url(#eduportEarningsGrad)" />
-
-        {/* Smooth Blue Line */}
-        <path
-          d={linePath}
-          stroke="#AE54C6"
-          strokeWidth="3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-
-        {/* Month Labels & Data Callout Pills */}
-        {EARNINGS_POINTS.map((pt) => (
-          <g key={pt.month}>
-            <text
-              x={pt.x}
-              y="292"
-              textAnchor="middle"
-              fill="#9A9EA4"
-              fontSize="11"
-              fontFamily="sans-serif"
-            >
-              {pt.month}
-            </text>
-
-            {/* Blue pill */}
-            <rect
-              x={pt.x - 18}
-              y={pt.y - 9}
-              width="36"
-              height="17"
-              rx="3.5"
-              fill="#AE54C6"
-              stroke="#FFFFFF"
-              strokeWidth="1.2"
-            />
-            <text
-              x={pt.x}
-              y={pt.y + 2.5}
-              textAnchor="middle"
-              fill="#FFFFFF"
-              fontSize="9.5"
-              fontWeight="700"
-              fontFamily="sans-serif"
-            >
-              {pt.value}
-            </text>
-          </g>
-        ))}
+          return (
+            <g key={item.month}>
+              <rect
+                x={x}
+                y={y}
+                width={barWidth}
+                height={barHeight}
+                rx="4"
+                fill={item.amount > 0 ? "#AE54C6" : "#E2E8F0"}
+                className="transition-all hover:opacity-85"
+              />
+              {item.amount > 0 && (
+                <text
+                  x={x + barWidth / 2}
+                  y={y - 6}
+                  textAnchor="middle"
+                  fill="#303654"
+                  fontSize="9.5"
+                  fontWeight="700"
+                  fontFamily="sans-serif"
+                >
+                  ₦{(item.amount / 1000).toFixed(0)}k
+                </text>
+              )}
+              <text
+                x={x + barWidth / 2}
+                y={20 + chartHeight + 18}
+                textAnchor="middle"
+                fill="#747579"
+                fontSize="10.5"
+                fontWeight="600"
+                fontFamily="sans-serif"
+              >
+                {mLabel}
+              </text>
+            </g>
+          );
+        })}
       </svg>
     </div>
   );
 }
 
-function TrafficSourcesDonutChart() {
-  // Circumference for r=60 is 2 * pi * 60 = 376.99
+function QrChannelYieldDonutChart({
+  yieldData,
+}: {
+  yieldData?: {
+    source: string;
+    location: string;
+    scans: number;
+    registrations: number;
+    revenue: number;
+    conversionRate: number;
+  }[];
+}) {
   const r = 60;
   const c = 2 * Math.PI * r;
-  // Segments: Blue (62%), Green (16%), Yellow (14%), Red (8%)
-  const segments = [
-    { color: "#AE54C6", pct: 0.62, offset: 0 },
-    { color: "#AE54C6", pct: 0.16, offset: 0.62 },
-    { color: "#F7C32E", pct: 0.14, offset: 0.78 },
-    { color: "#D6293E", pct: 0.08, offset: 0.92 },
-  ];
+  const data = yieldData || [];
+  const totalScans = data.reduce((sum, item) => sum + item.scans, 0);
+  const colors = ["#AE54C6", "#303654", "#10B981", "#F59E0B", "#6366F1"];
+
+  if (data.length === 0 || totalScans === 0) {
+    return (
+      <div className="flex flex-col items-center py-6">
+        <div className="relative w-44 h-44 my-2">
+          <svg viewBox="0 0 160 160" className="w-full h-full -rotate-90">
+            <circle
+              cx="80"
+              cy="80"
+              r={r}
+              fill="transparent"
+              stroke="#F1F3F5"
+              strokeWidth="22"
+            />
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
+            <span className="text-[13px] font-bold text-[#1D2026]">0 Scans</span>
+            <span className="text-[11px] text-[#747579]">No flyer data</span>
+          </div>
+        </div>
+        <p className="text-[12.5px] text-[#747579] text-center max-w-xs mt-2">
+          Physical banner &amp; flyer scans (e.g. MOUAU Gate, Library) will appear here as applicants scan.
+        </p>
+      </div>
+    );
+  }
+
+  let cumulativeOffset = 0;
+  const segments = data.map((item, i) => {
+    const pct = item.scans / totalScans;
+    const offset = cumulativeOffset;
+    cumulativeOffset += pct;
+    return {
+      source: item.source,
+      scans: item.scans,
+      registrations: item.registrations,
+      conversionRate: item.conversionRate,
+      color: colors[i % colors.length],
+      pct,
+      offset,
+    };
+  });
 
   return (
     <div className="flex flex-col items-center">
-      <div className="relative w-48 h-48 my-2">
+      <div className="relative w-44 h-44 my-2">
         <svg viewBox="0 0 160 160" className="w-full h-full -rotate-90">
           {segments.map((seg, i) => {
-            const dash = Math.max(0, seg.pct * c - 4);
+            const dash = Math.max(0, seg.pct * c - 3);
             const gap = c - dash;
             const strokeDashoffset = -seg.offset * c;
             return (
@@ -460,32 +303,37 @@ function TrafficSourcesDonutChart() {
                 r={r}
                 fill="transparent"
                 stroke={seg.color}
-                strokeWidth="24"
+                strokeWidth="22"
                 strokeDasharray={`${dash} ${gap}`}
                 strokeDashoffset={strokeDashoffset}
               />
             );
           })}
         </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+          <span className="text-[20px] font-extrabold text-[#1D2026]">{totalScans}</span>
+          <span className="text-[11px] text-[#747579] font-medium">Total Scans</span>
+        </div>
       </div>
 
-      <div className="w-full space-y-3 mt-4">
-        <div className="flex items-start gap-2.5 text-[13.5px] text-[#747579]">
-          <span className="w-3 h-3 rounded-full bg-[#AE54C6] shrink-0 mt-1" />
-          <span>Create a Design System in Figma</span>
-        </div>
-        <div className="flex items-start gap-2.5 text-[13.5px] text-[#747579]">
-          <span className="w-3 h-3 rounded-full bg-[#AE54C6] shrink-0 mt-1" />
-          <span>The Complete Digital Marketing Course - 12 Courses in 1</span>
-        </div>
-        <div className="flex items-start gap-2.5 text-[13.5px] text-[#747579]">
-          <span className="w-3 h-3 rounded-full bg-[#F7C32E] shrink-0 mt-1" />
-          <span>Google Ads Training: Become a PPC Expert</span>
-        </div>
-        <div className="flex items-start gap-2.5 text-[13.5px] text-[#747579]">
-          <span className="w-3 h-3 rounded-full bg-[#D6293E] shrink-0 mt-1" />
-          <span>Microsoft Excel - Excel from Beginner to Advanced</span>
-        </div>
+      <div className="w-full space-y-2 mt-4">
+        {segments.map((seg) => (
+          <div
+            key={seg.source}
+            className="flex items-center justify-between text-[12.5px] text-[#747579]"
+          >
+            <div className="flex items-center gap-2 min-w-0">
+              <span
+                className="w-2.5 h-2.5 rounded-full shrink-0"
+                style={{ backgroundColor: seg.color }}
+              />
+              <span className="font-semibold text-[#1D2026] truncate">{seg.source}</span>
+            </div>
+            <span className="shrink-0 text-[11.5px]">
+              {seg.scans} scans &middot; {seg.registrations} enrolled ({seg.conversionRate}%)
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -526,132 +374,17 @@ function AdminDashboardContent() {
   const [instructorSearch, setInstructorSearch] = useState("");
   const [instructorViewMode, setInstructorViewMode] = useState<"grid" | "list">("grid");
 
-  // Instructor Requests state (Image 3)
-  const [requestSearch, setRequestSearch] = useState("");
-  const [requestSort, setRequestSort] = useState("default");
-  const [instructorRequests, setInstructorRequests] = useState([
-    {
-      id: "ireq-1",
-      name: "Ngozi Eze",
-      subject: "HTML, CSS, Bootstrap",
-      requestedDate: "22 Oct 2021",
-      status: "PENDING" as "PENDING" | "ACCEPTED" | "REJECTED",
-      avatar:
-        "https://api.dicebear.com/7.x/initials/svg?seed=Ngozi%20Eze&backgroundColor=671FB0&textColor=ffffff",
-    },
-    {
-      id: "ireq-2",
-      name: "Blessing Adeyemi",
-      subject: "Photoshop, Figma, Adobe XD",
-      requestedDate: "06 Sep 2021",
-      status: "PENDING" as "PENDING" | "ACCEPTED" | "REJECTED",
-      avatar:
-        "https://api.dicebear.com/7.x/initials/svg?seed=Blessing%20Adeyemi&backgroundColor=7928CA&textColor=ffffff",
-    },
-    {
-      id: "ireq-3",
-      name: "Emeka Nwosu",
-      subject: "JavaScript, Java",
-      requestedDate: "21 Jan 2021",
-      status: "ACCEPTED" as "PENDING" | "ACCEPTED" | "REJECTED",
-      avatar:
-        "https://api.dicebear.com/7.x/initials/svg?seed=Emeka%20Nwosu&backgroundColor=18143D&textColor=ffffff",
-    },
-    {
-      id: "ireq-4",
-      name: "Tunde Bakare",
-      subject: "Maths, Chemistry",
-      requestedDate: "25 Dec 2020",
-      status: "REJECTED" as "PENDING" | "ACCEPTED" | "REJECTED",
-      avatar:
-        "https://api.dicebear.com/7.x/initials/svg?seed=Tunde%20Bakare&backgroundColor=671FB0&textColor=ffffff",
-    },
-    {
-      id: "ireq-5",
-      name: "Chiamaka Nnamdi",
-      subject: "Python, Angular, React Native",
-      requestedDate: "05 June 2020",
-      status: "ACCEPTED" as "PENDING" | "ACCEPTED" | "REJECTED",
-      avatar:
-        "https://api.dicebear.com/7.x/initials/svg?seed=Chiamaka%20Nnamdi&backgroundColor=7928CA&textColor=ffffff",
-    },
-    {
-      id: "ireq-6",
-      name: "Amarachi Chukwu",
-      subject: "After Effects, Premiere Pro",
-      requestedDate: "14 Feb 2020",
-      status: "ACCEPTED" as "PENDING" | "ACCEPTED" | "REJECTED",
-      avatar:
-        "https://api.dicebear.com/7.x/initials/svg?seed=Amarachi%20Chukwu&backgroundColor=18143D&textColor=ffffff",
-    },
-  ]);
+  // Staff state (Admins & Instructors via GET /api/admin/staff)
+  const [staffList, setStaffList] = useState<StaffMember[]>([]);
+  const [staffLoading, setStaffLoading] = useState(false);
+  const [staffLoaded, setStaffLoaded] = useState(false);
+  const [staffActionId, setStaffActionId] = useState<string | null>(null);
 
-  // Reviews state (Image 5)
-  const [reviewsList, setReviewsList] = useState([
-    {
-      id: "01",
-      studentName: "Ngozi Eze",
-      courseName: "Web Development",
-      rating: 5,
-      visible: false,
-      avatar:
-        "https://api.dicebear.com/7.x/initials/svg?seed=Ngozi%20Eze&backgroundColor=671FB0&textColor=ffffff",
-    },
-    {
-      id: "02",
-      studentName: "Blessing Adeyemi",
-      courseName: "Product Design (UI/UX)",
-      rating: 5,
-      visible: false,
-      avatar:
-        "https://api.dicebear.com/7.x/initials/svg?seed=Blessing%20Adeyemi&backgroundColor=7928CA&textColor=ffffff",
-    },
-    {
-      id: "03",
-      studentName: "Emeka Nwosu",
-      courseName: "Web Development",
-      rating: 4,
-      visible: false,
-      avatar:
-        "https://api.dicebear.com/7.x/initials/svg?seed=Emeka%20Nwosu&backgroundColor=18143D&textColor=ffffff",
-    },
-    {
-      id: "04",
-      studentName: "Tunde Bakare",
-      courseName: "Cybersecurity",
-      rating: 4,
-      visible: false,
-      avatar:
-        "https://api.dicebear.com/7.x/initials/svg?seed=Tunde%20Bakare&backgroundColor=671FB0&textColor=ffffff",
-    },
-    {
-      id: "05",
-      studentName: "Chiamaka Nnamdi",
-      courseName: "AI & Automation",
-      rating: 4,
-      visible: false,
-      avatar:
-        "https://api.dicebear.com/7.x/initials/svg?seed=Chiamaka%20Nnamdi&backgroundColor=7928CA&textColor=ffffff",
-    },
-    {
-      id: "06",
-      studentName: "Amarachi Chukwu",
-      courseName: "Mobile App Engineering",
-      rating: 4,
-      visible: false,
-      avatar:
-        "https://api.dicebear.com/7.x/initials/svg?seed=Amarachi%20Chukwu&backgroundColor=18143D&textColor=ffffff",
-    },
-    {
-      id: "07",
-      studentName: "Ifeanyi Okafor",
-      courseName: "AI & Automation",
-      rating: 4,
-      visible: false,
-      avatar:
-        "https://api.dicebear.com/7.x/initials/svg?seed=Ifeanyi%20Okafor&backgroundColor=671FB0&textColor=ffffff",
-    },
-  ]);
+  // Reviews state (Admin reviews via GET /api/admin/reviews & DELETE /api/admin/reviews/:id)
+  const [adminReviews, setAdminReviews] = useState<AdminReviewItem[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewsLoaded, setReviewsLoaded] = useState(false);
+  const [deletingReviewId, setDeletingReviewId] = useState<string | null>(null);
 
   // Admin Settings state — Website Settings and Notification Settings are
   // real, persisted via /api/admin/settings; the other sub-tabs don't tie
@@ -1099,7 +832,7 @@ function AdminDashboardContent() {
   const welcomeCallsLoading = activeTab === "admissions" && !welcomeCallsLoaded;
 
   useEffect(() => {
-    if (activeTab !== "admissions") return;
+    if (activeTab !== "admissions" && activeTab !== "dashboard") return;
     if (!leadsLoaded) {
       apiFetch("/api/admin/leads")
         .then((res) => (res.ok ? res.json() : null))
@@ -1109,7 +842,7 @@ function AdminDashboardContent() {
         })
         .catch(() => setLeadsLoaded(true));
     }
-    if (!welcomeCallsLoaded) {
+    if (activeTab === "admissions" && !welcomeCallsLoaded) {
       apiFetch("/api/admin/welcome-calls")
         .then((res) => (res.ok ? res.json() : null))
         .then((data) => {
@@ -1119,6 +852,103 @@ function AdminDashboardContent() {
         .catch(() => setWelcomeCallsLoaded(true));
     }
   }, [activeTab, leadsLoaded, welcomeCallsLoaded]);
+
+  const loadStaff = useCallback(async () => {
+    try {
+      setStaffLoading(true);
+      const res = await apiFetch("/api/admin/staff");
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.staff)) {
+          setStaffList(data.staff);
+        }
+      }
+    } catch {
+      // gracefully handled
+    } finally {
+      setStaffLoading(false);
+      setStaffLoaded(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === "instructors" || activeTab === "dashboard") {
+      void loadStaff();
+    }
+  }, [activeTab, loadStaff]);
+
+  const handleToggleStaffActive = async (member: StaffMember) => {
+    if (member.id === user?.id) {
+      setAdminNotice("You cannot deactivate your own account.");
+      return;
+    }
+    setStaffActionId(member.id);
+    const action = member.active ? "deactivate" : "reactivate";
+    try {
+      const res = await apiFetch(`/api/admin/staff/${member.id}/${action}`, {
+        method: "POST"
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setAdminNotice(data.error || `Failed to ${action} ${member.name}.`);
+      } else {
+        setStaffList((prev) =>
+          prev.map((s) => (s.id === member.id ? { ...s, active: !member.active } : s))
+        );
+        setAdminNotice(
+          `${member.name} (${member.role}) has been ${member.active ? "deactivated" : "reactivated"}.`
+        );
+      }
+    } catch {
+      setAdminNotice(`Network error: could not ${action} staff member.`);
+    } finally {
+      setStaffActionId(null);
+    }
+  };
+
+  const loadReviews = useCallback(async () => {
+    try {
+      setReviewsLoading(true);
+      const res = await apiFetch("/api/admin/reviews");
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.reviews)) {
+          setAdminReviews(data.reviews);
+        }
+      }
+    } catch {
+      // gracefully handled
+    } finally {
+      setReviewsLoading(false);
+      setReviewsLoaded(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === "reviews") {
+      void loadReviews();
+    }
+  }, [activeTab, loadReviews]);
+
+  const handleDeleteReview = async (reviewId: string) => {
+    setDeletingReviewId(reviewId);
+    try {
+      const res = await apiFetch(`/api/admin/reviews/${reviewId}`, {
+        method: "DELETE"
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setAdminNotice(data.error || "Failed to delete review.");
+      } else {
+        setAdminReviews((prev) => prev.filter((r) => r.id !== reviewId));
+        setAdminNotice("Review removed from platform successfully.");
+      }
+    } catch {
+      setAdminNotice("Network error: could not delete review.");
+    } finally {
+      setDeletingReviewId(null);
+    }
+  };
 
   const updateLeadStatus = async (leadId: string, status: Lead["status"]) => {
     const res = await apiFetch(`/api/admin/leads/${leadId}`, {
@@ -1256,43 +1086,59 @@ function AdminDashboardContent() {
     router.push(`/admin?tab=${tabId}`);
   };
 
-  // Combine demo student cards with live BEMS database students
-  const liveBemsStudentCards: EduportStudentCard[] = adminStudents.map((stu, idx) => ({
-    id: stu.id,
-    name: stu.name,
-    location:
-      stu.deliveryMode === "Physical Lab (Umuahia)" ? "MOUAU Campus" : "Live Virtual",
-    avatar:
-      EDUPORT_STUDENTS[idx % EDUPORT_STUDENTS.length]?.avatar ||
-      "https://api.dicebear.com/7.x/initials/svg?seed=Blessing%20Adeyemi&backgroundColor=7928CA&textColor=ffffff",
-    payments: `₦${stu.amountPaid.toLocaleString()}`,
-    totalCourse: 4,
-    progress: stu.progressPercent,
-    joinDate: stu.enrolledAt,
-    email: stu.email,
-    enrollmentId: stu.id,
-    paymentStatus: stu.paymentStatus,
-    coursePrice: stu.totalDue,
-    amountPaidRaw: stu.amountPaid,
-    paymentReference: stu.paymentReference,
-    enrollmentStatus: stu.enrollmentStatus,
-    secondChanceUsed: stu.secondChanceUsed,
-  }));
+  // Course count per student email
+  const courseCountByEmail = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const stu of adminStudents) {
+      map.set(stu.email, (map.get(stu.email) || 0) + 1);
+    }
+    return map;
+  }, [adminStudents]);
 
-  const combinedStudents: EduportStudentCard[] = [
-    ...EDUPORT_STUDENTS,
-    ...liveBemsStudentCards,
-  ].filter(
-    (s) =>
-      s.name.toLowerCase().includes(studentSearch.toLowerCase()) ||
-      s.location.toLowerCase().includes(studentSearch.toLowerCase())
-  );
+  // Live BEMS database students (100% real records, no template data)
+  const liveBemsStudentCards: EduportStudentCard[] = useMemo(() => {
+    return adminStudents.map((stu) => ({
+      id: stu.id,
+      name: stu.name,
+      location:
+        stu.deliveryMode === "Physical Lab (Umuahia)" ? "Physical Lab (Umuahia)" : "Virtual Live (Zoom)",
+      avatarUrl: null,
+      payments: `₦${stu.amountPaid.toLocaleString()}`,
+      totalCourse: courseCountByEmail.get(stu.email) || 1,
+      progress: stu.progressPercent,
+      joinDate: stu.enrolledAt,
+      email: stu.email,
+      enrollmentId: stu.id,
+      paymentStatus: stu.paymentStatus,
+      coursePrice: stu.totalDue,
+      amountPaidRaw: stu.amountPaid,
+      paymentReference: stu.paymentReference,
+      enrollmentStatus: stu.enrollmentStatus,
+      secondChanceUsed: stu.secondChanceUsed,
+      courseTitle: stu.courseTitle,
+    }));
+  }, [adminStudents, courseCountByEmail]);
 
-  const filteredInstructors = EDUPORT_INSTRUCTORS.filter(
-    (inst) =>
-      inst.name.toLowerCase().includes(instructorSearch.toLowerCase()) ||
-      inst.role.toLowerCase().includes(instructorSearch.toLowerCase())
-  );
+  const combinedStudents: EduportStudentCard[] = useMemo(() => {
+    return liveBemsStudentCards.filter(
+      (s) =>
+        s.name.toLowerCase().includes(studentSearch.toLowerCase()) ||
+        s.email.toLowerCase().includes(studentSearch.toLowerCase()) ||
+        s.location.toLowerCase().includes(studentSearch.toLowerCase()) ||
+        (s.courseTitle && s.courseTitle.toLowerCase().includes(studentSearch.toLowerCase()))
+    );
+  }, [liveBemsStudentCards, studentSearch]);
+
+  const filteredStaff = useMemo(() => {
+    return staffList.filter(
+      (inst) =>
+        inst.name.toLowerCase().includes(instructorSearch.toLowerCase()) ||
+        inst.email.toLowerCase().includes(instructorSearch.toLowerCase()) ||
+        inst.role.toLowerCase().includes(instructorSearch.toLowerCase())
+    );
+  }, [staffList, instructorSearch]);
+
+  const filteredInstructors = filteredStaff;
 
   const handleCreateCourse = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1496,7 +1342,7 @@ function AdminDashboardContent() {
                         : "text-white/85 hover:text-white"
                     }`}
                   >
-                    Instructors
+                    Staff &amp; Instructors
                   </button>
                   <button
                     type="button"
@@ -1508,20 +1354,6 @@ function AdminDashboardContent() {
                     }`}
                   >
                     Instructor Detail
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => switchTab("instructor-requests")}
-                    className={`w-full flex items-center justify-between font-medium transition-colors cursor-pointer ${
-                      activeTab === "instructor-requests"
-                        ? "text-[#AE54C6]"
-                        : "text-white/85 hover:text-white"
-                    }`}
-                  >
-                    <span>Instructor requests</span>
-                    <span className="w-5 h-5 rounded-full bg-[#AE54C6] text-white text-[11px] font-bold flex items-center justify-center">
-                      2
-                    </span>
                   </button>
                 </div>
               )}
@@ -1750,145 +1582,230 @@ function AdminDashboardContent() {
                 Dashboard
               </h1>
 
-              {/* 4 Pastel Counter Cards */}
+              {/* 4 Real Metric Tiles from /api/admin/analytics */}
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-7">
-                {/* 1. Completed Courses */}
-                <div className="bg-[#FEF6E0] rounded-xl p-6 flex items-center justify-between">
+                {/* 1. Paid Students */}
+                <div className="bg-[#F7EDF9] rounded-xl p-6 flex items-center justify-between border border-[#AE54C6]/20 shadow-[0_2px_14px_rgba(0,0,0,0.03)]">
                   <div>
                     <div className="font-display text-[32px] font-extrabold text-[#1D2026] leading-none mb-2">
-                      1958
+                      {analytics.totalStudents}
                     </div>
-                    <div className="text-[14px] font-medium text-[#475569]">
-                      Completed Courses
+                    <div className="text-[14px] font-semibold text-[#1D2026]">
+                      Paid Students
+                    </div>
+                    <div className="text-[12px] text-[#747579] mt-0.5">
+                      Across active cohort tracks
+                    </div>
+                  </div>
+                  <div className="w-14 h-14 rounded-full bg-[#AE54C6] text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <Users className="w-6 h-6" />
+                  </div>
+                </div>
+
+                {/* 2. Awaiting Confirmation */}
+                <div className="bg-[#FFF8E6] rounded-xl p-6 flex items-center justify-between border border-[#F7C32E]/30 shadow-[0_2px_14px_rgba(0,0,0,0.03)]">
+                  <div>
+                    <div className="font-display text-[32px] font-extrabold text-[#1D2026] leading-none mb-2">
+                      {analytics.awaitingApproval}
+                    </div>
+                    <div className="text-[14px] font-semibold text-[#1D2026]">
+                      Awaiting Confirmation
+                    </div>
+                    <div className="text-[12px] text-[#747579] mt-0.5">
+                      Admissions review queue
                     </div>
                   </div>
                   <div className="w-14 h-14 rounded-full bg-[#F7C32E] text-white flex items-center justify-center shrink-0 shadow-xs">
-                    <Monitor className="w-6 h-6" />
-                  </div>
-                </div>
-
-                {/* 2. Enrolled Courses */}
-                <div className="bg-[#F6ECF9] rounded-xl p-6 flex items-center justify-between">
-                  <div>
-                    <div className="font-display text-[32px] font-extrabold text-[#1D2026] leading-none mb-2">
-                      1600
-                    </div>
-                    <div className="text-[14px] font-medium text-[#475569]">
-                      Enrolled Courses
-                    </div>
-                  </div>
-                  <div className="w-14 h-14 rounded-full bg-[#A16EBD] text-white flex items-center justify-center shrink-0 shadow-xs">
-                    <UserIcon className="w-6 h-6" />
-                  </div>
-                </div>
-
-                {/* 3. Course In Progress */}
-                <div className="bg-[#F7EDF9] rounded-xl p-6 flex items-center justify-between">
-                  <div>
-                    <div className="font-display text-[32px] font-extrabold text-[#1D2026] leading-none mb-2">
-                      1235
-                    </div>
-                    <div className="text-[14px] font-medium text-[#475569]">
-                      Course In Progress
-                    </div>
-                  </div>
-                  <div className="w-14 h-14 rounded-full bg-[#AE54C6] text-white flex items-center justify-center shrink-0 shadow-xs">
-                    <GraduationCap className="w-6 h-6" />
-                  </div>
-                </div>
-
-                {/* 4. Total Watch Time */}
-                <div className="bg-[#F7EDF9] rounded-xl p-6 flex items-center justify-between">
-                  <div>
-                    <div className="font-display text-[32px] font-extrabold text-[#1D2026] leading-none mb-2">
-                      845 hrs
-                    </div>
-                    <div className="text-[14px] font-medium text-[#475569]">
-                      Total Watch Time
-                    </div>
-                  </div>
-                  <div className="w-14 h-14 rounded-full bg-[#AE54C6] text-white flex items-center justify-center shrink-0 shadow-xs">
                     <Clock className="w-6 h-6" />
                   </div>
                 </div>
-              </div>
 
-              {/* Middle Row: Earnings Chart (8 cols) + Support Requests (4 cols) */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-7">
-                {/* Earnings Card */}
-                <div className="lg:col-span-8 bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] p-6">
-                  <div className="pb-4 mb-4 border-b border-slate-100 flex items-center justify-between">
-                    <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
-                      Earnings
-                    </h2>
+                {/* 3. Completed Courses */}
+                <div className="bg-[#E9F7EF] rounded-xl p-6 flex items-center justify-between border border-emerald-500/20 shadow-[0_2px_14px_rgba(0,0,0,0.03)]">
+                  <div>
+                    <div className="font-display text-[32px] font-extrabold text-[#1D2026] leading-none mb-2">
+                      {analytics.completedEnrollments}
+                    </div>
+                    <div className="text-[14px] font-semibold text-[#1D2026]">
+                      Completed Courses
+                    </div>
+                    <div className="text-[12px] text-[#747579] mt-0.5">
+                      {analytics.certificatesIssued} certificate{analytics.certificatesIssued === 1 ? "" : "s"} issued
+                    </div>
                   </div>
-                  <EarningsLineChart />
+                  <div className="w-14 h-14 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <CheckCircle2 className="w-6 h-6" />
+                  </div>
                 </div>
 
-                {/* Support Requests Card */}
-                <div className="lg:col-span-4 bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] p-6 flex flex-col">
-                  <div className="pb-4 mb-4 border-b border-slate-100 flex items-center justify-between">
-                    <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
-                      Support Requests
-                    </h2>
-                    <button
-                      type="button"
-                      onClick={() => switchTab("reviews")}
-                      className="text-[13px] font-semibold text-[#AE54C6] hover:underline cursor-pointer"
-                    >
-                      View all
-                    </button>
+                {/* 4. Lessons Completed */}
+                <div className="bg-[#EBF3FE] rounded-xl p-6 flex items-center justify-between border border-blue-500/20 shadow-[0_2px_14px_rgba(0,0,0,0.03)]">
+                  <div>
+                    <div className="font-display text-[32px] font-extrabold text-[#1D2026] leading-none mb-2">
+                      {analytics.lessonsCompleted}
+                    </div>
+                    <div className="text-[14px] font-semibold text-[#1D2026]">
+                      Lessons Completed
+                    </div>
+                    <div className="text-[12px] text-[#747579] mt-0.5">
+                      Student curriculum progress
+                    </div>
                   </div>
+                  <div className="w-14 h-14 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <GraduationCap className="w-6 h-6" />
+                  </div>
+                </div>
+              </div>
 
-                  <div className="divide-y divide-slate-100 flex-1">
-                    {SUPPORT_REQUESTS.map((item) => (
-                      <div key={item.id} className="py-3.5 first:pt-0 last:pb-0 flex items-start gap-3.5">
-                        {item.avatar ? (
-                          <img
-                            src={item.avatar}
-                            alt={item.name}
-                            className="w-11 h-11 rounded-full object-cover shrink-0"
-                          />
-                        ) : (
-                          <div
-                            className={`w-11 h-11 rounded-full ${item.badgeBg} ${item.badgeText} font-bold text-[13px] flex items-center justify-center shrink-0`}
-                          >
-                            {item.initials}
-                          </div>
-                        )}
-                        <div className="min-w-0 flex-1">
-                          <h3 className="text-[14.5px] font-bold text-[#1D2026] hover:text-[#AE54C6] transition-colors cursor-pointer">
-                            {item.name}
-                          </h3>
-                          {item.boldPrefix ? (
-                            <p className="text-[13px] text-[#747579] leading-snug mt-0.5">
-                              <span className="font-bold text-[#475569]">{item.boldPrefix}</span>{" "}
-                              assign you a new ticket for{" "}
-                              <span className="font-bold text-[#475569]">{item.boldSuffix}</span>
-                            </p>
-                          ) : (
-                            <p className="text-[13px] text-[#747579] leading-snug mt-0.5">
-                              {item.message}
-                            </p>
-                          )}
-                          <span className="text-[11.5px] text-[#9A9EA4] block mt-1">
-                            {item.time}
+              {/* Middle Row: Revenue By Month Chart (8 cols) + Admissions Queue & Leads (4 cols) */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-7">
+                {/* 12-Month Net Revenue Chart */}
+                <div className="lg:col-span-8 bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] p-6">
+                  <div className="pb-4 mb-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                      <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
+                        Net Tuition Revenue
+                      </h2>
+                      <p className="text-[12.5px] text-[#747579] mt-0.5">
+                        12-Month Net Revenue Received (payments minus refunds)
+                      </p>
+                    </div>
+                    <div className="text-left sm:text-right">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-[#747579] block">
+                        Total Collected
+                      </span>
+                      <span className="font-display text-[22px] font-extrabold text-[#AE54C6]">
+                        ₦{analytics.totalRevenue.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                  <RevenueByMonthChart data={analytics.revenueByMonth} />
+                </div>
+
+                {/* Admissions Queue & Recent Leads */}
+                <div className="lg:col-span-4 bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] p-6 flex flex-col justify-between">
+                  <div>
+                    <div className="pb-4 mb-4 border-b border-slate-100 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
+                          Admissions Queue
+                        </h2>
+                        {pendingApprovals.length > 0 && (
+                          <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-bold">
+                            {pendingApprovals.length} pending
                           </span>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => switchTab("admissions")}
+                        className="text-[13px] font-semibold text-[#AE54C6] hover:underline cursor-pointer"
+                      >
+                        View all
+                      </button>
+                    </div>
+
+                    {/* Section 1: Awaiting Confirmation */}
+                    {pendingApprovals.length > 0 && (
+                      <div className="mb-4">
+                        <div className="text-[11px] font-bold uppercase tracking-wider text-[#747579] mb-2">
+                          Awaiting Confirmation ({pendingApprovals.length})
+                        </div>
+                        <div className="space-y-2.5">
+                          {pendingApprovals.slice(0, 3).map((pa) => (
+                            <div
+                              key={pa.id}
+                              className="p-3 rounded-lg bg-amber-50/70 border border-amber-200/60 flex items-center justify-between gap-3"
+                            >
+                              <div className="min-w-0">
+                                <div className="font-bold text-[13.5px] text-[#1D2026] truncate">
+                                  {pa.student.name}
+                                </div>
+                                <div className="text-[12px] text-[#747579] truncate">
+                                  {pa.course.title} &middot; <strong className="text-[#1D2026]">₦{pa.amountPaid.toLocaleString()}</strong>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleApproveEnrollment(pa.id, pa.student.name, pa.course.title)}
+                                disabled={approvingId === pa.id}
+                                className="px-2.5 py-1 rounded bg-[#AE54C6] hover:bg-[#A03BBC] text-white text-xs font-bold transition-colors shrink-0 disabled:opacity-50 cursor-pointer"
+                              >
+                                {approvingId === pa.id ? "Confirming…" : "Confirm"}
+                              </button>
+                            </div>
+                          ))}
                         </div>
                       </div>
-                    ))}
+                    )}
+
+                    {/* Section 2: Recent Leads */}
+                    <div>
+                      <div className="text-[11px] font-bold uppercase tracking-wider text-[#747579] mb-2">
+                        Recent Leads
+                      </div>
+                      {leads.length === 0 ? (
+                        <div className="py-6 text-center text-[13px] text-[#747579]">
+                          No new leads registered yet.
+                        </div>
+                      ) : (
+                        <div className="space-y-2.5">
+                          {leads.slice(0, pendingApprovals.length > 0 ? 3 : 5).map((ld) => (
+                            <div
+                              key={ld.id}
+                              className="p-2.5 rounded-lg bg-[#F8F9FA] border border-slate-100 flex items-center justify-between gap-2"
+                            >
+                              <div className="min-w-0">
+                                <div className="font-bold text-[13px] text-[#1D2026] truncate">
+                                  {ld.name}
+                                </div>
+                                <div className="text-[11.5px] text-[#747579] truncate">
+                                  {ld.courseTitle || "General Interest"} &middot; {ld.phone}
+                                </div>
+                              </div>
+                              <a
+                                href={buildWhatsAppLink(
+                                  ld.phone,
+                                  `Hello ${ld.name}, this is BEMS Admissions following up on your registration interest.`
+                                )}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold shrink-0 transition-colors"
+                              >
+                                WhatsApp
+                              </a>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="pt-3 mt-3 border-t border-slate-100 text-center">
+                    <button
+                      type="button"
+                      onClick={() => switchTab("admissions")}
+                      className="text-xs font-bold text-[#AE54C6] hover:underline cursor-pointer"
+                    >
+                      Open Admissions &amp; Welcome Calls &rarr;
+                    </button>
                   </div>
                 </div>
               </div>
 
-              {/* Bottom 3-Column Row: Top Instructors + Notice board + Traffic Sources */}
+              {/* Bottom 3-Column Row: Staff List + Notice board + QR Channel Yield */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* 1. Top Instructors */}
+                {/* 1. Staff List */}
                 <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] p-6">
                   <div className="pb-4 mb-4 border-b border-slate-100 flex items-center justify-between">
-                    <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
-                      Top Instructors
-                    </h2>
+                    <div>
+                      <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
+                        Staff &amp; Instructors
+                      </h2>
+                      <p className="text-[12px] text-[#747579] mt-0.5">
+                        Platform Admins &amp; Instructors
+                      </p>
+                    </div>
                     <button
                       type="button"
                       onClick={() => switchTab("instructors")}
@@ -1898,55 +1815,43 @@ function AdminDashboardContent() {
                     </button>
                   </div>
 
-                  <div className="divide-y divide-slate-100">
-                    {TOP_INSTRUCTORS_LIST.map((inst) => (
-                      <div
-                        key={inst.name}
-                        className="py-3.5 first:pt-0 last:pb-0 flex items-center justify-between gap-3"
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <img
-                            src={inst.avatar}
-                            alt={inst.name}
-                            className="w-11 h-11 rounded-full object-cover shrink-0"
-                          />
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-[14.5px] font-bold text-[#1D2026] truncate">
-                                {inst.name}
-                              </span>
-                              {inst.verified && (
-                                <span
-                                  className="w-4 h-4 rounded-full bg-[#17A2B8] text-white text-[10px] flex items-center justify-center shrink-0"
-                                  title="Verified Instructor"
-                                >
-                                  ✓
+                  {staffLoading ? (
+                    <div className="py-8 text-center text-[13px] text-[#747579]">Loading staff records…</div>
+                  ) : staffList.length === 0 ? (
+                    <div className="py-8 text-center text-[13px] text-[#747579]">No staff members found.</div>
+                  ) : (
+                    <div className="divide-y divide-slate-100">
+                      {staffList.slice(0, 5).map((st) => (
+                        <div key={st.id} className="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <UserAvatar user={{ name: st.name, avatarUrl: st.avatarUrl }} size={38} className="shrink-0" />
+                            <div className="min-w-0">
+                              <div className="font-bold text-[13.5px] text-[#1D2026] truncate">
+                                {st.name}
+                              </div>
+                              <div className="flex items-center gap-2 text-[11.5px] text-[#747579] mt-0.5">
+                                <span className={`px-1.5 py-0.2 rounded font-bold uppercase text-[9.5px] ${
+                                  st.role === "ADMIN" ? "bg-[#F7EDF9] text-[#AE54C6]" : "bg-blue-50 text-blue-700"
+                                }`}>
+                                  {st.role}
                                 </span>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-3 text-[12px] text-[#747579] mt-0.5">
-                              <span className="inline-flex items-center gap-1">
-                                <BookOpen className="w-3.5 h-3.5 text-[#A16EBD]" />
-                                {inst.courses} Courses
-                              </span>
-                              <span className="inline-flex items-center gap-1">
-                                <Star className="w-3.5 h-3.5 text-[#F7C32E] fill-[#F7C32E]" />
-                                {inst.rating}
-                              </span>
+                                <span className={st.active ? "text-emerald-600 font-semibold" : "text-rose-600 font-semibold"}>
+                                  {st.active ? "Active" : "Inactive"}
+                                </span>
+                              </div>
                             </div>
                           </div>
+                          <button
+                            type="button"
+                            onClick={() => switchTab("instructors")}
+                            className="px-2.5 py-1 rounded bg-[#F5F7F9] hover:bg-[#AE54C6] text-[#24292D] hover:text-white text-xs font-semibold transition-colors shrink-0 cursor-pointer"
+                          >
+                            Manage
+                          </button>
                         </div>
-
-                        <button
-                          type="button"
-                          onClick={() => switchTab("instructors")}
-                          className="px-3.5 py-1.5 rounded-lg bg-[#F5F7F9] hover:bg-[#AE54C6] text-[#24292D] hover:text-white text-[12.5px] font-semibold transition-colors shrink-0 cursor-pointer"
-                        >
-                          View
-                        </button>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* 2. Notice board */}
@@ -1958,86 +1863,56 @@ function AdminDashboardContent() {
                       </h2>
                     </div>
 
-                    <div className="relative pr-3 divide-y divide-slate-100">
-                      {/* Decorative Scrollbar Track matching Image 2 */}
-                      <div className="absolute right-0 top-12 bottom-2 w-1.5 rounded-full bg-slate-200">
-                        <div className="w-1.5 h-36 rounded-full bg-[#747579]" />
-                      </div>
-
-                      <div className="py-3.5 first:pt-0 flex items-start gap-3.5">
-                        <div className="w-11 h-11 rounded-lg bg-[#FFF2E2] text-[#FD7E14] flex items-center justify-center shrink-0">
-                          <BookOpen className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <h3 className="text-[14.5px] font-bold text-[#1D2026]">
-                            Join New Instructor
-                          </h3>
-                          <p className="text-[13px] text-[#747579] leading-snug mt-0.5">
-                            Arrived Fat weddings believed prospect
-                          </p>
-                          <span className="text-[11.5px] text-[#9A9EA4] block mt-1">
-                            4 hour ago
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="py-3.5 flex items-start gap-3.5">
-                        <div className="w-11 h-11 rounded-lg bg-[#E5F6F8] text-[#17A2B8] flex items-center justify-center shrink-0">
-                          <BookOpen className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <h3 className="text-[14.5px] font-bold text-[#1D2026]">
-                            Update Syllabus
-                          </h3>
-                          <p className="text-[13px] text-[#747579] leading-snug mt-0.5">
-                            Arrived Fat weddings believed prospect
-                          </p>
-                          <span className="text-[11.5px] text-[#9A9EA4] block mt-1">
-                            2 days ago
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="py-3.5 last:pb-0 flex items-start gap-3.5">
-                        <div className="w-11 h-11 rounded-lg bg-[#FBE9EB] text-[#D6293E] flex items-center justify-center shrink-0">
-                          <Globe className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <h3 className="text-[14.5px] font-bold text-[#1D2026]">
-                            Update New Feature
-                          </h3>
-                          <p className="text-[13px] text-[#747579] leading-snug mt-0.5">
-                            Arrived Fat weddings believed prospect
-                          </p>
-                          <span className="text-[11.5px] text-[#9A9EA4] block mt-1">
-                            3 days ago
-                          </span>
-                        </div>
-                      </div>
+                    <div className="divide-y divide-slate-100">
+                      {BEMS_OPERATIONAL_NOTICES.map((not) => {
+                        const IconComponent = not.icon;
+                        return (
+                          <div key={not.id} className="py-3.5 first:pt-0 last:pb-0 flex items-start gap-3.5">
+                            <div className={`w-11 h-11 rounded-lg ${not.badgeBg} ${not.badgeText} flex items-center justify-center shrink-0`}>
+                              <IconComponent className="w-5 h-5" />
+                            </div>
+                            <div className="min-w-0">
+                              <h3 className="text-[14px] font-bold text-[#1D2026]">
+                                {not.title}
+                              </h3>
+                              <p className="text-[12.5px] text-[#747579] leading-snug mt-0.5">
+                                {not.detail}
+                              </p>
+                              <span className="text-[11px] text-[#9A9EA4] block mt-1">
+                                {not.time}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
 
-                  {/* Bottom Mint Banner */}
-                  <div className="mt-6 rounded-lg bg-[#F7EDF9] border border-[#AE54C6]/35 px-4 py-2.5 flex items-center justify-between">
-                    <span className="text-[12.5px] font-semibold text-[#AE54C6]">
-                      45 more notices listed
+                  <div className="mt-5 rounded-lg bg-[#F7EDF9] border border-[#AE54C6]/30 px-4 py-2.5 flex items-center justify-between">
+                    <span className="text-[12px] font-semibold text-[#AE54C6]">
+                      BEMS Operational Guidelines
                     </span>
                     <button
                       type="button"
-                      onClick={() => switchTab("reviews")}
-                      className="px-3 py-1.5 rounded-md bg-[#F1E2F5] hover:bg-[#AE54C6] text-[#AE54C6] hover:text-white text-[12px] font-bold transition-colors cursor-pointer"
+                      onClick={() => switchTab("admissions")}
+                      className="px-3 py-1 rounded-md bg-[#F1E2F5] hover:bg-[#AE54C6] text-[#AE54C6] hover:text-white text-[11.5px] font-bold transition-colors cursor-pointer"
                     >
-                      View all
+                      View Desk
                     </button>
                   </div>
                 </div>
 
-                {/* 3. Traffic Sources */}
+                {/* 3. QR Channel Yield */}
                 <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] p-6">
                   <div className="pb-4 mb-4 border-b border-slate-100 flex items-center justify-between">
-                    <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
-                      Traffic Sources
-                    </h2>
+                    <div>
+                      <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
+                        QR Channel Yield
+                      </h2>
+                      <p className="text-[12px] text-[#747579] mt-0.5">
+                        Physical Banners &amp; Fliers
+                      </p>
+                    </div>
                     <button
                       type="button"
                       onClick={() => switchTab("earnings")}
@@ -2047,7 +1922,7 @@ function AdminDashboardContent() {
                     </button>
                   </div>
 
-                  <TrafficSourcesDonutChart />
+                  <QrChannelYieldDonutChart yieldData={analytics.bannerChannelYield} />
                 </div>
               </div>
             </div>
@@ -2195,29 +2070,43 @@ function AdminDashboardContent() {
                 {studentViewMode === "grid" ? (
                   /* 3-Column Student Cards Grid (Matches Images 3 & 4) */
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {combinedStudents.map((student) => (
-                      <div
-                        key={student.id}
-                        className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_14px_rgba(0,0,0,0.03)] p-5 flex flex-col justify-between"
-                      >
-                        {/* Card Header: Avatar + Name + Location + Menu */}
-                        <div className="flex items-center justify-between gap-3 pb-4 border-b border-slate-100">
-                          <div className="flex items-center gap-3.5 min-w-0">
-                            <img
-                              src={student.avatar}
-                              alt={student.name}
-                              className="w-13 h-13 rounded-full object-cover shrink-0"
-                            />
-                            <div className="min-w-0">
-                              <h3 className="font-display text-[17px] font-extrabold text-[#1D2026] truncate">
-                                {student.name}
-                              </h3>
-                              <p className="text-[12.5px] text-[#747579] flex items-center gap-1 mt-0.5">
-                                <MapPin className="w-3.5 h-3.5 text-[#747579] shrink-0" />
-                                <span className="truncate">{student.location}</span>
-                              </p>
+                    {combinedStudents.length === 0 ? (
+                      <div className="col-span-full py-16 text-center bg-[#F8F9FA] rounded-xl border border-slate-200/80 p-8">
+                        <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center">
+                          <GraduationCap className="w-7 h-7" />
+                        </div>
+                        <h3 className="font-display text-[18px] font-extrabold text-[#1D2026] mb-1">
+                          No Students Found
+                        </h3>
+                        <p className="text-[13.5px] text-[#747579] max-w-md mx-auto">
+                          {studentSearch
+                            ? `No students matching "${studentSearch}".`
+                            : "No enrolled students on record yet. Paid student registrations will appear here."}
+                        </p>
+                      </div>
+                    ) : combinedStudents.map((student) => (
+                        <div
+                          key={student.id}
+                          className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_14px_rgba(0,0,0,0.03)] p-5 flex flex-col justify-between"
+                        >
+                          {/* Card Header: Avatar + Name + Location + Menu */}
+                          <div className="flex items-center justify-between gap-3 pb-4 border-b border-slate-100">
+                            <div className="flex items-center gap-3.5 min-w-0">
+                              <UserAvatar
+                                user={{ name: student.name, avatarUrl: student.avatarUrl }}
+                                size={52}
+                                className="shrink-0"
+                              />
+                              <div className="min-w-0">
+                                <h3 className="font-display text-[17px] font-extrabold text-[#1D2026] truncate">
+                                  {student.name}
+                                </h3>
+                                <p className="text-[12.5px] text-[#747579] flex items-center gap-1 mt-0.5">
+                                  <MapPin className="w-3.5 h-3.5 text-[#747579] shrink-0" />
+                                  <span className="truncate">{student.location}</span>
+                                </p>
+                              </div>
                             </div>
-                          </div>
 
                           <button
                             type="button"
@@ -2358,14 +2247,22 @@ function AdminDashboardContent() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 text-[14px]">
-                        {combinedStudents.map((stu) => (
-                          <tr key={stu.id} className="hover:bg-slate-50/80">
-                            <td className="py-3.5 px-4 flex items-center gap-3">
-                              <img
-                                src={stu.avatar}
-                                alt={stu.name}
-                                className="w-9 h-9 rounded-full object-cover"
-                              />
+                        {combinedStudents.length === 0 ? (
+                          <tr>
+                            <td colSpan={7} className="py-12 text-center text-[#747579]">
+                              {studentSearch
+                                ? `No students matching "${studentSearch}".`
+                                : "No enrolled students on record yet. Paid student registrations will appear here."}
+                            </td>
+                          </tr>
+                        ) : combinedStudents.map((stu) => (
+                            <tr key={stu.id} className="hover:bg-slate-50/80">
+                              <td className="py-3.5 px-4 flex items-center gap-3">
+                                <UserAvatar
+                                  user={{ name: stu.name, avatarUrl: stu.avatarUrl }}
+                                  size={36}
+                                  className="shrink-0"
+                                />
                               <div>
                                 <span className="font-bold text-[#1D2026] flex items-center gap-1.5">
                                   {stu.name}
@@ -2529,15 +2426,18 @@ function AdminDashboardContent() {
           )}
 
           {/* ========================================================= */}
-          {/* VIEW 3A: INSTRUCTORS GRID (activeTab === "instructors")   */}
+          {/* VIEW 3A: STAFF & INSTRUCTORS (activeTab === "instructors") */}
           {/* ========================================================= */}
           {activeTab === "instructors" && (
             <div>
-              <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+              <div className="flex flex-wrap items-center justify-between gap-4 mb-2">
                 <h1 className="font-display text-[28px] sm:text-[32px] font-extrabold text-[#1D2026] tracking-tight">
-                  Instructors
+                  Staff &amp; Instructors
                 </h1>
               </div>
+              <p className="text-[13.5px] text-[#747579] mb-6 max-w-2xl">
+                Admins and instructors with active platform credentials. Admins can deactivate departing staff or reactivate returned instructors.
+              </p>
 
               <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] p-6">
                 {/* Search & View Toggle Row */}
@@ -2547,7 +2447,7 @@ function AdminDashboardContent() {
                       type="text"
                       value={instructorSearch}
                       onChange={(e) => setInstructorSearch(e.target.value)}
-                      placeholder="Search"
+                      placeholder="Search staff by name, email or role…"
                       className="w-full bg-white border border-slate-200 rounded-lg pl-4 pr-10 py-2.5 text-[14px] text-[#24292D] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#AE54C6]"
                     />
                     <Search className="w-4 h-4 text-[#747579] absolute right-3.5 top-1/2 -translate-y-1/2" />
@@ -2581,105 +2481,202 @@ function AdminDashboardContent() {
                   </div>
                 </div>
 
-                {/* 3-Column Instructor Cards Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {filteredInstructors.map((inst) => (
-                    <div
-                      key={inst.id}
-                      className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_14px_rgba(0,0,0,0.03)] p-5 flex flex-col justify-between"
-                    >
-                      {/* Top Header */}
-                      <div className="flex items-center justify-between gap-3 pb-4 border-b border-slate-100">
-                        <div className="flex items-center gap-3.5 min-w-0">
-                          <img
-                            src={inst.avatar}
-                            alt={inst.name}
-                            className="w-13 h-13 rounded-full object-cover shrink-0"
-                          />
-                          <div className="min-w-0">
+                {staffLoading && staffList.length === 0 ? (
+                  <div className="py-16 text-center text-[13.5px] text-[#747579]">
+                    Loading staff accounts…
+                  </div>
+                ) : filteredStaff.length === 0 ? (
+                  <div className="py-16 text-center bg-[#F8F9FA] rounded-xl border border-slate-200/80 p-8">
+                    <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center">
+                      <Users className="w-7 h-7" />
+                    </div>
+                    <h3 className="font-display text-[18px] font-extrabold text-[#1D2026] mb-1">
+                      No Staff Found
+                    </h3>
+                    <p className="text-[13.5px] text-[#747579] max-w-md mx-auto">
+                      {instructorSearch
+                        ? `No staff members matching "${instructorSearch}".`
+                        : "No admin or instructor accounts on record."}
+                    </p>
+                  </div>
+                ) : instructorViewMode === "grid" ? (
+                  /* 3-Column Staff Cards Grid */
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {filteredStaff.map((inst) => (
+                      <div
+                        key={inst.id}
+                        className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_14px_rgba(0,0,0,0.03)] p-5 flex flex-col justify-between"
+                      >
+                        {/* Top Header */}
+                        <div className="flex items-start justify-between gap-3 pb-4 border-b border-slate-100">
+                          <div className="flex items-center gap-3.5 min-w-0">
+                            <UserAvatar
+                              user={{ name: inst.name, avatarUrl: inst.avatarUrl }}
+                              size={50}
+                              className="shrink-0"
+                            />
+                            <div className="min-w-0">
+                              <h3 className="font-display text-[17px] font-extrabold text-[#1D2026] truncate">
+                                {inst.name}
+                              </h3>
+                              <p className="text-[12.5px] text-[#747579] truncate mt-0.5">
+                                {inst.email}
+                              </p>
+                            </div>
+                          </div>
+
+                          <span
+                            className={`px-2 py-0.5 rounded text-[10.5px] font-bold uppercase tracking-wider shrink-0 ${
+                              inst.role === "ADMIN"
+                                ? "bg-[#F7EDF9] text-[#AE54C6]"
+                                : "bg-blue-50 text-blue-700"
+                            }`}
+                          >
+                            {inst.role}
+                          </span>
+                        </div>
+
+                        {/* Middle Info */}
+                        <div className="py-4 space-y-2 text-[13px] text-[#747579]">
+                          <div className="flex items-center justify-between">
+                            <span>Status:</span>
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                                inst.active
+                                  ? "bg-emerald-50 text-emerald-700"
+                                  : "bg-rose-50 text-rose-700"
+                              }`}
+                            >
+                              {inst.active ? "Active" : "Deactivated"}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span>Account Created:</span>
+                            <span className="font-medium text-[#1D2026]">
+                              {new Date(inst.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Bottom Actions */}
+                        <div className="pt-3.5 border-t border-slate-100 flex items-center justify-between">
+                          {inst.id === user?.id ? (
+                            <span className="text-[12px] font-semibold text-[#8580A3] italic">
+                              (Your Account)
+                            </span>
+                          ) : (
                             <button
                               type="button"
-                              onClick={() => switchTab("instructor-detail")}
-                              className="font-display text-[17px] font-extrabold text-[#1D2026] hover:text-[#AE54C6] transition-colors truncate block text-left cursor-pointer"
-                            >
-                              {inst.name}
-                            </button>
-                            <p className="text-[12.5px] text-[#747579] truncate mt-0.5">
-                              {inst.role}
-                            </p>
-                          </div>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => switchTab("instructor-detail")}
-                          className="w-9 h-9 rounded-full bg-[#F5F7F9] hover:bg-slate-200 flex items-center justify-center text-[#24292D] shrink-0 cursor-pointer"
-                          title="View Instructor Detail"
-                        >
-                          <MoreHorizontal className="w-4 h-4" />
-                        </button>
-                      </div>
-
-                      {/* Middle Stats */}
-                      <div className="py-4 space-y-3.5">
-                        {/* Total Students */}
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-[#FFF2E2] text-[#FD7E14] flex items-center justify-center">
-                              <GraduationCap className="w-4 h-4" />
-                            </div>
-                            <span className="text-[14px] text-[#475569] font-medium">
-                              Total Students
-                            </span>
-                          </div>
-                          <span className="text-[15px] font-bold text-[#475569]">
-                            {inst.totalStudents}
-                          </span>
-                        </div>
-
-                        {/* Total Courses */}
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-[#F6ECF9] text-[#A16EBD] flex items-center justify-center">
-                              <BookOpen className="w-4 h-4" />
-                            </div>
-                            <span className="text-[14px] text-[#475569] font-medium">
-                              Total Courses
-                            </span>
-                          </div>
-                          <span className="text-[15px] font-bold text-[#475569]">
-                            {inst.totalCourses}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Bottom Footer: Stars + Envelope */}
-                      <div className="pt-3.5 border-t border-slate-100 flex items-center justify-between">
-                        <div className="flex items-center gap-1">
-                          {[1, 2, 3, 4, 5].map((starIdx) => (
-                            <Star
-                              key={starIdx}
-                              className={`w-4 h-4 ${
-                                starIdx <= 4
-                                  ? "text-[#F7C32E] fill-[#F7C32E]"
-                                  : "text-[#F7C32E]"
+                              onClick={() => handleToggleStaffActive(inst)}
+                              disabled={staffActionId === inst.id}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer disabled:opacity-50 ${
+                                inst.active
+                                  ? "border border-rose-200 text-rose-700 hover:bg-rose-50"
+                                  : "bg-emerald-600 hover:bg-emerald-700 text-white"
                               }`}
-                            />
-                          ))}
-                        </div>
+                            >
+                              {staffActionId === inst.id
+                                ? "Updating…"
+                                : inst.active
+                                ? "Deactivate Access"
+                                : "Reactivate Access"}
+                            </button>
+                          )}
 
-                        <button
-                          type="button"
-                          onClick={() => switchTab("instructor-detail")}
-                          className="text-[#747579] hover:text-[#AE54C6] transition-colors cursor-pointer"
-                          title="Contact Instructor"
-                        >
-                          <Mail className="w-4 h-4" />
-                        </button>
+                          <button
+                            type="button"
+                            onClick={() => switchTab("instructor-detail")}
+                            className="text-[#747579] hover:text-[#AE54C6] text-xs font-semibold transition-colors cursor-pointer"
+                          >
+                            View Detail &rarr;
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  /* List View Table */
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-slate-200 text-[12px] font-bold uppercase text-[#747579]">
+                          <th className="py-3.5 px-4">Staff Member</th>
+                          <th className="py-3.5 px-4">Email</th>
+                          <th className="py-3.5 px-4">Role</th>
+                          <th className="py-3.5 px-4">Status</th>
+                          <th className="py-3.5 px-4">Created At</th>
+                          <th className="py-3.5 px-4 text-right">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 text-[14px]">
+                        {filteredStaff.map((inst) => (
+                          <tr key={inst.id} className="hover:bg-slate-50/80">
+                            <td className="py-3.5 px-4 flex items-center gap-3">
+                              <UserAvatar
+                                user={{ name: inst.name, avatarUrl: inst.avatarUrl }}
+                                size={36}
+                                className="shrink-0"
+                              />
+                              <span className="font-bold text-[#1D2026]">{inst.name}</span>
+                            </td>
+                            <td className="py-3.5 px-4 text-[#747579] text-[13px]">
+                              {inst.email}
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <span
+                                className={`px-2 py-0.5 rounded text-[10.5px] font-bold uppercase tracking-wider ${
+                                  inst.role === "ADMIN"
+                                    ? "bg-[#F7EDF9] text-[#AE54C6]"
+                                    : "bg-blue-50 text-blue-700"
+                                }`}
+                              >
+                                {inst.role}
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <span
+                                className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                                  inst.active
+                                    ? "bg-emerald-50 text-emerald-700"
+                                    : "bg-rose-50 text-rose-700"
+                                }`}
+                              >
+                                {inst.active ? "Active" : "Deactivated"}
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-4 text-[#747579] text-[13px]">
+                              {new Date(inst.createdAt).toLocaleDateString()}
+                            </td>
+                            <td className="py-3.5 px-4 text-right">
+                              {inst.id === user?.id ? (
+                                <span className="text-[12px] font-semibold text-[#8580A3] italic">
+                                  (Your Account)
+                                </span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleStaffActive(inst)}
+                                  disabled={staffActionId === inst.id}
+                                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer disabled:opacity-50 ${
+                                    inst.active
+                                      ? "border border-rose-200 text-rose-700 hover:bg-rose-50"
+                                      : "bg-emerald-600 hover:bg-emerald-700 text-white"
+                                  }`}
+                                >
+                                  {staffActionId === inst.id
+                                    ? "Updating…"
+                                    : inst.active
+                                    ? "Deactivate"
+                                    : "Reactivate"}
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -3134,157 +3131,7 @@ function AdminDashboardContent() {
             </div>
           )}
 
-          {/* ========================================================= */}
-          {/* VIEW 3C: INSTRUCTOR REQUESTS (Matches Image 3)            */}
-          {/* ========================================================= */}
-          {activeTab === "instructor-requests" && (
-            <div>
-              <h1 className="font-display text-[28px] sm:text-[32px] font-extrabold text-[#1D2026] tracking-tight mb-6">
-                Instructor Requests
-              </h1>
 
-              <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
-                {/* Top Filter Bar */}
-                <div className="bg-[#F8F9FA] px-6 py-4 border-b border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="relative w-full sm:max-w-[540px]">
-                    <input
-                      type="text"
-                      value={requestSearch}
-                      onChange={(e) => setRequestSearch(e.target.value)}
-                      placeholder="Search"
-                      className="w-full bg-white border border-slate-200 rounded-lg pl-4 pr-10 py-2.5 text-[14px] text-[#24292D] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#AE54C6]"
-                    />
-                    <Search className="w-4 h-4 text-[#747579] absolute right-3.5 top-1/2 -translate-y-1/2" />
-                  </div>
-
-                  <select
-                    value={requestSort}
-                    onChange={(e) => setRequestSort(e.target.value)}
-                    className="bg-white border border-slate-200 rounded-lg px-4 py-2.5 w-full sm:w-56 text-[13.5px] text-[#747579] focus:outline-none focus:border-[#AE54C6]"
-                  >
-                    <option value="default">Sort by</option>
-                    <option value="newest">Newest Requested</option>
-                    <option value="pending">Pending First</option>
-                    <option value="accepted">Accepted First</option>
-                  </select>
-                </div>
-
-                {/* Requests Table */}
-                <div className="p-6">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse min-w-[700px]">
-                      <thead>
-                        <tr className="bg-[#24292D] text-white text-[13.5px] font-bold">
-                          <th className="py-3.5 px-5 rounded-l-lg">Instructor name</th>
-                          <th className="py-3.5 px-4">Subject</th>
-                          <th className="py-3.5 px-4">Requested Date</th>
-                          <th className="py-3.5 px-5 rounded-r-lg">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 text-[14px]">
-                        {instructorRequests
-                          .filter(
-                            (req) =>
-                              req.name
-                                .toLowerCase()
-                                .includes(requestSearch.toLowerCase()) ||
-                              req.subject
-                                .toLowerCase()
-                                .includes(requestSearch.toLowerCase())
-                          )
-                          .map((req) => (
-                            <tr key={req.id} className="hover:bg-slate-50/70">
-                              <td className="py-4 px-5">
-                                <div className="flex items-center gap-3">
-                                  <img
-                                    src={req.avatar}
-                                    alt={req.name}
-                                    className="w-10 h-10 rounded-full object-cover shrink-0"
-                                  />
-                                  <span className="font-bold text-[#1D2026]">
-                                    {req.name}
-                                  </span>
-                                </div>
-                              </td>
-                              <td className="py-4 px-4 font-bold text-[#1D2026]">
-                                {req.subject}
-                              </td>
-                              <td className="py-4 px-4 text-[#747579]">
-                                {req.requestedDate}
-                              </td>
-                              <td className="py-4 px-5">
-                                <div className="flex items-center gap-2">
-                                  {req.status === "PENDING" && (
-                                    <>
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          setInstructorRequests((prev) =>
-                                            prev.map((r) =>
-                                              r.id === req.id
-                                                ? { ...r, status: "ACCEPTED" }
-                                                : r
-                                            )
-                                          );
-                                          setAdminNotice(
-                                            `Accepted ${req.name}'s instructor application.`
-                                          );
-                                        }}
-                                        className="px-3.5 py-1.5 rounded-md bg-[#F7EDF9] hover:bg-[#AE54C6] text-[#AE54C6] hover:text-white text-[12.5px] font-bold transition-colors cursor-pointer"
-                                      >
-                                        Accept
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          setInstructorRequests((prev) =>
-                                            prev.map((r) =>
-                                              r.id === req.id
-                                                ? { ...r, status: "REJECTED" }
-                                                : r
-                                            )
-                                          );
-                                          setAdminNotice(
-                                            `Rejected ${req.name}'s instructor application.`
-                                          );
-                                        }}
-                                        className="px-3.5 py-1.5 rounded-md bg-[#F2F4F6] hover:bg-slate-300 text-[#747579] text-[12.5px] font-bold transition-colors cursor-pointer"
-                                      >
-                                        Reject
-                                      </button>
-                                    </>
-                                  )}
-
-                                  {req.status === "ACCEPTED" && (
-                                    <span className="px-3.5 py-1.5 rounded-md bg-[#53D1A8] text-white text-[12.5px] font-bold">
-                                      Accepted
-                                    </span>
-                                  )}
-
-                                  {req.status === "REJECTED" && (
-                                    <span className="px-3.5 py-1.5 rounded-md bg-[#B0B5BA] text-white text-[12.5px] font-bold">
-                                      Rejected
-                                    </span>
-                                  )}
-
-                                  <button
-                                    type="button"
-                                    onClick={() => switchTab("instructor-detail")}
-                                    className="px-3.5 py-1.5 rounded-md bg-[#F7EDF9] hover:bg-[#AE54C6] text-[#AE54C6] hover:text-white text-[12.5px] font-bold transition-colors cursor-pointer"
-                                  >
-                                    View App
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* ========================================================= */}
           {/* VIEW 4: COURSES MANAGEMENT                                */}
@@ -3396,324 +3243,203 @@ function AdminDashboardContent() {
           )}
 
           {/* ========================================================= */}
-          {/* VIEW 5: REVIEWS (Matches Image 5 + Image 3 Bottom Row)    */}
+          {/* VIEW 5: REVIEWS (activeTab === "reviews")                 */}
           {/* ========================================================= */}
           {activeTab === "reviews" && (
             <div className="space-y-7">
-              <h1 className="font-display text-[28px] sm:text-[32px] font-extrabold text-[#1D2026] tracking-tight">
-                Reviews
-              </h1>
+              <div>
+                <h1 className="font-display text-[28px] sm:text-[32px] font-extrabold text-[#1D2026] tracking-tight mb-2">
+                  Course Reviews
+                </h1>
+                <p className="text-[13.5px] text-[#747579] max-w-2xl">
+                  Public reviews submitted by verified BEMS students. Admins can inspect comments and remove fraudulent or inappropriate entries.
+                </p>
+              </div>
 
-              {/* Top Reviews Table Card */}
+              {/* Reviews Table Card */}
               <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] p-6">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse min-w-[740px]">
+                  <table className="w-full text-left border-collapse min-w-[760px]">
                     <thead>
                       <tr className="bg-[#24292D] text-white text-[13.5px] font-bold">
-                        <th className="py-3.5 px-4 rounded-l-lg">#</th>
-                        <th className="py-3.5 px-4">Student Name</th>
-                        <th className="py-3.5 px-4">Course Name</th>
+                        <th className="py-3.5 px-4 rounded-l-lg">Student</th>
+                        <th className="py-3.5 px-4">Course</th>
                         <th className="py-3.5 px-4">Rating</th>
-                        <th className="py-3.5 px-4">Hide/Show</th>
-                        <th className="py-3.5 px-4 rounded-r-lg">Action</th>
+                        <th className="py-3.5 px-4">Comment</th>
+                        <th className="py-3.5 px-4">Submitted At</th>
+                        <th className="py-3.5 px-4 text-right rounded-r-lg">Action</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-[14px]">
-                      {reviewsList.map((rev) => (
-                        <tr key={rev.id} className="hover:bg-slate-50/70">
-                          <td className="py-4 px-4 text-[#747579] font-medium">
-                            {rev.id}
-                          </td>
-                          <td className="py-4 px-4">
-                            <div className="flex items-center gap-3">
-                              <img
-                                src={rev.avatar}
-                                alt={rev.studentName}
-                                className="w-10 h-10 rounded-full object-cover shrink-0"
-                              />
-                              <span className="font-bold text-[#1D2026]">
-                                {rev.studentName}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="py-4 px-4 font-bold text-[#1D2026]">
-                            {rev.courseName}
-                          </td>
-                          <td className="py-4 px-4">
-                            <div className="flex items-center gap-1">
-                              {[1, 2, 3, 4, 5].map((s) => (
-                                <Star
-                                  key={s}
-                                  className={`w-4 h-4 ${
-                                    s <= rev.rating
-                                      ? "text-[#F7C32E] fill-[#F7C32E]"
-                                      : "text-[#F7C32E]"
-                                  }`}
-                                />
-                              ))}
-                            </div>
-                          </td>
-                          <td className="py-4 px-4">
-                            <button
-                              type="button"
-                              role="switch"
-                              aria-checked={rev.visible}
-                              onClick={() =>
-                                setReviewsList((prev) =>
-                                  prev.map((item) =>
-                                    item.id === rev.id
-                                      ? { ...item, visible: !item.visible }
-                                      : item
-                                  )
-                                )
-                              }
-                              className={`w-10 h-5 rounded-full p-0.5 transition-colors cursor-pointer flex items-center ${
-                                rev.visible
-                                  ? "bg-[#AE54C6] justify-end"
-                                  : "bg-[#E2E8F0] justify-start"
-                              }`}
-                            >
-                              <span className="w-4 h-4 rounded-full bg-white shadow-2xs block" />
-                            </button>
-                          </td>
-                          <td className="py-4 px-4">
-                            <div className="flex items-center gap-2">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setAdminNotice(
-                                    `Opened review editor for ${rev.studentName}.`
-                                  )
-                                }
-                                className="w-8 h-8 rounded-full bg-[#F7EDF9] hover:bg-[#AE54C6] text-[#AE54C6] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
-                                title="Edit Review"
-                              >
-                                <Edit3 className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setReviewsList((prev) =>
-                                    prev.filter((item) => item.id !== rev.id)
-                                  );
-                                  setAdminNotice(
-                                    `Deleted review #${rev.id} from ${rev.studentName}.`
-                                  );
-                                }}
-                                className="w-8 h-8 rounded-full bg-[#FBE9EB] hover:bg-[#D6293E] text-[#D6293E] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
-                                title="Delete Review"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => switchTab("instructor-detail")}
-                                className="px-3.5 py-1.5 rounded-md bg-[#E5F6F8] hover:bg-[#17A2B8] text-[#17A2B8] hover:text-white text-[12.5px] font-bold transition-colors cursor-pointer"
-                              >
-                                View
-                              </button>
-                            </div>
+                      {reviewsLoading && adminReviews.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="py-12 text-center text-[#747579]">
+                            Loading course reviews…
                           </td>
                         </tr>
-                      ))}
+                      ) : adminReviews.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="py-12 text-center text-[#747579]">
+                            No course reviews recorded yet. Verified reviews submitted by graduates will appear here.
+                          </td>
+                        </tr>
+                      ) : (
+                        adminReviews.map((rev) => (
+                          <tr key={rev.id} className="hover:bg-slate-50/70">
+                            <td className="py-4 px-4">
+                              <div className="flex items-center gap-3">
+                                <UserAvatar
+                                  user={{ name: rev.student.name }}
+                                  size={36}
+                                  className="shrink-0"
+                                />
+                                <div className="min-w-0">
+                                  <div className="font-bold text-[#1D2026]">
+                                    {rev.student.name}
+                                  </div>
+                                  <div className="text-[11.5px] text-[#747579] truncate">
+                                    {rev.student.email}
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 font-bold text-[#1D2026]">
+                              {rev.course.title}
+                            </td>
+                            <td className="py-4 px-4">
+                              <div className="flex items-center gap-1">
+                                {[1, 2, 3, 4, 5].map((s) => (
+                                  <Star
+                                    key={s}
+                                    className={`w-4 h-4 ${
+                                      s <= rev.rating
+                                        ? "text-[#F7C32E] fill-[#F7C32E]"
+                                        : "text-slate-200"
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 max-w-xs">
+                              <p className="text-[13px] text-[#475569] line-clamp-2 leading-relaxed">
+                                &ldquo;{rev.comment}&rdquo;
+                              </p>
+                            </td>
+                            <td className="py-4 px-4 text-[#747579] text-[13px]">
+                              {new Date(rev.createdAt).toLocaleDateString()}
+                            </td>
+                            <td className="py-4 px-4 text-right">
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteReview(rev.id)}
+                                disabled={deletingReviewId === rev.id}
+                                className="p-2 rounded-lg hover:bg-rose-50 text-rose-600 transition-colors cursor-pointer disabled:opacity-50"
+                                title="Delete Review"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
-
-                {/* Pagination Footer */}
-                <div className="mt-6 pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-[13.5px] text-[#747579]">
-                  <div>Showing 1 to 8 of 20 entries</div>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] text-[13px] font-bold flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
-                    >
-                      1
-                    </button>
-                    <button
-                      type="button"
-                      className="w-8 h-8 rounded-md bg-[#AE54C6] text-white text-[13px] font-bold flex items-center justify-center cursor-pointer"
-                    >
-                      2
-                    </button>
-                    <button
-                      type="button"
-                      className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] text-[13px] font-bold flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
-                    >
-                      3
-                    </button>
-                    <button
-                      type="button"
-                      className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
-                    >
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
               </div>
 
-              {/* Bottom 2-Column Row: Top Rated Courses (7 cols) + Reviews Analytics (5 cols) */}
+              {/* Bottom 2-Column Row: Top Tracks + Reviews Analytics */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                {/* Left: Top Rated Courses */}
+                {/* Left: 4 BEMS Tracks */}
                 <div className="lg:col-span-7 bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
                   <div className="bg-[#F8F9FA] px-6 py-4 border-b border-slate-200/80">
                     <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
-                      Top Rated Courses
+                      BEMS Academic Tracks
                     </h2>
                   </div>
 
                   <div className="p-6">
                     <div className="overflow-x-auto">
-                      <table className="w-full text-left border-collapse min-w-[540px]">
+                      <table className="w-full text-left border-collapse min-w-[500px]">
                         <thead>
                           <tr className="bg-[#24292D] text-white text-[13.5px] font-bold">
-                            <th className="py-3.5 px-4 rounded-l-lg">Course Name</th>
+                            <th className="py-3.5 px-4 rounded-l-lg">Track Name</th>
                             <th className="py-3.5 px-3">Enrolled</th>
-                            <th className="py-3.5 px-3">Rating</th>
-                            <th className="py-3.5 px-4 rounded-r-lg">Action</th>
+                            <th className="py-3.5 px-4 text-right rounded-r-lg">Action</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 text-[14px]">
                           {[
                             {
-                              title: "AI & Automation",
-                              enrolled: 22,
-                              stars: 5,
-                              thumbBg: "bg-[#F7EDF9] text-[#AE54C6]",
-                              thumbText: "🤖",
-                            },
-                            {
-                              title: "Web Development",
-                              enrolled: 31,
-                              stars: 5,
+                              title: "Full-Stack Web Development",
+                              slug: "full-stack-web-development",
+                              enrolled:
+                                analytics.trackDistribution.find((t) =>
+                                  t.track.toLowerCase().includes("web")
+                                )?.count || 0,
                               thumbBg: "bg-[#303654] text-white",
                               thumbText: "</>",
                             },
                             {
                               title: "Product Design (UI/UX)",
-                              enrolled: 18,
-                              stars: 5,
+                              slug: "product-design-ui-ux",
+                              enrolled:
+                                analytics.trackDistribution.find(
+                                  (t) =>
+                                    t.track.toLowerCase().includes("design") ||
+                                    t.track.toLowerCase().includes("ui")
+                                )?.count || 0,
                               thumbBg: "bg-[#F7EDF9] text-[#AE54C6]",
                               thumbText: "🎨",
                             },
                             {
-                              title: "Cybersecurity",
-                              enrolled: 15,
-                              stars: 4,
+                              title: "AI & Automation",
+                              slug: "ai-and-automation",
+                              enrolled:
+                                analytics.trackDistribution.find((t) =>
+                                  t.track.toLowerCase().includes("ai")
+                                )?.count || 0,
+                              thumbBg: "bg-[#F7EDF9] text-[#AE54C6]",
+                              thumbText: "🤖",
+                            },
+                            {
+                              title: "Cybersecurity & Ethical Hacking",
+                              slug: "cybersecurity-and-ethical-hacking",
+                              enrolled:
+                                analytics.trackDistribution.find((t) =>
+                                  t.track.toLowerCase().includes("cyber")
+                                )?.count || 0,
                               thumbBg: "bg-[#303654] text-white",
                               thumbText: "🔒",
                             },
-                            {
-                              title: "Mobile App Engineering",
-                              enrolled: 12,
-                              stars: 4,
-                              thumbBg: "bg-[#F7EDF9] text-[#AE54C6]",
-                              thumbText: "📱",
-                            },
-                          ].map((course) => (
-                            <tr key={course.title} className="hover:bg-slate-50/70">
+                          ].map((track) => (
+                            <tr key={track.title} className="hover:bg-slate-50/70">
                               <td className="py-4 px-4">
                                 <div className="flex items-center gap-3">
                                   <div
-                                    className={`w-13 h-10 rounded-md ${course.thumbBg} font-extrabold text-xs flex items-center justify-center shrink-0 shadow-2xs`}
+                                    className={`w-10 h-10 rounded-md ${track.thumbBg} font-extrabold text-xs flex items-center justify-center shrink-0 shadow-2xs`}
                                   >
-                                    {course.thumbText}
+                                    {track.thumbText}
                                   </div>
-                                  <span className="font-bold text-[#1D2026] leading-snug">
-                                    {course.title}
+                                  <span className="font-bold text-[#1D2026]">
+                                    {track.title}
                                   </span>
                                 </div>
                               </td>
-                              <td className="py-4 px-3 text-[#747579]">
-                                {course.enrolled}
+                              <td className="py-4 px-3 text-[#747579] font-medium">
+                                {track.enrolled} student{track.enrolled === 1 ? "" : "s"}
                               </td>
-                              <td className="py-4 px-3">
-                                <div className="flex flex-wrap items-center gap-0.5 max-w-[76px]">
-                                  {[1, 2, 3, 4, 5].map((s) => (
-                                    <Star
-                                      key={s}
-                                      className={`w-3.5 h-3.5 ${
-                                        s <= course.stars
-                                          ? "text-[#F7C32E] fill-[#F7C32E]"
-                                          : "text-[#F7C32E]"
-                                      }`}
-                                    />
-                                  ))}
-                                </div>
-                              </td>
-                              <td className="py-4 px-4">
-                                <div className="flex flex-col items-start gap-1.5">
-                                  <div className="flex items-center gap-1.5">
-                                    <button
-                                      type="button"
-                                      className="w-8 h-8 rounded-full bg-[#F7EDF9] hover:bg-[#AE54C6] text-[#AE54C6] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
-                                      title="Edit"
-                                    >
-                                      <Edit3 className="w-3.5 h-3.5" />
-                                    </button>
-                                    <button
-                                      type="button"
-                                      className="w-8 h-8 rounded-full bg-[#FBE9EB] hover:bg-[#D6293E] text-[#D6293E] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
-                                      title="Delete"
-                                    >
-                                      <Trash2 className="w-3.5 h-3.5" />
-                                    </button>
-                                  </div>
-                                  <Link
-                                    href="/courses"
-                                    className="px-3.5 py-1 rounded-md bg-[#E5F6F8] hover:bg-[#17A2B8] text-[#17A2B8] hover:text-white text-[12px] font-bold transition-colors"
-                                  >
-                                    View
-                                  </Link>
-                                </div>
+                              <td className="py-4 px-4 text-right">
+                                <Link
+                                  href={`/courses/${track.slug}`}
+                                  className="px-3.5 py-1.5 rounded-md bg-[#E5F6F8] hover:bg-[#17A2B8] text-[#17A2B8] hover:text-white text-[12px] font-bold transition-colors inline-block"
+                                >
+                                  View
+                                </Link>
                               </td>
                             </tr>
                           ))}
                         </tbody>
                       </table>
-                    </div>
-
-                    {/* Pagination Footer */}
-                    <div className="mt-6 pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-[13.5px] text-[#747579]">
-                      <div>Showing 1 to 8 of 20 entries</div>
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          type="button"
-                          className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
-                        >
-                          <ChevronLeft className="w-4 h-4" />
-                        </button>
-                        <button
-                          type="button"
-                          className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] text-[13px] font-bold flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
-                        >
-                          1
-                        </button>
-                        <button
-                          type="button"
-                          className="w-8 h-8 rounded-md bg-[#AE54C6] text-white text-[13px] font-bold flex items-center justify-center cursor-pointer"
-                        >
-                          2
-                        </button>
-                        <button
-                          type="button"
-                          className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] text-[13px] font-bold flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
-                        >
-                          3
-                        </button>
-                        <button
-                          type="button"
-                          className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
-                        >
-                          <ChevronRight className="w-4 h-4" />
-                        </button>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -3726,56 +3452,77 @@ function AdminDashboardContent() {
                     </h2>
                   </div>
 
-                  <div className="p-6 flex-1 flex flex-col justify-between">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-[#F7EDF9] rounded-lg p-4">
-                        <div className="text-[13px] text-[#747579] mb-1">
-                          Total Positive Review
-                        </div>
-                        <div className="font-display text-[22px] font-extrabold text-[#1D2026]">
-                          85%
-                        </div>
-                      </div>
-                      <div className="bg-[#FBE9EB] rounded-lg p-4">
-                        <div className="text-[13px] text-[#747579] mb-1">
-                          Total Negative Review
-                        </div>
-                        <div className="font-display text-[22px] font-extrabold text-[#1D2026]">
-                          15%
-                        </div>
-                      </div>
-                    </div>
+                  {(() => {
+                    const positiveCount = adminReviews.filter((r) => r.rating >= 4).length;
+                    const positivePct =
+                      adminReviews.length > 0
+                        ? Math.round((positiveCount / adminReviews.length) * 100)
+                        : 100;
+                    const negativePct = 100 - positivePct;
+                    const dashGreen = Math.round((positivePct / 100) * 377);
+                    const dashRed = Math.max(0, 377 - dashGreen);
 
-                    {/* 2-Segment Green/Red Donut Chart */}
-                    <div className="my-auto py-8 flex items-center justify-center">
-                      <div className="w-56 h-56 relative">
-                        <svg viewBox="0 0 160 160" className="w-full h-full -rotate-90">
-                          {/* Green 73% visual arc */}
-                          <circle
-                            cx="80"
-                            cy="80"
-                            r="60"
-                            fill="transparent"
-                            stroke="#AE54C6"
-                            strokeWidth="26"
-                            strokeDasharray="273 377"
-                            strokeDashoffset="0"
-                          />
-                          {/* Red 27% visual arc */}
-                          <circle
-                            cx="80"
-                            cy="80"
-                            r="60"
-                            fill="transparent"
-                            stroke="#D6293E"
-                            strokeWidth="26"
-                            strokeDasharray="100 377"
-                            strokeDashoffset="-275"
-                          />
-                        </svg>
+                    return (
+                      <div className="p-6 flex-1 flex flex-col justify-between">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="bg-[#F7EDF9] rounded-lg p-4">
+                            <div className="text-[13px] text-[#747579] mb-1">
+                              Positive (4-5★)
+                            </div>
+                            <div className="font-display text-[22px] font-extrabold text-[#1D2026]">
+                              {positivePct}%
+                            </div>
+                          </div>
+                          <div className="bg-[#FBE9EB] rounded-lg p-4">
+                            <div className="text-[13px] text-[#747579] mb-1">
+                              Needs Improvement
+                            </div>
+                            <div className="font-display text-[22px] font-extrabold text-[#1D2026]">
+                              {negativePct}%
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 2-Segment Donut Chart */}
+                        <div className="my-auto py-8 flex items-center justify-center">
+                          <div className="w-52 h-52 relative">
+                            <svg viewBox="0 0 160 160" className="w-full h-full -rotate-90">
+                              <circle
+                                cx="80"
+                                cy="80"
+                                r="60"
+                                fill="transparent"
+                                stroke="#AE54C6"
+                                strokeWidth="24"
+                                strokeDasharray={`${dashGreen} 377`}
+                                strokeDashoffset="0"
+                              />
+                              {negativePct > 0 && (
+                                <circle
+                                  cx="80"
+                                  cy="80"
+                                  r="60"
+                                  fill="transparent"
+                                  stroke="#D6293E"
+                                  strokeWidth="24"
+                                  strokeDasharray={`${dashRed} 377`}
+                                  strokeDashoffset={-dashGreen}
+                                />
+                              )}
+                            </svg>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                              <span className="text-[20px] font-extrabold text-[#1D2026]">
+                                {adminReviews.length}
+                              </span>
+                              <span className="text-[11px] text-[#747579] font-medium">
+                                {adminReviews.length === 1 ? "Review" : "Reviews"}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
+                    );
+                  })()}
                 </div>
               </div>
             </div>
@@ -4564,62 +4311,57 @@ function AdminDashboardContent() {
                 Earnings
               </h1>
 
-              {/* 3 Real Summary Cards — computed from the actual payment
-                  ledger/roster, not placeholder figures. */}
+              {/* 4 Summary Cards from /api/admin/analytics */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-7">
-                <div className="bg-[#F7EDF9] rounded-xl p-6">
+                {/* 1. Total Net Revenue */}
+                <div className="bg-[#F7EDF9] rounded-xl p-6 border border-[#AE54C6]/20">
                   <div className="text-[14px] font-bold text-[#1D2026] mb-2">
-                    Total Collected
+                    Total Net Revenue
                   </div>
                   <div className="font-display text-[32px] sm:text-[36px] font-extrabold text-[#AE54C6] leading-tight">
                     ₦{analytics.totalRevenue.toLocaleString()}
                   </div>
                   <div className="text-[12px] text-[#747579] mt-1">
-                    Across {analytics.totalStudents} enrolled student{analytics.totalStudents === 1 ? "" : "s"}
+                    Payments minus refunds across {analytics.totalStudents} paid student{analytics.totalStudents === 1 ? "" : "s"}
                   </div>
                 </div>
 
-                <div className="bg-[#F6ECF9] rounded-xl p-6">
+                {/* 2. Outstanding Balance */}
+                <div className="bg-[#F6ECF9] rounded-xl p-6 border border-[#A16EBD]/20">
                   <div className="text-[14px] font-bold text-[#1D2026] mb-2 flex items-center gap-1.5">
                     <span>Outstanding Balance</span>
                   </div>
                   <div className="font-display text-[32px] sm:text-[36px] font-extrabold text-[#A16EBD] leading-tight">
-                    ₦{adminStudents.reduce((sum, s) => sum + Math.max(s.totalDue - s.amountPaid, 0), 0).toLocaleString()}
+                    ₦{analytics.outstandingBalance.toLocaleString()}
                   </div>
                   <div className="text-[12px] text-[#747579] mt-1">
-                    Still due across every enrollment on record
+                    Remaining balance due across active installment plans
                   </div>
                 </div>
 
-                <div className="bg-[#FFF2E2] rounded-xl p-6">
+                {/* 3. Refunded Total */}
+                <div className="bg-[#FBE9EB] rounded-xl p-6 border border-rose-200">
                   <div className="text-[14px] font-bold text-[#1D2026] mb-2">
-                    Target Revenue
+                    Refunded Total
                   </div>
-                  <div className="font-display text-[32px] sm:text-[36px] font-extrabold text-[#FD7E14] leading-tight">
-                    ₦{analytics.targetRevenue.toLocaleString()}
+                  <div className="font-display text-[32px] sm:text-[36px] font-extrabold text-[#D6293E] leading-tight">
+                    ₦{analytics.refundedTotal.toLocaleString()}
                   </div>
                   <div className="text-[12px] text-[#747579] mt-1">
-                    {analytics.targetRevenue > 0
-                      ? `${Math.round((analytics.totalRevenue / analytics.targetRevenue) * 100)}% reached this cohort`
-                      : "No cohort revenue target set"}
+                    Total tuition refunded on record
                   </div>
                 </div>
 
-                <div className="bg-[#E9F7EF] rounded-xl p-6">
+                {/* 4. Waived Total */}
+                <div className="bg-[#FFF8E6] rounded-xl p-6 border border-amber-200">
                   <div className="text-[14px] font-bold text-[#1D2026] mb-2">
-                    Placement Fees Collected
+                    Waived Total
                   </div>
-                  <div className="font-display text-[32px] sm:text-[36px] font-extrabold text-emerald-700 leading-tight">
-                    ₦
-                    {placements
-                      .filter((p) => p.feeStatus === "PAID")
-                      .reduce((sum, p) => sum + (p.feeAmount || 0), 0)
-                      .toLocaleString()}
+                  <div className="font-display text-[32px] sm:text-[36px] font-extrabold text-amber-700 leading-tight">
+                    ₦{analytics.waivedTotal.toLocaleString()}
                   </div>
                   <div className="text-[12px] text-[#747579] mt-1">
-                    {placements.filter((p) => p.status === "HIRED").length} graduate
-                    {placements.filter((p) => p.status === "HIRED").length === 1 ? "" : "s"} hired &middot; the
-                    PRD&apos;s second revenue stream
+                    Second-chance balance waivers granted
                   </div>
                 </div>
               </div>
@@ -5247,18 +4989,22 @@ function AdminDashboardContent() {
                   )}
 
                   {settingsSubTab === "email" && (
-                    /* Sub-Tab 6: Email Settings — no SMTP provider is connected; delivery is simulated */
+                    /* Sub-Tab 6: Email Settings — transactional emails go through Resend */
                     <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
                       <div className="px-6 py-4 border-b border-slate-100">
                         <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
                           Email Settings
                         </h2>
                       </div>
-                      <div className="p-6">
+                      <div className="p-6 space-y-4">
                         <div className="rounded-lg bg-[#F8F9FA] border border-slate-200/80 p-5 text-[14px] text-[#747579] leading-relaxed">
-                          Not configurable — no SMTP or transactional-email provider is connected yet. Password
-                          reset links and other system emails are currently logged server-side instead of actually
-                          sent (search the Render logs for the outgoing link/message).
+                          Transactional emails (registration payment receipts, admissions confirmation alerts, cohort welcome emails, and password resets) go through <strong>Resend</strong>. They are configured on the server via <code className="font-mono text-xs bg-slate-200/70 text-[#1D2026] px-1.5 py-0.5 rounded">RESEND_API_KEY</code> and <code className="font-mono text-xs bg-slate-200/70 text-[#1D2026] px-1.5 py-0.5 rounded">EMAIL_FROM</code> environment variables.
+                        </div>
+                        <div className="p-4 rounded-lg bg-emerald-50 border border-emerald-200/60 text-[13px] text-emerald-800 flex items-start gap-3">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                          <div>
+                            <strong>Delivery Fallback Active:</strong> When unconfigured or in development, email notifications are safely printed to the backend server logs without failing user transactions.
+                          </div>
                         </div>
                       </div>
                     </div>
