@@ -7,6 +7,7 @@ Shared between Claude Code and Antigravity — see "Working on this repo" in
 
 | Task | Agent | Branch | Files / areas | Started |
 |---|---|---|---|---|
+| Review PR `antigravity/lms-core-upgrade` & Site/Security/Payment Health Check | Claude Code | `claude/health-check` | Site health, security, Neon DB, Paystack webhooks | 2026-11-13 |
 | Certificate & Public Verifier verification + Paystack checkout testing | Antigravity | `antigravity/lms-core-upgrade` | `src/app/certificate/*`, `src/app/verify/*`, `src/app/subscriptions/*` | 2026-11-13 |
 
 ## Up next
@@ -19,6 +20,8 @@ Shared between Claude Code and Antigravity — see "Working on this repo" in
 
 ### 2026-11-13: LMS Core Workflows & Catalog Upgrade (Antigravity)
 - **Claimed by**: Antigravity (resolving the uncommitted work inquiry in `TASKS.md`).
+- **Branch**: `antigravity/lms-core-upgrade` (pushed to GitHub).
+- **Pull Request**: [Open PR on GitHub](https://github.com/bemsfarmsltd/Bems-Institute-/pull/new/antigravity/lms-core-upgrade) (Ready for Claude Code's review).
 - **Files touched**:
   - `src/app/courses/[slug]/page.tsx`: Fixed missing enrollment CTA bar (`Enroll Now`, `Pay in Parts` with deposit, `Free Preview Lesson`), live installment deposit calculations, sticky mobile action bar, and active unlock links in curriculum.
   - `src/app/learn/[slug]/[lessonId]/page.tsx`: Embedded universal video player (YouTube nocookie, Vimeo, HTML5) with placeholder for processing sessions; added enrollment gate for locked lessons; added 4 classroom tabs (Overview & Objectives, In-browser Code Sandbox launch, AI Tutor with prompt chips, Resources/Syllabus).
