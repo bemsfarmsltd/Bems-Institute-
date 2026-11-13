@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { apiFetch } from "@/lib/api-client";
 import { getCourseVisual } from "@/lib/course-visuals";
+import { buildWhatsAppLink, BEMS_WHATSAPP_NUMBER } from "@/lib/whatsapp";
 import { UserAvatar } from "@/components/UserAvatar";
 import type { LeaderboardStudent } from "@/types/advanced";
 import {
@@ -37,7 +38,8 @@ import {
   Lock,
   Bell,
   AlertTriangle,
-  Target
+  Target,
+  Clock
 } from "lucide-react";
 
 type NotifyCategory = "CLASS" | "GRADING" | "PAYMENT" | "GAMIFICATION" | "ATTENDANCE";
@@ -82,6 +84,7 @@ function StudentDashboardContent() {
     updateProfile,
     courses,
     enrolledCourseIds,
+    userEnrollments,
     getCourseProgress,
     getQuizForCourse,
     getAssignmentForCourse,
@@ -181,6 +184,7 @@ function StudentDashboardContent() {
   }, []);
 
   const enrolledCourses = courses.filter((c) => enrolledCourseIds.includes(c.id));
+  const pendingApprovals = (userEnrollments || []).filter((e) => e.awaitingApproval);
   const mySubmissions = submissions.filter((s) => s.userId === user?.id);
   const myCertificates = certificates.filter((c) => c.userId === user?.id);
 
@@ -540,6 +544,57 @@ function StudentDashboardContent() {
                   </div>
                 )}
               </div>
+
+              {/* Pending Admissions Approvals */}
+              {pendingApprovals.length > 0 && (
+                <div className="space-y-3 mb-6">
+                  {pendingApprovals.map((pa) => {
+                    const course = courses.find((c) => c.id === pa.courseId || c.slug === pa.courseId);
+                    return (
+                      <div
+                        key={pa.id}
+                        className="rounded-2xl border-2 border-amber-300 bg-amber-50/90 p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                      >
+                        <div className="flex items-start sm:items-center gap-3.5">
+                          <div className="w-10 h-10 rounded-full bg-amber-200/80 text-amber-900 flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
+                            <Clock className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="text-xs font-black uppercase tracking-wider text-amber-900">
+                                Registration Pending Confirmation
+                              </span>
+                              <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                                Payment Confirmed
+                              </span>
+                            </div>
+                            <div className="text-sm font-extrabold text-[#303654] mt-0.5">
+                              {course?.title || pa.courseId} · ₦{pa.amountPaid.toLocaleString()} Paid
+                            </div>
+                            <div className="text-xs text-[#645F80] mt-0.5 max-w-xl">
+                              Our admissions team is reviewing your registration and assigning your cohort seat. You will receive an email as soon as your classroom lessons and video content unlock.
+                            </div>
+                          </div>
+                        </div>
+                        <a
+                          href={buildWhatsAppLink(
+                            BEMS_WHATSAPP_NUMBER,
+                            `Hello BEMS Admissions, I am checking on my registration approval for ${course?.title || pa.courseId}.`
+                          )}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="shrink-0 w-full sm:w-auto"
+                        >
+                          <Button variant="outline" size="sm" className="w-full sm:w-auto text-xs font-bold border-amber-400 bg-white hover:bg-amber-100/50">
+                            <MessageCircle className="w-3.5 h-3.5 mr-1.5 text-emerald-600" />
+                            <span>Admissions Help Desk</span>
+                          </Button>
+                        </a>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
 
               {enrolledCourses.length === 0 ? (
                 <div className="text-center py-10">

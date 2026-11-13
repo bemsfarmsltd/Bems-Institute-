@@ -76,3 +76,27 @@ Set these on Render: `RESEND_API_KEY`, `EMAIL_FROM` (an address on a domain
 verified in Resend), and optionally `ADMIN_NOTIFY_EMAILS`. Until they're set,
 emails are written to the server log instead of being sent. In-app
 notifications work either way.
+
+## Frontend implementation (Antigravity)
+
+1. **Seamless Sign-up / Login Return (`src/app/login/page.tsx`)**:
+   - Supports `?redirect=` and `?returnUrl=`.
+   - When visitors arrive via flyer QR (`/subscriptions?course=<id>&utm_source=qr_flyer`), unauthenticated students are prompted to sign up/in and smoothly redirected back to checkout with all track and attribution parameters intact.
+
+2. **LMS Context & State (`src/types/lms.ts`, `src/context/LMSContext.tsx`)**:
+   - Added `UserEnrollmentRecord` interface tracking `status`, `paymentStatus`, `hasAccess`, `awaitingApproval`, and payment amounts.
+   - Populated from `GET /api/lms/me` and exposed as `userEnrollments` across the entire frontend.
+
+3. **Post-Payment Confirmation Banner (`src/app/subscriptions/page.tsx`)**:
+   - Replaced premature "You're enrolled! Start First Lesson" banner with an official "Payment Verified · Awaiting Admissions Confirmation" status card when `awaitingApproval` is true.
+   - Displays payment reference, amount paid, cohort details, WhatsApp Admissions Desk link, and student dashboard link.
+
+4. **Student Dashboard Admissions Tracker (`src/app/dashboard/page.tsx`)**:
+   - Students with a paid registration awaiting admin approval see a prominent "Registration Pending Confirmation" card informing them that admissions is reviewing their placement and will notify them by email when lessons unlock.
+
+5. **Admin Admissions Queue & 1-Click Approval (`src/app/admin/page.tsx`)**:
+   - Fetches `GET /api/admin/enrollments/pending-approval`.
+   - Displays a count badge in the sidebar navigation next to "Students".
+   - Renders an "Awaiting Registration Confirmation" queue card with applicant name, email, phone, course, cohort, mode, QR source, amount paid, and reference.
+   - Prominent **"Confirm Registration"** button calls `POST /api/admin/enrollments/:id/approve`, unlocks the course, and dispatches the confirmation email.
+   - Also integrated directly into the Student Grid and List views for fast verification.

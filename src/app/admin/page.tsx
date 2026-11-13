@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, useCallback, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -836,6 +836,84 @@ function AdminDashboardContent() {
     }
   };
 
+  // Admissions queue: paid student registrations awaiting admin approval
+  interface PendingApprovalEnrollment {
+    id: string;
+    student: {
+      id: string;
+      name: string;
+      email: string;
+      phone: string | null;
+    };
+    course: {
+      id: string;
+      title: string;
+      slug: string;
+    };
+    cohortName: string | null;
+    deliveryMode: string;
+    source: string;
+    paymentPlan: string;
+    paymentStatus: string;
+    amountPaid: number;
+    totalDue: number;
+    paymentReference: string | null;
+    paymentChannel: string | null;
+    paidAt: string;
+    registeredAt: string;
+  }
+  const [pendingApprovals, setPendingApprovals] = useState<PendingApprovalEnrollment[]>([]);
+  const [loadingApprovals, setLoadingApprovals] = useState(false);
+  const [approvingId, setApprovingId] = useState<string | null>(null);
+
+  const loadPendingApprovals = useCallback(async () => {
+    try {
+      setLoadingApprovals(true);
+      const res = await apiFetch("/api/admin/enrollments/pending-approval");
+      if (res.ok) {
+        const data = await res.json();
+        setPendingApprovals(data.enrollments || []);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setLoadingApprovals(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (user?.role === "ADMIN") {
+      void loadPendingApprovals();
+    }
+  }, [user?.role, activeTab, loadPendingApprovals]);
+
+  const handleApproveEnrollment = async (
+    enrollmentId: string,
+    studentName: string,
+    courseTitle: string
+  ) => {
+    try {
+      setApprovingId(enrollmentId);
+      const res = await apiFetch(`/api/admin/enrollments/${enrollmentId}/approve`, {
+        method: "POST"
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setAdminNotice(data.error || "Failed to confirm registration.");
+        return;
+      }
+      setPendingApprovals((prev) => prev.filter((p) => p.id !== enrollmentId));
+      await refreshAdminData();
+      setAdminNotice(
+        `Registration confirmed for ${studentName} (${courseTitle})! Confirmation email dispatched and classroom unlocked.`
+      );
+    } catch {
+      setAdminNotice("Network error: could not approve registration.");
+    } finally {
+      setApprovingId(null);
+    }
+  };
+
   // PRD §9 "Plan the next group" — previously only possible by hand in the
   // database. Loaded alongside the cohort targets since both live in the
   // Earnings tab's Marketing Funnel area.
@@ -1354,14 +1432,21 @@ function AdminDashboardContent() {
             <button
               type="button"
               onClick={() => switchTab("students")}
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
                 activeTab === "students"
                   ? "text-[#AE54C6]"
                   : "text-white/90 hover:text-white hover:bg-white/5"
               }`}
             >
-              <GraduationCap className="w-4 h-4 shrink-0" />
-              <span>Students</span>
+              <span className="flex items-center gap-3">
+                <GraduationCap className="w-4 h-4 shrink-0" />
+                <span>Students</span>
+              </span>
+              {pendingApprovals.length > 0 && (
+                <span className="px-2 py-0.5 rounded-full bg-[#AE54C6] text-white text-[11px] font-bold">
+                  {pendingApprovals.length}
+                </span>
+              )}
             </button>
 
             {/* Graduate Outcomes */}
@@ -1977,6 +2062,86 @@ function AdminDashboardContent() {
                 Students
               </h1>
 
+              {/* Admissions Queue: Paid Students Awaiting Confirmation */}
+              {user?.role === "ADMIN" && pendingApprovals.length > 0 && (
+                <div className="mb-6 rounded-2xl border-2 border-[#AE54C6] bg-gradient-to-br from-[#FAF8FF] via-white to-[#F6ECF9] p-6 shadow-md animate-in fade-in duration-200">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-4 border-b border-[#F1E2F5]">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-[#AE54C6] text-white flex items-center justify-center shrink-0">
+                        <UserCheck className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h2 className="text-lg font-black text-[#303654]">
+                            Awaiting Registration Confirmation
+                          </h2>
+                          <span className="px-2.5 py-0.5 rounded-full bg-[#AE54C6] text-white text-xs font-bold">
+                            {pendingApprovals.length} Pending
+                          </span>
+                        </div>
+                        <p className="text-xs text-[#645F80] mt-0.5">
+                          These students have paid their tuition via Paystack or Bank and are waiting for an administrator to confirm their registration and unlock learning videos.
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => void loadPendingApprovals()}
+                      disabled={loadingApprovals}
+                      className="text-xs font-bold text-[#AE54C6] hover:underline self-end sm:self-auto cursor-pointer"
+                    >
+                      {loadingApprovals ? "Refreshing..." : "Refresh Queue"}
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    {pendingApprovals.map((pa) => (
+                      <div
+                        key={pa.id}
+                        className="bg-white rounded-xl border border-[#F1E2F5] p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4 hover:shadow-xs transition-shadow"
+                      >
+                        <div className="space-y-1.5 min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-bold text-sm text-[#1D2026]">{pa.student.name}</span>
+                            <span className="text-xs text-[#747579]">({pa.student.email})</span>
+                            {pa.student.phone && (
+                              <span className="text-xs text-[#747579]">• {pa.student.phone}</span>
+                            )}
+                            <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 text-[10px] font-bold uppercase tracking-wider">
+                              {pa.paymentStatus}
+                            </span>
+                            <span className="px-2 py-0.5 rounded-md bg-purple-50 text-[#AE54C6] text-[10px] font-bold">
+                              {pa.source}
+                            </span>
+                          </div>
+                          <div className="text-xs text-[#475569] flex flex-wrap items-center gap-x-3 gap-y-1">
+                            <span>Course: <strong className="text-[#1D2026]">{pa.course.title}</strong></span>
+                            <span>Cohort: <strong>{pa.cohortName || "October 2026"}</strong></span>
+                            <span>Mode: <strong>{pa.deliveryMode === "PHYSICAL_LAB" ? "Physical Lab" : "Virtual Zoom"}</strong></span>
+                            <span>Paid: <strong className="text-emerald-700">₦{pa.amountPaid.toLocaleString()}</strong> ({pa.paymentPlan})</span>
+                            {pa.paymentReference && (
+                              <span>Ref: <code className="font-mono bg-slate-50 px-1.5 py-0.5 rounded border text-[11px] font-semibold">{pa.paymentReference}</code></span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            disabled={approvingId === pa.id}
+                            onClick={() => handleApproveEnrollment(pa.id, pa.student.name, pa.course.title)}
+                            className="px-4 py-2 rounded-lg bg-[#AE54C6] hover:bg-[#A03BBC] disabled:opacity-50 text-white text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span>{approvingId === pa.id ? "Confirming..." : "Confirm Registration"}</span>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] p-6">
                 {/* Search & View Toggle Row */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 mb-6 border-b border-slate-100">
@@ -2129,6 +2294,20 @@ function AdminDashboardContent() {
                               {" "}— match against the bank statement before confirming.
                             </div>
                           )}
+
+                          {student.enrollmentId && student.enrollmentStatus === "PENDING" && (student.paymentStatus === "PAID_FULL" || student.paymentStatus === "PARTIAL") && (
+                            <div className="pt-2">
+                              <button
+                                type="button"
+                                disabled={approvingId === student.enrollmentId}
+                                onClick={() => handleApproveEnrollment(student.enrollmentId!, student.name, "Enrolled Course")}
+                                className="w-full py-2 px-3 rounded-lg bg-[#AE54C6] hover:bg-[#A03BBC] disabled:opacity-50 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                              >
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                <span>{approvingId === student.enrollmentId ? "Confirming..." : "Confirm Registration"}</span>
+                              </button>
+                            </div>
+                          )}
                         </div>
 
                         {/* Card Footer */}
@@ -2195,6 +2374,11 @@ function AdminDashboardContent() {
                                       Dropped
                                     </span>
                                   )}
+                                  {stu.enrollmentStatus === "PENDING" && (stu.paymentStatus === "PAID_FULL" || stu.paymentStatus === "PARTIAL") && (
+                                    <span className="px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-800 text-[9.5px] font-bold uppercase">
+                                      Awaiting Confirmation
+                                    </span>
+                                  )}
                                 </span>
                                 {stu.paymentStatus === "PENDING" && stu.paymentReference && (
                                   <span className="text-[11px] text-amber-700 block">
@@ -2223,6 +2407,18 @@ function AdminDashboardContent() {
                             <td className="py-3.5 px-4 text-right">
                               <div className="flex flex-col items-end gap-1.5">
                                 {stu.enrollmentId &&
+                                stu.enrollmentStatus === "PENDING" &&
+                                (stu.paymentStatus === "PAID_FULL" || stu.paymentStatus === "PARTIAL") ? (
+                                  <button
+                                    type="button"
+                                    disabled={approvingId === stu.enrollmentId}
+                                    onClick={() => handleApproveEnrollment(stu.enrollmentId!, stu.name, "Enrolled Course")}
+                                    className="px-3 py-1.5 rounded-lg bg-[#AE54C6] text-white text-xs font-semibold hover:bg-[#A03BBC] disabled:opacity-50 cursor-pointer flex items-center gap-1 shadow-xs"
+                                  >
+                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                    <span>{approvingId === stu.enrollmentId ? "Confirming..." : "Confirm Registration"}</span>
+                                  </button>
+                                ) : stu.enrollmentId &&
                                 (stu.paymentStatus === "PARTIAL" || stu.paymentStatus === "PENDING") &&
                                 stu.coursePrice ? (
                                   <button
