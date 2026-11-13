@@ -13,40 +13,106 @@ import type { AnalyticsSummary } from "@/types/lms";
 
 const router = Router();
 
+// Ledger channel for a second-chance balance waiver: recorded so the
+// enrollment's PAID_FULL has an explanation, but no money moved, so it must
+// never count as revenue.
+const WAIVER_CHANNEL = "second_chance_waiver";
+
 router.get("/analytics", async (req, res) => {
   const session = await getSessionUser(req);
   if (!isStaff(session)) {
     return res.status(403).json({ error: "Staff access required." });
   }
 
-  const [roster, courses, cohort, certificatesIssued, scans, homePageViews, signupPageViews] = await Promise.all([
-    computeAdminRoster(),
-    prisma.course.findMany({ include: { enrollments: true } }),
-    prisma.cohort.findFirst({ orderBy: { createdAt: "desc" } }),
-    prisma.certificate.count(),
-    prisma.qrScan.groupBy({ by: ["source"], _count: { _all: true } }),
-    prisma.pageView.count({ where: { page: "home" } }),
-    prisma.pageView.count({ where: { page: "subscriptions" } })
-  ]);
+  const [roster, courses, cohort, certificatesIssued, scans, homePageViews, signupPageViews, ledger, lessonsCompleted] =
+    await Promise.all([
+      computeAdminRoster(),
+      prisma.course.findMany({ select: { id: true, title: true, color: true } }),
+      prisma.cohort.findFirst({ orderBy: { createdAt: "desc" } }),
+      prisma.certificate.count(),
+      prisma.qrScan.groupBy({ by: ["source"], _count: { _all: true } }),
+      prisma.pageView.count({ where: { page: "home" } }),
+      prisma.pageView.count({ where: { page: "subscriptions" } }),
+      prisma.paymentTransaction.findMany({
+        where: { status: { in: ["SUCCESS", "REFUNDED"] } },
+        select: { userId: true, courseId: true, amount: true, status: true, channel: true, paidAt: true, createdAt: true }
+      }),
+      prisma.userProgress.count({ where: { isCompleted: true, user: { role: "STUDENT" } } })
+    ]);
 
-  const totalStudents = roster.length;
-  const totalRevenue = roster.reduce((sum, s) => sum + s.amountPaid, 0);
-  const completionRate =
-    totalStudents === 0
-      ? 0
-      : Math.round((roster.filter((s) => s.progressPercent === 100).length / totalStudents) * 100);
+  // Money comes from the payment ledger, not Enrollment.amountPaid: a refund
+  // never lowers amountPaid, and a second-chance waiver sets it to the full
+  // price without any money moving, so summing amountPaid overstated revenue.
+  let grossPaid = 0;
+  let refundedTotal = 0;
+  let waivedTotal = 0;
+  const netByEnrollment = new Map<string, number>(); // `${userId}:${courseId}`
+  const netByCourse = new Map<string, number>();
+  const netByMonth = new Map<string, number>();
+  const monthKey = (d: Date) => `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+  for (const t of ledger) {
+    if (t.status === "SUCCESS" && t.channel === WAIVER_CHANNEL) {
+      waivedTotal += t.amount;
+      continue;
+    }
+    const signed = t.status === "REFUNDED" ? -t.amount : t.amount;
+    if (t.status === "REFUNDED") refundedTotal += t.amount;
+    else grossPaid += t.amount;
+    const key = `${t.userId}:${t.courseId}`;
+    netByEnrollment.set(key, (netByEnrollment.get(key) || 0) + signed);
+    netByCourse.set(t.courseId, (netByCourse.get(t.courseId) || 0) + signed);
+    const month = monthKey(t.paidAt ?? t.createdAt);
+    netByMonth.set(month, (netByMonth.get(month) || 0) + signed);
+  }
+  const totalRevenue = grossPaid - refundedTotal;
 
+  const revenueByMonth: { month: string; amount: number }[] = [];
+  const now = new Date();
+  for (let i = 11; i >= 0; i--) {
+    const month = monthKey(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1)));
+    revenueByMonth.push({ month, amount: netByMonth.get(month) || 0 });
+  }
+
+  // "Students" means paid registrations. Someone who opened the Paystack
+  // window and closed it is an abandoned checkout, not a student, and a
+  // refunded student is no longer one.
+  const paid = roster.filter((s) => s.paymentStatus === "PARTIAL" || s.paymentStatus === "PAID_FULL");
+  const totalStudents = paid.length;
+  // Unpaid with a reference = a bank transfer staff haven't matched yet;
+  // unpaid without one = a Paystack window that was opened and closed.
+  const pendingBankTransfers = roster.filter((s) => s.paymentStatus === "PENDING" && !!s.paymentReference).length;
+  const abandonedCheckouts = roster.filter((s) => s.paymentStatus === "PENDING" && !s.paymentReference).length;
+  const awaitingApproval = paid.filter((s) => s.enrollmentStatus === "PENDING").length;
+  const completedEnrollments = paid.filter((s) => s.progressPercent === 100).length;
+  const inProgressEnrollments = paid.filter((s) => s.progressPercent > 0 && s.progressPercent < 100).length;
+  const outstandingBalance = paid
+    .filter((s) => s.enrollmentStatus !== "WITHDRAWN")
+    .reduce((sum, s) => sum + Math.max(s.totalDue - s.amountPaid, 0), 0);
+  const completionRate = totalStudents === 0 ? 0 : Math.round((completedEnrollments / totalStudents) * 100);
+
+  const paidCountByCourse = new Map<string, number>();
+  for (const s of paid) paidCountByCourse.set(s.courseId, (paidCountByCourse.get(s.courseId) || 0) + 1);
   const trackDistribution = courses
-    .filter((c) => c.enrollments.length > 0)
+    .filter((c) => (paidCountByCourse.get(c.id) || 0) > 0)
     .map((c) => ({
       track: c.title,
-      count: c.enrollments.length,
-      revenue: c.enrollments.reduce((sum, e) => sum + e.amountPaid, 0),
+      count: paidCountByCourse.get(c.id) || 0,
+      revenue: netByCourse.get(c.id) || 0,
       color: c.color
     }));
 
+  // The roster is keyed by enrollment id; look up each paid enrollment's
+  // student once so revenue by QR source can use the ledger too.
+  const enrollmentOwners = await prisma.enrollment.findMany({
+    where: { id: { in: paid.map((s) => s.id) } },
+    select: { id: true, userId: true, courseId: true }
+  });
+  const netByEnrollmentId = new Map(
+    enrollmentOwners.map((e) => [e.id, netByEnrollment.get(`${e.userId}:${e.courseId}`) || 0])
+  );
+
   const deliveryCounts = new Map<string, number>();
-  for (const s of roster) {
+  for (const s of paid) {
     deliveryCounts.set(s.deliveryMode, (deliveryCounts.get(s.deliveryMode) || 0) + 1);
   }
   const deliveryDistribution = Object.values(DELIVERY_MODE_LABEL)
@@ -58,10 +124,10 @@ router.get("/analytics", async (req, res) => {
     .filter((d) => d.count > 0);
 
   const registrationsBySource = new Map<string, { count: number; revenue: number }>();
-  for (const s of roster) {
+  for (const s of paid) {
     const entry = registrationsBySource.get(s.qrSource) || { count: 0, revenue: 0 };
     entry.count += 1;
-    entry.revenue += s.amountPaid;
+    entry.revenue += netByEnrollmentId.get(s.id) || 0;
     registrationsBySource.set(s.qrSource, entry);
   }
   const scansBySource = new Map(scans.map((s) => [s.source, s._count._all]));
@@ -91,7 +157,17 @@ router.get("/analytics", async (req, res) => {
     bannerChannelYield,
     estimatedAdViews: cohort?.estimatedAdViews ?? 0,
     homePageViews,
-    signupPageViews
+    signupPageViews,
+    outstandingBalance,
+    refundedTotal,
+    waivedTotal,
+    abandonedCheckouts,
+    pendingBankTransfers,
+    awaitingApproval,
+    completedEnrollments,
+    inProgressEnrollments,
+    lessonsCompleted,
+    revenueByMonth
   };
 
   return res.json(summary);
@@ -499,7 +575,13 @@ router.get("/welcome-calls", async (req, res) => {
   }
 
   const enrollments = await prisma.enrollment.findMany({
-    where: { welcomeCallStatus: { not: "COMPLETED" } },
+    // Paying students only: an opened-and-abandoned checkout also creates an
+    // enrollment row, and staff shouldn't be phoning those as new students.
+    where: {
+      welcomeCallStatus: { not: "COMPLETED" },
+      paymentStatus: { in: ["PARTIAL", "PAID_FULL"] },
+      status: { not: "WITHDRAWN" }
+    },
     orderBy: { createdAt: "desc" },
     include: { user: { select: { name: true, email: true, phone: true } }, course: { select: { title: true } } }
   });
@@ -687,10 +769,28 @@ router.post("/enrollments/:id/payment", async (req, res) => {
 
   const existing = await prisma.enrollment.findUnique({
     where: { id },
-    select: { totalDue: true, amountPaid: true, userId: true, courseId: true, paymentPlan: true, paymentReference: true }
+    select: {
+      totalDue: true,
+      amountPaid: true,
+      paymentStatus: true,
+      userId: true,
+      courseId: true,
+      paymentPlan: true,
+      paymentReference: true
+    }
   });
   if (!existing) {
     return res.status(404).json({ error: "Enrollment not found." });
+  }
+  if (existing.paymentStatus === "REFUNDED") {
+    return res.status(400).json({ error: "This registration was refunded. Ask the student to register again." });
+  }
+  // This route records money coming IN. Lowering the total would quietly
+  // erase a payment from the books with nothing in the ledger to show for it.
+  if (amountPaid < existing.amountPaid) {
+    return res.status(400).json({
+      error: `amountPaid (₦${amountPaid.toLocaleString()}) is less than what's already recorded (₦${existing.amountPaid.toLocaleString()}). Record money going back out as a refund instead.`
+    });
   }
   // A status has to actually match the amount — without this, a call could
   // set PAID_FULL with amountPaid: 0 and downstream logic (the "you're paid
@@ -704,34 +804,56 @@ router.post("/enrollments/:id/payment", async (req, res) => {
   if (status === "PARTIAL" && amountPaid <= 0) {
     return res.status(400).json({ error: "amountPaid must be greater than 0 for a PARTIAL payment." });
   }
+  if (status === "PARTIAL" && amountPaid >= existing.totalDue) {
+    return res.status(400).json({ error: "That covers the full amount due. Record it as PAID_FULL." });
+  }
 
-  const enrollment = await prisma.enrollment.update({
+  const delta = amountPaid - existing.amountPaid;
+  if (delta === 0 && status === existing.paymentStatus) {
+    // A repeat click: nothing to record, and no second "payment confirmed".
+    const unchanged = await prisma.enrollment.findUnique({ where: { id } });
+    return res.json({ enrollment: unchanged, unchanged: true });
+  }
+
+  // The amount check in the filter makes this a compare-and-set: if two
+  // admins record the same transfer at once, only the first one writes, so
+  // the ledger can't get the same payment twice.
+  const updated = await prisma.$transaction(async (tx) => {
+    const { count } = await tx.enrollment.updateMany({
+      where: { id, amountPaid: existing.amountPaid, paymentStatus: existing.paymentStatus },
+      data: { paymentStatus: status, amountPaid }
+    });
+    if (count === 0) return false;
+    // Mirrors a staff-confirmed bank transfer into the same ledger Paystack
+    // charges write to, so the ledger is the complete payment history
+    // regardless of channel — not just a Paystack-only audit trail.
+    if (delta > 0) {
+      await tx.paymentTransaction.create({
+        data: {
+          reference: `bank_${crypto.randomUUID().replace(/-/g, "")}`,
+          userId: existing.userId,
+          courseId: existing.courseId,
+          paymentPlan: existing.paymentPlan,
+          amount: delta,
+          status: "SUCCESS",
+          channel: "bank",
+          gatewayResponse: existing.paymentReference
+            ? `Confirmed manually by staff. Student-provided reference: "${existing.paymentReference}".`
+            : `Confirmed manually by staff (no reference was recorded at checkout).`,
+          paidAt: new Date()
+        }
+      });
+    }
+    return true;
+  });
+  if (!updated) {
+    return res.status(409).json({ error: "Someone else just updated this payment. Refresh and check before trying again." });
+  }
+
+  const enrollment = await prisma.enrollment.findUniqueOrThrow({
     where: { id },
-    data: { paymentStatus: status, amountPaid },
     include: { course: { select: { title: true, slug: true } } }
   });
-
-  // Mirrors a staff-confirmed bank transfer into the same ledger Paystack
-  // charges write to, so the ledger is the complete payment history
-  // regardless of channel — not just a Paystack-only audit trail.
-  const delta = amountPaid - existing.amountPaid;
-  if (delta > 0) {
-    await prisma.paymentTransaction.create({
-      data: {
-        reference: `bank_${crypto.randomUUID().replace(/-/g, "")}`,
-        userId: existing.userId,
-        courseId: existing.courseId,
-        paymentPlan: existing.paymentPlan,
-        amount: delta,
-        status: "SUCCESS",
-        channel: "bank",
-        gatewayResponse: existing.paymentReference
-          ? `Confirmed manually by staff. Student-provided reference: "${existing.paymentReference}".`
-          : `Confirmed manually by staff (no reference was recorded at checkout).`,
-        paidAt: new Date()
-      }
-    });
-  }
 
   await createNotification({
     userId: enrollment.userId,
@@ -947,6 +1069,16 @@ router.post("/enrollments/:id/second-chance", async (req, res) => {
   if (enrollment.user.secondChanceUsedAt) {
     return res.status(400).json({ error: `${enrollment.user.name} has already used their one-time second chance.` });
   }
+  // Second chance is for a paying student who fell behind (PRD §4.2). On an
+  // unpaid or refunded registration it would hand over the whole course for
+  // free, so it needs a payment on record and the student marked Dropped
+  // first, which is also the only case the admin screen offers it for.
+  if (enrollment.status !== "DROPPED") {
+    return res.status(400).json({ error: "Mark the student as Dropped before giving a second chance." });
+  }
+  if (enrollment.paymentStatus !== "PARTIAL" && enrollment.paymentStatus !== "PAID_FULL") {
+    return res.status(400).json({ error: "Second chance needs a payment on record for this registration." });
+  }
 
   const targetCohort = await prisma.cohort.findUnique({ where: { id: targetCohortId } });
   if (!targetCohort) {
@@ -956,7 +1088,14 @@ router.post("/enrollments/:id/second-chance", async (req, res) => {
   const waivedAmount = Math.max(enrollment.totalDue - enrollment.amountPaid, 0);
 
   const updated = await prisma.$transaction(async (tx) => {
-    const updatedEnrollment = await tx.enrollment.update({
+    // Claim the one-time perk first, conditionally, so two clicks can't both
+    // pass the check above and waive twice.
+    const { count } = await tx.user.updateMany({
+      where: { id: enrollment.user.id, secondChanceUsedAt: null },
+      data: { secondChanceUsedAt: new Date() }
+    });
+    if (count === 0) return null;
+    return tx.enrollment.update({
       where: { id },
       data: {
         cohortId: targetCohortId,
@@ -965,9 +1104,10 @@ router.post("/enrollments/:id/second-chance", async (req, res) => {
         amountPaid: enrollment.totalDue
       }
     });
-    await tx.user.update({ where: { id: enrollment.user.id }, data: { secondChanceUsedAt: new Date() } });
-    return updatedEnrollment;
   });
+  if (!updated) {
+    return res.status(400).json({ error: `${enrollment.user.name} has already used their one-time second chance.` });
+  }
 
   // A real ledger entry for the waiver — so "why does this enrollment show
   // PAID_FULL with no matching Paystack/bank transaction" has an honest
@@ -981,7 +1121,7 @@ router.post("/enrollments/:id/second-chance", async (req, res) => {
         paymentPlan: enrollment.paymentPlan,
         amount: waivedAmount,
         status: "SUCCESS",
-        channel: "second_chance_waiver",
+        channel: WAIVER_CHANNEL,
         gatewayResponse: `One-time second-chance rejoin into cohort "${targetCohort.name}" — remaining balance waived by ${session?.name ?? "admin"}.`,
         paidAt: new Date()
       }
@@ -1026,16 +1166,42 @@ router.post("/enrollments/:id/refund", async (req, res) => {
   if (!enrollment) {
     return res.status(404).json({ error: "Enrollment not found." });
   }
-  if (amount > enrollment.amountPaid) {
+  if (enrollment.paymentStatus === "REFUNDED") {
+    return res.status(400).json({ error: "This registration has already been refunded." });
+  }
+  // The cap is money that actually came in, from the ledger. amountPaid
+  // can't be used: after a second chance it includes the waived balance,
+  // which was never paid and can't be refunded.
+  const ledger = await prisma.paymentTransaction.findMany({
+    where: { userId: enrollment.userId, courseId: enrollment.courseId, status: { in: ["SUCCESS", "REFUNDED"] } },
+    select: { amount: true, status: true, channel: true }
+  });
+  // Registrations paid before the ledger existed have no rows; fall back to
+  // their recorded total rather than blocking every refund for them.
+  const refundable =
+    ledger.length === 0
+      ? enrollment.amountPaid
+      : ledger.reduce(
+          (sum, t) =>
+            t.status === "REFUNDED" ? sum - t.amount : t.channel === WAIVER_CHANNEL ? sum : sum + t.amount,
+          0
+        );
+  if (amount > refundable) {
     return res.status(400).json({
-      error: `amount (₦${amount.toLocaleString()}) cannot exceed what was actually paid (₦${enrollment.amountPaid.toLocaleString()}).`
+      error: `amount (₦${amount.toLocaleString()}) cannot exceed what was actually paid (₦${Math.max(refundable, 0).toLocaleString()}).`
     });
   }
 
-  const updated = await prisma.enrollment.update({
-    where: { id },
+  // Conditional on not already being refunded, so a double click can't
+  // write two refunds to the ledger.
+  const { count } = await prisma.enrollment.updateMany({
+    where: { id, paymentStatus: { not: "REFUNDED" } },
     data: { paymentStatus: "REFUNDED", status: "WITHDRAWN" }
   });
+  if (count === 0) {
+    return res.status(400).json({ error: "This registration has already been refunded." });
+  }
+  const updated = await prisma.enrollment.findUniqueOrThrow({ where: { id } });
 
   await prisma.paymentTransaction.create({
     data: {
@@ -1064,6 +1230,123 @@ router.post("/enrollments/:id/refund", async (req, res) => {
   });
 
   return res.json({ enrollment: updated });
+});
+
+// Staff accounts. Admins join with the shared ADMIN_ACCESS_CODE, so without
+// this there was no way to see who has admin access, or to remove someone
+// who left: their account kept working for good.
+router.get("/staff", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
+  }
+
+  const staff = await prisma.user.findMany({
+    where: { role: { in: ["ADMIN", "INSTRUCTOR"] } },
+    orderBy: [{ role: "asc" }, { name: "asc" }],
+    select: { id: true, name: true, email: true, role: true, avatarUrl: true, deactivatedAt: true, createdAt: true }
+  });
+
+  return res.json({
+    staff: staff.map((s) => ({
+      id: s.id,
+      name: s.name,
+      email: s.email,
+      role: s.role,
+      avatarUrl: s.avatarUrl,
+      active: !s.deactivatedAt,
+      createdAt: s.createdAt.toISOString()
+    }))
+  });
+});
+
+// Blocks sign-in and ends every open session at once (bumping tokenVersion
+// invalidates the cookies they already have).
+router.post("/staff/:id/deactivate", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isAdmin(session) || !session) {
+    return res.status(403).json({ error: "Admin access required." });
+  }
+  if (req.params.id === session.id) {
+    return res.status(400).json({ error: "You can't deactivate your own account." });
+  }
+
+  const target = await prisma.user.findUnique({ where: { id: req.params.id } });
+  if (!target || (target.role !== "ADMIN" && target.role !== "INSTRUCTOR")) {
+    return res.status(404).json({ error: "Staff member not found." });
+  }
+  if (target.deactivatedAt) {
+    return res.json({ ok: true, alreadyInactive: true });
+  }
+  if (target.role === "ADMIN") {
+    const activeAdmins = await prisma.user.count({ where: { role: "ADMIN", deactivatedAt: null } });
+    if (activeAdmins <= 1) {
+      return res.status(400).json({ error: "That's the last active admin. Add another admin first." });
+    }
+  }
+
+  await prisma.user.update({
+    where: { id: target.id },
+    data: { deactivatedAt: new Date(), tokenVersion: { increment: 1 } }
+  });
+  return res.json({ ok: true });
+});
+
+router.post("/staff/:id/reactivate", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
+  }
+
+  const target = await prisma.user.findUnique({ where: { id: req.params.id } });
+  if (!target || (target.role !== "ADMIN" && target.role !== "INSTRUCTOR")) {
+    return res.status(404).json({ error: "Staff member not found." });
+  }
+
+  await prisma.user.update({ where: { id: target.id }, data: { deactivatedAt: null } });
+  return res.json({ ok: true });
+});
+
+// Course reviews, for moderation. Students post them via POST /lms/reviews
+// and they show publicly on course pages, so admins need to see them all
+// in one place and be able to take down abusive or fake ones.
+router.get("/reviews", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
+  }
+
+  const reviews = await prisma.review.findMany({
+    orderBy: { createdAt: "desc" },
+    include: {
+      user: { select: { id: true, name: true, email: true } },
+      course: { select: { id: true, title: true } }
+    }
+  });
+
+  return res.json({
+    reviews: reviews.map((r) => ({
+      id: r.id,
+      rating: r.rating,
+      comment: r.comment,
+      createdAt: r.createdAt.toISOString(),
+      student: r.user,
+      course: r.course
+    }))
+  });
+});
+
+router.delete("/reviews/:id", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
+  }
+
+  const { count } = await prisma.review.deleteMany({ where: { id: req.params.id } });
+  if (count === 0) {
+    return res.status(404).json({ error: "Review not found." });
+  }
+  return res.json({ ok: true });
 });
 
 const NOTIFICATION_CATEGORIES = ["CLASS", "GRADING", "PAYMENT", "GAMIFICATION", "ATTENDANCE"] as const;
