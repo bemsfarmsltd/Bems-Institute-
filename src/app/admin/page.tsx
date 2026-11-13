@@ -67,382 +67,175 @@ interface EduportStudentCard {
   secondChanceUsed?: boolean;
 }
 
-interface EduportInstructorCard {
+interface BemsFacultyMember {
   id: string;
   name: string;
   role: string;
+  track: string;
   avatar: string;
+  bio: string;
+  email: string;
+  phone: string;
+  location: string;
+  courses: string[];
   totalStudents: number;
   totalCourses: number;
   rating: number;
-  verified?: boolean;
+  verified: boolean;
 }
 
-const EDUPORT_STUDENTS: EduportStudentCard[] = [
+// BEMS Official Faculty — 4 core tracks
+const BEMS_FACULTY: BemsFacultyMember[] = [
   {
-    id: "stu-1",
-    name: "Blessing Adeyemi",
-    location: "Mumbai",
+    id: "fac-1",
+    name: "Victor",
+    role: "Lead Full-Stack Web Development Instructor",
+    track: "Full-Stack Web Development",
     avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Blessing%20Adeyemi&backgroundColor=18143D&textColor=ffffff",
-    payments: "$6205",
-    totalCourse: 21,
-    progress: 85,
-    joinDate: "29 Aug 2021",
-  },
-  {
-    id: "stu-2",
-    name: "Tunde Bakare",
-    location: "Delhi",
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Tunde%20Bakare&backgroundColor=671FB0&textColor=ffffff",
-    payments: "$1256",
-    totalCourse: 16,
-    progress: 60,
-    joinDate: "15 July 2021",
-  },
-  {
-    id: "stu-3",
-    name: "Emeka Nwosu",
-    location: "New York",
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Emeka%20Nwosu&backgroundColor=7928CA&textColor=ffffff",
-    payments: "$9256",
-    totalCourse: 38,
-    progress: 74,
-    joinDate: "22 June 2021",
-  },
-  {
-    id: "stu-4",
-    name: "Ngozi Eze",
-    location: "California",
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Ngozi%20Eze&backgroundColor=18143D&textColor=ffffff",
-    payments: "$10688",
-    totalCourse: 7,
-    progress: 45,
-    joinDate: "18 April 2021",
-  },
-  {
-    id: "stu-5",
-    name: "Chiamaka Nnamdi",
-    location: "Chennai",
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Chiamaka%20Nnamdi&backgroundColor=671FB0&textColor=ffffff",
-    payments: "$856",
-    totalCourse: 5,
-    progress: 90,
-    joinDate: "05 Aug 2021",
-  },
-  {
-    id: "stu-6",
-    name: "Ifeanyi Okafor",
-    location: "Canada",
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Ifeanyi%20Okafor&backgroundColor=7928CA&textColor=ffffff",
-    payments: "$3578",
-    totalCourse: 14,
-    progress: 30,
-    joinDate: "18 Jan 2021",
-  },
-];
-
-const EDUPORT_INSTRUCTORS: EduportInstructorCard[] = [
-  {
-    id: "inst-1",
-    name: "Ngozi Eze",
-    role: "Web Designer",
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Ngozi%20Eze&backgroundColor=18143D&textColor=ffffff",
-    totalStudents: 5354,
-    totalCourses: 15,
-    rating: 4.5,
+      "https://api.dicebear.com/7.x/initials/svg?seed=Victor%20Instructor&backgroundColor=303654&textColor=ffffff",
+    bio: "Senior software engineer with 7+ years of industry experience. Leads the full-stack engineering curriculum covering React, Next.js, Node.js, TypeScript, PostgreSQL, and cloud deployments.",
+    email: "admissions@bemsinstitute.ng",
+    phone: "+2348000000000",
+    location: "MOUAU Campus & Physical Lab (Umuahia)",
+    courses: ["Full-Stack Web Development"],
+    totalStudents: 0,
+    totalCourses: 1,
+    rating: 4.9,
     verified: true,
   },
   {
-    id: "inst-2",
-    name: "Blessing Adeyemi",
-    role: "Web Developer",
+    id: "fac-2",
+    name: "Temi",
+    role: "Lead Product Design (UI/UX) Instructor",
+    track: "Product Design (UI/UX)",
     avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Blessing%20Adeyemi&backgroundColor=671FB0&textColor=ffffff",
-    totalStudents: 15523,
-    totalCourses: 10,
-    rating: 4.5,
-    verified: false,
-  },
-  {
-    id: "inst-3",
-    name: "Emeka Nwosu",
-    role: "Developer and Instructor",
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Emeka%20Nwosu&backgroundColor=7928CA&textColor=ffffff",
-    totalStudents: 2546,
-    totalCourses: 9,
-    rating: 4.5,
-    verified: false,
-  },
-  {
-    id: "inst-4",
-    name: "Tunde Bakare",
-    role: "Full Stack Web Developer",
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Tunde%20Bakare&backgroundColor=18143D&textColor=ffffff",
-    totalStudents: 12786,
-    totalCourses: 7,
-    rating: 4.5,
-    verified: false,
-  },
-  {
-    id: "inst-5",
-    name: "Chiamaka Nnamdi",
-    role: "Engineering Architect",
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Chiamaka%20Nnamdi&backgroundColor=671FB0&textColor=ffffff",
-    totalStudents: 21245,
-    totalCourses: 5,
-    rating: 4.8,
+      "https://api.dicebear.com/7.x/initials/svg?seed=Temi%20Designer&backgroundColor=AE54C6&textColor=ffffff",
+    bio: "Product design director and design systems specialist. Mentors students in user research, wireframing, high-fidelity UI design in Figma, usability testing, and cross-platform design systems.",
+    email: "admissions@bemsinstitute.ng",
+    phone: "+2348000000000",
+    location: "MOUAU Campus & Physical Lab (Umuahia)",
+    courses: ["Product Design (UI/UX)"],
+    totalStudents: 0,
+    totalCourses: 1,
+    rating: 4.9,
     verified: true,
   },
   {
-    id: "inst-6",
-    name: "Amarachi Chukwu",
-    role: "Medical Science",
+    id: "fac-3",
+    name: "Timi",
+    role: "AI & Automation Specialist",
+    track: "AI & Automation",
     avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Amarachi%20Chukwu&backgroundColor=7928CA&textColor=ffffff",
-    totalStudents: 8546,
-    totalCourses: 6,
-    rating: 4.5,
+      "https://api.dicebear.com/7.x/initials/svg?seed=Timi%20AI&backgroundColor=10B981&textColor=ffffff",
+    bio: "AI systems engineer and automation architect. Instructs on practical prompt engineering, large language model integration, workflow automation, Python SDKs, and enterprise agentic systems.",
+    email: "admissions@bemsinstitute.ng",
+    phone: "+2348000000000",
+    location: "Physical Lab (Umuahia) & Live Virtual",
+    courses: ["AI & Automation"],
+    totalStudents: 0,
+    totalCourses: 1,
+    rating: 4.9,
+    verified: true,
+  },
+  {
+    id: "fac-4",
+    name: "Cybersecurity Lead Analyst",
+    role: "Information Security & Ethical Hacking Instructor",
+    track: "Cybersecurity & Ethical Hacking",
+    avatar:
+      "https://api.dicebear.com/7.x/initials/svg?seed=Cyber%20Lead&backgroundColor=F59E0B&textColor=ffffff",
+    bio: "Certified ethical hacker and information security consultant. Directs hands-on laboratory sessions in network defense, vulnerability assessment, penetration testing, threat analysis, and secure coding.",
+    email: "admissions@bemsinstitute.ng",
+    phone: "+2348000000000",
+    location: "Physical Lab (Umuahia) & Live Virtual",
+    courses: ["Cybersecurity & Ethical Hacking"],
+    totalStudents: 0,
+    totalCourses: 1,
+    rating: 4.9,
     verified: true,
   },
 ];
 
-const TOP_INSTRUCTORS_LIST = [
-  {
-    name: "Ngozi Eze",
-    courses: 25,
-    rating: "4.5/5.0",
-    verified: true,
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Ngozi%20Eze&backgroundColor=18143D&textColor=ffffff",
-  },
-  {
-    name: "Emeka Nwosu",
-    courses: 18,
-    rating: "4.5/5.0",
-    verified: false,
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Emeka%20Nwosu&backgroundColor=671FB0&textColor=ffffff",
-  },
-  {
-    name: "Chiamaka Nnamdi",
-    courses: 21,
-    rating: "4.8/5.0",
-    verified: true,
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Blessing%20Adeyemi&backgroundColor=7928CA&textColor=ffffff",
-  },
-  {
-    name: "Tunde Bakare",
-    courses: 15,
-    rating: "4.5/5.0",
-    verified: false,
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Tunde%20Bakare&backgroundColor=18143D&textColor=ffffff",
-  },
-  {
-    name: "Amarachi Chukwu",
-    courses: 29,
-    rating: "4.5/5.0",
-    verified: true,
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Chiamaka%20Nnamdi&backgroundColor=671FB0&textColor=ffffff",
-  },
-];
+// Top instructors summary for Overview Dashboard
+const TOP_INSTRUCTORS_LIST = BEMS_FACULTY.map((f) => ({
+  id: f.id,
+  name: f.name,
+  role: f.role,
+  track: f.track,
+  courses: f.totalCourses,
+  rating: `${f.rating}/5.0`,
+  verified: f.verified,
+  avatar: f.avatar,
+}));
 
-const SUPPORT_REQUESTS = [
+// Real BEMS Operational Notices
+const BEMS_OPERATIONAL_NOTICES = [
   {
-    id: "req-1",
-    name: "Ngozi Eze",
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Ngozi%20Eze&backgroundColor=7928CA&textColor=ffffff",
-    initials: null,
-    badgeBg: "",
-    badgeText: "",
-    message: "New ticket #759 from Ngozi Eze for General Enquiry",
-    boldPart: null,
-    time: "8 hour ago",
-  },
-  {
-    id: "req-2",
-    name: "Emeka Nwosu",
-    avatar: null,
-    initials: "DB",
-    badgeBg: "bg-[#F6ECF9]",
-    badgeText: "text-[#A16EBD]",
-    message: "Comment from Tunde Bakare on ticket #659",
-    boldPart: null,
-    time: "8 hour ago",
-  },
-  {
-    id: "req-3",
-    name: "Emeka Nwosu",
-    avatar: null,
-    initials: "WB",
+    id: "notice-1",
+    title: "Cohort 2026 Admissions Open",
+    description: "Active QR flyer campaigns tracking MOUAU campus, library, and student centers.",
+    time: "Live Campaign",
+    badge: "ADMISSIONS",
     badgeBg: "bg-[#FFF2E2]",
     badgeText: "text-[#FD7E14]",
-    message: "assign you a new ticket for Cohort Onboarding",
-    boldPrefix: "Admissions Desk",
-    boldSuffix: "Cohort Onboarding",
-    time: "5 hour ago",
   },
   {
-    id: "req-4",
-    name: "Emeka Nwosu",
-    avatar:
-      "https://api.dicebear.com/7.x/initials/svg?seed=Tunde%20Bakare&backgroundColor=18143D&textColor=ffffff",
-    initials: null,
-    badgeBg: "",
-    badgeText: "",
-    message: "Thanks for contact us with your issues.",
-    boldPart: null,
-    time: "9 hour ago",
+    id: "notice-2",
+    title: "Curriculum & Interactive LMS",
+    description: "All 4 tracks equipped with real-time code sandboxes, interactive quizzes, and graded assignments.",
+    time: "Active",
+    badge: "ACADEMICS",
+    badgeBg: "bg-[#F7EDF9]",
+    badgeText: "text-[#AE54C6]",
+  },
+  {
+    id: "notice-3",
+    title: "Two-Step Enrollment Security",
+    description: "Instant email receipt sent on payment; admin confirmation queue activates student course access.",
+    time: "Verified",
+    badge: "OPERATIONS",
+    badgeBg: "bg-[#E5F6F8]",
+    badgeText: "text-[#17A2B8]",
   },
 ];
 
-const EARNINGS_POINTS = [
-  { month: "Jan", value: 2909, x: 52, y: 118 },
-  { month: "Feb", value: 1259, x: 108, y: 208 },
-  { month: "Mar", value: 950, x: 164, y: 224 },
-  { month: "Apr", value: 1563, x: 220, y: 190 },
-  { month: "Jun", value: 1825, x: 276, y: 176 },
-  { month: "Jul", value: 2526, x: 332, y: 138 },
-  { month: "Aug", value: 2010, x: 388, y: 166 },
-  { month: "Sep", value: 3260, x: 444, y: 98 },
-  { month: "Oct", value: 3005, x: 500, y: 112 },
-  { month: "Nov", value: 3860, x: 556, y: 66 },
-  { month: "Dec", value: 4039, x: 612, y: 56 },
-];
-
-function EarningsLineChart() {
-  // Smooth cubic bezier path through EARNINGS_POINTS
-  const linePath =
-    "M 52 118 C 75 118, 86 208, 108 208 C 130 208, 142 224, 164 224 C 186 224, 198 190, 220 190 C 242 190, 254 176, 276 176 C 298 176, 310 138, 332 138 C 354 138, 366 166, 388 166 C 410 166, 422 98, 444 98 C 466 98, 478 112, 500 112 C 522 112, 534 66, 556 66 C 578 66, 590 56, 612 56";
-  const areaPath = `${linePath} L 612 268 L 52 268 Z`;
-
-  const yLabels = [
-    { label: "4800", y: 18 },
-    { label: "4000", y: 60 },
-    { label: "3200", y: 102 },
-    { label: "2400", y: 144 },
-    { label: "1600", y: 186 },
-    { label: "800", y: 228 },
-    { label: "0", y: 268 },
+function TrackDistributionChart({
+  trackDistribution,
+}: {
+  trackDistribution?: { track: string; count: number; revenue: number; color?: string }[];
+}) {
+  const defaultTracks = [
+    { track: "Full-Stack Web Development", count: 0, revenue: 0, color: "#AE54C6" },
+    { track: "Product Design (UI/UX)", count: 0, revenue: 0, color: "#303654" },
+    { track: "AI & Automation", count: 0, revenue: 0, color: "#10B981" },
+    { track: "Cybersecurity & Ethical Hacking", count: 0, revenue: 0, color: "#F59E0B" },
   ];
 
-  return (
-    <div className="w-full overflow-x-auto">
-      <svg
-        viewBox="0 0 650 305"
-        className="w-full min-w-[540px] h-auto select-none"
-        fill="none"
-      >
-        <defs>
-          <linearGradient id="eduportEarningsGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#AE54C6" stopOpacity="0.32" />
-            <stop offset="100%" stopColor="#AE54C6" stopOpacity="0.03" />
-          </linearGradient>
-        </defs>
+  const tracks =
+    trackDistribution && trackDistribution.length > 0
+      ? trackDistribution
+      : defaultTracks;
 
-        {/* Horizontal Y Grid Lines & Labels */}
-        {yLabels.map((row) => (
-          <g key={row.label}>
-            <text
-              x="36"
-              y={row.y + 4}
-              textAnchor="end"
-              fill="#9A9EA4"
-              fontSize="10.5"
-              fontFamily="sans-serif"
-            >
-              {row.label}
-            </text>
-            <line
-              x1="48"
-              y1={row.y}
-              x2="625"
-              y2={row.y}
-              stroke="#F0F2F5"
-              strokeWidth="1"
-            />
-          </g>
-        ))}
-
-        {/* Shaded Area */}
-        <path d={areaPath} fill="url(#eduportEarningsGrad)" />
-
-        {/* Smooth Blue Line */}
-        <path
-          d={linePath}
-          stroke="#AE54C6"
-          strokeWidth="3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-
-        {/* Month Labels & Data Callout Pills */}
-        {EARNINGS_POINTS.map((pt) => (
-          <g key={pt.month}>
-            <text
-              x={pt.x}
-              y="292"
-              textAnchor="middle"
-              fill="#9A9EA4"
-              fontSize="11"
-              fontFamily="sans-serif"
-            >
-              {pt.month}
-            </text>
-
-            {/* Blue pill */}
-            <rect
-              x={pt.x - 18}
-              y={pt.y - 9}
-              width="36"
-              height="17"
-              rx="3.5"
-              fill="#AE54C6"
-              stroke="#FFFFFF"
-              strokeWidth="1.2"
-            />
-            <text
-              x={pt.x}
-              y={pt.y + 2.5}
-              textAnchor="middle"
-              fill="#FFFFFF"
-              fontSize="9.5"
-              fontWeight="700"
-              fontFamily="sans-serif"
-            >
-              {pt.value}
-            </text>
-          </g>
-        ))}
-      </svg>
-    </div>
-  );
-}
-
-function TrafficSourcesDonutChart() {
-  // Circumference for r=60 is 2 * pi * 60 = 376.99
+  const total = tracks.reduce((sum, t) => sum + t.count, 0);
   const r = 60;
   const c = 2 * Math.PI * r;
-  // Segments: Blue (62%), Green (16%), Yellow (14%), Red (8%)
-  const segments = [
-    { color: "#AE54C6", pct: 0.62, offset: 0 },
-    { color: "#AE54C6", pct: 0.16, offset: 0.62 },
-    { color: "#F7C32E", pct: 0.14, offset: 0.78 },
-    { color: "#D6293E", pct: 0.08, offset: 0.92 },
-  ];
+
+  let currentOffset = 0;
+  const segments = tracks.map((t, idx) => {
+    const pct = total === 0 ? 0.25 : t.count / total;
+    const color =
+      t.color || ["#AE54C6", "#303654", "#10B981", "#F59E0B"][idx % 4];
+    const seg = {
+      color,
+      pct,
+      offset: currentOffset,
+      track: t.track,
+      count: t.count,
+      revenue: t.revenue,
+    };
+    currentOffset += pct;
+    return seg;
+  });
 
   return (
     <div className="flex flex-col items-center">
@@ -467,25 +260,34 @@ function TrafficSourcesDonutChart() {
             );
           })}
         </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+          <span className="text-[22px] font-extrabold text-[#1D2026]">
+            {total}
+          </span>
+          <span className="text-[11px] text-[#747579] font-medium">Students</span>
+        </div>
       </div>
 
-      <div className="w-full space-y-3 mt-4">
-        <div className="flex items-start gap-2.5 text-[13.5px] text-[#747579]">
-          <span className="w-3 h-3 rounded-full bg-[#AE54C6] shrink-0 mt-1" />
-          <span>Create a Design System in Figma</span>
-        </div>
-        <div className="flex items-start gap-2.5 text-[13.5px] text-[#747579]">
-          <span className="w-3 h-3 rounded-full bg-[#AE54C6] shrink-0 mt-1" />
-          <span>The Complete Digital Marketing Course - 12 Courses in 1</span>
-        </div>
-        <div className="flex items-start gap-2.5 text-[13.5px] text-[#747579]">
-          <span className="w-3 h-3 rounded-full bg-[#F7C32E] shrink-0 mt-1" />
-          <span>Google Ads Training: Become a PPC Expert</span>
-        </div>
-        <div className="flex items-start gap-2.5 text-[13.5px] text-[#747579]">
-          <span className="w-3 h-3 rounded-full bg-[#D6293E] shrink-0 mt-1" />
-          <span>Microsoft Excel - Excel from Beginner to Advanced</span>
-        </div>
+      <div className="w-full space-y-2.5 mt-4">
+        {segments.map((seg, i) => (
+          <div key={i} className="flex items-center justify-between text-[13px]">
+            <div className="flex items-center gap-2 truncate">
+              <span
+                className="w-2.5 h-2.5 rounded-full shrink-0"
+                style={{ backgroundColor: seg.color }}
+              />
+              <span className="text-[#475569] font-medium truncate">{seg.track}</span>
+            </div>
+            <div className="flex items-center gap-2 shrink-0 font-bold text-[#1D2026]">
+              <span>{seg.count}</span>
+              {seg.revenue > 0 && (
+                <span className="text-[11.5px] text-[#AE54C6]">
+                  ₦{seg.revenue.toLocaleString()}
+                </span>
+              )}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -525,133 +327,105 @@ function AdminDashboardContent() {
 
   const [instructorSearch, setInstructorSearch] = useState("");
   const [instructorViewMode, setInstructorViewMode] = useState<"grid" | "list">("grid");
+  const [selectedInstructorId, setSelectedInstructorId] = useState<string>("fac-1");
 
-  // Instructor Requests state (Image 3)
+  // Instructor Requests state
   const [requestSearch, setRequestSearch] = useState("");
   const [requestSort, setRequestSort] = useState("default");
   const [instructorRequests, setInstructorRequests] = useState([
     {
       id: "ireq-1",
-      name: "Ngozi Eze",
-      subject: "HTML, CSS, Bootstrap",
-      requestedDate: "22 Oct 2021",
-      status: "PENDING" as "PENDING" | "ACCEPTED" | "REJECTED",
+      name: "Victor",
+      subject: "Full-Stack Web Development (React, Next.js, Node.js)",
+      requestedDate: "12 Jan 2026",
+      status: "ACCEPTED" as "PENDING" | "ACCEPTED" | "REJECTED",
       avatar:
-        "https://api.dicebear.com/7.x/initials/svg?seed=Ngozi%20Eze&backgroundColor=671FB0&textColor=ffffff",
+        "https://api.dicebear.com/7.x/initials/svg?seed=Victor%20Instructor&backgroundColor=303654&textColor=ffffff",
     },
     {
       id: "ireq-2",
-      name: "Blessing Adeyemi",
-      subject: "Photoshop, Figma, Adobe XD",
-      requestedDate: "06 Sep 2021",
-      status: "PENDING" as "PENDING" | "ACCEPTED" | "REJECTED",
+      name: "Temi",
+      subject: "Product Design (Figma, Design Systems, UX Research)",
+      requestedDate: "15 Jan 2026",
+      status: "ACCEPTED" as "PENDING" | "ACCEPTED" | "REJECTED",
       avatar:
-        "https://api.dicebear.com/7.x/initials/svg?seed=Blessing%20Adeyemi&backgroundColor=7928CA&textColor=ffffff",
+        "https://api.dicebear.com/7.x/initials/svg?seed=Temi%20Designer&backgroundColor=AE54C6&textColor=ffffff",
     },
     {
       id: "ireq-3",
-      name: "Emeka Nwosu",
-      subject: "JavaScript, Java",
-      requestedDate: "21 Jan 2021",
+      name: "Timi",
+      subject: "AI & Automation (LLMs, Prompt Engineering, LangChain)",
+      requestedDate: "18 Jan 2026",
       status: "ACCEPTED" as "PENDING" | "ACCEPTED" | "REJECTED",
       avatar:
-        "https://api.dicebear.com/7.x/initials/svg?seed=Emeka%20Nwosu&backgroundColor=18143D&textColor=ffffff",
+        "https://api.dicebear.com/7.x/initials/svg?seed=Timi%20AI&backgroundColor=10B981&textColor=ffffff",
     },
     {
       id: "ireq-4",
-      name: "Tunde Bakare",
-      subject: "Maths, Chemistry",
-      requestedDate: "25 Dec 2020",
-      status: "REJECTED" as "PENDING" | "ACCEPTED" | "REJECTED",
+      name: "Cybersecurity Lead Analyst",
+      subject: "Cybersecurity & Ethical Hacking (Network Defense, OWASP)",
+      requestedDate: "20 Jan 2026",
+      status: "ACCEPTED" as "PENDING" | "ACCEPTED" | "REJECTED",
       avatar:
-        "https://api.dicebear.com/7.x/initials/svg?seed=Tunde%20Bakare&backgroundColor=671FB0&textColor=ffffff",
+        "https://api.dicebear.com/7.x/initials/svg?seed=Cyber%20Lead&backgroundColor=F59E0B&textColor=ffffff",
     },
     {
       id: "ireq-5",
-      name: "Chiamaka Nnamdi",
-      subject: "Python, Angular, React Native",
-      requestedDate: "05 June 2020",
-      status: "ACCEPTED" as "PENDING" | "ACCEPTED" | "REJECTED",
+      name: "Chidinma Okoro",
+      subject: "Mobile App Engineering (Flutter, React Native)",
+      requestedDate: "02 Feb 2026",
+      status: "PENDING" as "PENDING" | "ACCEPTED" | "REJECTED",
       avatar:
-        "https://api.dicebear.com/7.x/initials/svg?seed=Chiamaka%20Nnamdi&backgroundColor=7928CA&textColor=ffffff",
-    },
-    {
-      id: "ireq-6",
-      name: "Amarachi Chukwu",
-      subject: "After Effects, Premiere Pro",
-      requestedDate: "14 Feb 2020",
-      status: "ACCEPTED" as "PENDING" | "ACCEPTED" | "REJECTED",
-      avatar:
-        "https://api.dicebear.com/7.x/initials/svg?seed=Amarachi%20Chukwu&backgroundColor=18143D&textColor=ffffff",
+        "https://api.dicebear.com/7.x/initials/svg?seed=Chidinma%20Okoro&backgroundColor=671FB0&textColor=ffffff",
     },
   ]);
 
-  // Reviews state (Image 5)
-  const [reviewsList, setReviewsList] = useState([
-    {
-      id: "01",
-      studentName: "Ngozi Eze",
-      courseName: "Web Development",
-      rating: 5,
-      visible: false,
-      avatar:
-        "https://api.dicebear.com/7.x/initials/svg?seed=Ngozi%20Eze&backgroundColor=671FB0&textColor=ffffff",
-    },
-    {
-      id: "02",
-      studentName: "Blessing Adeyemi",
-      courseName: "Product Design (UI/UX)",
-      rating: 5,
-      visible: false,
-      avatar:
-        "https://api.dicebear.com/7.x/initials/svg?seed=Blessing%20Adeyemi&backgroundColor=7928CA&textColor=ffffff",
-    },
-    {
-      id: "03",
-      studentName: "Emeka Nwosu",
-      courseName: "Web Development",
-      rating: 4,
-      visible: false,
-      avatar:
-        "https://api.dicebear.com/7.x/initials/svg?seed=Emeka%20Nwosu&backgroundColor=18143D&textColor=ffffff",
-    },
-    {
-      id: "04",
-      studentName: "Tunde Bakare",
-      courseName: "Cybersecurity",
-      rating: 4,
-      visible: false,
-      avatar:
-        "https://api.dicebear.com/7.x/initials/svg?seed=Tunde%20Bakare&backgroundColor=671FB0&textColor=ffffff",
-    },
-    {
-      id: "05",
-      studentName: "Chiamaka Nnamdi",
-      courseName: "AI & Automation",
-      rating: 4,
-      visible: false,
-      avatar:
-        "https://api.dicebear.com/7.x/initials/svg?seed=Chiamaka%20Nnamdi&backgroundColor=7928CA&textColor=ffffff",
-    },
-    {
-      id: "06",
-      studentName: "Amarachi Chukwu",
-      courseName: "Mobile App Engineering",
-      rating: 4,
-      visible: false,
-      avatar:
-        "https://api.dicebear.com/7.x/initials/svg?seed=Amarachi%20Chukwu&backgroundColor=18143D&textColor=ffffff",
-    },
-    {
-      id: "07",
-      studentName: "Ifeanyi Okafor",
-      courseName: "AI & Automation",
-      rating: 4,
-      visible: false,
-      avatar:
-        "https://api.dicebear.com/7.x/initials/svg?seed=Ifeanyi%20Okafor&backgroundColor=671FB0&textColor=ffffff",
-    },
-  ]);
+  // Reviews state — backed by /api/lms/reviews
+  interface AdminReviewItem {
+    id: string;
+    studentName: string;
+    courseName: string;
+    rating: number;
+    comment?: string | null;
+    visible: boolean;
+    avatar: string;
+    createdAt?: string;
+  }
+  const [reviewsList, setReviewsList] = useState<AdminReviewItem[]>([]);
+  const [reviewsLoaded, setReviewsLoaded] = useState(false);
+
+  useEffect(() => {
+    if (
+      activeTab === "reviews" ||
+      activeTab === "dashboard" ||
+      activeTab === "instructor-detail"
+    ) {
+      if (!reviewsLoaded) {
+        apiFetch("/api/lms/reviews")
+          .then((res) => (res.ok ? res.json() : null))
+          .then((data) => {
+            if (data && Array.isArray(data.reviews)) {
+              setReviewsList(
+                data.reviews.map((r: any) => ({
+                  id: r.id,
+                  studentName: r.name,
+                  courseName: r.courseTitle || "BEMS Track",
+                  rating: r.rating,
+                  comment: r.comment,
+                  visible: true,
+                  avatar:
+                    r.avatarUrl ||
+                    `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(r.name)}&backgroundColor=303654&textColor=ffffff`,
+                  createdAt: r.createdAt,
+                }))
+              );
+            }
+            setReviewsLoaded(true);
+          })
+          .catch(() => setReviewsLoaded(true));
+      }
+    }
+  }, [activeTab, reviewsLoaded]);
 
   // Admin Settings state — Website Settings and Notification Settings are
   // real, persisted via /api/admin/settings; the other sub-tabs don't tie
@@ -695,7 +469,15 @@ function AdminDashboardContent() {
   const ledgerLoading = (activeTab === "earnings" || activeTab === "analytics") && !ledgerLoaded;
 
   useEffect(() => {
-    if (!(activeTab === "earnings" || activeTab === "analytics") || ledgerLoaded) return;
+    if (
+      !(
+        activeTab === "dashboard" ||
+        activeTab === "earnings" ||
+        activeTab === "analytics"
+      ) ||
+      ledgerLoaded
+    )
+      return;
     apiFetch("/api/admin/payment-ledger")
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
@@ -1099,7 +881,7 @@ function AdminDashboardContent() {
   const welcomeCallsLoading = activeTab === "admissions" && !welcomeCallsLoaded;
 
   useEffect(() => {
-    if (activeTab !== "admissions") return;
+    if (activeTab !== "admissions" && activeTab !== "dashboard") return;
     if (!leadsLoaded) {
       apiFetch("/api/admin/leads")
         .then((res) => (res.ok ? res.json() : null))
@@ -1256,19 +1038,23 @@ function AdminDashboardContent() {
     router.push(`/admin?tab=${tabId}`);
   };
 
-  // Combine demo student cards with live BEMS database students
-  const liveBemsStudentCards: EduportStudentCard[] = adminStudents.map((stu, idx) => ({
+  // Live BEMS database students (from /api/admin/roster)
+  const liveBemsStudentCards: EduportStudentCard[] = adminStudents.map((stu) => ({
     id: stu.id,
     name: stu.name,
     location:
       stu.deliveryMode === "Physical Lab (Umuahia)" ? "MOUAU Campus" : "Live Virtual",
-    avatar:
-      EDUPORT_STUDENTS[idx % EDUPORT_STUDENTS.length]?.avatar ||
-      "https://api.dicebear.com/7.x/initials/svg?seed=Blessing%20Adeyemi&backgroundColor=7928CA&textColor=ffffff",
+    avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(stu.name)}&backgroundColor=303654&textColor=ffffff`,
     payments: `₦${stu.amountPaid.toLocaleString()}`,
-    totalCourse: 4,
+    totalCourse: 1,
     progress: stu.progressPercent,
-    joinDate: stu.enrolledAt,
+    joinDate: stu.enrolledAt
+      ? new Date(stu.enrolledAt).toLocaleDateString("en-GB", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        })
+      : "Cohort 2026",
     email: stu.email,
     enrollmentId: stu.id,
     paymentStatus: stu.paymentStatus,
@@ -1279,19 +1065,18 @@ function AdminDashboardContent() {
     secondChanceUsed: stu.secondChanceUsed,
   }));
 
-  const combinedStudents: EduportStudentCard[] = [
-    ...EDUPORT_STUDENTS,
-    ...liveBemsStudentCards,
-  ].filter(
+  const combinedStudents: EduportStudentCard[] = liveBemsStudentCards.filter(
     (s) =>
       s.name.toLowerCase().includes(studentSearch.toLowerCase()) ||
-      s.location.toLowerCase().includes(studentSearch.toLowerCase())
+      s.location.toLowerCase().includes(studentSearch.toLowerCase()) ||
+      (s.email && s.email.toLowerCase().includes(studentSearch.toLowerCase()))
   );
 
-  const filteredInstructors = EDUPORT_INSTRUCTORS.filter(
+  const filteredInstructors = BEMS_FACULTY.filter(
     (inst) =>
       inst.name.toLowerCase().includes(instructorSearch.toLowerCase()) ||
-      inst.role.toLowerCase().includes(instructorSearch.toLowerCase())
+      inst.role.toLowerCase().includes(instructorSearch.toLowerCase()) ||
+      inst.track.toLowerCase().includes(instructorSearch.toLowerCase())
   );
 
   const handleCreateCourse = async (e: React.FormEvent) => {
@@ -1752,143 +1537,274 @@ function AdminDashboardContent() {
 
               {/* 4 Pastel Counter Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-7">
-                {/* 1. Completed Courses */}
-                <div className="bg-[#FEF6E0] rounded-xl p-6 flex items-center justify-between">
+                {/* 1. Total Enrolled Students */}
+                <div className="bg-[#F6ECF9] rounded-xl p-6 flex items-center justify-between border border-purple-100">
                   <div>
-                    <div className="font-display text-[32px] font-extrabold text-[#1D2026] leading-none mb-2">
-                      1958
+                    <div className="font-display text-[32px] font-extrabold text-[#1D2026] leading-none mb-1.5">
+                      {analytics.totalStudents}
                     </div>
-                    <div className="text-[14px] font-medium text-[#475569]">
-                      Completed Courses
+                    <div className="text-[14px] font-bold text-[#475569]">
+                      Enrolled Students
                     </div>
-                  </div>
-                  <div className="w-14 h-14 rounded-full bg-[#F7C32E] text-white flex items-center justify-center shrink-0 shadow-xs">
-                    <Monitor className="w-6 h-6" />
-                  </div>
-                </div>
-
-                {/* 2. Enrolled Courses */}
-                <div className="bg-[#F6ECF9] rounded-xl p-6 flex items-center justify-between">
-                  <div>
-                    <div className="font-display text-[32px] font-extrabold text-[#1D2026] leading-none mb-2">
-                      1600
-                    </div>
-                    <div className="text-[14px] font-medium text-[#475569]">
-                      Enrolled Courses
+                    <div className="text-[12px] text-[#747579] mt-1">
+                      {analytics.targetStudents > 0
+                        ? `Target: ${analytics.targetStudents} students`
+                        : "Cohort 2026 Active"}
                     </div>
                   </div>
-                  <div className="w-14 h-14 rounded-full bg-[#A16EBD] text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <div className="w-14 h-14 rounded-full bg-[#AE54C6] text-white flex items-center justify-center shrink-0 shadow-xs">
                     <UserIcon className="w-6 h-6" />
                   </div>
                 </div>
 
-                {/* 3. Course In Progress */}
-                <div className="bg-[#F7EDF9] rounded-xl p-6 flex items-center justify-between">
+                {/* 2. Tuition Revenue */}
+                <div className="bg-[#FEF6E0] rounded-xl p-6 flex items-center justify-between border border-amber-100">
                   <div>
-                    <div className="font-display text-[32px] font-extrabold text-[#1D2026] leading-none mb-2">
-                      1235
+                    <div className="font-display text-[26px] sm:text-[28px] font-extrabold text-[#1D2026] leading-none mb-1.5">
+                      ₦{analytics.totalRevenue.toLocaleString()}
                     </div>
-                    <div className="text-[14px] font-medium text-[#475569]">
-                      Course In Progress
+                    <div className="text-[14px] font-bold text-[#475569]">
+                      Tuition Revenue
+                    </div>
+                    <div className="text-[12px] text-[#747579] mt-1">
+                      {analytics.targetRevenue > 0
+                        ? `Target: ₦${analytics.targetRevenue.toLocaleString()}`
+                        : "Verified Naira Payments"}
                     </div>
                   </div>
-                  <div className="w-14 h-14 rounded-full bg-[#AE54C6] text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <div className="w-14 h-14 rounded-full bg-[#F7C32E] text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <DollarSign className="w-6 h-6" />
+                  </div>
+                </div>
+
+                {/* 3. Completion Rate */}
+                <div className="bg-[#F7EDF9] rounded-xl p-6 flex items-center justify-between border border-purple-100">
+                  <div>
+                    <div className="font-display text-[32px] font-extrabold text-[#1D2026] leading-none mb-1.5">
+                      {analytics.completionRate}%
+                    </div>
+                    <div className="text-[14px] font-bold text-[#475569]">
+                      Completion Rate
+                    </div>
+                    <div className="text-[12px] text-[#747579] mt-1">
+                      {analytics.certificatesIssued} Verified Certificates
+                    </div>
+                  </div>
+                  <div className="w-14 h-14 rounded-full bg-[#303654] text-white flex items-center justify-center shrink-0 shadow-xs">
                     <GraduationCap className="w-6 h-6" />
                   </div>
                 </div>
 
-                {/* 4. Total Watch Time */}
-                <div className="bg-[#F7EDF9] rounded-xl p-6 flex items-center justify-between">
+                {/* 4. Admissions Queue */}
+                <div
+                  onClick={() => switchTab("students")}
+                  className="bg-[#E5F6F8] rounded-xl p-6 flex items-center justify-between border border-teal-100 cursor-pointer hover:border-teal-300 transition-colors"
+                >
                   <div>
-                    <div className="font-display text-[32px] font-extrabold text-[#1D2026] leading-none mb-2">
-                      845 hrs
+                    <div className="font-display text-[32px] font-extrabold text-[#1D2026] leading-none mb-1.5">
+                      {pendingApprovals.length}
                     </div>
-                    <div className="text-[14px] font-medium text-[#475569]">
-                      Total Watch Time
+                    <div className="text-[14px] font-bold text-[#475569]">
+                      Admissions Queue
+                    </div>
+                    <div className="text-[12px] text-[#747579] mt-1">
+                      {pendingApprovals.length > 0
+                        ? "Awaiting confirmation"
+                        : "All registrations confirmed"}
                     </div>
                   </div>
-                  <div className="w-14 h-14 rounded-full bg-[#AE54C6] text-white flex items-center justify-center shrink-0 shadow-xs">
-                    <Clock className="w-6 h-6" />
+                  <div className="w-14 h-14 rounded-full bg-[#17A2B8] text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <CheckCircle2 className="w-6 h-6" />
                   </div>
                 </div>
               </div>
 
-              {/* Middle Row: Earnings Chart (8 cols) + Support Requests (4 cols) */}
+              {/* Middle Row: Tuition Revenue Ledger (8 cols) + Admissions & Actions (4 cols) */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-7">
-                {/* Earnings Card */}
+                {/* Tuition Ledger Card */}
                 <div className="lg:col-span-8 bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] p-6">
                   <div className="pb-4 mb-4 border-b border-slate-100 flex items-center justify-between">
-                    <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
-                      Earnings
-                    </h2>
-                  </div>
-                  <EarningsLineChart />
-                </div>
-
-                {/* Support Requests Card */}
-                <div className="lg:col-span-4 bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] p-6 flex flex-col">
-                  <div className="pb-4 mb-4 border-b border-slate-100 flex items-center justify-between">
-                    <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
-                      Support Requests
-                    </h2>
+                    <div>
+                      <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
+                        Tuition Revenue & Payment Transactions
+                      </h2>
+                      <p className="text-[13px] text-[#747579] mt-0.5">
+                        Live receipts recorded from Paystack checkout and confirmed bank transfers
+                      </p>
+                    </div>
                     <button
                       type="button"
-                      onClick={() => switchTab("reviews")}
-                      className="text-[13px] font-semibold text-[#AE54C6] hover:underline cursor-pointer"
+                      onClick={() => switchTab("earnings")}
+                      className="text-[13px] font-semibold text-[#AE54C6] hover:underline cursor-pointer shrink-0 ml-2"
                     >
-                      View all
+                      View full ledger
                     </button>
                   </div>
 
-                  <div className="divide-y divide-slate-100 flex-1">
-                    {SUPPORT_REQUESTS.map((item) => (
-                      <div key={item.id} className="py-3.5 first:pt-0 last:pb-0 flex items-start gap-3.5">
-                        {item.avatar ? (
-                          <img
-                            src={item.avatar}
-                            alt={item.name}
-                            className="w-11 h-11 rounded-full object-cover shrink-0"
-                          />
-                        ) : (
-                          <div
-                            className={`w-11 h-11 rounded-full ${item.badgeBg} ${item.badgeText} font-bold text-[13px] flex items-center justify-center shrink-0`}
-                          >
-                            {item.initials}
-                          </div>
-                        )}
-                        <div className="min-w-0 flex-1">
-                          <h3 className="text-[14.5px] font-bold text-[#1D2026] hover:text-[#AE54C6] transition-colors cursor-pointer">
-                            {item.name}
-                          </h3>
-                          {item.boldPrefix ? (
-                            <p className="text-[13px] text-[#747579] leading-snug mt-0.5">
-                              <span className="font-bold text-[#475569]">{item.boldPrefix}</span>{" "}
-                              assign you a new ticket for{" "}
-                              <span className="font-bold text-[#475569]">{item.boldSuffix}</span>
-                            </p>
-                          ) : (
-                            <p className="text-[13px] text-[#747579] leading-snug mt-0.5">
-                              {item.message}
-                            </p>
-                          )}
-                          <span className="text-[11.5px] text-[#9A9EA4] block mt-1">
-                            {item.time}
-                          </span>
-                        </div>
+                  {paymentLedger.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse text-[13.5px]">
+                        <thead>
+                          <tr className="border-b border-slate-200 text-[11.5px] font-bold uppercase text-[#747579]">
+                            <th className="py-2.5 px-3">Student</th>
+                            <th className="py-2.5 px-3">Track</th>
+                            <th className="py-2.5 px-3">Amount</th>
+                            <th className="py-2.5 px-3">Status</th>
+                            <th className="py-2.5 px-3">Date</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {paymentLedger.slice(0, 5).map((txn) => (
+                            <tr key={txn.id} className="hover:bg-slate-50/70">
+                              <td className="py-3 px-3">
+                                <div className="font-bold text-[#1D2026]">{txn.studentName}</div>
+                                <div className="text-[11.5px] text-[#747579] truncate max-w-[150px]">
+                                  {txn.studentEmail}
+                                </div>
+                              </td>
+                              <td className="py-3 px-3 text-[#475569] truncate max-w-[160px]">
+                                {txn.courseTitle}
+                              </td>
+                              <td className="py-3 px-3 font-bold text-[#AE54C6]">
+                                ₦{txn.amount.toLocaleString()}
+                              </td>
+                              <td className="py-3 px-3">
+                                <span
+                                  className={`px-2 py-0.5 rounded-md text-[11px] font-bold ${
+                                    txn.status === "SUCCESS"
+                                      ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                      : txn.status === "PENDING"
+                                      ? "bg-amber-50 text-amber-700 border border-amber-200"
+                                      : "bg-rose-50 text-rose-700 border border-rose-200"
+                                  }`}
+                                >
+                                  {txn.status}
+                                </span>
+                              </td>
+                              <td className="py-3 px-3 text-[#747579] text-[12px]">
+                                {new Date(txn.createdAt).toLocaleDateString("en-GB", {
+                                  day: "numeric",
+                                  month: "short",
+                                })}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="py-12 text-center bg-slate-50/50 rounded-xl border border-dashed border-slate-200 p-6">
+                      <div className="w-12 h-12 rounded-full bg-[#FEF6E0] text-[#F7C32E] flex items-center justify-center mx-auto mb-3">
+                        <DollarSign className="w-6 h-6" />
                       </div>
-                    ))}
+                      <h3 className="text-[15px] font-bold text-[#1D2026] mb-1">
+                        No tuition payments recorded yet
+                      </h3>
+                      <p className="text-[13px] text-[#747579] max-w-sm mx-auto">
+                        Transactions from online Paystack checkouts and confirmed bank transfers will appear directly in this ledger.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Admissions & Follow-ups Card */}
+                <div className="lg:col-span-4 bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] p-6 flex flex-col">
+                  <div className="pb-4 mb-4 border-b border-slate-100 flex items-center justify-between">
+                    <div>
+                      <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
+                        Admissions & Actions
+                      </h2>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => switchTab("admissions")}
+                      className="text-[13px] font-semibold text-[#AE54C6] hover:underline cursor-pointer"
+                    >
+                      View all leads
+                    </button>
+                  </div>
+
+                  <div className="divide-y divide-slate-100 flex-1 space-y-2">
+                    {/* If there are pending approvals, prioritize them */}
+                    {pendingApprovals.length > 0 ? (
+                      pendingApprovals.slice(0, 3).map((pa) => (
+                        <div key={pa.id} className="pt-2 first:pt-0 pb-2">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <h3 className="text-[14px] font-bold text-[#1D2026] truncate">
+                                {pa.student.name}
+                              </h3>
+                              <p className="text-[12px] text-[#747579] truncate">
+                                {pa.course.title}
+                              </p>
+                              <div className="text-[11.5px] font-bold text-[#AE54C6] mt-0.5">
+                                ₦{pa.amountPaid.toLocaleString()} Paid
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              disabled={approvingId === pa.id}
+                              onClick={() => handleApproveEnrollment(pa.id, pa.student.name, pa.course.title)}
+                              className="px-2.5 py-1 rounded-md bg-[#AE54C6] hover:bg-[#A03BBC] text-white text-[11.5px] font-bold transition-colors cursor-pointer shrink-0 disabled:opacity-50"
+                            >
+                              {approvingId === pa.id ? "Confirming..." : "Confirm"}
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    ) : leads.length > 0 ? (
+                      leads.slice(0, 3).map((lead) => (
+                        <div key={lead.id} className="pt-2 first:pt-0 pb-2 flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <h3 className="text-[14px] font-bold text-[#1D2026] truncate">
+                              {lead.name}
+                            </h3>
+                            <p className="text-[12px] text-[#747579] truncate">
+                              {lead.courseTitle || "General Tech Inquiry"}
+                            </p>
+                            <span className="text-[11px] text-[#9A9EA4]">
+                              {new Date(lead.createdAt).toLocaleDateString("en-GB", {
+                                day: "numeric",
+                                month: "short",
+                              })}
+                            </span>
+                          </div>
+                          {lead.phone && (
+                            <a
+                              href={buildWhatsAppLink(
+                                lead.phone,
+                                `Hello ${lead.name}, this is BEMS Institute of Technology admissions following up on your interest in ${lead.courseTitle || "our tech tracks"}. How can we assist you?`
+                              )}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-2.5 py-1 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-[11.5px] font-bold transition-colors shrink-0"
+                            >
+                              WhatsApp
+                            </a>
+                          )}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="py-10 text-center text-[#747579] text-[13px]">
+                        <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
+                        All admissions and inquiries are up to date.
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
 
-              {/* Bottom 3-Column Row: Top Instructors + Notice board + Traffic Sources */}
+              {/* Bottom 3-Column Row: Top Instructors + Notice board + Track Distribution */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* 1. Top Instructors */}
+                {/* 1. BEMS Faculty */}
                 <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] p-6">
                   <div className="pb-4 mb-4 border-b border-slate-100 flex items-center justify-between">
-                    <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
-                      Top Instructors
-                    </h2>
+                    <div>
+                      <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
+                        BEMS Faculty
+                      </h2>
+                      <p className="text-[12px] text-[#747579]">Official Track Leads</p>
+                    </div>
                     <button
                       type="button"
                       onClick={() => switchTab("instructors")}
@@ -1899,48 +1815,44 @@ function AdminDashboardContent() {
                   </div>
 
                   <div className="divide-y divide-slate-100">
-                    {TOP_INSTRUCTORS_LIST.map((inst) => (
+                    {BEMS_FACULTY.map((inst) => (
                       <div
-                        key={inst.name}
-                        className="py-3.5 first:pt-0 last:pb-0 flex items-center justify-between gap-3"
+                        key={inst.id}
+                        className="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-3"
                       >
                         <div className="flex items-center gap-3 min-w-0">
                           <img
                             src={inst.avatar}
                             alt={inst.name}
-                            className="w-11 h-11 rounded-full object-cover shrink-0"
+                            className="w-10 h-10 rounded-full object-cover shrink-0"
                           />
                           <div className="min-w-0">
                             <div className="flex items-center gap-1.5">
-                              <span className="text-[14.5px] font-bold text-[#1D2026] truncate">
+                              <span className="text-[14px] font-bold text-[#1D2026] truncate">
                                 {inst.name}
                               </span>
                               {inst.verified && (
                                 <span
                                   className="w-4 h-4 rounded-full bg-[#17A2B8] text-white text-[10px] flex items-center justify-center shrink-0"
-                                  title="Verified Instructor"
+                                  title="Verified BEMS Instructor"
                                 >
                                   ✓
                                 </span>
                               )}
                             </div>
-                            <div className="flex items-center gap-3 text-[12px] text-[#747579] mt-0.5">
-                              <span className="inline-flex items-center gap-1">
-                                <BookOpen className="w-3.5 h-3.5 text-[#A16EBD]" />
-                                {inst.courses} Courses
-                              </span>
-                              <span className="inline-flex items-center gap-1">
-                                <Star className="w-3.5 h-3.5 text-[#F7C32E] fill-[#F7C32E]" />
-                                {inst.rating}
-                              </span>
+                            <div className="text-[12px] text-[#747579] truncate mt-0.5">
+                              {inst.track}
                             </div>
                           </div>
                         </div>
 
                         <button
                           type="button"
-                          onClick={() => switchTab("instructors")}
-                          className="px-3.5 py-1.5 rounded-lg bg-[#F5F7F9] hover:bg-[#AE54C6] text-[#24292D] hover:text-white text-[12.5px] font-semibold transition-colors shrink-0 cursor-pointer"
+                          onClick={() => {
+                            setSelectedInstructorId(inst.id);
+                            switchTab("instructor-detail");
+                          }}
+                          className="px-3 py-1 rounded-lg bg-[#F5F7F9] hover:bg-[#AE54C6] text-[#24292D] hover:text-white text-[12px] font-semibold transition-colors shrink-0 cursor-pointer"
                         >
                           View
                         </button>
@@ -1954,90 +1866,61 @@ function AdminDashboardContent() {
                   <div>
                     <div className="pb-4 mb-4 border-b border-slate-100">
                       <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
-                        Notice board
+                        Academic Notice Board
                       </h2>
+                      <p className="text-[12px] text-[#747579]">Cohort 2026 Live Updates</p>
                     </div>
 
-                    <div className="relative pr-3 divide-y divide-slate-100">
-                      {/* Decorative Scrollbar Track matching Image 2 */}
-                      <div className="absolute right-0 top-12 bottom-2 w-1.5 rounded-full bg-slate-200">
-                        <div className="w-1.5 h-36 rounded-full bg-[#747579]" />
-                      </div>
-
-                      <div className="py-3.5 first:pt-0 flex items-start gap-3.5">
-                        <div className="w-11 h-11 rounded-lg bg-[#FFF2E2] text-[#FD7E14] flex items-center justify-center shrink-0">
-                          <BookOpen className="w-5 h-5" />
+                    <div className="space-y-3.5">
+                      {BEMS_OPERATIONAL_NOTICES.map((notice) => (
+                        <div key={notice.id} className="flex items-start gap-3">
+                          <div
+                            className={`w-9 h-9 rounded-lg ${notice.badgeBg} ${notice.badgeText} flex items-center justify-center shrink-0 text-xs font-bold`}
+                          >
+                            <BookOpen className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center justify-between gap-1">
+                              <h3 className="text-[13.5px] font-bold text-[#1D2026] truncate">
+                                {notice.title}
+                              </h3>
+                              <span className="text-[10.5px] font-bold text-[#747579] uppercase shrink-0">
+                                {notice.time}
+                              </span>
+                            </div>
+                            <p className="text-[12px] text-[#747579] leading-snug mt-0.5">
+                              {notice.description}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="text-[14.5px] font-bold text-[#1D2026]">
-                            Join New Instructor
-                          </h3>
-                          <p className="text-[13px] text-[#747579] leading-snug mt-0.5">
-                            Arrived Fat weddings believed prospect
-                          </p>
-                          <span className="text-[11.5px] text-[#9A9EA4] block mt-1">
-                            4 hour ago
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="py-3.5 flex items-start gap-3.5">
-                        <div className="w-11 h-11 rounded-lg bg-[#E5F6F8] text-[#17A2B8] flex items-center justify-center shrink-0">
-                          <BookOpen className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <h3 className="text-[14.5px] font-bold text-[#1D2026]">
-                            Update Syllabus
-                          </h3>
-                          <p className="text-[13px] text-[#747579] leading-snug mt-0.5">
-                            Arrived Fat weddings believed prospect
-                          </p>
-                          <span className="text-[11.5px] text-[#9A9EA4] block mt-1">
-                            2 days ago
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="py-3.5 last:pb-0 flex items-start gap-3.5">
-                        <div className="w-11 h-11 rounded-lg bg-[#FBE9EB] text-[#D6293E] flex items-center justify-center shrink-0">
-                          <Globe className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <h3 className="text-[14.5px] font-bold text-[#1D2026]">
-                            Update New Feature
-                          </h3>
-                          <p className="text-[13px] text-[#747579] leading-snug mt-0.5">
-                            Arrived Fat weddings believed prospect
-                          </p>
-                          <span className="text-[11.5px] text-[#9A9EA4] block mt-1">
-                            3 days ago
-                          </span>
-                        </div>
-                      </div>
+                      ))}
                     </div>
                   </div>
 
-                  {/* Bottom Mint Banner */}
-                  <div className="mt-6 rounded-lg bg-[#F7EDF9] border border-[#AE54C6]/35 px-4 py-2.5 flex items-center justify-between">
-                    <span className="text-[12.5px] font-semibold text-[#AE54C6]">
-                      45 more notices listed
+                  {/* Bottom Cohort Status Pill */}
+                  <div className="mt-5 rounded-lg bg-[#F7EDF9] border border-[#AE54C6]/30 px-3.5 py-2 flex items-center justify-between">
+                    <span className="text-[12px] font-semibold text-[#AE54C6]">
+                      Physical Lab & Live Zoom Synchronized
                     </span>
                     <button
                       type="button"
-                      onClick={() => switchTab("reviews")}
-                      className="px-3 py-1.5 rounded-md bg-[#F1E2F5] hover:bg-[#AE54C6] text-[#AE54C6] hover:text-white text-[12px] font-bold transition-colors cursor-pointer"
+                      onClick={() => switchTab("courses")}
+                      className="px-2.5 py-1 rounded-md bg-[#AE54C6] text-white text-[11px] font-bold transition-colors cursor-pointer"
                     >
-                      View all
+                      Courses
                     </button>
                   </div>
                 </div>
 
-                {/* 3. Traffic Sources */}
+                {/* 3. Track Distribution */}
                 <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] p-6">
                   <div className="pb-4 mb-4 border-b border-slate-100 flex items-center justify-between">
-                    <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
-                      Traffic Sources
-                    </h2>
+                    <div>
+                      <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
+                        Track Distribution
+                      </h2>
+                      <p className="text-[12px] text-[#747579]">Enrollment by Core Discipline</p>
+                    </div>
                     <button
                       type="button"
                       onClick={() => switchTab("earnings")}
@@ -2047,7 +1930,7 @@ function AdminDashboardContent() {
                     </button>
                   </div>
 
-                  <TrafficSourcesDonutChart />
+                  <TrackDistributionChart trackDistribution={analytics.trackDistribution} />
                 </div>
               </div>
             </div>
@@ -2193,9 +2076,41 @@ function AdminDashboardContent() {
                 </div>
 
                 {studentViewMode === "grid" ? (
-                  /* 3-Column Student Cards Grid (Matches Images 3 & 4) */
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {combinedStudents.map((student) => (
+                  combinedStudents.length === 0 ? (
+                    <div className="py-16 text-center bg-slate-50/60 rounded-xl border border-dashed border-slate-200 p-8">
+                      <div className="w-14 h-14 rounded-full bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center mx-auto mb-4">
+                        <UserIcon className="w-7 h-7" />
+                      </div>
+                      <h3 className="font-display text-[18px] font-bold text-[#1D2026] mb-1">
+                        No student enrollments found
+                      </h3>
+                      <p className="text-[14px] text-[#747579] max-w-md mx-auto mb-5">
+                        {studentSearch
+                          ? `No students matching "${studentSearch}". Try another search term.`
+                          : "When students register and enroll in BEMS courses, their records, payment status, track progress, and certification will appear here."}
+                      </p>
+                      {!studentSearch && (
+                        <div className="flex flex-wrap items-center justify-center gap-3">
+                          <Link
+                            href="/courses"
+                            className="px-4 py-2 rounded-lg bg-[#AE54C6] hover:bg-[#A03BBC] text-white text-[13px] font-semibold transition-colors shadow-xs"
+                          >
+                            View Course Catalogue
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() => switchTab("admissions")}
+                            className="px-4 py-2 rounded-lg bg-white border border-slate-200 text-[#24292D] hover:bg-slate-50 text-[13px] font-semibold transition-colors cursor-pointer"
+                          >
+                            Check Admissions Leads
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    /* 3-Column Student Cards Grid (Matches Images 3 & 4) */
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                      {combinedStudents.map((student) => (
                       <div
                         key={student.id}
                         className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_14px_rgba(0,0,0,0.03)] p-5 flex flex-col justify-between"
@@ -2341,7 +2256,8 @@ function AdminDashboardContent() {
                         </div>
                       </div>
                     ))}
-                  </div>
+                    </div>
+                  )
                 ) : (
                   /* List View Table with Live Payment Status Actions */
                   <div className="overflow-x-auto">
@@ -2358,7 +2274,14 @@ function AdminDashboardContent() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 text-[14px]">
-                        {combinedStudents.map((stu) => (
+                        {combinedStudents.length === 0 ? (
+                          <tr>
+                            <td colSpan={7} className="py-12 text-center text-[#747579]">
+                              No student enrollments found.
+                            </td>
+                          </tr>
+                        ) : (
+                          combinedStudents.map((stu) => (
                           <tr key={stu.id} className="hover:bg-slate-50/80">
                             <td className="py-3.5 px-4 flex items-center gap-3">
                               <img
@@ -2484,7 +2407,7 @@ function AdminDashboardContent() {
                               </div>
                             </td>
                           </tr>
-                        ))}
+                        )))}
                       </tbody>
                     </table>
                   </div>
@@ -2687,452 +2610,329 @@ function AdminDashboardContent() {
           {/* ========================================================= */}
           {/* VIEW 3B: INSTRUCTOR DETAIL (Matches Images 4, 2, & 1)     */}
           {/* ========================================================= */}
-          {activeTab === "instructor-detail" && (
-            <div className="space-y-7">
-              <h1 className="font-display text-[28px] sm:text-[32px] font-extrabold text-[#1D2026] tracking-tight">
-                Instructor detail
-              </h1>
+          {activeTab === "instructor-detail" && (() => {
+            const currentInstructor =
+              BEMS_FACULTY.find((f) => f.id === selectedInstructorId) || BEMS_FACULTY[0];
+            const instructorCourses = (adminCourses.length > 0 ? adminCourses : courses).filter(
+              (c) =>
+                c.title.toLowerCase().includes(currentInstructor.track.toLowerCase().slice(0, 5)) ||
+                c.tutor.toLowerCase().includes(currentInstructor.name.toLowerCase())
+            );
+            const instructorReviews = reviewsList.filter((r) =>
+              r.courseName.toLowerCase().includes(currentInstructor.track.toLowerCase().slice(0, 5))
+            );
+            const instructorTrackEnrolled =
+              analytics.trackDistribution.find((t) =>
+                t.track.toLowerCase().includes(currentInstructor.track.toLowerCase().slice(0, 5))
+              )?.count || 0;
 
-              {/* Top Row: Personal Information (7 cols) + Active Students & New Enrollment (5 cols) */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                {/* Personal Information Card */}
-                <div className="lg:col-span-7 bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
-                  <div className="bg-[#F8F9FA] px-6 py-4 border-b border-slate-200/80">
-                    <h2 className="font-display text-[19px] font-extrabold text-[#1D2026]">
-                      Personal Information
+            return (
+              <div className="space-y-7">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <h1 className="font-display text-[28px] sm:text-[32px] font-extrabold text-[#1D2026] tracking-tight">
+                    Faculty Profile: {currentInstructor.name}
+                  </h1>
+                  <button
+                    type="button"
+                    onClick={() => switchTab("instructors")}
+                    className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg border border-slate-200 text-[#475569] text-sm font-semibold hover:bg-slate-50 transition-colors cursor-pointer"
+                  >
+                    ← Back to Instructors
+                  </button>
+                </div>
+
+                {/* Top Row: Personal Information (7 cols) + Active Students & New Enrollment (5 cols) */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                  {/* Personal Information Card */}
+                  <div className="lg:col-span-7 bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
+                    <div className="bg-[#F8F9FA] px-6 py-4 border-b border-slate-200/80">
+                      <h2 className="font-display text-[19px] font-extrabold text-[#1D2026]">
+                        Personal Information
+                      </h2>
+                    </div>
+
+                    <div className="p-6">
+                      <div className="flex items-center gap-4 mb-6">
+                        <img
+                          src={currentInstructor.avatar}
+                          alt={currentInstructor.name}
+                          className="w-20 h-20 rounded-full object-cover shadow-md"
+                        />
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-display text-[20px] font-bold text-[#1D2026]">
+                              {currentInstructor.name}
+                            </h3>
+                            {currentInstructor.verified && (
+                              <span
+                                className="w-4 h-4 rounded-full bg-[#17A2B8] text-white text-[10px] flex items-center justify-center shrink-0"
+                                title="Verified BEMS Instructor"
+                              >
+                                ✓
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm font-semibold text-[#AE54C6]">
+                            {currentInstructor.role}
+                          </p>
+                          <p className="text-xs text-[#747579] mt-0.5">
+                            {currentInstructor.location}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6 text-[14px]">
+                        <div>
+                          <span className="text-[#747579]">Track: </span>
+                          <strong className="text-[#1D2026] font-bold">{currentInstructor.track}</strong>
+                        </div>
+                        <div>
+                          <span className="text-[#747579]">Email: </span>
+                          <strong className="text-[#1D2026] font-bold">{currentInstructor.email}</strong>
+                        </div>
+                        <div>
+                          <span className="text-[#747579]">Office Phone: </span>
+                          <strong className="text-[#1D2026] font-bold">{currentInstructor.phone}</strong>
+                        </div>
+                        <div>
+                          <span className="text-[#747579]">Location: </span>
+                          <strong className="text-[#1D2026] font-bold">{currentInstructor.location}</strong>
+                        </div>
+                        <div>
+                          <span className="text-[#747579]">Status: </span>
+                          <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 text-xs font-bold">
+                            Active Faculty
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-[#747579]">Joining Date: </span>
+                          <strong className="text-[#1D2026] font-bold">Cohort 2026</strong>
+                        </div>
+                        <div className="sm:col-span-2 flex flex-col sm:flex-row sm:items-start gap-2">
+                          <span className="text-[#747579] shrink-0">Biography:</span>
+                          <p className="text-[#1D2026] leading-relaxed text-[13.5px]">
+                            {currentInstructor.bio}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Stacked Sparkline Cards */}
+                  <div className="lg:col-span-5 flex flex-col gap-6">
+                    {/* Active Students Card */}
+                    <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden flex-1 flex flex-col justify-between">
+                      <div className="bg-[#F8F9FA] px-6 py-4 border-b border-slate-200/80">
+                        <h2 className="font-display text-[19px] font-extrabold text-[#1D2026]">
+                          Track Students
+                        </h2>
+                      </div>
+
+                      <div className="px-6 pt-5 pb-4 flex items-center justify-between">
+                        <div>
+                          <span className="font-display text-[32px] font-extrabold text-[#1D3B53]">
+                            {instructorTrackEnrolled}
+                          </span>
+                          <div className="text-[13px] text-[#747579] mt-0.5">
+                            Enrolled in {currentInstructor.track}
+                          </div>
+                        </div>
+                        <div className="w-12 h-12 rounded-full bg-[#F6ECF9] text-[#AE54C6] flex items-center justify-center font-bold">
+                          <UserIcon className="w-6 h-6" />
+                        </div>
+                      </div>
+
+                      <div className="px-6 pb-5 pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-[#747579]">
+                        <span>Delivery: Physical Lab & Live Zoom</span>
+                        <span className="font-bold text-emerald-600">Cohort 2026</span>
+                      </div>
+                    </div>
+
+                    {/* Total Enrollment Card */}
+                    <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden flex-1 flex flex-col justify-between">
+                      <div className="bg-[#F8F9FA] px-6 py-4 border-b border-slate-200/80">
+                        <h2 className="font-display text-[19px] font-extrabold text-[#1D2026]">
+                          Institute Total
+                        </h2>
+                      </div>
+
+                      <div className="px-6 pt-5 pb-4 flex items-center justify-between">
+                        <div>
+                          <span className="font-display text-[32px] font-extrabold text-[#1D3B53]">
+                            {analytics.totalStudents}
+                          </span>
+                          <div className="text-[13px] text-[#747579] mt-0.5">
+                            Total Students across BEMS tracks
+                          </div>
+                        </div>
+                        <div className="w-12 h-12 rounded-full bg-[#FEF6E0] text-[#F7C32E] flex items-center justify-center font-bold">
+                          <GraduationCap className="w-6 h-6" />
+                        </div>
+                      </div>
+
+                      <div className="px-6 pb-5 pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-[#747579]">
+                        <span>Target: {analytics.targetStudents} students</span>
+                        <span className="font-bold text-[#AE54C6]">₦{analytics.totalRevenue.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Middle Card: Courses List */}
+                <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
+                  <div className="bg-[#F8F9FA] px-6 py-4 border-b border-slate-200/80 flex items-center justify-between">
+                    <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
+                      Assigned Tracks & Courses
                     </h2>
+                    <span className="text-xs font-semibold text-[#747579]">
+                      BEMS Institute of Technology
+                    </span>
                   </div>
 
                   <div className="p-6">
-                    <div className="mb-6">
-                      <img
-                        src="https://api.dicebear.com/7.x/initials/svg?seed=Emeka%20Nwosu&backgroundColor=18143D&textColor=ffffff"
-                        alt="Louis Ferguson"
-                        className="w-20 h-20 rounded-full object-cover shadow-md"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6 text-[14px]">
-                      <div>
-                        <span className="text-[#747579]">Title: </span>
-                        <strong className="text-[#1D2026] font-bold">Mr.</strong>
-                      </div>
-                      <div>
-                        <span className="text-[#747579]">Email ID: </span>
-                        <strong className="text-[#1D2026] font-bold">example@gmail.com</strong>
-                      </div>
-                      <div>
-                        <span className="text-[#747579]">Full Name: </span>
-                        <strong className="text-[#1D2026] font-bold">Louis Ferguson</strong>
-                      </div>
-                      <div>
-                        <span className="text-[#747579]">Location: </span>
-                        <strong className="text-[#1D2026] font-bold">California</strong>
-                      </div>
-                      <div>
-                        <span className="text-[#747579]">User Name: </span>
-                        <strong className="text-[#1D2026] font-bold">Lousifer</strong>
-                      </div>
-                      <div>
-                        <span className="text-[#747579]">Joining Date: </span>
-                        <strong className="text-[#1D2026] font-bold">29 Aug 2019</strong>
-                      </div>
-                      <div className="sm:col-span-2">
-                        <span className="text-[#747579]">Mobile Number: </span>
-                        <strong className="text-[#1D2026] font-bold">+123 456 789 10</strong>
-                      </div>
-                      <div className="sm:col-span-2">
-                        <span className="text-[#747579]">Education: </span>
-                        <strong className="text-[#1D2026] font-bold">
-                          Bachelor in Computer Graphics, Masters in Computer Graphics
-                        </strong>
-                      </div>
-                      <div className="sm:col-span-2 flex flex-col sm:flex-row sm:items-start gap-2">
-                        <span className="text-[#747579] shrink-0">Description:</span>
-                        <p className="text-[#1D2026] font-bold leading-relaxed text-[13.5px]">
-                          As it so contrasted oh estimating instrument. Size like body someone had. Are conduct viewing boy minutes warrant the expense Tolerably behavior may admit daughters offending her ask own. Praise effect wishes change way and any wanted. Lively use looked latter regard had. Do he it part more last in
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right Stacked Sparkline Cards */}
-                <div className="lg:col-span-5 flex flex-col gap-6">
-                  {/* Active Students Card */}
-                  <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden flex-1 flex flex-col justify-between">
-                    <div className="bg-[#F8F9FA] px-6 py-4 border-b border-slate-200/80">
-                      <h2 className="font-display text-[19px] font-extrabold text-[#1D2026]">
-                        Active Students
-                      </h2>
-                    </div>
-
-                    <div className="px-6 pt-5 pb-2 flex items-center justify-between">
-                      <span className="font-display text-[28px] font-extrabold text-[#1D3B53]">
-                        984
-                      </span>
-                      <div className="text-[13px]">
-                        <span className="text-[#AE54C6] font-semibold">0.20% ↑</span>{" "}
-                        <span className="text-[#747579]">vs last Week</span>
-                      </div>
-                    </div>
-
-                    <div className="w-full pt-2">
-                      <svg viewBox="0 0 400 115" className="w-full h-28 block" preserveAspectRatio="none">
-                        <defs>
-                          <linearGradient id="activeStudentsGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#AE54C6" stopOpacity="0.32" />
-                            <stop offset="100%" stopColor="#AE54C6" stopOpacity="0.02" />
-                          </linearGradient>
-                        </defs>
-                        <path
-                          d="M 0 95 C 40 85, 65 78, 95 52 C 125 32, 160 40, 205 42 C 245 44, 270 72, 300 68 C 335 64, 365 25, 400 20 L 400 115 L 0 115 Z"
-                          fill="url(#activeStudentsGrad)"
-                        />
-                        <path
-                          d="M 0 95 C 40 85, 65 78, 95 52 C 125 32, 160 40, 205 42 C 245 44, 270 72, 300 68 C 335 64, 365 25, 400 20"
-                          fill="none"
-                          stroke="#AE54C6"
-                          strokeWidth="3"
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-
-                  {/* New Enrollment Card */}
-                  <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden flex-1 flex flex-col justify-between">
-                    <div className="bg-[#F8F9FA] px-6 py-4 border-b border-slate-200/80">
-                      <h2 className="font-display text-[19px] font-extrabold text-[#1D2026]">
-                        New Enrollment
-                      </h2>
-                    </div>
-
-                    <div className="px-6 pt-5 pb-2 flex items-center justify-between">
-                      <span className="font-display text-[28px] font-extrabold text-[#1D3B53]">
-                        140
-                      </span>
-                      <div className="text-[13px]">
-                        <span className="text-[#AE54C6] font-semibold">0.35% ↑</span>{" "}
-                        <span className="text-[#747579]">vs last Week</span>
-                      </div>
-                    </div>
-
-                    <div className="w-full pt-2">
-                      <svg viewBox="0 0 400 115" className="w-full h-28 block" preserveAspectRatio="none">
-                        <defs>
-                          <linearGradient id="newEnrollmentGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#A16EBD" stopOpacity="0.32" />
-                            <stop offset="100%" stopColor="#A16EBD" stopOpacity="0.02" />
-                          </linearGradient>
-                        </defs>
-                        <path
-                          d="M 0 102 C 45 92, 95 92, 140 65 C 175 45, 210 28, 235 32 C 260 36, 275 82, 305 78 C 340 74, 370 18, 400 18 L 400 115 L 0 115 Z"
-                          fill="url(#newEnrollmentGrad)"
-                        />
-                        <path
-                          d="M 0 102 C 45 92, 95 92, 140 65 C 175 45, 210 28, 235 32 C 260 36, 275 82, 305 78 C 340 74, 370 18, 400 18"
-                          fill="none"
-                          stroke="#A16EBD"
-                          strokeWidth="3"
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Middle Card: Courses List (Matches Image 2) */}
-              <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
-                <div className="bg-[#F8F9FA] px-6 py-4 border-b border-slate-200/80">
-                  <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
-                    Courses List
-                  </h2>
-                </div>
-
-                <div className="p-6">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse min-w-[640px]">
-                      <thead>
-                        <tr className="bg-[#24292D] text-white text-[13.5px] font-bold">
-                          <th className="py-3.5 px-5 rounded-l-lg">Course Name</th>
-                          <th className="py-3.5 px-4">Enrolled</th>
-                          <th className="py-3.5 px-4">Status</th>
-                          <th className="py-3.5 px-5 rounded-r-lg">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 text-[14px]">
-                        {[
-                          {
-                            title: "Building Scalable APIs with GraphQL",
-                            enrolled: 412,
-                            status: "Live",
-                            statusStyle: "bg-[#F7EDF9] text-[#AE54C6]",
-                            thumbBg: "bg-[#FDEBC8]",
-                            thumbText: "💎",
-                          },
-                          {
-                            title: "Graphic Design Masterclass",
-                            enrolled: 254,
-                            status: "Live",
-                            statusStyle: "bg-[#F7EDF9] text-[#AE54C6]",
-                            thumbBg: "bg-[#1D3B53] text-[#38BDF8]",
-                            thumbText: "Ps",
-                          },
-                          {
-                            title: "Learn Invision",
-                            enrolled: 0,
-                            status: "Pending",
-                            statusStyle: "bg-[#FEF6E0] text-[#F7C32E]",
-                            thumbBg: "bg-[#D6293E] text-white",
-                            thumbText: "in",
-                          },
-                          {
-                            title: "Deep Learning with React-Native",
-                            enrolled: 98,
-                            status: "Live",
-                            statusStyle: "bg-[#F7EDF9] text-[#AE54C6]",
-                            thumbBg: "bg-[#E0F7FA] text-[#00BCD4]",
-                            thumbText: "⚛",
-                          },
-                          {
-                            title: "Bootstrap 5 From Scratch",
-                            enrolled: 58,
-                            status: "Cancel",
-                            statusStyle: "bg-[#FBE9EB] text-[#D6293E]",
-                            thumbBg: "bg-[#ECD7F2] text-[#A16EBD]",
-                            thumbText: "B",
-                          },
-                        ].map((item) => (
-                          <tr key={item.title} className="hover:bg-slate-50/70">
-                            <td className="py-4 px-5">
-                              <div className="flex items-center gap-3.5">
-                                <div
-                                  className={`w-14 h-10 rounded-md ${item.thumbBg} font-extrabold text-xs flex items-center justify-center shrink-0 shadow-2xs`}
-                                >
-                                  {item.thumbText}
-                                </div>
-                                <span className="font-bold text-[#1D2026]">
-                                  {item.title}
-                                </span>
-                              </div>
-                            </td>
-                            <td className="py-4 px-4 text-[#747579]">{item.enrolled}</td>
-                            <td className="py-4 px-4">
-                              <span
-                                className={`px-2.5 py-1 rounded-md text-[11.5px] font-bold ${item.statusStyle}`}
-                              >
-                                {item.status}
-                              </span>
-                            </td>
-                            <td className="py-4 px-5">
-                              <Link
-                                href="/courses"
-                                className="inline-flex items-center justify-center px-3.5 py-1.5 rounded-md bg-[#E5F6F8] hover:bg-[#17A2B8] text-[#17A2B8] hover:text-white text-[12.5px] font-bold transition-colors"
-                              >
-                                View
-                              </Link>
-                            </td>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse min-w-[640px]">
+                        <thead>
+                          <tr className="bg-[#24292D] text-white text-[13.5px] font-bold">
+                            <th className="py-3.5 px-5 rounded-l-lg">Track Name</th>
+                            <th className="py-3.5 px-4">Enrolled</th>
+                            <th className="py-3.5 px-4">Tuition</th>
+                            <th className="py-3.5 px-4">Status</th>
+                            <th className="py-3.5 px-5 rounded-r-lg">Action</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Pagination Footer */}
-                  <div className="mt-6 pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-[13.5px] text-[#747579]">
-                    <div>Showing 1 to 8 of 20 entries</div>
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
-                      >
-                        <ChevronLeft className="w-4 h-4" />
-                      </button>
-                      <button
-                        type="button"
-                        className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] text-[13px] font-bold flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
-                      >
-                        1
-                      </button>
-                      <button
-                        type="button"
-                        className="w-8 h-8 rounded-md bg-[#AE54C6] text-white text-[13px] font-bold flex items-center justify-center cursor-pointer"
-                      >
-                        2
-                      </button>
-                      <button
-                        type="button"
-                        className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] text-[13px] font-bold flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
-                      >
-                        3
-                      </button>
-                      <button
-                        type="button"
-                        className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
-                      >
-                        <ChevronRight className="w-4 h-4" />
-                      </button>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 text-[14px]">
+                          {instructorCourses.length > 0 ? (
+                            instructorCourses.map((c) => (
+                              <tr key={c.id} className="hover:bg-slate-50/70">
+                                <td className="py-4 px-5">
+                                  <div className="flex items-center gap-3.5">
+                                    <div className="w-10 h-10 rounded-lg bg-[#F7EDF9] text-[#AE54C6] font-bold flex items-center justify-center shrink-0">
+                                      <BookOpen className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                      <span className="font-bold text-[#1D2026] block">
+                                        {c.title}
+                                      </span>
+                                      <span className="text-xs text-[#747579]">
+                                        Lead: {c.tutor}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="py-4 px-4 font-bold text-[#1D2026]">
+                                  {instructorTrackEnrolled} Students
+                                </td>
+                                <td className="py-4 px-4 font-bold text-[#AE54C6]">
+                                  ₦{c.priceFull.toLocaleString()}
+                                </td>
+                                <td className="py-4 px-4">
+                                  <span className="px-2.5 py-1 rounded-md text-[11.5px] font-bold bg-[#F7EDF9] text-[#AE54C6]">
+                                    Active Cohort
+                                  </span>
+                                </td>
+                                <td className="py-4 px-5">
+                                  <Link
+                                    href={`/courses/${c.slug}`}
+                                    className="inline-flex items-center justify-center px-3.5 py-1.5 rounded-md bg-[#AE54C6] text-white text-[12.5px] font-bold hover:bg-[#A03BBC] transition-colors"
+                                  >
+                                    View Syllabus
+                                  </Link>
+                                </td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan={5} className="py-8 text-center text-[#747579]">
+                                No courses assigned.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Bottom Card: All Reviews (Matches Image 1) */}
-              <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
-                <div className="bg-[#F8F9FA] px-6 py-4 border-b border-slate-200/80">
-                  <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
-                    All Reviews
-                  </h2>
-                </div>
-
-                <div className="p-6">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse min-w-[640px]">
-                      <thead>
-                        <tr className="bg-[#24292D] text-white text-[13.5px] font-bold">
-                          <th className="py-3.5 px-5 rounded-l-lg">Student Name</th>
-                          <th className="py-3.5 px-4">Course Name</th>
-                          <th className="py-3.5 px-4">Rating</th>
-                          <th className="py-3.5 px-5 rounded-r-lg">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 text-[14px]">
-                        {[
-                          {
-                            name: "Ngozi Eze",
-                            course: "Building Scalable APIs with GraphQL",
-                            stars: 5,
-                            activeRow: true,
-                            avatar:
-                              "https://api.dicebear.com/7.x/initials/svg?seed=Ngozi%20Eze&backgroundColor=671FB0&textColor=ffffff",
-                          },
-                          {
-                            name: "Blessing Adeyemi",
-                            course: "Graphic Design Masterclass",
-                            stars: 5,
-                            activeRow: false,
-                            avatar:
-                              "https://api.dicebear.com/7.x/initials/svg?seed=Blessing%20Adeyemi&backgroundColor=7928CA&textColor=ffffff",
-                          },
-                          {
-                            name: "Emeka Nwosu",
-                            course: "Deep Learning with React-Native",
-                            stars: 4,
-                            activeRow: false,
-                            avatar:
-                              "https://api.dicebear.com/7.x/initials/svg?seed=Emeka%20Nwosu&backgroundColor=18143D&textColor=ffffff",
-                          },
-                          {
-                            name: "Tunde Bakare",
-                            course: "Bootstrap 5 From Scratch",
-                            stars: 4,
-                            activeRow: false,
-                            avatar:
-                              "https://api.dicebear.com/7.x/initials/svg?seed=Tunde%20Bakare&backgroundColor=671FB0&textColor=ffffff",
-                          },
-                          {
-                            name: "Chiamaka Nnamdi",
-                            course: "Learn Invision",
-                            stars: 4,
-                            activeRow: false,
-                            avatar:
-                              "https://api.dicebear.com/7.x/initials/svg?seed=Chiamaka%20Nnamdi&backgroundColor=7928CA&textColor=ffffff",
-                          },
-                        ].map((rev) => (
-                          <tr
-                            key={rev.name}
-                            className={rev.activeRow ? "bg-[#F2F4F6]" : "hover:bg-slate-50/70"}
-                          >
-                            <td className="py-4 px-5">
-                              <div className="flex items-center gap-3">
-                                <img
-                                  src={rev.avatar}
-                                  alt={rev.name}
-                                  className="w-10 h-10 rounded-full object-cover shrink-0"
-                                />
-                                <span className="font-bold text-[#1D2026]">
-                                  {rev.name}
-                                </span>
-                              </div>
-                            </td>
-                            <td className="py-4 px-4 font-bold text-[#1D2026]">
-                              {rev.course}
-                            </td>
-                            <td className="py-4 px-4">
-                              <div className="flex items-center gap-1">
-                                {[1, 2, 3, 4, 5].map((s) => (
-                                  <Star
-                                    key={s}
-                                    className={`w-4 h-4 ${
-                                      s <= rev.stars
-                                        ? "text-[#F7C32E] fill-[#F7C32E]"
-                                        : "text-[#F7C32E]"
-                                    }`}
-                                  />
-                                ))}
-                              </div>
-                            </td>
-                            <td className="py-4 px-5">
-                              <button
-                                type="button"
-                                onClick={() => switchTab("reviews")}
-                                className={`px-3.5 py-1.5 rounded-md text-[12.5px] font-bold transition-colors cursor-pointer ${
-                                  rev.activeRow
-                                    ? "bg-[#17A2B8] text-white"
-                                    : "bg-[#E5F6F8] text-[#17A2B8] hover:bg-[#17A2B8] hover:text-white"
-                                }`}
-                              >
-                                View
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                {/* Bottom Card: Student Reviews for this Track */}
+                <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
+                  <div className="bg-[#F8F9FA] px-6 py-4 border-b border-slate-200/80 flex items-center justify-between">
+                    <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
+                      Student Reviews ({currentInstructor.track})
+                    </h2>
+                    <button
+                      type="button"
+                      onClick={() => switchTab("reviews")}
+                      className="text-xs font-semibold text-[#AE54C6] hover:underline cursor-pointer"
+                    >
+                      View all reviews
+                    </button>
                   </div>
 
-                  {/* Pagination Footer */}
-                  <div className="mt-6 pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-[13.5px] text-[#747579]">
-                    <div>Showing 1 to 8 of 20 entries</div>
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
-                      >
-                        <ChevronLeft className="w-4 h-4" />
-                      </button>
-                      <button
-                        type="button"
-                        className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] text-[13px] font-bold flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
-                      >
-                        1
-                      </button>
-                      <button
-                        type="button"
-                        className="w-8 h-8 rounded-md bg-[#AE54C6] text-white text-[13px] font-bold flex items-center justify-center cursor-pointer"
-                      >
-                        2
-                      </button>
-                      <button
-                        type="button"
-                        className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] text-[13px] font-bold flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
-                      >
-                        3
-                      </button>
-                      <button
-                        type="button"
-                        className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
-                      >
-                        <ChevronRight className="w-4 h-4" />
-                      </button>
-                    </div>
+                  <div className="p-6">
+                    {instructorReviews.length > 0 ? (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse min-w-[640px]">
+                          <thead>
+                            <tr className="bg-[#24292D] text-white text-[13.5px] font-bold">
+                              <th className="py-3.5 px-5 rounded-l-lg">Student Name</th>
+                              <th className="py-3.5 px-4">Track</th>
+                              <th className="py-3.5 px-4">Rating</th>
+                              <th className="py-3.5 px-5 rounded-r-lg">Date</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 text-[14px]">
+                            {instructorReviews.map((rev) => (
+                              <tr key={rev.id} className="hover:bg-slate-50/70">
+                                <td className="py-4 px-5">
+                                  <div className="flex items-center gap-3">
+                                    <img
+                                      src={rev.avatar}
+                                      alt={rev.studentName}
+                                      className="w-9 h-9 rounded-full object-cover shrink-0"
+                                    />
+                                    <span className="font-bold text-[#1D2026]">
+                                      {rev.studentName}
+                                    </span>
+                                  </div>
+                                </td>
+                                <td className="py-4 px-4 font-bold text-[#1D2026]">
+                                  {rev.courseName}
+                                </td>
+                                <td className="py-4 px-4">
+                                  <div className="flex items-center gap-1">
+                                    {[1, 2, 3, 4, 5].map((s) => (
+                                      <Star
+                                        key={s}
+                                        className={`w-4 h-4 ${
+                                          s <= rev.rating
+                                            ? "text-[#F7C32E] fill-[#F7C32E]"
+                                            : "text-[#F7C32E]"
+                                        }`}
+                                      />
+                                    ))}
+                                  </div>
+                                </td>
+                                <td className="py-4 px-5 text-xs text-[#747579]">
+                                  {rev.createdAt
+                                    ? new Date(rev.createdAt).toLocaleDateString("en-GB")
+                                    : "Cohort 2026"}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div className="py-10 text-center text-[#747579] text-sm">
+                        No reviews recorded yet for {currentInstructor.track}. Reviews are submitted by certified graduates.
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* ========================================================= */}
           {/* VIEW 3C: INSTRUCTOR REQUESTS (Matches Image 3)            */}
@@ -3419,103 +3219,111 @@ function AdminDashboardContent() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-[14px]">
-                      {reviewsList.map((rev) => (
-                        <tr key={rev.id} className="hover:bg-slate-50/70">
-                          <td className="py-4 px-4 text-[#747579] font-medium">
-                            {rev.id}
-                          </td>
-                          <td className="py-4 px-4">
-                            <div className="flex items-center gap-3">
-                              <img
-                                src={rev.avatar}
-                                alt={rev.studentName}
-                                className="w-10 h-10 rounded-full object-cover shrink-0"
-                              />
-                              <span className="font-bold text-[#1D2026]">
-                                {rev.studentName}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="py-4 px-4 font-bold text-[#1D2026]">
-                            {rev.courseName}
-                          </td>
-                          <td className="py-4 px-4">
-                            <div className="flex items-center gap-1">
-                              {[1, 2, 3, 4, 5].map((s) => (
-                                <Star
-                                  key={s}
-                                  className={`w-4 h-4 ${
-                                    s <= rev.rating
-                                      ? "text-[#F7C32E] fill-[#F7C32E]"
-                                      : "text-[#F7C32E]"
-                                  }`}
-                                />
-                              ))}
-                            </div>
-                          </td>
-                          <td className="py-4 px-4">
-                            <button
-                              type="button"
-                              role="switch"
-                              aria-checked={rev.visible}
-                              onClick={() =>
-                                setReviewsList((prev) =>
-                                  prev.map((item) =>
-                                    item.id === rev.id
-                                      ? { ...item, visible: !item.visible }
-                                      : item
-                                  )
-                                )
-                              }
-                              className={`w-10 h-5 rounded-full p-0.5 transition-colors cursor-pointer flex items-center ${
-                                rev.visible
-                                  ? "bg-[#AE54C6] justify-end"
-                                  : "bg-[#E2E8F0] justify-start"
-                              }`}
-                            >
-                              <span className="w-4 h-4 rounded-full bg-white shadow-2xs block" />
-                            </button>
-                          </td>
-                          <td className="py-4 px-4">
-                            <div className="flex items-center gap-2">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setAdminNotice(
-                                    `Opened review editor for ${rev.studentName}.`
-                                  )
-                                }
-                                className="w-8 h-8 rounded-full bg-[#F7EDF9] hover:bg-[#AE54C6] text-[#AE54C6] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
-                                title="Edit Review"
-                              >
-                                <Edit3 className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setReviewsList((prev) =>
-                                    prev.filter((item) => item.id !== rev.id)
-                                  );
-                                  setAdminNotice(
-                                    `Deleted review #${rev.id} from ${rev.studentName}.`
-                                  );
-                                }}
-                                className="w-8 h-8 rounded-full bg-[#FBE9EB] hover:bg-[#D6293E] text-[#D6293E] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
-                                title="Delete Review"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => switchTab("instructor-detail")}
-                                className="px-3.5 py-1.5 rounded-md bg-[#E5F6F8] hover:bg-[#17A2B8] text-[#17A2B8] hover:text-white text-[12.5px] font-bold transition-colors cursor-pointer"
-                              >
-                                View
-                              </button>
-                            </div>
+                      {reviewsList.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="py-12 text-center text-[#747579]">
+                            No course reviews recorded yet. Verified reviews are submitted by BEMS graduates upon receiving their certificate.
                           </td>
                         </tr>
-                      ))}
+                      ) : (
+                        reviewsList.map((rev) => (
+                          <tr key={rev.id} className="hover:bg-slate-50/70">
+                            <td className="py-4 px-4 text-[#747579] font-medium">
+                              {rev.id}
+                            </td>
+                            <td className="py-4 px-4">
+                              <div className="flex items-center gap-3">
+                                <img
+                                  src={rev.avatar}
+                                  alt={rev.studentName}
+                                  className="w-10 h-10 rounded-full object-cover shrink-0"
+                                />
+                                <span className="font-bold text-[#1D2026]">
+                                  {rev.studentName}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 font-bold text-[#1D2026]">
+                              {rev.courseName}
+                            </td>
+                            <td className="py-4 px-4">
+                              <div className="flex items-center gap-1">
+                                {[1, 2, 3, 4, 5].map((s) => (
+                                  <Star
+                                    key={s}
+                                    className={`w-4 h-4 ${
+                                      s <= rev.rating
+                                        ? "text-[#F7C32E] fill-[#F7C32E]"
+                                        : "text-[#F7C32E]"
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                            </td>
+                            <td className="py-4 px-4">
+                              <button
+                                type="button"
+                                role="switch"
+                                aria-checked={rev.visible}
+                                onClick={() =>
+                                  setReviewsList((prev) =>
+                                    prev.map((item) =>
+                                      item.id === rev.id
+                                        ? { ...item, visible: !item.visible }
+                                        : item
+                                    )
+                                  )
+                                }
+                                className={`w-10 h-5 rounded-full p-0.5 transition-colors cursor-pointer flex items-center ${
+                                  rev.visible
+                                    ? "bg-[#AE54C6] justify-end"
+                                    : "bg-[#E2E8F0] justify-start"
+                                }`}
+                              >
+                                <span className="w-4 h-4 rounded-full bg-white shadow-2xs block" />
+                              </button>
+                            </td>
+                            <td className="py-4 px-4">
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setAdminNotice(
+                                      `Opened review editor for ${rev.studentName}.`
+                                    )
+                                  }
+                                  className="w-8 h-8 rounded-full bg-[#F7EDF9] hover:bg-[#AE54C6] text-[#AE54C6] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                                  title="Edit Review"
+                                >
+                                  <Edit3 className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setReviewsList((prev) =>
+                                      prev.filter((item) => item.id !== rev.id)
+                                    );
+                                    setAdminNotice(
+                                      `Deleted review #${rev.id} from ${rev.studentName}.`
+                                    );
+                                  }}
+                                  className="w-8 h-8 rounded-full bg-[#FBE9EB] hover:bg-[#D6293E] text-[#D6293E] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                                  title="Delete Review"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => switchTab("instructor-detail")}
+                                  className="px-3.5 py-1.5 rounded-md bg-[#E5F6F8] hover:bg-[#17A2B8] text-[#17A2B8] hover:text-white text-[12.5px] font-bold transition-colors cursor-pointer"
+                                >
+                                  View
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -3582,39 +3390,50 @@ function AdminDashboardContent() {
                         <tbody className="divide-y divide-slate-100 text-[14px]">
                           {[
                             {
-                              title: "AI & Automation",
-                              enrolled: 22,
-                              stars: 5,
-                              thumbBg: "bg-[#F7EDF9] text-[#AE54C6]",
-                              thumbText: "🤖",
-                            },
-                            {
-                              title: "Web Development",
-                              enrolled: 31,
+                              title: "Full-Stack Web Development",
+                              slug: "full-stack-web-development",
+                              enrolled:
+                                analytics.trackDistribution.find((t) =>
+                                  t.track.toLowerCase().includes("web")
+                                )?.count || 0,
                               stars: 5,
                               thumbBg: "bg-[#303654] text-white",
                               thumbText: "</>",
                             },
                             {
                               title: "Product Design (UI/UX)",
-                              enrolled: 18,
+                              slug: "product-design-ui-ux",
+                              enrolled:
+                                analytics.trackDistribution.find(
+                                  (t) =>
+                                    t.track.toLowerCase().includes("design") ||
+                                    t.track.toLowerCase().includes("ui")
+                                )?.count || 0,
                               stars: 5,
                               thumbBg: "bg-[#F7EDF9] text-[#AE54C6]",
                               thumbText: "🎨",
                             },
                             {
-                              title: "Cybersecurity",
-                              enrolled: 15,
-                              stars: 4,
-                              thumbBg: "bg-[#303654] text-white",
-                              thumbText: "🔒",
+                              title: "AI & Automation",
+                              slug: "ai-and-automation",
+                              enrolled:
+                                analytics.trackDistribution.find((t) =>
+                                  t.track.toLowerCase().includes("ai")
+                                )?.count || 0,
+                              stars: 5,
+                              thumbBg: "bg-[#F7EDF9] text-[#AE54C6]",
+                              thumbText: "🤖",
                             },
                             {
-                              title: "Mobile App Engineering",
-                              enrolled: 12,
-                              stars: 4,
-                              thumbBg: "bg-[#F7EDF9] text-[#AE54C6]",
-                              thumbText: "📱",
+                              title: "Cybersecurity & Ethical Hacking",
+                              slug: "cybersecurity-and-ethical-hacking",
+                              enrolled:
+                                analytics.trackDistribution.find((t) =>
+                                  t.track.toLowerCase().includes("cyber")
+                                )?.count || 0,
+                              stars: 5,
+                              thumbBg: "bg-[#303654] text-white",
+                              thumbText: "🔒",
                             },
                           ].map((course) => (
                             <tr key={course.title} className="hover:bg-slate-50/70">
@@ -3649,24 +3468,8 @@ function AdminDashboardContent() {
                               </td>
                               <td className="py-4 px-4">
                                 <div className="flex flex-col items-start gap-1.5">
-                                  <div className="flex items-center gap-1.5">
-                                    <button
-                                      type="button"
-                                      className="w-8 h-8 rounded-full bg-[#F7EDF9] hover:bg-[#AE54C6] text-[#AE54C6] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
-                                      title="Edit"
-                                    >
-                                      <Edit3 className="w-3.5 h-3.5" />
-                                    </button>
-                                    <button
-                                      type="button"
-                                      className="w-8 h-8 rounded-full bg-[#FBE9EB] hover:bg-[#D6293E] text-[#D6293E] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
-                                      title="Delete"
-                                    >
-                                      <Trash2 className="w-3.5 h-3.5" />
-                                    </button>
-                                  </div>
                                   <Link
-                                    href="/courses"
+                                    href={`/courses/${course.slug}`}
                                     className="px-3.5 py-1 rounded-md bg-[#E5F6F8] hover:bg-[#17A2B8] text-[#17A2B8] hover:text-white text-[12px] font-bold transition-colors"
                                   >
                                     View
@@ -3681,39 +3484,7 @@ function AdminDashboardContent() {
 
                     {/* Pagination Footer */}
                     <div className="mt-6 pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-[13.5px] text-[#747579]">
-                      <div>Showing 1 to 8 of 20 entries</div>
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          type="button"
-                          className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
-                        >
-                          <ChevronLeft className="w-4 h-4" />
-                        </button>
-                        <button
-                          type="button"
-                          className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] text-[13px] font-bold flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
-                        >
-                          1
-                        </button>
-                        <button
-                          type="button"
-                          className="w-8 h-8 rounded-md bg-[#AE54C6] text-white text-[13px] font-bold flex items-center justify-center cursor-pointer"
-                        >
-                          2
-                        </button>
-                        <button
-                          type="button"
-                          className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] text-[13px] font-bold flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
-                        >
-                          3
-                        </button>
-                        <button
-                          type="button"
-                          className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
-                        >
-                          <ChevronRight className="w-4 h-4" />
-                        </button>
-                      </div>
+                      <div>Showing 4 BEMS Core Tracks</div>
                     </div>
                   </div>
                 </div>
@@ -3726,59 +3497,80 @@ function AdminDashboardContent() {
                     </h2>
                   </div>
 
-                  <div className="p-6 flex-1 flex flex-col justify-between">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-[#F7EDF9] rounded-lg p-4">
-                        <div className="text-[13px] text-[#747579] mb-1">
-                          Total Positive Review
-                        </div>
-                        <div className="font-display text-[22px] font-extrabold text-[#1D2026]">
-                          85%
-                        </div>
-                      </div>
-                      <div className="bg-[#FBE9EB] rounded-lg p-4">
-                        <div className="text-[13px] text-[#747579] mb-1">
-                          Total Negative Review
-                        </div>
-                        <div className="font-display text-[22px] font-extrabold text-[#1D2026]">
-                          15%
-                        </div>
-                      </div>
-                    </div>
+                  {(() => {
+                    const positiveCount = reviewsList.filter((r) => r.rating >= 4).length;
+                    const positivePct =
+                      reviewsList.length > 0
+                        ? Math.round((positiveCount / reviewsList.length) * 100)
+                        : 100;
+                    const negativePct = 100 - positivePct;
+                    const dashGreen = Math.round((positivePct / 100) * 377);
+                    const dashRed = Math.max(0, 377 - dashGreen);
 
-                    {/* 2-Segment Green/Red Donut Chart */}
-                    <div className="my-auto py-8 flex items-center justify-center">
-                      <div className="w-56 h-56 relative">
-                        <svg viewBox="0 0 160 160" className="w-full h-full -rotate-90">
-                          {/* Green 73% visual arc */}
-                          <circle
-                            cx="80"
-                            cy="80"
-                            r="60"
-                            fill="transparent"
-                            stroke="#AE54C6"
-                            strokeWidth="26"
-                            strokeDasharray="273 377"
-                            strokeDashoffset="0"
-                          />
-                          {/* Red 27% visual arc */}
-                          <circle
-                            cx="80"
-                            cy="80"
-                            r="60"
-                            fill="transparent"
-                            stroke="#D6293E"
-                            strokeWidth="26"
-                            strokeDasharray="100 377"
-                            strokeDashoffset="-275"
-                          />
-                        </svg>
+                    return (
+                      <div className="p-6 flex-1 flex flex-col justify-between">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="bg-[#F7EDF9] rounded-lg p-4">
+                            <div className="text-[13px] text-[#747579] mb-1">
+                              Positive (4-5★)
+                            </div>
+                            <div className="font-display text-[22px] font-extrabold text-[#1D2026]">
+                              {positivePct}%
+                            </div>
+                          </div>
+                          <div className="bg-[#FBE9EB] rounded-lg p-4">
+                            <div className="text-[13px] text-[#747579] mb-1">
+                              Needs Improvement
+                            </div>
+                            <div className="font-display text-[22px] font-extrabold text-[#1D2026]">
+                              {negativePct}%
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* 2-Segment Green/Red Donut Chart */}
+                        <div className="my-auto py-8 flex items-center justify-center">
+                          <div className="w-56 h-56 relative">
+                            <svg viewBox="0 0 160 160" className="w-full h-full -rotate-90">
+                              <circle
+                                cx="80"
+                                cy="80"
+                                r="60"
+                                fill="transparent"
+                                stroke="#AE54C6"
+                                strokeWidth="26"
+                                strokeDasharray={`${dashGreen} 377`}
+                                strokeDashoffset="0"
+                              />
+                              {negativePct > 0 && (
+                                <circle
+                                  cx="80"
+                                  cy="80"
+                                  r="60"
+                                  fill="transparent"
+                                  stroke="#D6293E"
+                                  strokeWidth="26"
+                                  strokeDasharray={`${dashRed} 377`}
+                                  strokeDashoffset={-dashGreen}
+                                />
+                              )}
+                            </svg>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                              <span className="text-[20px] font-extrabold text-[#1D2026]">
+                                {reviewsList.length}
+                              </span>
+                              <span className="text-[11px] text-[#747579] font-medium">
+                                {reviewsList.length === 1 ? "Review" : "Reviews"}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    );
+                  })()}
                   </div>
                 </div>
               </div>
-            </div>
           )}
 
           {/* ========================================================= */}

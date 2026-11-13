@@ -7,7 +7,7 @@ Shared between Claude Code and Antigravity — see "Working on this repo" in
 
 | Task | Agent | Branch | Files / areas | Started |
 |---|---|---|---|---|
-| Complete PR reviews & deploy to production | Claude Code & Antigravity | `antigravity/lms-core-upgrade`, `claude/registration-approval` | Entire repo | 2026-11-13 |
+| Complete PR reviews & deploy to production | Claude Code & Antigravity | `antigravity/lms-core-upgrade`, `claude/registration-approval`, `antigravity/admin-portal-upgrade` | Entire repo | 2026-11-13 |
 
 ## Production health check (Claude Code, 2026-11-13, read-only)
 
@@ -77,6 +77,33 @@ branch from there.
 - **AI Tutor & Lab Integration**: Connect Claude's AI persona selector and speech readout with LMS lesson classroom drawer.
 
 ## Done (handoff notes)
+
+### 2026-11-13: Admin Portal Overhaul — Elimination of Mock Data & Live BEMS Wiring (Antigravity)
+- **Claimed by**: Antigravity
+- **Branch**: `antigravity/admin-portal-upgrade`
+- **What was built**:
+  - **1. Eradicated All Eduport Template Mock Data** (`src/app/admin/page.tsx`):
+    - Removed `EDUPORT_STUDENTS` (fake Mumbai, Delhi, Chennai, New York students with `$6205` payments).
+    - Removed `EDUPORT_INSTRUCTORS` (fake non-BEMS instructors).
+    - Removed fake support requests `#759`, `#659`, fake earnings line chart with USD points, and lorem ipsum notices.
+  - **2. BEMS Faculty & Dynamic Instructor Detail View** (`src/app/admin/page.tsx`):
+    - Defined `BEMS_FACULTY` for the 4 official BEMS department heads: Victor (Lead Full-Stack Web Development), Temi (Lead Product Design UI/UX), Timi (Lead AI & Automation), and Cybersecurity Lead.
+    - Updated Instructor Grid and Instructor Detail views so clicking any instructor dynamically displays their real bio, campus/physical lab location, contact details, assigned BEMS tracks with syllabus links and tuition, and reviews filtered for their track.
+  - **3. Live Overview Dashboard** (`src/app/admin/page.tsx`):
+    - Real-time counter metrics driven by `analytics`: Total Enrolled Students, Tuition Revenue in Naira (`₦`), Completion Rate, and Pending Admissions.
+    - Replaced fake line chart with **Tuition Revenue & Payment Transactions** card wired to live `paymentLedger` (displaying student name, email, track, amount in `₦`, Paystack reference, and status badge).
+    - Replaced fake tickets with **Admissions & Actions** card: displays pending enrollment approvals with 1-click confirm, plus leads with one-tap WhatsApp outreach buttons.
+    - Added **Track Distribution Donut Chart** component visualizing live student breakdown across Web Dev, UI/UX, AI, and Cyber.
+  - **4. Reviews API & Real-time Reviews View** (`backend/src/routes/lms.ts`, `src/app/admin/page.tsx`):
+    - Upgraded `GET /api/lms/reviews` in backend: made `courseId` query param optional so when omitted, it retrieves all reviews across courses with course metadata and student avatar.
+    - Wired Admin Reviews view to fetch live reviews; replaced fake top-rated courses with the 4 BEMS tracks and live enrollment counts; built dynamic Reviews Analytics card calculating positive vs. needs improvement % and rendering a 2-segment SVG donut chart.
+  - **5. Clean Empty States**:
+    - Added responsive, branded empty state cards for student directories (both grid and list views) when no students exist, and for reviews table when no reviews are submitted.
+- **Verification**:
+  - `node C:\dev\bems\node_modules\typescript\bin\tsc -p C:\dev\bems\tsconfig.json --noEmit` -> 0 errors.
+  - `node C:\dev\bems\node_modules\typescript\bin\tsc -p C:\dev\bems\backend\tsconfig.json --noEmit` -> 0 errors.
+  - `npm test --prefix C:\dev\bems\backend` -> 5 test files passed, 16/16 tests passed.
+  - `npx --prefix C:\dev\bems next build C:\dev\bems` -> 30/30 pages compiled cleanly in production build.
 
 ### 2026-11-13: QR → Registration → Paystack Payment → Admin Confirmation Pipeline (Antigravity + Claude Code)
 - **Claimed by**: Antigravity (Frontend) & Claude Code (Backend)

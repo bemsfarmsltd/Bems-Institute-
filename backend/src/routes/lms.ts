@@ -626,13 +626,14 @@ router.get("/class-goals", async (req, res) => {
 // need a second request just to show a star rating on a course card.
 router.get("/reviews", async (req, res) => {
   const courseId = typeof req.query.courseId === "string" ? req.query.courseId : "";
-  if (!courseId) {
-    return res.status(400).json({ error: "courseId is required." });
-  }
+  const where = courseId ? { courseId } : {};
 
   const reviews = await prisma.review.findMany({
-    where: { courseId },
-    include: { user: { select: { name: true, avatarUrl: true } } },
+    where,
+    include: {
+      user: { select: { name: true, avatarUrl: true } },
+      course: { select: { id: true, title: true } }
+    },
     orderBy: { createdAt: "desc" }
   });
 
@@ -648,6 +649,8 @@ router.get("/reviews", async (req, res) => {
       avatarUrl: r.user.avatarUrl,
       rating: r.rating,
       comment: r.comment,
+      courseId: r.courseId,
+      courseTitle: r.course?.title || "BEMS Track",
       createdAt: r.createdAt.toISOString()
     }))
   });
