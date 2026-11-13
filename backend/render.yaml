@@ -18,5 +18,15 @@ services:
         sync: false
       - key: FRONTEND_URL
         sync: false
+      # Transactional email (payment receipts, admin alerts, registration
+      # confirmations) via Resend. Without these, emails are only logged.
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+      # Optional: extra comma-separated addresses that get "new payment"
+      # alerts on top of every ADMIN account's email.
+      - key: ADMIN_NOTIFY_EMAILS
+        sync: false
       - key: NODE_ENV
         value: production

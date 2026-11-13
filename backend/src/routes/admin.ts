@@ -7,6 +7,7 @@ import { DELIVERY_MODE_LABEL, mapAdminCourse } from "@/lib/lms-mappers";
 import { createNotification } from "@/lib/notifications";
 import { creditReferralIfEligible } from "@/lib/referrals";
 import { sendWhatsAppMessage } from "@/lib/twilio";
+import { sendEmail, frontendUrl, naira } from "@/lib/email";
 import { toCsv } from "@/lib/csv";
 import type { AnalyticsSummary } from "@/types/lms";
 
@@ -740,11 +741,154 @@ router.post("/enrollments/:id/payment", async (req, res) => {
     linkUrl: "/dashboard"
   });
 
+  // Bank transfers: an admin recording the payment is also the admin
+  // confirming the registration, so the student hears about both at once.
+  const student = await prisma.user.findUnique({ where: { id: enrollment.userId }, select: { name: true, email: true } });
+  if (student && delta > 0) {
+    const unlocked = enrollment.status !== "PENDING";
+    await sendEmail({
+      to: student.email,
+      subject: `Payment confirmed — ${enrollment.course.title}`,
+      text: [
+        `Hello ${student.name},`,
+        `BEMS Admissions has confirmed your bank transfer of ${naira(delta)} for ${enrollment.course.title}. Total paid: ${naira(amountPaid)} of ${naira(existing.totalDue)}.`,
+        unlocked
+          ? `Your registration is confirmed and your classroom is unlocked:\n${frontendUrl(`/courses/${enrollment.course.slug}`)}`
+          : "Admissions will confirm your registration shortly — you'll get another email when your classroom is unlocked.",
+        "BEMS Admissions"
+      ].join("\n\n")
+    });
+  }
+
   if (amountPaid > 0) {
     await creditReferralIfEligible(enrollment.userId);
   }
 
   return res.json({ enrollment });
+});
+
+// Registrations that have been paid for (Paystack or staff-confirmed) but
+// not yet confirmed by an admin — the admissions "to do" list. Oldest first,
+// so nobody who paid early gets stuck behind newer sign-ups.
+router.get("/enrollments/pending-approval", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
+  }
+
+  const pending = await prisma.enrollment.findMany({
+    where: { status: "PENDING", paymentStatus: { in: ["PARTIAL", "PAID_FULL"] } },
+    orderBy: { updatedAt: "asc" },
+    include: {
+      user: { select: { id: true, name: true, email: true, phone: true } },
+      course: { select: { id: true, title: true, slug: true } },
+      cohort: { select: { name: true } }
+    }
+  });
+
+  const references = pending.map((e) => e.paymentReference).filter((r): r is string => !!r);
+  const txns = references.length
+    ? await prisma.paymentTransaction.findMany({
+        where: { reference: { in: references } },
+        select: { reference: true, paidAt: true, channel: true, amount: true }
+      })
+    : [];
+  const txnByRef = new Map(txns.map((t) => [t.reference, t]));
+
+  return res.json({
+    enrollments: pending.map((e) => {
+      const txn = e.paymentReference ? txnByRef.get(e.paymentReference) : undefined;
+      return {
+        id: e.id,
+        student: e.user,
+        course: e.course,
+        cohortName: e.cohort?.name ?? null,
+        deliveryMode: e.deliveryMode,
+        source: e.source,
+        paymentPlan: e.paymentPlan,
+        paymentStatus: e.paymentStatus,
+        amountPaid: e.amountPaid,
+        totalDue: e.totalDue,
+        paymentReference: e.paymentReference,
+        paymentChannel: txn?.channel ?? null,
+        paidAt: (txn?.paidAt ?? e.updatedAt).toISOString(),
+        registeredAt: e.createdAt.toISOString()
+      };
+    })
+  });
+});
+
+// Admin confirms a paid registration: unlocks the course (status ACTIVE)
+// and tells the student in-app and by email. Payment must already be on
+// record — approving an unpaid registration would hand out the course free.
+router.post("/enrollments/:id/approve", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
+  }
+
+  const existing = await prisma.enrollment.findUnique({
+    where: { id: req.params.id },
+    include: {
+      user: { select: { name: true, email: true } },
+      course: { select: { title: true, slug: true } }
+    }
+  });
+  if (!existing) {
+    return res.status(404).json({ error: "Enrollment not found." });
+  }
+  if (existing.paymentStatus === "PENDING" || existing.paymentStatus === "REFUNDED") {
+    return res.status(400).json({ error: "This registration has no confirmed payment, so it can't be approved yet." });
+  }
+  if (existing.status === "ACTIVE" || existing.status === "COMPLETED") {
+    return res.json({ enrollment: existing, alreadyApproved: true });
+  }
+  if (existing.status !== "PENDING") {
+    return res.status(400).json({ error: `This registration is ${existing.status.toLowerCase()} and can't be approved.` });
+  }
+
+  // updateMany with the status in the filter so two admins clicking at once
+  // can't both "approve" and double-notify the student.
+  const { count } = await prisma.enrollment.updateMany({
+    where: { id: existing.id, status: "PENDING" },
+    data: { status: "ACTIVE" }
+  });
+  if (count === 0) {
+    return res.json({ enrollment: { ...existing, status: "ACTIVE" }, alreadyApproved: true });
+  }
+
+  const firstLesson = await prisma.lesson.findFirst({
+    where: { module: { courseId: existing.courseId } },
+    orderBy: [{ module: { order: "asc" } }, { order: "asc" }],
+    select: { id: true }
+  });
+  const classroomPath = firstLesson ? `/learn/${existing.course.slug}/${firstLesson.id}` : `/courses/${existing.course.slug}`;
+
+  await createNotification({
+    userId: existing.userId,
+    title: `Registration confirmed: ${existing.course.title}`,
+    message: "Admissions has confirmed your registration. Your classroom, lesson videos, quizzes and projects are now unlocked.",
+    category: "CLASS",
+    linkUrl: classroomPath
+  });
+  await sendEmail({
+    to: existing.user.email,
+    subject: `You're in! Registration confirmed — ${existing.course.title}`,
+    text: [
+      `Hello ${existing.user.name},`,
+      `Good news: BEMS Admissions has confirmed your registration for ${existing.course.title}.`,
+      `Your classroom, lesson videos, quizzes and projects are now unlocked. Start here:\n${frontendUrl(classroomPath)}`,
+      existing.amountPaid < existing.totalDue
+        ? `Outstanding balance: ${naira(existing.totalDue - existing.amountPaid)}. You can pay it from your dashboard.`
+        : "",
+      "Welcome to BEMS!\nBEMS Admissions"
+    ]
+      .filter(Boolean)
+      .join("\n\n")
+  });
+
+  const enrollment = await prisma.enrollment.findUnique({ where: { id: existing.id } });
+  return res.json({ enrollment, alreadyApproved: false });
 });
 
 // PRD §4.2: "A second chance: a student who falls behind can rejoin those
@@ -770,6 +914,11 @@ router.patch("/enrollments/:id/status", async (req, res) => {
   const existing = await prisma.enrollment.findUnique({ where: { id } });
   if (!existing) {
     return res.status(404).json({ error: "Enrollment not found." });
+  }
+  // Confirming a new registration goes through /approve, which checks
+  // payment and notifies the student — this toggle is only for DROPPED.
+  if (existing.status === "PENDING" && status === "ACTIVE") {
+    return res.status(400).json({ error: "Use POST /admin/enrollments/:id/approve to confirm a new registration." });
   }
 
   const enrollment = await prisma.enrollment.update({ where: { id }, data: { status } });
