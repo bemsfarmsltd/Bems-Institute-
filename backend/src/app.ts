@@ -35,6 +35,19 @@ export const app = express();
 // (Render's own proxy), not an arbitrary chain from the client.
 app.set("trust proxy", 1);
 
+// Don't advertise the framework, and send baseline security headers on every
+// response. This is a JSON-only API — nothing here is ever meant to be
+// rendered or framed by a browser, so the CSP can deny everything.
+app.disable("x-powered-by");
+app.use((_req, res, next) => {
+  res.setHeader("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Referrer-Policy", "no-referrer");
+  res.setHeader("Strict-Transport-Security", "max-age=63072000; includeSubDomains");
+  next();
+});
+
 // Frontend (Vercel) and backend (Render) are on different origins, so CORS
 // has to name the frontend explicitly — a wildcard origin doesn't work
 // together with credentials: true, and cookies are the whole auth model

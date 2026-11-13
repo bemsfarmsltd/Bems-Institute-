@@ -38,6 +38,9 @@ export async function verifyPaystackTransaction(reference: string): Promise<Pays
 // actually came from Paystack and not from anyone who found the URL.
 export function verifyWebhookSignature(rawBody: Buffer, signature: string | undefined | null): boolean {
   if (!signature) return false;
-  const hash = crypto.createHmac("sha512", secretKey()).update(rawBody).digest("hex");
-  return hash === signature;
+  const expected = Buffer.from(crypto.createHmac("sha512", secretKey()).update(rawBody).digest("hex"));
+  const received = Buffer.from(signature);
+  // Constant-time compare so response timing can't leak how much of a forged
+  // signature was correct. timingSafeEqual throws on unequal lengths.
+  return expected.length === received.length && crypto.timingSafeEqual(expected, received);
 }
