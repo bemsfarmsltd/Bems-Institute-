@@ -39,7 +39,17 @@ const EMPTY_ANALYTICS: AnalyticsSummary = {
   bannerChannelYield: [],
   estimatedAdViews: 0,
   homePageViews: 0,
-  signupPageViews: 0
+  signupPageViews: 0,
+  outstandingBalance: 0,
+  refundedTotal: 0,
+  waivedTotal: 0,
+  abandonedCheckouts: 0,
+  pendingBankTransfers: 0,
+  awaitingApproval: 0,
+  completedEnrollments: 0,
+  inProgressEnrollments: 0,
+  lessonsCompleted: 0,
+  revenueByMonth: []
 };
 
 export interface EnrollOptions {

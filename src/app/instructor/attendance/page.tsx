@@ -321,7 +321,7 @@ function InstructorAttendanceContent() {
                     <div key={r.userId} className="flex items-center justify-between py-3">
                       <div className="min-w-0">
                         <p className="text-xs font-bold text-[#303654] truncate">{r.name}</p>
-                        <p className="text-[11px] text-[#645F80] truncate">{r.email}</p>
+                        {r.email && <p className="text-[11px] text-[#645F80] truncate">{r.email}</p>}
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
                         <button

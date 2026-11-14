@@ -208,5 +208,18 @@ export interface AnalyticsSummary {
   estimatedAdViews: number;
   homePageViews: number;
   signupPageViews: number;
+  // Corrected money/student figures (docs/admin-audit.md). Revenue comes
+  // from the payment ledger: totalRevenue is payments minus refunds, with
+  // second-chance waivers excluded and reported in waivedTotal.
+  outstandingBalance: number;
+  refundedTotal: number;
+  waivedTotal: number;
+  abandonedCheckouts: number;
+  pendingBankTransfers: number;
+  awaitingApproval: number;
+  completedEnrollments: number;
+  inProgressEnrollments: number;
+  lessonsCompleted: number;
+  revenueByMonth: { month: string; amount: number }[];
 }
 

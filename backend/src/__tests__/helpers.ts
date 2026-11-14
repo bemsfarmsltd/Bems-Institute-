@@ -40,6 +40,14 @@ export class SessionAgent {
     return res;
   }
 
+  async delete(path: string) {
+    const req = request(app).delete(path);
+    if (this.cookie) req.set("Cookie", this.cookie);
+    const res = await req.send();
+    this.capture(res);
+    return res;
+  }
+
   async get(path: string) {
     const req = request(app).get(path);
     if (this.cookie) req.set("Cookie", this.cookie);

@@ -264,7 +264,7 @@ function InstructorDashboardContent() {
                         {student.name}
                       </div>
                       <div className="text-[11px] text-[#8580A3]">
-                        {student.email} &middot; {student.phone}
+                        {student.courseTitle} &middot; {student.cohort}
                       </div>
                     </td>
 
@@ -340,7 +340,8 @@ function InstructorDashboardContent() {
                             View Cert
                           </Button>
                         </Link>
-                      ) : (
+                      ) : student.phone ? (
+                        // Phone numbers are only sent to admins (docs/admin-audit.md B9).
                         <a
                           href={`https://wa.me/234${student.phone.replace(/[^0-9]/g, "").slice(-10)}`}
                           target="_blank"
@@ -350,7 +351,7 @@ function InstructorDashboardContent() {
                             <MessageCircle className="w-3.5 h-3.5 mr-1" /> WhatsApp
                           </Button>
                         </a>
-                      )}
+                      ) : null}
                     </td>
                   </tr>
                 ))}

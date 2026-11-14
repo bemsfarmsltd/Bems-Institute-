@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { prisma } from "@/lib/prisma";
-import { getSessionUser, isAdmin, isStaff } from "@/lib/api-auth";
+import { getSessionUser, isAdmin } from "@/lib/api-auth";
 
 const router = Router();
 
@@ -39,11 +39,11 @@ router.get("/", async (_req, res) => {
   });
 });
 
-// Staff: full list including unpublished drafts, for curation.
+// Admin: full list including unpublished drafts, for curation.
 router.get("/admin", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isStaff(session)) {
-    return res.status(403).json({ error: "Staff access required." });
+  if (!isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
   }
 
   const outcomes = await prisma.graduateOutcome.findMany({
@@ -54,12 +54,12 @@ router.get("/admin", async (req, res) => {
   return res.json({ outcomes });
 });
 
-// Staff: certified users eligible to be featured (so the admin picker
+// Admin: certified users eligible to be featured (so the admin picker
 // doesn't require typing a raw userId).
 router.get("/eligible", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isStaff(session)) {
-    return res.status(403).json({ error: "Staff access required." });
+  if (!isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
   }
 
   const certificates = await prisma.certificate.findMany({
