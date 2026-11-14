@@ -1,7 +1,16 @@
-import { describe, it, expect, afterAll } from "vitest";
+import { describe, it, expect, afterAll, beforeEach } from "vitest";
+import { prisma } from "@/lib/prisma";
 import { createTestStudent, cleanupTestData, SessionAgent, testEmail, TEST_PASSWORD } from "./helpers";
 
 describe("auth", () => {
+  beforeEach(async () => {
+    await prisma.authAttempt.deleteMany({
+      where: {
+        key: { startsWith: "signup:" }
+      }
+    });
+  });
+
   afterAll(cleanupTestData);
 
   // The only two tests in this whole suite that go through the real,
