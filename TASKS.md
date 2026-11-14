@@ -1,13 +1,28 @@
 # Task board
 
-Shared between Claude Code and Antigravity — see "Working on this repo" in
-`AGENTS.md`. Newest entries at the top of each section.
+Shared between Claude Code, Antigravity and Codex — see "Working on this
+repo" in `AGENTS.md` for lanes and folders. Newest entries at the top of each
+section.
 
 ## In progress
 
 | Task | Agent | Branch | Files / areas | Started |
 |---|---|---|---|---|
-| Complete PR reviews & deploy to production | Claude Code & Antigravity | `antigravity/lms-core-upgrade`, `claude/registration-approval` | Entire repo | 2026-11-13 |
+| **Trial task:** audit main @ `cabc99f`: payment → admissions gating (no course access before payment *and* admin confirmation), certificate integrity (issued only by a graded capstone, can't be forged or viewed wrongly), plus edge cases turned into new vitest tests. Report bugs with file:line here; flag fixes for the owning agent rather than changing their code. | Codex | `codex/audit-cabc99f` | Read: whole repo. Write: `backend/src/__tests__/`, `docs/` | 2026-11-14 |
+
+## Done: production merge (Claude Code, 2026-11-14)
+
+`main` @ `cabc99f` merges `antigravity/lms-core-upgrade`,
+`claude/security-hardening`, `claude/registration-approval`,
+`claude/admin-fixes` and `antigravity/admin-frontend-fixes`. Verified before
+push: tsc (frontend + backend), 31/31 backend tests, `next build`. Render
+deployed it (live 10:08 UTC). No schema changes.
+
+Owner actions still open (Render, see Claude's notes): `PAYSTACK_SECRET_KEY` /
+`PAYSTACK_PUBLIC_KEY` aren't set (card checkout fails), `EMAIL_FROM` is
+Resend's test sender (students get no email until a domain is verified),
+`RESEND_API_KEY` needs replacing, `ADMIN_ACCESS_CODE` to rotate after staff
+onboarding.
 
 ## Production health check (Claude Code, 2026-11-13, read-only)
 
