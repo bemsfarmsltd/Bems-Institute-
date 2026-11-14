@@ -8,6 +8,7 @@ section.
 
 | Task | Agent | Branch | Files / areas | Started |
 |---|---|---|---|---|
+| **Site-wide motion and interaction polish**: make cards, feature blocks, controls and page sections feel tactile with scroll-entry reveals, responsive hover/tap feedback and restrained spring-like motion. | Antigravity | `antigravity/motion-polish` (proposed) | Shared UI styles/components; homepage, courses, subscriptions, learning, dashboard/community, admin | 2026-11-14 |
 | Review `claude/qr-campaigns`: open redirects (`normalizeTarget`, `src/app/q/[code]/route.ts`), code guessability, scan-count inflation; add tests | Codex | `codex/review-qr-campaigns` | Read: QR files. Write: `backend/src/__tests__/` | 2026-11-14 |
 | **Campaign QR codes, backend + short link** (done, awaiting merge): `QrCampaign` table + migration, admin API, public resolver, `/q/<code>` redirect, campaign names in analytics. | Claude Code | `claude/qr-campaigns` | `backend/` (schema, `lib/qr-campaigns.ts`, `routes/qr.ts`, `routes/admin.ts`), `src/app/q/[code]/route.ts`, 2-line `qr=1` skip in `AttributionCapture.tsx` + `subscriptions/page.tsx` | 2026-11-14 |
 | **Campaign QR codes, builder UI** (done, awaiting review): saved campaigns with shortUrl QR encoding, live re-pointing, metrics, quick-pickers, color palette, admin-only gating. | Antigravity | `antigravity/qr-campaign-builder` | `src/app/qr-studio/page.tsx` | 2026-11-14 |
@@ -19,6 +20,19 @@ The printed QR must encode **`shortUrl`** (`https://<site>/q/<code>`), never the
 - `GET /api/admin/qr-campaigns` → `{ campaigns }`, newest first.
 - `POST /api/admin/qr-campaigns` `{ label, target }` → `201 { campaign }`. `target`: a path on the site (`/subscriptions?course=web-dev`) or an `https://` URL. `400 { error }` with a message to show as is.
 - `PATCH /api/admin/qr-campaigns/:id` `{ label?, target?, active? }` → `{ campaign }`. No delete: switch off instead (scans of a switched-off code go to the homepage).
+
+### Antigravity motion-polish brief (owner request, 2026-11-14)
+
+The owner reports the site feels static and wants cards, features and the broader UI to respond visibly to scrolling, touch and hover. Add a consistent motion language across the site, starting with shared card/button patterns and the highest-traffic public flows, then extend to learning and admin screens. Keep movement purposeful and quick: subtle scroll reveals/staggering, hover lift, press/tap compression, and clear state-change feedback. Touch interactions must work without hover.
+
+Acceptance criteria:
+- Honor `prefers-reduced-motion`; reduced-motion users get immediate state changes and no nonessential reveals or bounce effects.
+- Preserve keyboard navigation and visible focus states; interaction feedback must not depend on hover alone.
+- Avoid continuous decoration, motion that obscures course/payment information, and transforms that cause layout shifts. Prefer compositor-friendly transforms/opacity and avoid adding a large animation dependency without a clear need.
+- Review at 375px mobile and desktop widths; scrolling should stay smooth, with no content hidden when reveal observers fail or JavaScript is unavailable.
+- Check public flows (home, course listing/detail, subscriptions/checkout, lesson/quiz) plus dashboard and admin; verify TypeScript, lint, and production build. Share a preview or screenshots for owner review.
+
+Codex lane: review the implementation and add/adjust tests if needed; flag behavior or accessibility concerns in this task board. Do not put UI implementation work in the Codex branch.
 
 ## Codex payment review (2026-11-14)
 
