@@ -65,7 +65,7 @@ export default function CoursesCatalogPage() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
               {/* Left Student Vector Illustration (Male Student on Chair with Laptop & Bookshelf) */}
               <div className="hidden lg:flex lg:col-span-3 justify-center">
-                <svg className="w-64 h-64" viewBox="0 0 260 260" fill="none">
+                <svg className="m-pop w-64 h-64" viewBox="0 0 260 260" fill="none">
                   {/* Bookshelf Top-Left */}
                   <rect x="24" y="54" width="66" height="5" rx="2" fill="#24292D" />
                   <rect x="30" y="26" width="10" height="28" rx="1.5" fill="#AE54C6" />
@@ -165,7 +165,7 @@ export default function CoursesCatalogPage() {
                   />
                   <button
                     type="submit"
-                    className="bg-[#24292D] hover:bg-black text-white text-sm font-bold px-6 py-2.5 rounded-lg transition-colors cursor-pointer shrink-0"
+                    className="m-press bg-[#24292D] hover:bg-black text-white text-sm font-bold px-6 py-2.5 rounded-lg transition-colors cursor-pointer shrink-0"
                   >
                     Search
                   </button>
@@ -174,7 +174,7 @@ export default function CoursesCatalogPage() {
 
               {/* Right Student Vector Illustration (Female Student in Beanbag with Headphones & Laptop) */}
               <div className="hidden lg:flex lg:col-span-3 justify-center">
-                <svg className="w-64 h-64" viewBox="0 0 260 260" fill="none">
+                <svg className="m-pop w-64 h-64" viewBox="0 0 260 260" fill="none">
                   {/* Green Wall Clock */}
                   <circle cx="46" cy="100" r="22" fill="white" stroke="#AE54C6" strokeWidth="4.5" />
                   <path d="M46 100L38 92M46 100L56 94" stroke="#24292D" strokeWidth="2" strokeLinecap="round" />
@@ -223,7 +223,7 @@ export default function CoursesCatalogPage() {
         {/* 2. BEMS Specialized Career Tracks & Popular Courses */}
         <section id="tracks-section" className="py-12 bg-[#FAFBFD] border-t border-slate-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
+            <div data-reveal className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
               <div>
                 <span className="text-xs font-extrabold uppercase tracking-wider text-[#AE54C6] block mb-1">
                   BEMS UMUAHIA &amp; ONLINE COHORT
@@ -234,18 +234,18 @@ export default function CoursesCatalogPage() {
               </div>
               <Link
                 href="/subscriptions"
-                className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-[#AE54C6] hover:underline"
+                className="m-press inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-[#AE54C6] hover:underline"
               >
                 <span>Compare Tuition &amp; 3-Part Installment Plans</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div data-reveal-group className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {matchingCoreTracks.map((track) => (
                 <div
                   key={track.id}
-                  className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-2xs hover:shadow-md transition-shadow flex flex-col justify-between"
+                  className="m-lift bg-white rounded-2xl border border-slate-200/80 p-6 shadow-2xs flex flex-col justify-between"
                 >
                   <div>
                     <div className="flex items-center justify-between gap-2 mb-3">
@@ -287,13 +287,13 @@ export default function CoursesCatalogPage() {
                     <div className="flex items-center gap-2.5">
                       <Link
                         href={`/courses/${track.id}`}
-                        className="text-xs font-bold text-[#24292D] hover:text-[#AE54C6] px-3 py-2 rounded-lg border border-slate-200"
+                        className="m-press text-xs font-bold text-[#24292D] hover:text-[#AE54C6] px-3 py-2 rounded-lg border border-slate-200"
                       >
                         Syllabus
                       </Link>
                       <Link
                         href={`/subscriptions?course=${track.id}`}
-                        className="text-xs font-bold bg-[#AE54C6] hover:bg-[#A03BBC] text-white px-4 py-2 rounded-lg transition-colors"
+                        className="m-press text-xs font-bold bg-[#AE54C6] hover:bg-[#A03BBC] text-white px-4 py-2 rounded-lg transition-colors"
                       >
                         Enroll
                       </Link>

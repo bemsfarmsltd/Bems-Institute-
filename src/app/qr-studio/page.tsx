@@ -9,6 +9,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { CountUp } from "@/components/CountUp";
 import {
   QrCode,
   Download,
@@ -466,7 +467,7 @@ export default function QRStudioPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div data-reveal-group className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {CAMPAIGN_PRESETS.map((item) => {
               const fullUrl = `${baseUrl}${item.path}`;
               const dataUrl = qrDataUrls[item.id];
@@ -475,7 +476,7 @@ export default function QRStudioPage() {
               return (
                 <div
                   key={item.id}
-                  className="bg-white rounded-3xl border border-[#F1E2F5] p-6 shadow-xs flex flex-col justify-between gap-5"
+                  className="m-lift bg-white rounded-3xl border border-[#F1E2F5] p-6 shadow-xs flex flex-col justify-between gap-5"
                 >
                   <div>
                     <div className="flex items-center justify-between gap-2 mb-2">
@@ -573,7 +574,7 @@ export default function QRStudioPage() {
         {isAdmin ? (
           <div className="space-y-10">
             {/* Custom Campaign QR Generator Card */}
-            <div className="print:hidden bg-white rounded-3xl border border-[#F1E2F5] p-6 sm:p-8 shadow-xs">
+            <div data-reveal className="print:hidden bg-white rounded-3xl border border-[#F1E2F5] p-6 sm:p-8 shadow-xs">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 <div className="lg:col-span-7 space-y-5">
                   <div>
@@ -642,7 +643,7 @@ export default function QRStudioPage() {
                             key={chip.label}
                             type="button"
                             onClick={() => setNewTarget(chip.path)}
-                            className={`px-2.5 py-1 rounded-lg text-[11px] font-medium border transition-colors cursor-pointer ${
+                            className={`m-press px-2.5 py-1 rounded-lg text-[11px] font-medium border transition-colors cursor-pointer ${
                               newTarget === chip.path
                                 ? "bg-[#AE54C6] text-white border-[#AE54C6]"
                                 : "bg-[#FAF8FF] text-[#645F80] border-[#F1E2F5] hover:bg-[#F1E2F5] hover:text-[#303654]"
@@ -666,8 +667,8 @@ export default function QRStudioPage() {
                             type="button"
                             onClick={() => setSelectedColor(color.hex)}
                             title={color.name}
-                            className={`w-7 h-7 rounded-full flex items-center justify-center transition-transform cursor-pointer ${
-                              selectedColor === color.hex ? "scale-115 ring-2 ring-offset-2 ring-[#AE54C6]" : "hover:scale-105"
+                            className={`m-pop w-7 h-7 rounded-full flex items-center justify-center cursor-pointer ${
+                              selectedColor === color.hex ? "ring-2 ring-offset-2 ring-[#AE54C6]" : ""
                             }`}
                             style={{ backgroundColor: color.hex }}
                           >
@@ -775,7 +776,7 @@ export default function QRStudioPage() {
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div data-reveal-group className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {savedCampaigns.map((camp) => {
                     const qrUrl = campaignQrUrls[camp.id];
                     const isCopied = copiedId === camp.id;
@@ -785,7 +786,7 @@ export default function QRStudioPage() {
                     return (
                       <div
                         key={camp.id}
-                        className={`bg-white rounded-3xl border transition-shadow p-6 shadow-xs flex flex-col justify-between gap-5 ${
+                        className={`m-lift bg-white rounded-3xl border p-6 shadow-xs flex flex-col justify-between gap-5 ${
                           camp.active ? "border-[#F1E2F5]" : "border-slate-200 opacity-80"
                         }`}
                       >
@@ -860,20 +861,20 @@ export default function QRStudioPage() {
                               <span className="text-[10px] text-[#8580A3] font-bold block flex items-center justify-center gap-1">
                                 <Eye className="w-3 h-3" /> Scans
                               </span>
-                              <span className="text-sm font-black text-[#303654]">{camp.scans || 0}</span>
+                              <span className="text-sm font-black text-[#303654]"><CountUp value={camp.scans || 0} /></span>
                             </div>
                             <div className="border-x border-[#F1E2F5]">
                               <span className="text-[10px] text-[#8580A3] font-bold block flex items-center justify-center gap-1">
                                 <Users className="w-3 h-3" /> Signups
                               </span>
-                              <span className="text-sm font-black text-[#303654]">{camp.registrations || 0}</span>
+                              <span className="text-sm font-black text-[#303654]"><CountUp value={camp.registrations || 0} /></span>
                             </div>
                             <div>
                               <span className="text-[10px] text-[#8580A3] font-bold block flex items-center justify-center gap-1">
                                 <CreditCard className="w-3 h-3" /> Paid
                               </span>
                               <span className="text-sm font-black text-emerald-600">
-                                {camp.paidRegistrations || 0}
+                                <CountUp value={camp.paidRegistrations || 0} />
                               </span>
                             </div>
                           </div>

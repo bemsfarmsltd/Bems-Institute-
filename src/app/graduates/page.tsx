@@ -41,7 +41,7 @@ export default function GraduatesPage() {
       <Navbar />
 
       <section className="bg-[#F5F7F9] py-14 sm:py-16 px-4 sm:px-6 lg:px-8 text-center">
-        <div className="max-w-3xl mx-auto">
+        <div data-reveal className="max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F7EDF9] text-[#AE54C6] text-xs font-bold uppercase tracking-wider mb-4">
             <Sparkles className="w-3.5 h-3.5" /> Real Outcomes
           </div>
@@ -64,11 +64,11 @@ export default function GraduatesPage() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div data-reveal-group className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {outcomes.map((o) => (
               <div
                 key={o.id}
-                className={`rounded-xl border p-6 flex flex-col gap-4 ${
+                className={`m-lift rounded-xl border p-6 flex flex-col gap-4 ${
                   o.featured
                     ? "border-[#AE54C6] bg-[#F7EDF9]/40 shadow-[0_0_30px_rgba(12,188,135,0.08)]"
                     : "border-slate-200/90 bg-white"
@@ -80,10 +80,10 @@ export default function GraduatesPage() {
                     <img
                       src={o.photoUrl}
                       alt={o.name}
-                      className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-xs"
+                      className="m-pop w-14 h-14 rounded-full object-cover border-2 border-white shadow-xs"
                     />
                   ) : (
-                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#F7C32E] via-[#FF6B5B] to-[#D6293E] flex items-center justify-center text-white font-black text-lg">
+                    <div className="m-pop w-14 h-14 rounded-full bg-gradient-to-br from-[#F7C32E] via-[#FF6B5B] to-[#D6293E] flex items-center justify-center text-white font-black text-lg">
                       {initials(o.name)}
                     </div>
                   )}

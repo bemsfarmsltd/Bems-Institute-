@@ -8,6 +8,7 @@ import { useLMS } from "@/context/LMSContext";
 import { apiFetch, API_BASE_URL } from "@/lib/api-client";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
 import { UserAvatar } from "@/components/UserAvatar";
+import { CountUp } from "@/components/CountUp";
 import {
   Home,
   ShoppingBasket,
@@ -1570,12 +1571,12 @@ function AdminDashboardContent() {
               </h1>
 
               {/* 4 Real Metric Tiles from /api/admin/analytics */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-7">
+              <div data-reveal-group className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-7">
                 {/* 1. Paid Students */}
-                <div className="bg-[#F7EDF9] rounded-xl p-6 flex items-center justify-between border border-[#AE54C6]/20 shadow-[0_2px_14px_rgba(0,0,0,0.03)]">
+                <div className="m-lift bg-[#F7EDF9] rounded-xl p-6 flex items-center justify-between border border-[#AE54C6]/20 shadow-[0_2px_14px_rgba(0,0,0,0.03)]">
                   <div>
                     <div className="font-display text-[32px] font-extrabold text-[#1D2026] leading-none mb-2">
-                      {analytics.totalStudents}
+                      <CountUp value={analytics.totalStudents} />
                     </div>
                     <div className="text-[14px] font-semibold text-[#1D2026]">
                       Paid Students
@@ -1584,16 +1585,16 @@ function AdminDashboardContent() {
                       Across active cohort tracks
                     </div>
                   </div>
-                  <div className="w-14 h-14 rounded-full bg-[#AE54C6] text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <div className="m-icon w-14 h-14 rounded-full bg-[#AE54C6] text-white flex items-center justify-center shrink-0 shadow-xs">
                     <Users className="w-6 h-6" />
                   </div>
                 </div>
 
                 {/* 2. Awaiting Confirmation */}
-                <div className="bg-[#FFF8E6] rounded-xl p-6 flex items-center justify-between border border-[#F7C32E]/30 shadow-[0_2px_14px_rgba(0,0,0,0.03)]">
+                <div className="m-lift bg-[#FFF8E6] rounded-xl p-6 flex items-center justify-between border border-[#F7C32E]/30 shadow-[0_2px_14px_rgba(0,0,0,0.03)]">
                   <div>
                     <div className="font-display text-[32px] font-extrabold text-[#1D2026] leading-none mb-2">
-                      {analytics.awaitingApproval}
+                      <CountUp value={analytics.awaitingApproval} />
                     </div>
                     <div className="text-[14px] font-semibold text-[#1D2026]">
                       Awaiting Confirmation
@@ -1602,16 +1603,16 @@ function AdminDashboardContent() {
                       Admissions review queue
                     </div>
                   </div>
-                  <div className="w-14 h-14 rounded-full bg-[#F7C32E] text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <div className="m-icon w-14 h-14 rounded-full bg-[#F7C32E] text-white flex items-center justify-center shrink-0 shadow-xs">
                     <Clock className="w-6 h-6" />
                   </div>
                 </div>
 
                 {/* 3. Completed Courses */}
-                <div className="bg-[#E9F7EF] rounded-xl p-6 flex items-center justify-between border border-emerald-500/20 shadow-[0_2px_14px_rgba(0,0,0,0.03)]">
+                <div className="m-lift bg-[#E9F7EF] rounded-xl p-6 flex items-center justify-between border border-emerald-500/20 shadow-[0_2px_14px_rgba(0,0,0,0.03)]">
                   <div>
                     <div className="font-display text-[32px] font-extrabold text-[#1D2026] leading-none mb-2">
-                      {analytics.completedEnrollments}
+                      <CountUp value={analytics.completedEnrollments} />
                     </div>
                     <div className="text-[14px] font-semibold text-[#1D2026]">
                       Completed Courses
@@ -1620,16 +1621,16 @@ function AdminDashboardContent() {
                       {analytics.certificatesIssued} certificate{analytics.certificatesIssued === 1 ? "" : "s"} issued
                     </div>
                   </div>
-                  <div className="w-14 h-14 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <div className="m-icon w-14 h-14 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
                     <CheckCircle2 className="w-6 h-6" />
                   </div>
                 </div>
 
                 {/* 4. Lessons Completed */}
-                <div className="bg-[#EBF3FE] rounded-xl p-6 flex items-center justify-between border border-blue-500/20 shadow-[0_2px_14px_rgba(0,0,0,0.03)]">
+                <div className="m-lift bg-[#EBF3FE] rounded-xl p-6 flex items-center justify-between border border-blue-500/20 shadow-[0_2px_14px_rgba(0,0,0,0.03)]">
                   <div>
                     <div className="font-display text-[32px] font-extrabold text-[#1D2026] leading-none mb-2">
-                      {analytics.lessonsCompleted}
+                      <CountUp value={analytics.lessonsCompleted} />
                     </div>
                     <div className="text-[14px] font-semibold text-[#1D2026]">
                       Lessons Completed
@@ -1638,7 +1639,7 @@ function AdminDashboardContent() {
                       Student curriculum progress
                     </div>
                   </div>
-                  <div className="w-14 h-14 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <div className="m-icon w-14 h-14 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
                     <GraduationCap className="w-6 h-6" />
                   </div>
                 </div>
@@ -1662,7 +1663,7 @@ function AdminDashboardContent() {
                         Total Collected
                       </span>
                       <span className="font-display text-[22px] font-extrabold text-[#AE54C6]">
-                        ₦{analytics.totalRevenue.toLocaleString()}
+                        <CountUp value={analytics.totalRevenue} format={(n) => `₦${n.toLocaleString()}`} />
                       </span>
                     </div>
                   </div>

@@ -10,6 +10,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { CountUp } from "@/components/CountUp";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -228,6 +229,7 @@ export default function QuizAssessmentPage({
         {/* Result Banner if Submitted */}
         {submitted && latestResult && (
           <div
+            data-reveal="zoom"
             className={`p-6 sm:p-8 rounded-3xl border shadow-lg transition-all ${
               latestResult.passed
                 ? "bg-gradient-to-br from-emerald-50 to-emerald-100/60 border-emerald-300 text-emerald-950"
@@ -237,7 +239,7 @@ export default function QuizAssessmentPage({
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div className="flex items-start gap-4">
                 <div
-                  className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-md ${
+                  className={`m-pop w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 shadow-md ${
                     latestResult.passed
                       ? "bg-emerald-600 text-white"
                       : "bg-rose-600 text-white"
@@ -278,7 +280,11 @@ export default function QuizAssessmentPage({
                   </h2>
 
                   <p className="text-sm mt-1 leading-relaxed">
-                    You scored <strong className="text-xl font-black">{latestResult.score}%</strong>.{" "}
+                    You scored{" "}
+                    <strong className="text-xl font-black">
+                      <CountUp value={latestResult.score} format={(n) => `${n}%`} />
+                    </strong>
+                    .{" "}
                     {latestResult.passed
                       ? "Your score demonstrates technical mastery of this track's foundational modules."
                       : "Review the tutor explanations and sample hints below, then retake the exam to boost your score."}
@@ -342,7 +348,7 @@ export default function QuizAssessmentPage({
                   <a
                     key={q.id}
                     href={`#question-${q.id}`}
-                    className={`w-7 h-7 rounded-xl text-xs font-bold flex items-center justify-center transition-all shrink-0 ${
+                    className={`m-press w-7 h-7 rounded-xl text-xs font-bold flex items-center justify-center transition-colors shrink-0 ${
                       isDone
                         ? "bg-[#AE54C6] text-white shadow-xs"
                         : "bg-[#FAF8FF] text-[#645F80] border border-[#F1E2F5] hover:border-[#AE54C6]"
@@ -367,7 +373,8 @@ export default function QuizAssessmentPage({
               <div
                 key={q.id}
                 id={`question-${q.id}`}
-                className="bg-white rounded-3xl p-6 sm:p-7 border border-[#F1E2F5] shadow-xs hover:border-[#E5C8ED] transition-all scroll-mt-24 space-y-5"
+                data-reveal
+                className="bg-white rounded-3xl p-6 sm:p-7 border border-[#F1E2F5] shadow-xs hover:border-[#E5C8ED] transition-colors scroll-mt-24 space-y-5"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-3">
@@ -422,7 +429,7 @@ export default function QuizAssessmentPage({
                         key={optIdx}
                         disabled={submitted}
                         onClick={() => handleSelectOption(q.id, optIdx)}
-                        className={`w-full text-left p-4 rounded-2xl border text-sm transition-all flex items-center justify-between cursor-pointer disabled:cursor-default ${optionStyle}`}
+                        className={`${!submitted ? "m-press" : ""} w-full text-left p-4 rounded-2xl border text-sm transition-colors flex items-center justify-between cursor-pointer disabled:cursor-default ${optionStyle}`}
                       >
                         <div className="flex items-center gap-3.5">
                           <span

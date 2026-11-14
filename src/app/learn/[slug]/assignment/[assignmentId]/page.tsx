@@ -283,7 +283,7 @@ export default function AssignmentSubmissionPage({
                 <Link
                   key={a.id}
                   href={`/learn/${course.slug}/assignment/${a.id}`}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
+                  className={`m-press px-3.5 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-2 shrink-0 cursor-pointer ${
                     isActive
                       ? "bg-[#303654] text-white shadow-xs"
                       : "text-[#645F80] hover:text-[#303654] hover:bg-[#FAF8FF]"
@@ -407,7 +407,7 @@ export default function AssignmentSubmissionPage({
           
           {/* Left Column: Project Brief, Requirements & Rubric */}
           <div className="lg:col-span-7 space-y-6">
-            <div className="bg-white border border-[#F1E2F5] rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
+            <div data-reveal className="bg-white border border-[#F1E2F5] rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
               <div>
                 <h3 className="text-lg font-black text-[#303654] mb-2 flex items-center gap-2">
                   <FileCheck className="w-5 h-5 text-[#AE54C6]" />
@@ -438,11 +438,11 @@ export default function AssignmentSubmissionPage({
                 <h4 className="text-xs font-bold text-[#AE54C6] uppercase tracking-wider mb-3">
                   Grading Rubric (Total: 100 Points):
                 </h4>
-                <div className="space-y-2">
+                <div data-reveal-group className="space-y-2">
                   {assignment.rubric.map((item, idx) => (
                     <div
                       key={idx}
-                      className="flex justify-between items-center p-3 bg-[#FAF8FF] border border-[#F1E2F5] rounded-xl text-xs text-[#303654]"
+                      className="m-lift flex justify-between items-center p-3 bg-[#FAF8FF] border border-[#F1E2F5] rounded-xl text-xs text-[#303654]"
                     >
                       <span className="font-medium">{item.criteria}</span>
                       <strong className="text-[#AE54C6] font-black">{item.points} pts</strong>
@@ -559,7 +559,7 @@ export default function AssignmentSubmissionPage({
                   type="button"
                   onClick={handleRunAiAudit}
                   disabled={isAuditing}
-                  className="w-full py-2.5 px-3 rounded-xl border border-[#AE54C6]/30 bg-[#FAF8FF] hover:bg-purple-50 text-xs font-bold text-[#303654] flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                  className="m-press w-full py-2.5 px-3 rounded-xl border border-[#AE54C6]/30 bg-[#FAF8FF] hover:bg-purple-50 text-xs font-bold text-[#303654] flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                 >
                   <Sparkles className="w-3.5 h-3.5 text-[#AE54C6]" />
                   <span>{isAuditing ? "Auditing Project Links…" : "Run Instant AI Pre-Audit"}</span>

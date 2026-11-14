@@ -147,7 +147,7 @@ export default function CertificateViewPage({
 
       {/* Main Certificate Canvas */}
       <div className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 py-10 print:p-0 print:m-0 print:max-w-none">
-        <div className="bg-white rounded-3xl border-8 border-double border-[#AE54C6]/30 p-8 sm:p-14 shadow-2xl relative overflow-hidden text-center print:shadow-none print:border-4 print:border-[#AE54C6]">
+        <div data-reveal="zoom" className="bg-white rounded-3xl border-8 border-double border-[#AE54C6]/30 p-8 sm:p-14 shadow-2xl relative overflow-hidden text-center print:shadow-none print:border-4 print:border-[#AE54C6]">
           {/* Subtle Guilloche / Watermark Pattern */}
           <div className="absolute inset-0 opacity-[0.03] pointer-events-none flex items-center justify-center">
             <div className="w-[600px] h-[600px] rounded-full border-[40px] border-[#303654]" />
@@ -155,7 +155,7 @@ export default function CertificateViewPage({
 
           {/* Institutional Crest Header */}
           <div className="relative z-10 flex flex-col items-center mb-8">
-            <div className="relative w-20 h-20 rounded-2xl overflow-hidden bg-white shadow-lg border-2 border-[#AE54C6] mb-3">
+            <div className="m-pop relative w-20 h-20 rounded-2xl overflow-hidden bg-white shadow-lg border-2 border-[#AE54C6] mb-3">
               <Image src="/images/bems-logo.jpg" alt="BEMS Logo" fill sizes="80px" className="object-contain" />
             </div>
             <h2 className="text-xl sm:text-2xl font-black tracking-widest text-[#303654] uppercase">
@@ -208,7 +208,7 @@ export default function CertificateViewPage({
 
             {/* Official Gold/Purple Seal */}
             <div className="flex flex-col items-center">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-[#AE54C6] to-[#C591E9] text-white flex flex-col items-center justify-center p-2 shadow-xl border-4 border-white ring-4 ring-[#AE54C6]/20">
+              <div className="m-pop w-24 h-24 rounded-full bg-gradient-to-tr from-[#AE54C6] to-[#C591E9] text-white flex flex-col items-center justify-center p-2 shadow-xl border-4 border-white ring-4 ring-[#AE54C6]/20">
                 <Award className="w-8 h-8 text-yellow-300 mb-0.5" />
                 <span className="text-[9px] font-black uppercase tracking-wider text-center">
                   BEMS SEAL

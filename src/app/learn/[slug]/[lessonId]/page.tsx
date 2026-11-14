@@ -536,7 +536,7 @@ export default function LessonViewPage({
                       <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as any)}
-                        className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
+                        className={`m-press px-3.5 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
                           isActive
                             ? "bg-[#303654] text-white shadow-xs"
                             : "text-[#645F80] hover:text-[#303654] hover:bg-[#FAF8FF]"
@@ -573,7 +573,7 @@ export default function LessonViewPage({
                             Tracked by LearnIQ Engine
                           </span>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div data-reveal-group className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           {lessonConcepts.map((concept) => {
                             const masteryRecord = allMastery.find(
                               (m) => m.conceptId === concept.id
@@ -585,7 +585,7 @@ export default function LessonViewPage({
                             return (
                               <div
                                 key={concept.id}
-                                className="p-3.5 rounded-2xl bg-[#FAF8FF] border border-[#F1E2F5] flex flex-col justify-between gap-2.5"
+                                className="m-lift p-3.5 rounded-2xl bg-[#FAF8FF] border border-[#F1E2F5] flex flex-col justify-between gap-2.5"
                               >
                                 <div>
                                   <div className="flex items-center justify-between gap-2 mb-1">
@@ -710,7 +710,7 @@ export default function LessonViewPage({
                         <Link
                           key={i}
                           href={`/ai?tab=tutor&courseId=${encodeURIComponent(course.id)}&prompt=${encodeURIComponent(promptText)}`}
-                          className="p-3 rounded-xl bg-white border border-[#F1E2F5] hover:border-[#AE54C6] hover:bg-[#FAF8FF] transition-all text-[#303654] font-medium flex items-center justify-between"
+                          className="m-lift p-3 rounded-xl bg-white border border-[#F1E2F5] hover:border-[#AE54C6] hover:bg-[#FAF8FF] transition-colors text-[#303654] font-medium flex items-center justify-between"
                         >
                           <span className="truncate mr-2">&ldquo;{promptText}&rdquo;</span>
                           <ArrowRight className="w-3.5 h-3.5 text-[#AE54C6] shrink-0" />
@@ -785,7 +785,7 @@ export default function LessonViewPage({
                     <div key={mod.id} className="space-y-2 border border-[#F1E2F5] rounded-2xl p-2.5 bg-[#FAF8FF]/60">
                       <button
                         onClick={() => toggleModule(mod.id)}
-                        className="w-full flex items-center justify-between text-left p-1 text-xs font-black text-[#303654] cursor-pointer"
+                        className="m-press w-full flex items-center justify-between text-left p-1 text-xs font-black text-[#303654] cursor-pointer"
                       >
                         <div className="flex items-center gap-1.5 truncate">
                           {isOpen ? <ChevronDown className="w-3.5 h-3.5 text-[#AE54C6] shrink-0" /> : <ChevronRight className="w-3.5 h-3.5 text-[#8580A3] shrink-0" />}
@@ -807,7 +807,7 @@ export default function LessonViewPage({
                               <Link
                                 key={les.id}
                                 href={`/learn/${slug}/${les.id}`}
-                                className={`flex items-center justify-between p-2.5 rounded-xl text-xs transition-all ${
+                                className={`m-press flex items-center justify-between p-2.5 rounded-xl text-xs transition-colors ${
                                   isCurrent
                                     ? "bg-[#303654] text-white font-bold shadow-sm"
                                     : "hover:bg-white text-[#4A4568]"
@@ -863,19 +863,19 @@ export default function LessonViewPage({
                 </div>
                 <Link
                   href={`/learn/${slug}/quiz/quiz-${slug}`}
-                  className="flex items-center justify-between p-3 rounded-2xl bg-purple-50 text-[#AE54C6] hover:bg-purple-100 transition-colors text-xs font-bold"
+                  className="m-lift flex items-center justify-between p-3 rounded-2xl bg-purple-50 text-[#AE54C6] hover:bg-purple-100 transition-colors text-xs font-bold"
                 >
                   <span className="flex items-center gap-2">
-                    <Award className="w-4 h-4" /> Comprehensive Quiz
+                    <Award className="m-icon w-4 h-4" /> Comprehensive Quiz
                   </span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
                 <Link
                   href={`/learn/${slug}/assignment/assign-${slug}`}
-                  className="flex items-center justify-between p-3 rounded-2xl bg-emerald-50 text-emerald-800 hover:bg-emerald-100 transition-colors text-xs font-bold"
+                  className="m-lift flex items-center justify-between p-3 rounded-2xl bg-emerald-50 text-emerald-800 hover:bg-emerald-100 transition-colors text-xs font-bold"
                 >
                   <span className="flex items-center gap-2">
-                    <FileCheck className="w-4 h-4" /> Capstone Project Submission
+                    <FileCheck className="m-icon w-4 h-4" /> Capstone Project Submission
                   </span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Link>

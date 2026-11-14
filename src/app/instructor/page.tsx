@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { RequireRole } from "@/components/RequireRole";
 import { InstructorConceptInsights } from "@/components/InstructorConceptInsights";
+import { CountUp } from "@/components/CountUp";
 import {
   Users,
   BookOpen,
@@ -114,64 +115,67 @@ function InstructorDashboardContent() {
 
       {/* KPI Cards */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white rounded-2xl p-6 border border-[#F1E2F5] shadow-xs">
+        <div data-reveal-group className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="m-lift bg-white rounded-2xl p-6 border border-[#F1E2F5] shadow-xs">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-bold uppercase tracking-wider text-[#645F80]">
                 Active Students
               </span>
-              <Users className="w-5 h-5 text-[#AE54C6]" />
+              <Users className="m-icon w-5 h-5 text-[#AE54C6]" />
             </div>
             <div className="text-3xl font-black text-[#303654]">
-              {tutorStudents.length}
+              <CountUp value={tutorStudents.length} />
             </div>
             <p className="text-xs text-[#8580A3] mt-1">
               Enrolled in assigned tracks
             </p>
           </div>
 
-          <div className="bg-white rounded-2xl p-6 border border-[#F1E2F5] shadow-xs">
+          <div className="m-lift bg-white rounded-2xl p-6 border border-[#F1E2F5] shadow-xs">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-bold uppercase tracking-wider text-[#645F80]">
                 Pending Capstones
               </span>
-              <FileCheck className="w-5 h-5 text-amber-500" />
+              <FileCheck className="m-icon w-5 h-5 text-amber-500" />
             </div>
             <div className="text-3xl font-black text-amber-600">
-              {pendingSubmissions.length}
+              <CountUp value={pendingSubmissions.length} />
             </div>
             <p className="text-xs text-[#8580A3] mt-1">
               Awaiting instructor review & scoring
             </p>
           </div>
 
-          <div className="bg-white rounded-2xl p-6 border border-[#F1E2F5] shadow-xs">
+          <div className="m-lift bg-white rounded-2xl p-6 border border-[#F1E2F5] shadow-xs">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-bold uppercase tracking-wider text-[#645F80]">
                 Graded & Certified
               </span>
-              <Award className="w-5 h-5 text-emerald-600" />
+              <Award className="m-icon w-5 h-5 text-emerald-600" />
             </div>
             <div className="text-3xl font-black text-emerald-700">
-              {gradedSubmissions.length}
+              <CountUp value={gradedSubmissions.length} />
             </div>
             <p className="text-xs text-[#8580A3] mt-1">
               Certificates automatically issued
             </p>
           </div>
 
-          <div className="bg-white rounded-2xl p-6 border border-[#F1E2F5] shadow-xs">
+          <div className="m-lift bg-white rounded-2xl p-6 border border-[#F1E2F5] shadow-xs">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-bold uppercase tracking-wider text-[#645F80]">
                 Average Progress
               </span>
-              <CheckCircle2 className="w-5 h-5 text-[#AE54C6]" />
+              <CheckCircle2 className="m-icon w-5 h-5 text-[#AE54C6]" />
             </div>
             <div className="text-3xl font-black text-[#303654]">
-              {Math.round(
-                tutorStudents.reduce((acc, s) => acc + s.progressPercent, 0) /
-                  (tutorStudents.length || 1)
-              )}%
+              <CountUp
+                value={Math.round(
+                  tutorStudents.reduce((acc, s) => acc + s.progressPercent, 0) /
+                    (tutorStudents.length || 1)
+                )}
+                format={(n) => `${n}%`}
+              />
             </div>
             <p className="text-xs text-[#8580A3] mt-1">
               Cohort module completion rate
@@ -180,7 +184,7 @@ function InstructorDashboardContent() {
         </div>
 
         {/* Live Lab Support & Quick Actions */}
-        <div className="bg-gradient-to-r from-[#303654] to-[#5B2479] rounded-3xl p-6 sm:p-8 text-white flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl">
+        <div data-reveal className="bg-gradient-to-r from-[#303654] to-[#5B2479] rounded-3xl p-6 sm:p-8 text-white flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl">
           <div className="space-y-2 max-w-xl">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-xs font-bold">
               <Video className="w-4 h-4 text-purple-300" /> Umuahia Labs + Live Zoom Hybrid

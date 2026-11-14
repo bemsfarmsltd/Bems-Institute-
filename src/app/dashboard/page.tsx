@@ -16,6 +16,7 @@ import { apiFetch } from "@/lib/api-client";
 import { getCourseVisual } from "@/lib/course-visuals";
 import { buildWhatsAppLink, BEMS_WHATSAPP_NUMBER } from "@/lib/whatsapp";
 import { UserAvatar } from "@/components/UserAvatar";
+import { CountUp } from "@/components/CountUp";
 import type { LeaderboardStudent } from "@/types/advanced";
 import {
   Award,
@@ -66,7 +67,7 @@ function SidebarLink({
   return (
     <Link
       href={href}
-      className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-xs font-semibold transition-colors ${
+      className={`m-press flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-xs font-semibold transition-colors ${
         active ? "bg-white text-[#303654]" : "text-[#E8CFEF] hover:bg-white/10 hover:text-white"
       }`}
     >
@@ -369,7 +370,7 @@ function StudentDashboardContent() {
         {/* Profile Row */}
         <div className="-mt-12 sm:-mt-14 mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-5 sm:gap-6">
           <div className="flex items-center sm:items-end gap-3.5 sm:gap-5">
-            <div className="relative shrink-0">
+            <div className="m-pop relative shrink-0">
               <UserAvatar
                 user={user ? { name: user.name, avatarUrl: user.avatarUrl } : { name: "Student", avatarUrl: null }}
                 size={88}
@@ -405,20 +406,20 @@ function StudentDashboardContent() {
         <div className="lg:hidden flex items-center gap-2 overflow-x-auto no-scrollbar pb-3 mb-6">
           <Link
             href="/dashboard"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#303654] text-white text-xs font-bold whitespace-nowrap shadow-xs shrink-0"
+            className="m-press inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#303654] text-white text-xs font-bold whitespace-nowrap shadow-xs shrink-0"
           >
             <LayoutDashboard className="w-3.5 h-3.5" /> Dashboard
           </Link>
           <Link
             href="/subscriptions"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-[#F1E2F5] text-[#303654] text-xs font-semibold whitespace-nowrap hover:border-[#AE54C6] shrink-0"
+            className="m-press inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-[#F1E2F5] text-[#303654] text-xs font-semibold whitespace-nowrap hover:border-[#AE54C6] shrink-0"
           >
             <CreditCard className="w-3.5 h-3.5 text-[#AE54C6]" /> Subscriptions
           </Link>
           {myCourse && myFirstLessonId && (
             <Link
               href={`/learn/${myCourse.slug}/${myFirstLessonId}`}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#F7EDF9] border border-purple-200 text-[#AE54C6] text-xs font-bold whitespace-nowrap shrink-0"
+              className="m-press inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#F7EDF9] border border-purple-200 text-[#AE54C6] text-xs font-bold whitespace-nowrap shrink-0"
             >
               <FileText className="w-3.5 h-3.5" /> Resume Course
             </Link>
@@ -426,20 +427,20 @@ function StudentDashboardContent() {
           {myCourse && myQuiz && (
             <Link
               href={`/learn/${myCourse.slug}/quiz/${myQuiz.id}`}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-[#F1E2F5] text-[#303654] text-xs font-semibold whitespace-nowrap shrink-0"
+              className="m-press inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-[#F1E2F5] text-[#303654] text-xs font-semibold whitespace-nowrap shrink-0"
             >
               <HelpCircle className="w-3.5 h-3.5 text-amber-500" /> Quiz
             </Link>
           )}
           <Link
             href="/courses"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-[#F1E2F5] text-[#303654] text-xs font-semibold whitespace-nowrap shrink-0"
+            className="m-press inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-[#F1E2F5] text-[#303654] text-xs font-semibold whitespace-nowrap shrink-0"
           >
             <Compass className="w-3.5 h-3.5 text-blue-500" /> Catalog
           </Link>
           <Link
             href="/dashboard#edit-profile"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-[#F1E2F5] text-[#303654] text-xs font-semibold whitespace-nowrap shrink-0"
+            className="m-press inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-[#F1E2F5] text-[#303654] text-xs font-semibold whitespace-nowrap shrink-0"
           >
             <UserCog className="w-3.5 h-3.5 text-slate-500" /> Profile
           </Link>
@@ -479,36 +480,36 @@ function StudentDashboardContent() {
           {/* Main Content */}
           <div className="space-y-8 min-w-0">
             {/* Stat Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-              <div className="bg-[#FEF6E0] rounded-2xl p-5 flex items-center gap-4">
-                <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center text-[#F7C32E] shrink-0">
+            <div data-reveal-group className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+              <div className="m-lift bg-[#FEF6E0] rounded-2xl p-5 flex items-center gap-4">
+                <div className="m-icon w-11 h-11 rounded-xl bg-white flex items-center justify-center text-[#F7C32E] shrink-0">
                   <BookOpen className="w-5 h-5" />
                 </div>
                 <div>
                   <span className="text-2xl font-black text-[#303654] block leading-tight">
-                    {enrolledCourses.length}
+                    <CountUp value={enrolledCourses.length} />
                   </span>
                   <span className="text-xs font-semibold text-[#645F80]">Total Courses</span>
                 </div>
               </div>
-              <div className="bg-[#F7EDF9] rounded-2xl p-5 flex items-center gap-4">
-                <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center text-[#AE54C6] shrink-0">
+              <div className="m-lift bg-[#F7EDF9] rounded-2xl p-5 flex items-center gap-4">
+                <div className="m-icon w-11 h-11 rounded-xl bg-white flex items-center justify-center text-[#AE54C6] shrink-0">
                   <CheckCircle2 className="w-5 h-5" />
                 </div>
                 <div>
                   <span className="text-2xl font-black text-[#303654] block leading-tight">
-                    {totalCompletedLessons}
+                    <CountUp value={totalCompletedLessons} />
                   </span>
                   <span className="text-xs font-semibold text-[#645F80]">Complete Lessons</span>
                 </div>
               </div>
-              <div className="bg-[#E5F5F7] rounded-2xl p-5 flex items-center gap-4">
-                <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center text-[#17A2B8] shrink-0">
+              <div className="m-lift bg-[#E5F5F7] rounded-2xl p-5 flex items-center gap-4">
+                <div className="m-icon w-11 h-11 rounded-xl bg-white flex items-center justify-center text-[#17A2B8] shrink-0">
                   <Award className="w-5 h-5" />
                 </div>
                 <div>
                   <span className="text-2xl font-black text-[#303654] block leading-tight">
-                    {myCertificates.length}
+                    <CountUp value={myCertificates.length} />
                   </span>
                   <span className="text-xs font-semibold text-[#645F80]">Achieved Certificates</span>
                 </div>
@@ -516,7 +517,7 @@ function StudentDashboardContent() {
             </div>
 
             {/* My Courses List */}
-            <div id="my-courses-list" className="bg-white rounded-2xl border border-[#F1E2F5] p-6 shadow-xs">
+            <div data-reveal id="my-courses-list" className="bg-white rounded-2xl border border-[#F1E2F5] p-6 shadow-xs">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
                 <h2 className="text-xl font-black text-[#303654]">
                   My Courses List ({enrolledCourses.length})
@@ -681,21 +682,21 @@ function StudentDashboardContent() {
             {/* Milestones — PRD §4.2 "small projects every 2-3 weeks,"
                 separate from the final capstone below. */}
             {myCourse && myMilestones.length > 0 && (
-              <div className="bg-white rounded-2xl border border-[#F1E2F5] p-6 sm:p-8 shadow-xs">
+              <div data-reveal className="bg-white rounded-2xl border border-[#F1E2F5] p-6 sm:p-8 shadow-xs">
                 <div className="flex items-center gap-2 pb-3 mb-4 border-b border-[#F7EDF9]">
                   <FileText className="w-4 h-4 text-[#AE54C6]" />
                   <h2 className="text-base font-extrabold text-[#303654]">
                     Milestone Projects — {myCourse.title}
                   </h2>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div data-reveal-group className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {myMilestones.map((m) => {
                     const sub = mySubmissions.find((s) => s.assignmentId === m.id);
                     return (
                       <Link
                         key={m.id}
                         href={`/learn/${myCourse.slug}/assignment/${m.id}`}
-                        className="block p-4 rounded-xl border border-[#F1E2F5] hover:border-[#AE54C6]/40 transition-colors"
+                        className="m-lift block p-4 rounded-xl border border-[#F1E2F5] hover:border-[#AE54C6]/40 transition-colors"
                       >
                         <div className="text-[10px] font-bold uppercase tracking-wider text-[#AE54C6] mb-1">
                           Milestone {m.order}
@@ -720,7 +721,7 @@ function StudentDashboardContent() {
             {/* Class Goal — PRD §4.2: "each student states their goal in
                 the class group... saying it out loud, in front of others." */}
             {myCourse && (
-              <div className="bg-white rounded-2xl border border-[#F1E2F5] p-6 sm:p-8 shadow-xs">
+              <div data-reveal className="bg-white rounded-2xl border border-[#F1E2F5] p-6 sm:p-8 shadow-xs">
                 <div className="flex items-center gap-2 pb-3 mb-4 border-b border-[#F7EDF9]">
                   <Target className="w-4 h-4 text-[#AE54C6]" />
                   <h2 className="text-base font-extrabold text-[#303654]">
@@ -764,7 +765,7 @@ function StudentDashboardContent() {
 
             {/* Phase 2 Assessment & Credentials Card */}
             {myCourse && (
-              <div className="bg-white rounded-2xl border border-[#F1E2F5] p-6 sm:p-8 shadow-xs">
+              <div data-reveal className="bg-white rounded-2xl border border-[#F1E2F5] p-6 sm:p-8 shadow-xs">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-[#F7EDF9]">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
@@ -781,13 +782,13 @@ function StudentDashboardContent() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div data-reveal-group className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {/* 1. Quiz Widget */}
-                  <div className="bg-[#FAF8FF] border border-[#F1E2F5] rounded-xl p-5 flex flex-col justify-between">
+                  <div className="m-lift bg-[#FAF8FF] border border-[#F1E2F5] rounded-xl p-5 flex flex-col justify-between">
                     <div>
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-xs font-bold text-[#645F80]">STEP 1</span>
-                        <Award className="w-5 h-5 text-[#AE54C6]" />
+                        <Award className="m-icon w-5 h-5 text-[#AE54C6]" />
                       </div>
                       <h4 className="font-bold text-[#303654] text-base mb-1">
                         Technical Knowledge Exam
@@ -820,11 +821,11 @@ function StudentDashboardContent() {
                   </div>
 
                   {/* 2. Capstone Submission Widget */}
-                  <div className="bg-[#FAF8FF] border border-[#F1E2F5] rounded-xl p-5 flex flex-col justify-between">
+                  <div className="m-lift bg-[#FAF8FF] border border-[#F1E2F5] rounded-xl p-5 flex flex-col justify-between">
                     <div>
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-xs font-bold text-[#645F80]">STEP 2</span>
-                        <FileText className="w-5 h-5 text-[#AE54C6]" />
+                        <FileText className="m-icon w-5 h-5 text-[#AE54C6]" />
                       </div>
                       <h4 className="font-bold text-[#303654] text-base mb-1">Capstone Project</h4>
                       <p className="text-xs text-[#645F80] mb-4">
@@ -858,11 +859,11 @@ function StudentDashboardContent() {
                   </div>
 
                   {/* 3. Certificate Widget */}
-                  <div className="bg-[#FAF8FF] border border-[#F1E2F5] rounded-xl p-5 flex flex-col justify-between">
+                  <div className="m-lift bg-[#FAF8FF] border border-[#F1E2F5] rounded-xl p-5 flex flex-col justify-between">
                     <div>
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-xs font-bold text-[#645F80]">STEP 3</span>
-                        <Sparkles className="w-5 h-5 text-amber-500" />
+                        <Sparkles className="m-icon w-5 h-5 text-amber-500" />
                       </div>
                       <h4 className="font-bold text-[#303654] text-base mb-1">
                         Institutional Certificate

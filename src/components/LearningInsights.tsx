@@ -90,7 +90,7 @@ function PracticeQuestionPanel({ conceptId }: { conceptId: string }) {
         <button
           type="button"
           onClick={generate}
-          className="flex items-center gap-1.5 text-[11px] font-bold text-[#AE54C6] hover:underline"
+          className="m-press flex items-center gap-1.5 text-[11px] font-bold text-[#AE54C6] hover:underline"
         >
           <Sparkles className="w-3.5 h-3.5" /> Generate a practice question
         </button>
@@ -187,7 +187,7 @@ export function LearningInsights() {
   // When no quiz attempts are logged yet, guide the student to calibrate their LearnIQ profile
   if (strengths.length === 0 && weaknesses.length === 0 && recommendations.length === 0) {
     return (
-      <div className="bg-white rounded-2xl border border-[#F1E2F5] p-6 sm:p-8 shadow-xs">
+      <div data-reveal className="m-lift bg-white rounded-2xl border border-[#F1E2F5] p-6 sm:p-8 shadow-xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2 max-w-xl">
             <div className="flex items-center gap-2">
@@ -223,7 +223,7 @@ export function LearningInsights() {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-[#F1E2F5] p-6 sm:p-8 shadow-xs">
+    <div data-reveal className="m-lift bg-white rounded-2xl border border-[#F1E2F5] p-6 sm:p-8 shadow-xs">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-[#F7EDF9]">
         <div>
           <div className="flex items-center gap-2 mb-1">
