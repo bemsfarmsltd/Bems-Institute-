@@ -119,6 +119,7 @@ model User {
   paymentTransactions  PaymentTransaction[]
   jobPlacements        JobPlacement[]
   reviews              Review[]
+  qrCampaigns          QrCampaign[]
   // Which categories of staff-broadcast notifications (notifyStaff) this
   // user wants to receive — only affects staff-wide alerts, never a user's
   // own personal notifications (payment confirmed, submission graded, etc.),
@@ -514,6 +515,25 @@ model Cohort {
 // the QR Studio), independent of whether the visit converted to an
 // enrollment. Aggregated by `source` for the admin banner-yield dashboard —
 // registrations are the subset of a source's scans whose visitor enrolled.
+
+// A custom campaign QR code: one per ambassador, church seminar, NYSC CDS
+// group, etc. The printed QR encodes the short link /q/<code>, which the
+// site resolves to targetUrl at scan time, so a printed code can be pointed
+// somewhere new later. Scans and registrations are attributed to the source
+// tag "c-<code>" (QrScan.source / Enrollment.source).
+model QrCampaign {
+  id          String   @id @default(cuid())
+  // Random, lowercase, unambiguous characters (see lib/qr-campaigns.ts).
+  code        String   @unique
+  label       String
+  // A path on this site ("/subscriptions?course=web-dev") or an https URL.
+  targetUrl   String
+  active      Boolean  @default(true)
+  createdById String?
+  createdBy   User?    @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
 model QrScan {
   id        String   @id @default(cuid())
   source    String

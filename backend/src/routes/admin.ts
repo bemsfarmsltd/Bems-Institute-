@@ -9,7 +9,9 @@ import { creditReferralIfEligible } from "@/lib/referrals";
 import { sendWhatsAppMessage } from "@/lib/twilio";
 import { sendEmail, frontendUrl, naira } from "@/lib/email";
 import { toCsv } from "@/lib/csv";
+import { generateCampaignCode, campaignSource, normalizeTarget } from "@/lib/qr-campaigns";
 import type { AnalyticsSummary } from "@/types/lms";
+import type { QrCampaign } from "@prisma/client";
 
 const router = Router();
 
@@ -132,12 +134,21 @@ router.get("/analytics", async (req, res) => {
   }
   const scansBySource = new Map(scans.map((s) => [s.source, s._count._all]));
   const allSources = new Set([...registrationsBySource.keys(), ...scansBySource.keys()]);
+  // Campaign QR sources are "c-<code>"; show the campaign's name instead.
+  const campaignLabels = new Map(
+    (
+      await prisma.qrCampaign.findMany({
+        where: { code: { in: [...allSources].filter((s) => s.startsWith("c-")).map((s) => s.slice(2)) } },
+        select: { code: true, label: true }
+      })
+    ).map((c) => [campaignSource(c.code), c.label])
+  );
   const bannerChannelYield = [...allSources].map((source) => {
     const reg = registrationsBySource.get(source) || { count: 0, revenue: 0 };
     const scanCount = scansBySource.get(source) || 0;
     return {
       source,
-      location: source,
+      location: campaignLabels.get(source) ?? source,
       scans: scanCount,
       registrations: reg.count,
       revenue: reg.revenue,
@@ -1498,6 +1509,121 @@ router.patch("/settings/notifications", async (req, res) => {
   });
 
   return res.json({ notifyCategories: updated.notifyCategories });
+});
+
+// Custom campaign QR codes (see QrCampaign in schema.prisma). Admin-only:
+// a campaign decides where every scan of a printed code goes.
+const MAX_LABEL_LENGTH = 80;
+
+function campaignStats(
+  c: QrCampaign,
+  scans: Map<string, number>,
+  regs: Map<string, { registrations: number; paid: number }>
+) {
+  const source = campaignSource(c.code);
+  const r = regs.get(source) || { registrations: 0, paid: 0 };
+  return {
+    id: c.id,
+    code: c.code,
+    label: c.label,
+    target: c.targetUrl,
+    active: c.active,
+    source,
+    shortUrl: frontendUrl(`/q/${c.code}`),
+    scans: scans.get(source) || 0,
+    registrations: r.registrations,
+    paidRegistrations: r.paid,
+    createdAt: c.createdAt.toISOString()
+  };
+}
+
+async function statsFor(campaigns: QrCampaign[]) {
+  const sources = campaigns.map((c) => campaignSource(c.code));
+  const [scanRows, enrollments] = await Promise.all([
+    prisma.qrScan.groupBy({ by: ["source"], where: { source: { in: sources } }, _count: { _all: true } }),
+    prisma.enrollment.findMany({ where: { source: { in: sources } }, select: { source: true, paymentStatus: true } })
+  ]);
+  const scans = new Map(scanRows.map((s) => [s.source, s._count._all]));
+  const regs = new Map<string, { registrations: number; paid: number }>();
+  for (const e of enrollments) {
+    const entry = regs.get(e.source!) || { registrations: 0, paid: 0 };
+    entry.registrations += 1;
+    if (e.paymentStatus === "PARTIAL" || e.paymentStatus === "PAID_FULL") entry.paid += 1;
+    regs.set(e.source!, entry);
+  }
+  return campaigns.map((c) => campaignStats(c, scans, regs));
+}
+
+router.get("/qr-campaigns", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
+  }
+  const campaigns = await prisma.qrCampaign.findMany({ orderBy: { createdAt: "desc" } });
+  return res.json({ campaigns: await statsFor(campaigns) });
+});
+
+router.post("/qr-campaigns", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isAdmin(session) || !session) {
+    return res.status(403).json({ error: "Admin access required." });
+  }
+  const label = typeof req.body?.label === "string" ? req.body.label.trim() : "";
+  if (!label || label.length > MAX_LABEL_LENGTH) {
+    return res.status(400).json({ error: `Give the campaign a name (up to ${MAX_LABEL_LENGTH} characters).` });
+  }
+  const target = normalizeTarget(req.body?.target, frontendUrl("/"));
+  if (!target.ok) {
+    return res.status(400).json({ error: target.error });
+  }
+
+  // A clash is ~1 in 850 billion per code; retry rather than fail.
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      const campaign = await prisma.qrCampaign.create({
+        data: { code: generateCampaignCode(), label, targetUrl: target.target, createdById: session.id }
+      });
+      const [stats] = await statsFor([campaign]);
+      return res.status(201).json({ campaign: stats });
+    } catch (err) {
+      if ((err as { code?: string }).code !== "P2002") throw err;
+    }
+  }
+  return res.status(500).json({ error: "Couldn't create a unique code. Try again." });
+});
+
+// Rename, re-point (the printed code then goes to the new target) or
+// switch off a campaign. Codes are never deleted, so old scans keep their name.
+router.patch("/qr-campaigns/:id", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
+  }
+  const data: { label?: string; targetUrl?: string; active?: boolean } = {};
+  if (req.body?.label !== undefined) {
+    const label = typeof req.body.label === "string" ? req.body.label.trim() : "";
+    if (!label || label.length > MAX_LABEL_LENGTH) {
+      return res.status(400).json({ error: `Give the campaign a name (up to ${MAX_LABEL_LENGTH} characters).` });
+    }
+    data.label = label;
+  }
+  if (req.body?.target !== undefined) {
+    const target = normalizeTarget(req.body.target, frontendUrl("/"));
+    if (!target.ok) return res.status(400).json({ error: target.error });
+    data.targetUrl = target.target;
+  }
+  if (req.body?.active !== undefined) {
+    if (typeof req.body.active !== "boolean") return res.status(400).json({ error: "active must be true or false." });
+    data.active = req.body.active;
+  }
+
+  const existing = await prisma.qrCampaign.findUnique({ where: { id: req.params.id } });
+  if (!existing) {
+    return res.status(404).json({ error: "Campaign not found." });
+  }
+  const campaign = await prisma.qrCampaign.update({ where: { id: existing.id }, data });
+  const [stats] = await statsFor([campaign]);
+  return res.json({ campaign: stats });
 });
 
 export default router;

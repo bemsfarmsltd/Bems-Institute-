@@ -21,6 +21,9 @@ export function AttributionCapture() {
     if (!source || tracked.current) return;
     tracked.current = true;
     persistAttribution(source);
+    // qr=1: arrived through a campaign short link (/q/<code>), which already
+    // counted the scan.
+    if (searchParams.get("qr") === "1") return;
     apiFetch("/api/lms/track-scan", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
