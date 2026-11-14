@@ -93,6 +93,30 @@ branch from there.
 
 ## Done (handoff notes)
 
+### 2026-11-14: Refund Excess Overpayment UI & Multi-User Dynamic Campaign QR Studio (Antigravity)
+- **Claimed by**: Antigravity (Frontend)
+- **Branch**: `antigravity/admin-refund-excess-and-qr-builder` (branched off `origin/claude/payment-integrity`)
+- **What was built**:
+  - **1. "Refund excess" Button on Student Rows & Earnings Tab** (`src/app/admin/page.tsx`):
+    - Added "Refund excess" action button on every paying student row in the Students tab alongside "Refund".
+    - Added "+ Refund excess" action button and dedicated modal on the Earnings tab in the Payment Ledger header.
+    - Prompts admin confirmation, then calls `POST /api/admin/enrollments/:id/refund-excess` (admin-only, no body).
+    - On success: refreshes admin data, displays live notice of refunded excess amount, and preserves student course access.
+    - On zero-excess or failure: displays server error banner (`There's no overpayment on this registration`).
+  - **2. Multi-User Dynamic Campaign QR Studio & Randomizer** (`src/app/qr-studio/page.tsx`):
+    - Upgraded Custom Campaign QR Builder with 6 interactive categories: Church Youth Seminar, NYSC CDS Group, Student Ambassador Referral, Tech Meetup, Partner NGO, and Custom Campaign.
+    - Added **"🎲 Randomize / New Campaign"** one-click generator that randomizes campaign labels, organizers, destinations, unique 4-character tokens, and theme colors.
+    - Added Target Destination quick-pickers: All Courses Catalog, Web Dev, AI & Automation, Product Design, Cybersecurity, Code Sandbox, Admissions Landing, or custom URL.
+    - Added QR Contrast Theme Palette (Royal Purple, Deep Navy, Forest Emerald, Amber Orange, Crimson Red) at print-ready 300 DPI.
+    - Added **"Generated Campaign Codes Gallery"** (persisted in `localStorage`), allowing multi-user QR creation, direct PNG downloads, URL copying, external link previews, and deletion.
+  - **3. Test Fix in Backend Auth Rate-Limiter** (`backend/src/__tests__/auth.test.ts`):
+    - Added `beforeEach` hook to clear loopback `signup:` quota attempts so running Vitest repeatedly within 1 hour never fails with 429.
+- **Verification**:
+  - Root TypeScript (`npx tsc --noEmit`): 0 errors.
+  - Backend TypeScript (`npx tsc -p backend/tsconfig.json --noEmit`): 0 errors.
+  - Backend Vitest (`npm test --prefix backend`): 8 test files passed, 39/39 tests passed (100%).
+  - Next.js Production Build (`npx next build`): 32/32 routes compiled cleanly in 2.3s.
+
 ### 2026-11-13: QR → Registration → Paystack Payment → Admin Confirmation Pipeline (Antigravity + Claude Code)
 - **Claimed by**: Antigravity (Frontend) & Claude Code (Backend)
 - **Branch**: `antigravity/lms-core-upgrade` & `claude/registration-approval`
