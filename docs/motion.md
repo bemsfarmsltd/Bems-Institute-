@@ -7,6 +7,7 @@ CSS in `src/app/motion.css`; the scroll watcher is `src/components/MotionProvide
 ## What's already automatic
 - Every `<Button>` springs up on hover and squashes on press or tap.
 - Every `<Badge>` pops on hover.
+- On phones, touching anything with `m-lift`/`m-press`/`m-pop` squashes it (MotionProvider sets `data-pressed`; plain CSS `:active` isn't reliable on touchscreens).
 
 ## Adding motion to a page
 
