@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { verifyPassword, hashPassword, isPasswordStrongEnough } from "@/lib/password";
 import { createSessionToken, SESSION_COOKIE, SESSION_COOKIE_OPTIONS } from "@/lib/session";
 import { getSessionUser } from "@/lib/api-auth";
+import { isBlockedDemoAccount } from "@/lib/demo-accounts";
 import { checkRateLimit, recordAttempt, rateLimitMessage, clearAttempts, checkUsageQuota } from "@/lib/rate-limit";
 import { createPasswordResetToken, deliverPasswordResetLink, lookupResetToken, consumeResetToken } from "@/lib/password-reset";
 import { recordReferralSignup } from "@/lib/referrals";
@@ -49,7 +50,8 @@ router.post("/login", async (req, res) => {
   const valid = user ? await verifyPassword(password, user.passwordHash) : false;
   await recordAttempt(rateLimitKey, valid);
 
-  if (!user || !valid) {
+  // Demo accounts get the same answer as a wrong password (see demo-accounts.ts).
+  if (!user || !valid || isBlockedDemoAccount(user.email)) {
     return res.status(401).json({ error: "Invalid email or password." });
   }
   if (user.deactivatedAt) {

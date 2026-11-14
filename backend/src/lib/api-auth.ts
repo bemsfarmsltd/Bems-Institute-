@@ -1,6 +1,7 @@
 import type { Request } from "express";
 import { verifySessionToken, SessionPayload, SESSION_COOKIE } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
+import { isBlockedDemoAccount } from "@/lib/demo-accounts";
 
 // Verifies the cookie's signature/expiry (verifySessionToken) AND that its
 // embedded tokenVersion still matches the user's current one in the DB — a
@@ -14,9 +15,11 @@ export async function getSessionUser(req: Request): Promise<SessionPayload | nul
 
   const user = await prisma.user.findUnique({
     where: { id: payload.id },
-    select: { tokenVersion: true, deactivatedAt: true }
+    select: { tokenVersion: true, deactivatedAt: true, email: true }
   });
   if (!user || user.tokenVersion !== payload.tokenVersion || user.deactivatedAt) return null;
+  // Ends sessions already open on a demo account (see demo-accounts.ts).
+  if (isBlockedDemoAccount(user.email)) return null;
 
   return payload;
 }

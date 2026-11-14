@@ -17,6 +17,11 @@ Demo accounts (seeded by `npm run db:seed`, password `demo1234` for both):
 - `chinedu.okeke@mouau.edu.ng` — STUDENT
 - `victor.lead@bemsinstitute.ng` — INSTRUCTOR
 
+They only work locally. The backend refuses them when `NODE_ENV=production`
+(their password is public), unless `ALLOW_DEMO_ACCOUNTS=true`. The login page
+shows the one-click demo buttons only with `NEXT_PUBLIC_ENABLE_DEMO_LOGIN=true`
+in `.env.local`.
+
 New STUDENT/INSTRUCTOR accounts can sign up at `/login`. ADMIN accounts can't
 self-register — the first admin registers at `/admin` with the
 `ADMIN_ACCESS_CODE` from `.env.local` (a one-time invite code, not a standing

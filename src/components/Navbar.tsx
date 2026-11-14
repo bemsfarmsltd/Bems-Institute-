@@ -154,7 +154,7 @@ export function Navbar() {
                   <span>Cybersecurity Defense</span>
                 </Link>
                 <Link
-                  href="/instructor"
+                  href="/become-instructor"
                   className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#F7EDF9]/50 hover:text-[#AE54C6]"
                 >
                   <span>Become an Instructor</span>
@@ -165,12 +165,14 @@ export function Navbar() {
                 >
                   <span>Tuition &amp; Admissions</span>
                 </Link>
+                {user?.role === "ADMIN" && (
                 <Link
                   href="/qr-studio"
                   className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-medium text-[#747579] hover:bg-[#F7EDF9]/50 hover:text-[#AE54C6]"
                 >
                   <span>Banner QR Studio</span>
                 </Link>
+                )}
               </div>
             </div>
 
@@ -196,7 +198,7 @@ export function Navbar() {
                     instructors/admins or signed-out visitors, matching the
                     mobile drawer's gate below; a logged-in student has no
                     reason to see the instructor console in this menu. */}
-                {(user?.role === "INSTRUCTOR" || user?.role === "ADMIN" || !user) && (
+                {(user?.role === "INSTRUCTOR" || user?.role === "ADMIN") && (
                 <div className="relative group/instructor">
                   <Link
                     href="/instructor"
@@ -218,6 +220,8 @@ export function Navbar() {
                       <ShoppingBag className="w-3.5 h-3.5" />
                       <span>Courses</span>
                     </Link>
+                    {user?.role === "ADMIN" && (
+                    <>
                     <Link
                       href="/admin/courses"
                       className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F7EDF9] hover:text-[#AE54C6]"
@@ -246,6 +250,8 @@ export function Navbar() {
                       <GraduationCap className="w-3.5 h-3.5" />
                       <span>Students</span>
                     </Link>
+                    </>
+                    )}
                     <Link
                       href="/instructor/grading"
                       className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F7EDF9] hover:text-[#AE54C6]"
@@ -304,7 +310,7 @@ export function Navbar() {
                 </div>
 
                 {/* Direct Account Items */}
-                {(user?.role === "ADMIN" || !user) && (
+                {user?.role === "ADMIN" && (
                 <Link
                   href="/admin"
                   className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg text-xs font-semibold text-[#747579] hover:bg-[#F7EDF9] hover:text-[#AE54C6] transition-colors"
@@ -621,6 +627,7 @@ export function Navbar() {
                   <Trophy className="w-4 h-4 text-[#AE54C6] shrink-0" />
                   <span className="truncate">Leaderboard</span>
                 </Link>
+                {user?.role === "ADMIN" && (
                 <Link
                   href="/qr-studio"
                   onClick={() => setMobileMenuOpen(false)}
@@ -633,11 +640,12 @@ export function Navbar() {
                   <QrCode className="w-4 h-4 text-[#AE54C6] shrink-0" />
                   <span className="truncate">QR Studio</span>
                 </Link>
+                )}
               </div>
             </div>
 
             {/* Section 3: Staff & Instructor Portal */}
-            {(user?.role === "INSTRUCTOR" || user?.role === "ADMIN" || !user) && (
+            {(user?.role === "INSTRUCTOR" || user?.role === "ADMIN") && (
               <div>
                 <span className="text-[10px] font-black uppercase tracking-wider text-[#8580A3] px-1 block mb-2">
                   Staff &amp; Faculty
@@ -655,7 +663,7 @@ export function Navbar() {
                     <GraduationCap className="w-4 h-4 text-[#AE54C6] shrink-0" />
                     <span className="truncate">Instructor Studio</span>
                   </Link>
-                  {(user?.role === "ADMIN" || !user) && (
+                  {user?.role === "ADMIN" && (
                     <Link
                       href="/admin"
                       onClick={() => setMobileMenuOpen(false)}

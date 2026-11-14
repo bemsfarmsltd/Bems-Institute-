@@ -7,6 +7,8 @@ import { useLMS } from "@/context/LMSContext";
 import type { UserRole } from "@/types/lms";
 import EduportAuthSplitLayout from "@/components/EduportAuthSplitLayout";
 
+const DEMO_LOGIN_ENABLED = process.env.NEXT_PUBLIC_ENABLE_DEMO_LOGIN === "true";
+
 function EnvelopeIcon() {
   return (
     <svg className="w-4 h-4 text-[#94A3B8] shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -86,7 +88,9 @@ export default function LoginPage() {
       router.push(redirectUrl);
       return;
     }
-    if (userRole === "INSTRUCTOR" || userRole === "ADMIN") {
+    if (userRole === "ADMIN") {
+      router.push("/admin");
+    } else if (userRole === "INSTRUCTOR") {
       router.push("/instructor");
     } else {
       router.push("/dashboard");
@@ -248,7 +252,9 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Instant Demo Access */}
+          {/* Instant Demo Access: local development only (the backend refuses
+              demo accounts in production; see backend/src/lib/demo-accounts.ts). */}
+          {DEMO_LOGIN_ENABLED && (
           <div className="mt-5 pt-4 border-t border-slate-100">
             <div className="flex items-center justify-between gap-2 mb-2">
               <span className="text-[11.5px] font-semibold uppercase tracking-wider text-[#94A3B8]">
@@ -275,35 +281,7 @@ export default function LoginPage() {
               </button>
             </div>
           </div>
-
-          {/* Divider Or */}
-          <div className="relative my-6 flex items-center justify-center">
-            <div className="w-full border-t border-slate-200" />
-            <span className="bg-white px-4 text-[13px] text-[#94A3B8] font-medium">
-              Or
-            </span>
-            <div className="w-full border-t border-slate-200" />
-          </div>
-
-          {/* Social Buttons */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={() => handleQuickDemo("student")}
-              className="w-full py-2.5 px-4 rounded-lg bg-[#3C7FF0] hover:bg-[#316FD8] text-white text-[13.5px] font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
-            >
-              <span className="font-display font-black text-[15px]">G</span>
-              <span>Login with Google</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleQuickDemo("student")}
-              className="w-full py-2.5 px-4 rounded-lg bg-[#5D82D1] hover:bg-[#4E71BE] text-white text-[13.5px] font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
-            >
-              <span className="font-display font-black text-[15px]">f</span>
-              <span>Login with Facebook</span>
-            </button>
-          </div>
+          )}
 
           {/* Switch to Sign Up */}
           <p className="mt-7 text-center text-[14px] text-[#64748B]">
@@ -497,34 +475,6 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Divider Or */}
-          <div className="relative my-6 flex items-center justify-center">
-            <div className="w-full border-t border-slate-200" />
-            <span className="bg-white px-4 text-[13px] text-[#94A3B8] font-medium">
-              Or
-            </span>
-            <div className="w-full border-t border-slate-200" />
-          </div>
-
-          {/* Social Buttons */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={() => handleQuickDemo("student")}
-              className="w-full py-2.5 px-4 rounded-lg bg-[#3C7FF0] hover:bg-[#316FD8] text-white text-[13.5px] font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
-            >
-              <span className="font-display font-black text-[15px]">G</span>
-              <span>Signup with Google</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleQuickDemo("student")}
-              className="w-full py-2.5 px-4 rounded-lg bg-[#5D82D1] hover:bg-[#4E71BE] text-white text-[13.5px] font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
-            >
-              <span className="font-display font-black text-[15px]">f</span>
-              <span>Signup with Facebook</span>
-            </button>
-          </div>
 
           {/* Switch to Sign In */}
           <p className="mt-6 text-center text-[14px] text-[#64748B]">

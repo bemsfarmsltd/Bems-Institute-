@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { MapPin, Phone, Mail, Clock, QrCode, ShieldCheck } from "lucide-react";
+import { MapPin, Phone, Mail, Clock } from "lucide-react";
 
 export function Footer() {
   return (
@@ -146,18 +146,8 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/instructor/grading" className="hover:text-[#AE54C6] transition-colors">
-                  Capstone Grading
-                </Link>
-              </li>
-              <li>
-                <Link href="/qr-studio" className="hover:text-[#AE54C6] transition-colors">
-                  Banner QR Studio
-                </Link>
-              </li>
-              <li>
-                <Link href="/admin" className="hover:text-[#AE54C6] transition-colors">
-                  Admin Scoreboard
+                <Link href="/subscriptions" className="hover:text-[#AE54C6] transition-colors">
+                  Tuition &amp; Admissions
                 </Link>
               </li>
             </ul>
@@ -196,25 +186,11 @@ export function Footer() {
             Copyrights &copy;2026 BEMS Institute of Technology &amp; Vocational Studies. All rights reserved.
           </div>
           <div className="flex flex-wrap items-center gap-5">
-            <Link
-              href="/qr-studio"
-              className="inline-flex items-center gap-1 hover:text-[#AE54C6] transition-colors"
-            >
-              <QrCode className="w-3.5 h-3.5" />
-              <span>QR Studio</span>
-            </Link>
             <Link href="/terms" className="hover:text-[#AE54C6] transition-colors">
               Terms of Admission
             </Link>
             <Link href="/privacy" className="hover:text-[#AE54C6] transition-colors">
               Privacy Policy
-            </Link>
-            <Link
-              href="/admin"
-              className="inline-flex items-center gap-1 text-[#24292D] font-semibold hover:text-[#AE54C6] transition-colors"
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-[#AE54C6]" />
-              <span>Staff Portal</span>
             </Link>
           </div>
         </div>

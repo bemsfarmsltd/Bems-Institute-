@@ -47,7 +47,7 @@ const OTHER_STATS = [
 ];
 
 export function Hero() {
-  const { courses } = useLMS();
+  const { courses, user } = useLMS();
   const trackStat = {
     count: courses.length || 5,
     format: (n: number) => `${n} Tracks`,
@@ -199,6 +199,7 @@ export function Hero() {
                 <span>Explore Courses</span>
               </Link>
 
+              {user?.role === "ADMIN" && (
               <Link
                 href="/qr-studio"
                 className="m-press inline-flex items-center gap-1.5 text-xs font-semibold text-[#747579] hover:text-[#AE54C6] transition-colors"
@@ -206,6 +207,7 @@ export function Hero() {
                 <QrCode className="w-4 h-4 text-[#AE54C6]" />
                 <span>Banner QR Studio</span>
               </Link>
+              )}
             </div>
 
             {/* Yellow 4-Point Star Accent */}
