@@ -30,8 +30,59 @@ function inViewport(el: Element) {
   return r.top < window.innerHeight && r.bottom > 0;
 }
 
+// Touch press feedback. CSS :active is unreliable on phones (iOS Safari
+// ignores it without a touch listener; Android applies it late or not at
+// all on a quick tap), so a touch marks the element data-pressed directly.
+// Mouse presses are left to :active.
+const PRESSABLE = ".m-lift, .m-press, .m-pop";
+const MIN_PRESS_MS = 150; // long enough to see the squash on a quick tap
+
+function usePressFeedback() {
+  useEffect(() => {
+    let pressed: Element | null = null;
+    let pressedAt = 0;
+    let timer = 0;
+
+    const clear = () => {
+      window.clearTimeout(timer);
+      pressed?.removeAttribute("data-pressed");
+      pressed = null;
+    };
+    const down = (e: PointerEvent) => {
+      if (e.pointerType === "mouse" || !(e.target instanceof Element)) return;
+      const el = e.target.closest(PRESSABLE);
+      if (!el || el.matches(":disabled, [aria-disabled='true']")) return;
+      clear();
+      pressed = el;
+      pressedAt = performance.now();
+      el.setAttribute("data-pressed", "");
+    };
+    // Tap released: keep the squash visible briefly, then spring back.
+    const up = () => {
+      if (!pressed) return;
+      window.clearTimeout(timer);
+      timer = window.setTimeout(clear, Math.max(0, MIN_PRESS_MS - (performance.now() - pressedAt)));
+    };
+
+    const opts = { passive: true } as const;
+    document.addEventListener("pointerdown", down, opts);
+    document.addEventListener("pointerup", up, opts);
+    // The browser took the touch for a scroll: no press.
+    document.addEventListener("pointercancel", clear, opts);
+    window.addEventListener("scroll", clear, { passive: true, capture: true });
+    return () => {
+      clear();
+      document.removeEventListener("pointerdown", down);
+      document.removeEventListener("pointerup", up);
+      document.removeEventListener("pointercancel", clear);
+      window.removeEventListener("scroll", clear, { capture: true });
+    };
+  }, []);
+}
+
 export function MotionProvider() {
   const pathname = usePathname();
+  usePressFeedback();
 
   useEffect(() => {
     const root = document.documentElement;

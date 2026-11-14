@@ -4,6 +4,8 @@
  *
  *   .m-lift            cards: rise and grow on hover, squash on press/touch
  *   .m-press           buttons/chips: springy squash on press/touch
+ *                      (touch sets data-pressed via MotionProvider: :active
+ *                      alone is unreliable on phones, iOS Safari especially)
  *   .m-pop             small things (badges, avatars, icons): pop on hover
  *   .m-icon            inside an .m-lift/.group: icon tilts when the card is hovered
  *   data-reveal        animates in when scrolled into view ("up" default,
@@ -90,7 +92,8 @@
       box-shadow: var(--lift-shadow);
     }
   }
-  .m-lift:active {
+  .m-lift:active,
+  .m-lift[data-pressed] {
     transform: translate3d(0, -1px, 0) scale(0.975);
     transition-duration: var(--motion-fast);
   }
@@ -109,7 +112,8 @@
       transform: translate3d(0, -2px, 0) scale(1.03);
     }
   }
-  .m-press:active {
+  .m-press:active,
+  .m-press[data-pressed] {
     transform: scale(0.94);
     transition-duration: 110ms;
   }
@@ -123,7 +127,8 @@
       transform: scale(1.08) rotate(-2deg);
     }
   }
-  .m-pop:active {
+  .m-pop:active,
+  .m-pop[data-pressed] {
     transform: scale(0.92);
   }
 
@@ -136,7 +141,8 @@
       transform: rotate(-10deg) scale(1.15);
     }
   }
-  .m-lift:active .m-icon {
+  .m-lift:active .m-icon,
+  .m-lift[data-pressed] .m-icon {
     transform: scale(0.9);
   }
 
