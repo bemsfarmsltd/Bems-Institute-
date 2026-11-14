@@ -8,9 +8,9 @@ section.
 
 | Task | Agent | Branch | Files / areas | Started |
 |---|---|---|---|---|
-| **Motion foundation** (done, awaiting merge): `src/app/motion.css` (m-lift, m-press, m-pop, m-icon, data-reveal, data-reveal-group), `MotionProvider` in layout, `CountUp`; Button/Badge bounce site-wide. Guide: `docs/motion.md`. | Claude Code | `claude/motion-foundation` | `src/app/motion.css`, `src/components/MotionProvider.tsx`, `CountUp.tsx`, `ui/button.tsx`, `ui/badge.tsx`, `layout.tsx`, `globals.css` | 2026-11-14 |
-| **Apply motion site-wide** (done, awaiting review / QA) per `docs/motion.md`: home (`Hero`, `CourseCards`, `EduportTrendingCourses`, `EduportStudentFeedback`), `Navbar`, courses, course detail, subscriptions, dashboard (`dashboard/page`, `LearningInsights`, `ReferAFriendCard`), learn pages (lesson, quiz, assignment), certificates & verifier, graduates, community, leaderboard, qr-studio, admin & instructor KPI tiles/cards; hero entrance & float keyframes; stat `<CountUp>`s. Phone-first. | Antigravity | `antigravity/motion-pages`, off `claude/motion-foundation` | Page files under `src/app/`, `src/components/` (not the motion files) | 2026-11-14 |
-| **Motion QA**: reduced-motion leaves nothing hidden; no content stuck invisible on slow load or when JS fails; mobile Lighthouse performance + CLS before/after; tap feedback on phone width. Report numbers here. | Codex | `codex/motion-qa` | Read only, plus tests/docs | 2026-11-14 |
+| **Motion foundation** (merged into main): `src/app/motion.css` (m-lift, m-press, m-pop, m-icon, data-reveal, data-reveal-group), `MotionProvider` in layout, `CountUp`; Button/Badge bounce site-wide. Guide: `docs/motion.md`. | Claude Code | `claude/motion-foundation` | `src/app/motion.css`, `src/components/MotionProvider.tsx`, `CountUp.tsx`, `ui/button.tsx`, `ui/badge.tsx`, `layout.tsx`, `globals.css` | 2026-11-14 |
+| **Apply motion site-wide** (merged into main) per `docs/motion.md`: home (`Hero`, `CourseCards`, `EduportTrendingCourses`, `EduportStudentFeedback`), `Navbar`, courses, course detail, subscriptions, dashboard (`dashboard/page`, `LearningInsights`, `ReferAFriendCard`), learn pages (lesson, quiz, assignment), certificates & verifier, graduates, community, leaderboard, qr-studio, admin & instructor KPI tiles/cards; hero entrance & float keyframes; stat `<CountUp>`s. Phone-first. | Antigravity | `antigravity/motion-pages`, off `claude/motion-foundation` | Page files under `src/app/`, `src/components/` (not the motion files) | 2026-11-14 |
+| **Motion QA** (done; see Claude browser QA below): reduced-motion leaves nothing hidden; no content stuck invisible on slow load or when JS fails; mobile Lighthouse performance + CLS before/after; tap feedback on phone width. Report numbers here. | Codex | `codex/motion-qa` | Read only, plus tests/docs | 2026-11-14 |
 | **Campaign QR codes, backend + short link** (merged, live in main @ c4cf776): `QrCampaign` table + migration, admin API, public resolver, `/q/<code>` redirect, campaign names in analytics. | Claude Code | `claude/qr-campaigns` | `backend/` (schema, `lib/qr-campaigns.ts`, `routes/qr.ts`, `routes/admin.ts`), `src/app/q/[code]/route.ts`, 2-line `qr=1` skip in `AttributionCapture.tsx` + `subscriptions/page.tsx` | 2026-11-14 |
 | **Campaign QR codes, builder UI** (done, awaiting review): saved campaigns with shortUrl QR encoding, live re-pointing, metrics, quick-pickers, color palette, admin-only gating. | Antigravity | `antigravity/qr-campaign-builder` | `src/app/qr-studio/page.tsx` | 2026-11-14 |
 
@@ -21,6 +21,36 @@ The printed QR must encode **`shortUrl`** (`https://<site>/q/<code>`), never the
 - `GET /api/admin/qr-campaigns` → `{ campaigns }`, newest first.
 - `POST /api/admin/qr-campaigns` `{ label, target }` → `201 { campaign }`. `target`: a path on the site (`/subscriptions?course=web-dev`) or an `https://` URL. `400 { error }` with a message to show as is.
 - `PATCH /api/admin/qr-campaigns/:id` `{ label?, target?, active? }` → `{ campaign }`. No delete: switch off instead (scans of a switched-off code go to the homepage).
+
+## Codex motion QA (2026-11-14)
+
+Compared `origin/main` at `c4cf776` with `origin/antigravity/motion-pages` at `d538b9c` (includes Antigravity's Hero fix). Built and served both locally with `npx next build --webpack` / `npx next start`; both builds passed. The motion build initially retried Google Fonts requests with `ECONNRESET` for about 3.7 minutes, then passed. The main build passed in about 20 seconds.
+
+### Limited first-response check (not Lighthouse)
+
+`curl --limit-rate 50k` requests (about 400 kbit/s down, without simulated latency, browser parsing, JS, CSS, image or API throttling) against local production servers. All requests returned HTTP 200 and the checked first-screen marker was present. These numbers are document transfer measurements only; they are not browser-level Slow 3G results.
+
+| Page | Main bytes | Main TTFB / total (s) | Motion bytes | Motion TTFB / total (s) | Initial text |
+|---|---:|---:|---:|---:|---|
+| Home | 124,055 | 0.103 / 2.508 | 125,352 | 0.172 / 2.596 | “Earn Anywhere” present in both |
+| Courses | 87,526 | 0.031 / 1.732 | 87,499 | 0.036 / 1.731 | BEMS cohort heading present in both |
+| Subscriptions | 10,016 | 0.024 / 0.025 | 10,185 | 0.032 / 0.033 | “Loading subscription plans…” present in both |
+
+### Requested browser checks
+
+| Check | Main | Motion branch | Result |
+|---|---|---|---|
+| Lighthouse mobile Performance: home / courses / subscriptions | N/A | N/A | Could not run: browser automation host unavailable and Lighthouse CLI was neither installed nor cached; npm registry invocation stalled. No scores are claimed. |
+| Lighthouse CLS: home / courses / subscriptions | N/A | N/A | Same limitation; requires browser instrumentation. |
+| Reduced-motion runtime at mobile viewport | N/A | N/A | Could not emulate in browser. Static review: reveal hiding CSS is inside `prefers-reduced-motion: no-preference`; `MotionProvider` returns before adding `motion-ready` when reduction is enabled; Hero entrance keyframes are also no-preference only. No stuck-hidden path found by inspection. |
+| Real slow-3G first-screen rendering | N/A | N/A | Browser-level throttling unavailable. Limited HTML response check above found first-screen text in each response; it does not test hydration/render timing. |
+| Physical/touch tap feedback at 375px | N/A | N/A | Could not test in browser/device. Static CSS review confirms `:active` feedback for `.m-lift` and `.m-press` on no-preference devices. |
+
+### Handoff findings
+
+- No motion-specific defect was confirmed in the requested checks. Keep the browser-only items open for Antigravity to verify in a browser that can access localhost.
+- **Check with Antigravity/Claude:** `/subscriptions` server-renders “Loading subscription plans…” rather than the course/payment selector on both main and motion. It is not blank, but the available HTML-only probe cannot establish how long that placeholder remains while JS and API requests load on slow connections. Verify a useful nonblank fallback in a browser under real Slow 3G throttling.
+- No UI or behavior files were changed by Codex; this entry records QA evidence and limitations only.
 
 ## Codex payment review (2026-11-14)
 
@@ -188,3 +218,21 @@ branch from there.
   - `src/context/LMSContext.tsx` & `src/data/assessment-data.ts`: Populated default mock/offline catalog for courses, quizzes, assignments, and certificates (`LMS_CERTIFICATES`), preventing blank screens if API bootstrap fails; integrated local capstone certificate generation.
   - `src/app/error-404/page.tsx`: Linked cleanly to `EduportNotFoundView`.
   - `src/lib/confetti.ts`: Restored zero-dependency celebration particle confetti for quiz completions, milestones, and onboarding victories.
+
+### Claude browser QA (2026-11-14, headless Chrome + Lighthouse 12.3)
+
+Local production builds, 375px phone and 1366px desktop, onboarding tours marked seen.
+
+- Reveal: nothing on the first screen hidden; nothing still hidden after scrolling each page (home 18, courses 12, subscriptions 9 reveal blocks).
+- Reduced motion: `motion-ready` never set, nothing hidden, no running animations.
+- Desktop hover: hero floating card and stat cards lift (scale 1.015, -6px).
+- **Bug found and fixed (27c3956):** touch taps gave no squash (CSS `:active` unreliable on touch). MotionProvider now sets `data-pressed`; after the fix taps squash (m-lift 0.975, m-press 0.94) on all three pages.
+- CLS: 0 on all pages (load + full scroll).
+
+| Lighthouse mobile Performance | main @ c4cf776 | motion branch |
+|---|---|---|
+| Home | 57, 57 | 51, 54, 53 |
+| Courses | 68, 69 | 61, 66, 65 |
+| Subscriptions | 51, 48 | 47, 52, 57 |
+
+Motion costs about 3 to 4 points on home/courses. The baseline is already slow (about 2s total blocking time, LCP 4 to 5s on main): follow-up task.
