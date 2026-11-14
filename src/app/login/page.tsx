@@ -46,22 +46,22 @@ export default function LoginPage() {
 
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [referralCode, setReferralCode] = useState("");
+  const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
 
   // Plain window.location read rather than useSearchParams() — this page
   // doesn't have a Suspense boundary, and a bare browser API avoids
-  // needing one just to pick up a ?ref= code.
-  React.useEffect(() => {
-    if (typeof window !== "undefined") {
-      const ref = new URLSearchParams(window.location.search).get("ref");
-      if (ref) setReferralCode(ref);
-    }
-  }, []);
-
+  // needing one just to pick up search params.
   React.useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
+      const ref = params.get("ref");
+      if (ref) setReferralCode(ref);
       if (params.get("mode") === "signup") {
         setMode("signup");
+      }
+      const redir = params.get("redirect") || params.get("returnUrl");
+      if (redir && redir.startsWith("/")) {
+        setRedirectUrl(redir);
       }
     }
   }, []);
@@ -79,6 +79,10 @@ export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const routeForRole = (userRole: UserRole) => {
+    if (redirectUrl) {
+      router.push(redirectUrl);
+      return;
+    }
     if (userRole === "INSTRUCTOR" || userRole === "ADMIN") {
       router.push("/instructor");
     } else {

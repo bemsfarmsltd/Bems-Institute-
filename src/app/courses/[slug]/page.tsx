@@ -24,8 +24,13 @@ import {
   BookOpen,
   AlertTriangle,
   Star,
-  GraduationCap
+  GraduationCap,
+  ArrowRight,
+  ShieldCheck,
+  Check,
+  Zap
 } from "lucide-react";
+import { LMS_COURSES } from "@/data/lms-data";
 
 export default function CourseDetailPage({
   params
@@ -38,6 +43,7 @@ export default function CourseDetailPage({
     courses,
     isHydrated,
     isEnrolled,
+    userEnrollments,
     enrollInCourse,
     isLessonCompleted,
     getCourseProgress,
@@ -71,7 +77,9 @@ export default function CourseDetailPage({
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewMsg, setReviewMsg] = useState<string | null>(null);
 
-  const course = courses.find((c) => c.slug === slug);
+  const course =
+    courses.find((c) => c.slug === slug || c.id === slug) ||
+    LMS_COURSES.find((c) => c.slug === slug || c.id === slug);
 
   useEffect(() => {
     if (!course) return;
@@ -144,8 +152,15 @@ export default function CourseDetailPage({
   }
 
   const enrolled = isEnrolled(course.id);
+  const courseEnrollment = (userEnrollments || []).find(
+    (e) => e.courseId === course.id || e.courseId === course.slug
+  );
+  const isAwaitingApproval = courseEnrollment?.awaitingApproval === true;
   const progress = getCourseProgress(course.id);
   const firstLessonId = course.modules[0]?.lessons[0]?.id || "les-1";
+  const firstFreeLesson = course.modules
+    .flatMap((m) => m.lessons)
+    .find((l) => l.isFreePreview);
   const totalLessons = course.modules.reduce((acc, m) => acc + m.lessons.length, 0);
   const courseQuiz = getQuizForCourse(course.id);
   const courseAssignment = getAssignmentForCourse(course.id);
@@ -230,6 +245,66 @@ export default function CourseDetailPage({
               <span><strong>Schedule:</strong> {course.schedule}</span>
             </div>
           </div>
+
+          {/* Hero Action CTAs */}
+          <div className="mt-8 pt-6 border-t border-white/10 flex flex-wrap items-center gap-3">
+            {enrolled ? (
+              <div className="flex flex-wrap items-center gap-3">
+                <Link href={`/learn/${course.slug}/${firstLessonId}`}>
+                  <Button variant="purple" size="lg" className="shadow-xl text-sm font-black gap-2">
+                    <PlayCircle className="w-5 h-5 text-emerald-400" />
+                    <span>Continue Learning ({progress.percent}%)</span>
+                    <ArrowRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </Link>
+                {courseQuiz && (
+                  <Link href={`/learn/${course.slug}/quiz/${courseQuiz.id}`}>
+                    <Button variant="outline" size="lg" className="bg-white/10 border-white/20 text-white hover:bg-white/20 text-sm font-bold">
+                      <Award className="w-4 h-4 mr-1.5 text-amber-400" /> Take Assessment
+                    </Button>
+                  </Link>
+                )}
+              </div>
+            ) : isAwaitingApproval ? (
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500/20 border border-amber-400/40 text-amber-200 font-extrabold text-xs">
+                  <Clock className="w-4 h-4 text-amber-300" />
+                  <span>Payment Confirmed · Awaiting Admissions Confirmation</span>
+                </div>
+                <Link href="/dashboard">
+                  <Button variant="outline" size="lg" className="bg-white/10 border-white/20 text-white hover:bg-white/20 text-sm font-bold">
+                    <span>View Status on Dashboard</span>
+                    <ArrowRight className="w-4 h-4 ml-1.5" />
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="flex flex-wrap items-center gap-3">
+                <Link href={`/subscriptions?course=${course.id}`}>
+                  <Button variant="purple" size="lg" className="shadow-xl text-sm font-black gap-2 bg-[#AE54C6] hover:bg-[#9E3FB6]">
+                    <Sparkles className="w-4 h-4 text-emerald-400" />
+                    <span>Enroll Now &bull; ₦{course.priceFull.toLocaleString()}</span>
+                    <ArrowRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </Link>
+
+                <Link href={`/subscriptions?course=${course.id}&plan=installment`}>
+                  <Button variant="outline" size="lg" className="bg-white/10 border-white/20 text-white hover:bg-white/20 text-sm font-bold">
+                    <span>Pay in Parts &bull; ₦{course.deposit.toLocaleString()} deposit</span>
+                  </Button>
+                </Link>
+
+                {firstFreeLesson && (
+                  <Link href={`/learn/${course.slug}/${firstFreeLesson.id}`}>
+                    <Button variant="secondary" size="lg" className="bg-white text-[#303654] hover:bg-[#FAF8FF] text-sm font-bold gap-1.5">
+                      <PlayCircle className="w-4 h-4 text-[#AE54C6]" />
+                      <span>Free Preview Lesson</span>
+                    </Button>
+                  </Link>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -312,14 +387,16 @@ export default function CourseDetailPage({
                             </span>
                             {canWatch ? (
                               <Link href={`/learn/${course.slug}/${lesson.id}`}>
-                                <Button size="sm" variant={completed ? "outline" : "primary"}>
+                                <Button size="sm" variant={completed ? "outline" : "primary"} className="text-xs font-bold">
                                   {completed ? "Review" : "Watch"}
                                 </Button>
                               </Link>
                             ) : (
-                              <Button size="sm" variant="outline" disabled>
-                                Locked
-                              </Button>
+                              <Link href={`/learn/${course.slug}/${lesson.id}`}>
+                                <Button size="sm" variant="outline" className="border-amber-200 text-amber-800 hover:bg-amber-50 gap-1 text-xs font-bold">
+                                  <Lock className="w-3 h-3 text-amber-600" /> Unlock
+                                </Button>
+                              </Link>
                             )}
                           </div>
                         </div>
@@ -588,6 +665,45 @@ export default function CourseDetailPage({
                     </Button>
                   </Link>
                 </div>
+              ) : isAwaitingApproval ? (
+                <div className="space-y-4">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-black uppercase tracking-wider">
+                    <Clock className="w-3.5 h-3.5" /> Awaiting Confirmation
+                  </span>
+                  <div>
+                    <h3 className="text-xl font-black text-[#303654]">
+                      Tuition Verified!
+                    </h3>
+                    <p className="text-xs text-[#645F80] mt-1.5 leading-relaxed">
+                      We have received your payment of <strong className="text-[#303654]">₦{courseEnrollment?.amountPaid?.toLocaleString()}</strong>. Admissions is reviewing your cohort placement and verifying your registration.
+                    </p>
+                    <div className="mt-3 p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 leading-relaxed">
+                      You will receive an official email confirmation and full classroom unlock as soon as admissions approves your seat.
+                    </div>
+                  </div>
+
+                  <Link href="/dashboard" className="block w-full">
+                    <Button variant="purple" className="w-full gap-2 text-xs font-bold" size="lg">
+                      <span>Go to Student Dashboard</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  </Link>
+
+                  <a
+                    href={buildWhatsAppLink(
+                      BEMS_WHATSAPP_NUMBER,
+                      `Hello BEMS Admissions, I'm checking on my registration approval for ${course.title}.`
+                    )}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block w-full"
+                  >
+                    <Button variant="outline" size="sm" className="w-full text-xs font-bold border-[#AE54C6]/30">
+                      <MessageCircle className="w-3.5 h-3.5 mr-1.5 text-emerald-600" />
+                      <span>Chat with Admissions</span>
+                    </Button>
+                  </a>
+                </div>
               ) : (
                 <div>
                   <span className="text-xs font-bold text-[#AE54C6] uppercase tracking-wider block mb-1">
@@ -617,19 +733,38 @@ export default function CourseDetailPage({
                     </Button>
                   )}
 
-                  <Link href={`/subscriptions?course=${course.id}`} className="block w-full" data-tour="checkout-link">
-                    <Button size="lg" className="w-full">
-                      Full Checkout & Paystack Portal
-                    </Button>
-                  </Link>
+                  <div className="space-y-2">
+                    <Link href={`/subscriptions?course=${course.id}`} className="block w-full" data-tour="checkout-link">
+                      <Button size="lg" variant="purple" className="w-full text-xs font-black shadow-lg gap-2 bg-[#AE54C6] hover:bg-[#9E3FB6]">
+                        <Sparkles className="w-4 h-4 text-emerald-300" />
+                        <span>Enroll in Course &bull; ₦{course.priceFull.toLocaleString()}</span>
+                        <ArrowRight className="w-4 h-4 ml-auto" />
+                      </Button>
+                    </Link>
+
+                    <Link href={`/subscriptions?course=${course.id}&plan=installment`} className="block w-full">
+                      <Button size="md" variant="outline" className="w-full text-xs font-bold border-[#AE54C6]/30 text-[#303654] hover:bg-[#FAF8FF]">
+                        <span>Pay in Installments &bull; ₦{course.deposit.toLocaleString()} Deposit</span>
+                      </Button>
+                    </Link>
+
+                    {firstFreeLesson && (
+                      <Link href={`/learn/${course.slug}/${firstFreeLesson.id}`} className="block w-full">
+                        <Button size="sm" variant="secondary" className="w-full text-xs font-bold gap-1.5 text-[#303654]">
+                          <PlayCircle className="w-4 h-4 text-[#AE54C6]" />
+                          <span>Watch Free Preview Lesson</span>
+                        </Button>
+                      </Link>
+                    )}
+                  </div>
 
                   <button
                     type="button"
                     onClick={openInterestModal}
                     data-tour="register-interest"
-                    className="w-full mt-2.5 py-2 text-xs font-bold text-[#AE54C6] hover:text-[#8f3ba3] cursor-pointer"
+                    className="w-full mt-3 py-2 text-xs font-bold text-[#AE54C6] hover:text-[#8f3ba3] cursor-pointer text-center block"
                   >
-                    Not ready to pay yet? Just register your interest →
+                    Not ready to pay yet? Register your interest &rarr;
                   </button>
 
                   <ul className="mt-6 pt-6 border-t border-[#F1E2F5] space-y-2.5 text-xs text-[#645F80]">
@@ -672,6 +807,23 @@ export default function CourseDetailPage({
             <Link href={`/learn/${course.slug}/${firstLessonId}`} className="shrink-0">
               <Button size="sm" variant="purple" className="text-xs font-bold px-4 py-2">
                 Continue Learning
+              </Button>
+            </Link>
+          </>
+        ) : isAwaitingApproval ? (
+          <>
+            <div className="min-w-0">
+              <span className="text-[11px] font-bold text-amber-800 block truncate flex items-center gap-1">
+                <Clock className="w-3 h-3 text-amber-700" />
+                Payment Confirmed
+              </span>
+              <span className="text-xs font-black text-[#303654] truncate block">
+                Awaiting Admissions
+              </span>
+            </div>
+            <Link href="/dashboard" className="shrink-0">
+              <Button size="sm" variant="outline" className="text-xs font-bold px-3 py-1.5 border-amber-300 bg-amber-50 text-amber-900">
+                View Status
               </Button>
             </Link>
           </>

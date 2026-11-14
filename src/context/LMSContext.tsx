@@ -11,11 +11,14 @@ import {
   Assignment,
   AdminStudent,
   AdminCourse,
-  AnalyticsSummary
+  AnalyticsSummary,
+  UserEnrollmentRecord
 } from "@/types/lms";
 import type { LearningProfileSummary } from "@/lib/learning-engine";
 import type { AppNotification } from "@/types/advanced";
 import { apiFetch } from "@/lib/api-client";
+import { LMS_COURSES } from "@/data/lms-data";
+import { LMS_QUIZZES, LMS_ASSIGNMENTS } from "@/data/assessment-data";
 
 const EMPTY_LEARNING_PROFILE: LearningProfileSummary = {
   strengths: [],
@@ -89,6 +92,7 @@ interface LMSContextType {
   getAssignmentsForCourse: (courseId: string) => Assignment[];
   // Enrollment & progress — DB-backed, per user
   enrolledCourseIds: string[];
+  userEnrollments: UserEnrollmentRecord[];
   enrollInCourse: (courseId: string, options?: EnrollOptions) => Promise<void>;
   // Re-fetches enrollment/progress/quiz/submission state from the server —
   // used after a real Paystack payment is verified, since that path updates
@@ -162,12 +166,13 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
   const [isHydrated, setIsHydrated] = useState(false);
   const [isAdminDataLoaded, setIsAdminDataLoaded] = useState(false);
 
-  const [courses, setCourses] = useState<LMSCourse[]>([]);
-  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
-  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [courses, setCourses] = useState<LMSCourse[]>(LMS_COURSES);
+  const [quizzes, setQuizzes] = useState<Quiz[]>(LMS_QUIZZES);
+  const [assignments, setAssignments] = useState<Assignment[]>(LMS_ASSIGNMENTS);
   const [certificates, setCertificates] = useState<Certificate[]>([]);
 
   const [enrolledCourseIds, setEnrolledCourseIds] = useState<string[]>([]);
+  const [userEnrollments, setUserEnrollments] = useState<UserEnrollmentRecord[]>([]);
   const [completedLessonIds, setCompletedLessonIds] = useState<string[]>([]);
   const [quizResults, setQuizResults] = useState<Record<string, QuizResult>>({});
   const [submissions, setSubmissions] = useState<Submission[]>([]);
@@ -290,6 +295,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
         if (lmsMeRes.ok) {
           const lmsMe = await lmsMeRes.json();
           setEnrolledCourseIds(lmsMe.enrolledCourseIds || []);
+          setUserEnrollments(lmsMe.enrollments || []);
           setCompletedLessonIds(lmsMe.completedLessonIds || []);
           setQuizResults(lmsMe.quizResults || {});
           setSubmissions(lmsMe.submissions || []);
@@ -325,10 +331,18 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
         const catalogRes = await apiFetch("/api/lms/catalog");
         const catalog = await catalogRes.json();
         if (cancelled) return;
-        setCourses(catalog.courses || []);
-        setQuizzes(catalog.quizzes || []);
-        setAssignments(catalog.assignments || []);
-        setCertificates(catalog.certificates || []);
+        if (catalog.courses && Array.isArray(catalog.courses) && catalog.courses.length > 0) {
+          setCourses(catalog.courses);
+        }
+        if (catalog.quizzes && Array.isArray(catalog.quizzes) && catalog.quizzes.length > 0) {
+          setQuizzes(catalog.quizzes);
+        }
+        if (catalog.assignments && Array.isArray(catalog.assignments) && catalog.assignments.length > 0) {
+          setAssignments(catalog.assignments);
+        }
+        if (catalog.certificates && Array.isArray(catalog.certificates)) {
+          setCertificates(catalog.certificates);
+        }
       } catch {
         // catalog unavailable — leave state empty rather than crash
       }
@@ -498,6 +512,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     setUser(null);
     setEnrolledCourseIds([]);
+    setUserEnrollments([]);
     setCompletedLessonIds([]);
     setQuizResults({});
     setSubmissions([]);
@@ -588,22 +603,69 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
   };
 
   const submitQuiz = async (quizId: string, answers: Record<string, number>): Promise<QuizResult> => {
-    const res = await apiFetch("/api/lms/quiz-attempts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ quizId, answers })
-    });
-    const data = await res.json();
-    if (!res.ok || !data.result) {
-      throw new Error(data.error || "Could not submit quiz.");
+    // Authenticated flow: must save to server database
+    if (user) {
+      try {
+        const res = await apiFetch("/api/lms/quiz-attempts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ quizId, answers })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.result) {
+            setQuizResults((prev) => ({ ...prev, [quizId]: data.result }));
+            refreshLearningProfile();
+            refreshNotifications();
+            return data.result;
+          }
+        }
+        let errMsg = "Could not record quiz attempt on the server.";
+        try {
+          const errData = await res.json();
+          if (errData.error) errMsg = errData.error;
+        } catch {}
+        throw new Error(errMsg);
+      } catch (err: unknown) {
+        if (err instanceof Error) throw err;
+        throw new Error("Network error: Could not reach the server to submit your quiz.");
+      }
     }
-    setQuizResults((prev) => ({ ...prev, [quizId]: data.result }));
-    refreshLearningProfile();
-    refreshNotifications();
-    return data.result;
+
+    // Guest / Unauthenticated practice mode: evaluate client-side for practice only
+    const targetQuiz =
+      quizzes.find((q) => q.id === quizId) || LMS_QUIZZES.find((q) => q.id === quizId);
+    if (!targetQuiz) {
+      throw new Error("Quiz not found.");
+    }
+
+    let correctCount = 0;
+    for (const q of targetQuiz.questions) {
+      if (answers[q.id] === q.correctOption) correctCount++;
+    }
+    const score = Math.round((correctCount / targetQuiz.questions.length) * 100);
+    const passed = score >= targetQuiz.passingScore;
+
+    const practiceResult: QuizResult = {
+      quizId,
+      userId: "guest",
+      score,
+      passed,
+      selectedAnswers: answers,
+      attemptedAt: new Date().toISOString()
+    };
+
+    setQuizResults((prev) => ({ ...prev, [quizId]: practiceResult }));
+    return practiceResult;
   };
 
-  const getQuizResult = (quizId: string) => quizResults[quizId];
+  const getQuizResult = (quizId: string) => {
+    return (
+      quizResults[quizId] ||
+      quizResults[`quiz-${quizId}`] ||
+      Object.values(quizResults).find((r) => r.quizId === quizId || r.quizId === `quiz-${quizId}`)
+    );
+  };
 
   const submitAssignment = async (
     assignmentId: string,
@@ -611,19 +673,47 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
     liveDemoUrl: string,
     notes: string
   ): Promise<Submission> => {
-    const res = await apiFetch("/api/lms/submissions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ assignmentId, githubUrl, liveDemoUrl, notes })
-    });
-    const data = await res.json();
-    if (!res.ok || !data.submission) {
-      throw new Error(data.error || "Could not submit assignment.");
+    if (!user) {
+      throw new Error("You must be signed in to submit an assignment for grading.");
     }
+
+    let res: Response;
+    try {
+      res = await apiFetch("/api/lms/submissions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ assignmentId, githubUrl, liveDemoUrl, notes })
+      });
+    } catch {
+      throw new Error(
+        "Network connection failed. Your project could not be sent to the server. Please check your internet connection and try again."
+      );
+    }
+
+    if (!res.ok) {
+      let message = "Submission was not accepted by the server.";
+      try {
+        const errJson = await res.json();
+        if (errJson.error) message = errJson.error;
+      } catch {}
+      throw new Error(message);
+    }
+
+    const data = await res.json();
+    if (!data.submission) {
+      throw new Error("Server did not return a valid submission confirmation.");
+    }
+
     setSubmissions((prev) => [
       data.submission,
       ...prev.filter((s) => s.id !== data.submission.id)
     ]);
+    if (data.certificate) {
+      setCertificates((prev) => [
+        data.certificate,
+        ...prev.filter((c) => c.id !== data.certificate.id)
+      ]);
+    }
     refreshNotifications();
     return data.submission;
   };
@@ -663,7 +753,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
   };
 
   const getCertificate = (courseId: string) =>
-    certificates.find((c) => c.courseId === courseId && c.userId === user?.id);
+    certificates.find((c) => c.courseId === courseId && user?.id && c.userId === user.id);
 
   return (
     <LMSContext.Provider
@@ -687,6 +777,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
         getAssignmentForCourse,
         getAssignmentsForCourse,
         enrolledCourseIds,
+        userEnrollments,
         refreshEnrollments,
         enrollInCourse,
         isEnrolled,

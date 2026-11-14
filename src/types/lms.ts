@@ -52,6 +52,18 @@ export interface Enrollment {
   enrolledAt: string;
 }
 
+export interface UserEnrollmentRecord {
+  id: string;
+  courseId: string;
+  status: 'PENDING' | 'ACTIVE' | 'COMPLETED' | 'DROPPED' | 'WITHDRAWN';
+  paymentStatus: 'PENDING' | 'PARTIAL' | 'PAID_FULL' | 'REFUNDED';
+  paymentPlan: 'full' | 'installment';
+  amountPaid: number;
+  totalDue: number;
+  hasAccess: boolean;
+  awaitingApproval: boolean;
+}
+
 export interface LessonProgress {
   userId: string;
   lessonId: string;

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { prisma } from "@/lib/prisma";
-import { getSessionUser, isEnrolled } from "@/lib/api-auth";
+import { getSessionUser, isEnrolled, hasCourseAccess } from "@/lib/api-auth";
 import { mapCourse, mapQuiz, mapAssignment, mapCertificate, mapSubmission } from "@/lib/lms-mappers";
 import {
   recordLessonCompleted,
@@ -32,11 +32,14 @@ router.get("/catalog", async (req, res) => {
 
   let enrolledCourseIds = new Set<string>();
   if (session && !isStaff) {
+    // Same rule as isEnrolled(): an enrollment row alone (e.g. a Paystack
+    // checkout that was opened and abandoned) must not reveal paid lesson
+    // videos or quiz answer keys — only a paid, admin-confirmed one does.
     const enrollments = await prisma.enrollment.findMany({
       where: { userId: session.id },
-      select: { courseId: true }
+      select: { courseId: true, status: true, paymentStatus: true }
     });
-    enrolledCourseIds = new Set(enrollments.map((e) => e.courseId));
+    enrolledCourseIds = new Set(enrollments.filter(hasCourseAccess).map((e) => e.courseId));
   }
 
   const [courses, quizzes, assignments, certificates] = await Promise.all([
@@ -80,7 +83,10 @@ router.get("/me", async (req, res) => {
   const isStaff = session.role === "INSTRUCTOR" || session.role === "ADMIN";
 
   const [enrollments, progress, quizAttempts, submissions] = await Promise.all([
-    prisma.enrollment.findMany({ where: { userId: session.id }, select: { courseId: true } }),
+    prisma.enrollment.findMany({
+      where: { userId: session.id },
+      select: { id: true, courseId: true, status: true, paymentStatus: true, paymentPlan: true, amountPaid: true, totalDue: true }
+    }),
     prisma.userProgress.findMany({ where: { userId: session.id, isCompleted: true }, select: { lessonId: true } }),
     prisma.quizAttempt.findMany({ where: { userId: session.id }, orderBy: { createdAt: "desc" } }),
     prisma.submission.findMany({
@@ -104,7 +110,21 @@ router.get("/me", async (req, res) => {
   }
 
   return res.json({
-    enrolledCourseIds: enrollments.map((e) => e.courseId),
+    // Only courses the student can actually open (paid AND admin-confirmed).
+    enrolledCourseIds: enrollments.filter(hasCourseAccess).map((e) => e.courseId),
+    // Every registration with its state, so the UI can show "awaiting
+    // payment" / "paid — awaiting admissions confirmation" / "active".
+    enrollments: enrollments.map((e) => ({
+      id: e.id,
+      courseId: e.courseId,
+      status: e.status,
+      paymentStatus: e.paymentStatus,
+      paymentPlan: e.paymentPlan,
+      amountPaid: e.amountPaid,
+      totalDue: e.totalDue,
+      hasAccess: hasCourseAccess(e),
+      awaitingApproval: e.status === "PENDING" && e.paymentStatus !== "PENDING" && e.paymentStatus !== "REFUNDED"
+    })),
     completedLessonIds: progress.map((p) => p.lessonId),
     quizResults,
     submissions: submissions.map(mapSubmission)

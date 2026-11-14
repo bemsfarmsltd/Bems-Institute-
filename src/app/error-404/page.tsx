@@ -1,8 +1,7 @@
 "use client";
 
-import React from "react";
 import { EduportNotFoundView } from "@/app/not-found";
 
-export default function Error404RoutePage() {
+export default function Error404Page() {
   return <EduportNotFoundView />;
 }

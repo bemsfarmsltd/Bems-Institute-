@@ -29,16 +29,29 @@ export function isAdmin(session: SessionPayload | null): boolean {
   return session?.role === "ADMIN";
 }
 
-// Gates lesson-progress/quiz/capstone actions to students who actually
-// enrolled AND have a payment on record — without the payment check, any
-// logged-in user could complete a course's quiz/lessons and even get a
-// capstone graded into a real certificate while still PENDING (i.e. having
-// paid nothing, whether via an unconfirmed bank transfer or an abandoned
-// Paystack checkout).
+// The one rule for "may this student use the paid course content": they
+// must have a payment on record AND an admin must have confirmed the
+// registration. Without the payment check, any logged-in user could complete
+// a course's quiz/lessons and even get a capstone graded into a real
+// certificate while still PENDING (an unconfirmed bank transfer or an
+// abandoned Paystack checkout). Without the status check, a Paystack payment
+// would unlock the course before admissions confirmed the registration
+// (status PENDING = paid, awaiting admin approval; see
+// POST /admin/enrollments/:id/approve). WITHDRAWN = refunded.
+export function hasCourseAccess(enrollment: { status: string; paymentStatus: string } | null | undefined): boolean {
+  return (
+    !!enrollment &&
+    enrollment.paymentStatus !== "PENDING" &&
+    enrollment.paymentStatus !== "REFUNDED" &&
+    enrollment.status !== "PENDING" &&
+    enrollment.status !== "WITHDRAWN"
+  );
+}
+
 export async function isEnrolled(userId: string, courseId: string): Promise<boolean> {
   const enrollment = await prisma.enrollment.findUnique({
     where: { userId_courseId: { userId, courseId } },
-    select: { paymentStatus: true }
+    select: { paymentStatus: true, status: true }
   });
-  return !!enrollment && enrollment.paymentStatus !== "PENDING" && enrollment.paymentStatus !== "REFUNDED";
+  return hasCourseAccess(enrollment);
 }

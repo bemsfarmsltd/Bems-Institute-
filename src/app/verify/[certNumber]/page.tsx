@@ -217,12 +217,12 @@ export default function CertificateVerificationPage({
               <code className="bg-gray-100 px-2 py-0.5 rounded text-red-600 font-mono">
                 {certNumber}
               </code>
-              . Please verify the ID from the student&apos;s physical or digital certificate and try again.
+              . BEMS credentials are only registered in this public ledger upon satisfactory completion and formal instructor grading of a cohort capstone.
             </p>
             <div className="flex justify-center gap-3">
-              <Link href="/verify/BEMS-CERT-2026-WD-8819">
+              <Link href="/courses">
                 <Button variant="outline">
-                  Test with Sample Verified ID
+                  Browse Accelerator Tracks
                 </Button>
               </Link>
               <Link href="/">
