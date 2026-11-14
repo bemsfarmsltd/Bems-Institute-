@@ -8,6 +8,7 @@ section.
 
 | Task | Agent | Branch | Files / areas | Started |
 |---|---|---|---|---|
+| Motion QA for `antigravity/motion-pages` (reduced motion, slow network, Lighthouse/CLS, 375px tap) | Codex | `codex/motion-qa` | Read-only UI review; QA notes in this file | 2026-11-14 |
 | Review `claude/qr-campaigns`: open redirects (`normalizeTarget`, `src/app/q/[code]/route.ts`), code guessability, scan-count inflation; add tests | Codex | `codex/review-qr-campaigns` | Read: QR files. Write: `backend/src/__tests__/` | 2026-11-14 |
 | **Campaign QR codes, backend + short link** (done, awaiting merge): `QrCampaign` table + migration, admin API, public resolver, `/q/<code>` redirect, campaign names in analytics. | Claude Code | `claude/qr-campaigns` | `backend/` (schema, `lib/qr-campaigns.ts`, `routes/qr.ts`, `routes/admin.ts`), `src/app/q/[code]/route.ts`, 2-line `qr=1` skip in `AttributionCapture.tsx` + `subscriptions/page.tsx` | 2026-11-14 |
 | **Campaign QR codes, builder UI** (done, awaiting review): saved campaigns with shortUrl QR encoding, live re-pointing, metrics, quick-pickers, color palette, admin-only gating. | Antigravity | `antigravity/qr-campaign-builder` | `src/app/qr-studio/page.tsx` | 2026-11-14 |
@@ -19,6 +20,36 @@ The printed QR must encode **`shortUrl`** (`https://<site>/q/<code>`), never the
 - `GET /api/admin/qr-campaigns` → `{ campaigns }`, newest first.
 - `POST /api/admin/qr-campaigns` `{ label, target }` → `201 { campaign }`. `target`: a path on the site (`/subscriptions?course=web-dev`) or an `https://` URL. `400 { error }` with a message to show as is.
 - `PATCH /api/admin/qr-campaigns/:id` `{ label?, target?, active? }` → `{ campaign }`. No delete: switch off instead (scans of a switched-off code go to the homepage).
+
+## Codex motion QA (2026-11-14)
+
+Compared `origin/main` at `c4cf776` with `origin/antigravity/motion-pages` at `d538b9c` (includes Antigravity's Hero fix). Built and served both locally with `npx next build --webpack` / `npx next start`; both builds passed. The motion build initially retried Google Fonts requests with `ECONNRESET` for about 3.7 minutes, then passed. The main build passed in about 20 seconds.
+
+### Limited first-response check (not Lighthouse)
+
+`curl --limit-rate 50k` requests (about 400 kbit/s down, without simulated latency, browser parsing, JS, CSS, image or API throttling) against local production servers. All requests returned HTTP 200 and the checked first-screen marker was present. These numbers are document transfer measurements only; they are not browser-level Slow 3G results.
+
+| Page | Main bytes | Main TTFB / total (s) | Motion bytes | Motion TTFB / total (s) | Initial text |
+|---|---:|---:|---:|---:|---|
+| Home | 124,055 | 0.103 / 2.508 | 125,352 | 0.172 / 2.596 | “Earn Anywhere” present in both |
+| Courses | 87,526 | 0.031 / 1.732 | 87,499 | 0.036 / 1.731 | BEMS cohort heading present in both |
+| Subscriptions | 10,016 | 0.024 / 0.025 | 10,185 | 0.032 / 0.033 | “Loading subscription plans…” present in both |
+
+### Requested browser checks
+
+| Check | Main | Motion branch | Result |
+|---|---|---|---|
+| Lighthouse mobile Performance: home / courses / subscriptions | N/A | N/A | Could not run: browser automation host unavailable and Lighthouse CLI was neither installed nor cached; npm registry invocation stalled. No scores are claimed. |
+| Lighthouse CLS: home / courses / subscriptions | N/A | N/A | Same limitation; requires browser instrumentation. |
+| Reduced-motion runtime at mobile viewport | N/A | N/A | Could not emulate in browser. Static review: reveal hiding CSS is inside `prefers-reduced-motion: no-preference`; `MotionProvider` returns before adding `motion-ready` when reduction is enabled; Hero entrance keyframes are also no-preference only. No stuck-hidden path found by inspection. |
+| Real slow-3G first-screen rendering | N/A | N/A | Browser-level throttling unavailable. Limited HTML response check above found first-screen text in each response; it does not test hydration/render timing. |
+| Physical/touch tap feedback at 375px | N/A | N/A | Could not test in browser/device. Static CSS review confirms `:active` feedback for `.m-lift` and `.m-press` on no-preference devices. |
+
+### Handoff findings
+
+- No motion-specific defect was confirmed in the requested checks. Keep the browser-only items open for Antigravity to verify in a browser that can access localhost.
+- **Check with Antigravity/Claude:** `/subscriptions` server-renders “Loading subscription plans…” rather than the course/payment selector on both main and motion. It is not blank, but the available HTML-only probe cannot establish how long that placeholder remains while JS and API requests load on slow connections. Verify a useful nonblank fallback in a browser under real Slow 3G throttling.
+- No UI or behavior files were changed by Codex; this entry records QA evidence and limitations only.
 
 ## Codex payment review (2026-11-14)
 
