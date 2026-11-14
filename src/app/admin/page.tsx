@@ -271,12 +271,21 @@ function QrChannelYieldDonutChart({
     );
   }
 
-  let cumulativeOffset = 0;
-  const segments = data.map((item, i) => {
+  const segments = data.reduce<
+    Array<{
+      source: string;
+      scans: number;
+      registrations: number;
+      conversionRate: number;
+      color: string;
+      pct: number;
+      offset: number;
+    }>
+  >((acc, item, i) => {
     const pct = item.scans / totalScans;
-    const offset = cumulativeOffset;
-    cumulativeOffset += pct;
-    return {
+    const prev = acc[acc.length - 1];
+    const offset = prev ? prev.offset + prev.pct : 0;
+    acc.push({
       source: item.source,
       scans: item.scans,
       registrations: item.registrations,
@@ -284,8 +293,9 @@ function QrChannelYieldDonutChart({
       color: colors[i % colors.length],
       pct,
       offset,
-    };
-  });
+    });
+    return acc;
+  }, []);
 
   return (
     <div className="flex flex-col items-center">
@@ -361,15 +371,12 @@ function AdminDashboardContent() {
   const [activeTab, setActiveTab] = useState<string>(normalizedInitialTab);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [coursesMenuOpen, setCoursesMenuOpen] = useState(false);
-  const [instructorsMenuOpen, setInstructorsMenuOpen] = useState(
-    normalizedInitialTab.startsWith("instructor")
-  );
   const [authMenuOpen, setAuthMenuOpen] = useState(false);
 
   const [globalSearch, setGlobalSearch] = useState("");
   const [studentSearch, setStudentSearch] = useState("");
   const [studentViewMode, setStudentViewMode] = useState<"grid" | "list">("grid");
-  const [studentPage, setStudentPage] = useState(2);
+  const [studentPage, setStudentPage] = useState(1);
 
   const [instructorSearch, setInstructorSearch] = useState("");
   const [instructorViewMode, setInstructorViewMode] = useState<"grid" | "list">("grid");
@@ -853,29 +860,23 @@ function AdminDashboardContent() {
     }
   }, [activeTab, leadsLoaded, welcomeCallsLoaded]);
 
-  const loadStaff = useCallback(async () => {
-    try {
-      setStaffLoading(true);
-      const res = await apiFetch("/api/admin/staff");
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data.staff)) {
-          setStaffList(data.staff);
-        }
-      }
-    } catch {
-      // gracefully handled
-    } finally {
-      setStaffLoading(false);
-      setStaffLoaded(true);
-    }
-  }, []);
-
   useEffect(() => {
     if (activeTab === "instructors" || activeTab === "dashboard") {
-      void loadStaff();
+      apiFetch("/api/admin/staff")
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data && Array.isArray(data.staff)) {
+            setStaffList(data.staff);
+          }
+          setStaffLoading(false);
+          setStaffLoaded(true);
+        })
+        .catch(() => {
+          setStaffLoading(false);
+          setStaffLoaded(true);
+        });
     }
-  }, [activeTab, loadStaff]);
+  }, [activeTab]);
 
   const handleToggleStaffActive = async (member: StaffMember) => {
     if (member.id === user?.id) {
@@ -906,29 +907,23 @@ function AdminDashboardContent() {
     }
   };
 
-  const loadReviews = useCallback(async () => {
-    try {
-      setReviewsLoading(true);
-      const res = await apiFetch("/api/admin/reviews");
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data.reviews)) {
-          setAdminReviews(data.reviews);
-        }
-      }
-    } catch {
-      // gracefully handled
-    } finally {
-      setReviewsLoading(false);
-      setReviewsLoaded(true);
-    }
-  }, []);
-
   useEffect(() => {
     if (activeTab === "reviews") {
-      void loadReviews();
+      apiFetch("/api/admin/reviews")
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data && Array.isArray(data.reviews)) {
+            setAdminReviews(data.reviews);
+          }
+          setReviewsLoading(false);
+          setReviewsLoaded(true);
+        })
+        .catch(() => {
+          setReviewsLoading(false);
+          setReviewsLoaded(true);
+        });
     }
-  }, [activeTab, loadReviews]);
+  }, [activeTab]);
 
   const handleDeleteReview = async (reviewId: string) => {
     setDeletingReviewId(reviewId);
@@ -1071,9 +1066,6 @@ function AdminDashboardContent() {
     if (tabParam) {
       const mapped = tabParam === "overview" ? "dashboard" : tabParam;
       setActiveTab(mapped);
-      if (mapped.startsWith("instructor")) {
-        setInstructorsMenuOpen(true);
-      }
       if (mapped.startsWith("course")) {
         setCoursesMenuOpen(true);
       }
@@ -1304,60 +1296,19 @@ function AdminDashboardContent() {
               <span>Graduate Outcomes</span>
             </Link>
 
-            {/* Instructors Accordion (Matches Image 5) */}
-            <div>
-              <button
-                type="button"
-                onClick={() => {
-                  setInstructorsMenuOpen((prev) => !prev);
-                  if (!activeTab.startsWith("instructor")) {
-                    switchTab("instructors");
-                  }
-                }}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
-                  activeTab.startsWith("instructor")
-                    ? "bg-[#1B2228] text-[#AE54C6]"
-                    : "text-white/90 hover:text-white hover:bg-white/5"
-                }`}
-              >
-                <span className="flex items-center gap-3">
-                  <UserCheck className="w-4 h-4 shrink-0" />
-                  <span>Instructors</span>
-                </span>
-                {instructorsMenuOpen ? (
-                  <ChevronUp className="w-4 h-4 opacity-75" />
-                ) : (
-                  <ChevronDown className="w-4 h-4 opacity-75" />
-                )}
-              </button>
-
-              {instructorsMenuOpen && (
-                <div className="mt-1 ml-2 pl-6 pr-2 py-2 space-y-2.5 text-[13.5px]">
-                  <button
-                    type="button"
-                    onClick={() => switchTab("instructors")}
-                    className={`w-full text-left font-medium transition-colors cursor-pointer ${
-                      activeTab === "instructors"
-                        ? "text-[#AE54C6]"
-                        : "text-white/85 hover:text-white"
-                    }`}
-                  >
-                    Staff &amp; Instructors
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => switchTab("instructor-detail")}
-                    className={`w-full text-left font-medium transition-colors cursor-pointer ${
-                      activeTab === "instructor-detail"
-                        ? "text-[#AE54C6]"
-                        : "text-white/85 hover:text-white"
-                    }`}
-                  >
-                    Instructor Detail
-                  </button>
-                </div>
-              )}
-            </div>
+            {/* Instructors */}
+            <button
+              type="button"
+              onClick={() => switchTab("instructors")}
+              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
+                activeTab === "instructors"
+                  ? "bg-[#1B2228] text-[#AE54C6]"
+                  : "text-white/90 hover:text-white hover:bg-white/5"
+              }`}
+            >
+              <UserCheck className="w-4 h-4 shrink-0" />
+              <span>Instructors &amp; Staff</span>
+            </button>
 
             {/* Reviews */}
             <button
@@ -2024,7 +1975,10 @@ function AdminDashboardContent() {
                     <input
                       type="text"
                       value={studentSearch}
-                      onChange={(e) => setStudentSearch(e.target.value)}
+                      onChange={(e) => {
+                        setStudentSearch(e.target.value);
+                        setStudentPage(1);
+                      }}
                       placeholder="Search"
                       className="w-full bg-white border border-slate-200 rounded-lg pl-4 pr-10 py-2.5 text-[14px] text-[#24292D] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#AE54C6]"
                     />
@@ -2067,24 +2021,34 @@ function AdminDashboardContent() {
                   </div>
                 </div>
 
-                {studentViewMode === "grid" ? (
-                  /* 3-Column Student Cards Grid (Matches Images 3 & 4) */
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {combinedStudents.length === 0 ? (
-                      <div className="col-span-full py-16 text-center bg-[#F8F9FA] rounded-xl border border-slate-200/80 p-8">
-                        <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center">
-                          <GraduationCap className="w-7 h-7" />
-                        </div>
-                        <h3 className="font-display text-[18px] font-extrabold text-[#1D2026] mb-1">
-                          No Students Found
-                        </h3>
-                        <p className="text-[13.5px] text-[#747579] max-w-md mx-auto">
-                          {studentSearch
-                            ? `No students matching "${studentSearch}".`
-                            : "No enrolled students on record yet. Paid student registrations will appear here."}
-                        </p>
-                      </div>
-                    ) : combinedStudents.map((student) => (
+                {(() => {
+                  const STUDENTS_PER_PAGE = 8;
+                  const totalStudentPages = Math.max(1, Math.ceil(combinedStudents.length / STUDENTS_PER_PAGE));
+                  const currentPage = Math.min(studentPage, totalStudentPages);
+                  const startIdx = (currentPage - 1) * STUDENTS_PER_PAGE;
+                  const endIdx = Math.min(startIdx + STUDENTS_PER_PAGE, combinedStudents.length);
+                  const pagedStudents = combinedStudents.slice(startIdx, endIdx);
+
+                  return (
+                    <>
+                      {studentViewMode === "grid" ? (
+                        /* 3-Column Student Cards Grid (Matches Images 3 & 4) */
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                          {combinedStudents.length === 0 ? (
+                            <div className="col-span-full py-16 text-center bg-[#F8F9FA] rounded-xl border border-slate-200/80 p-8">
+                              <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center">
+                                <GraduationCap className="w-7 h-7" />
+                              </div>
+                              <h3 className="font-display text-[18px] font-extrabold text-[#1D2026] mb-1">
+                                No Students Found
+                              </h3>
+                              <p className="text-[13.5px] text-[#747579] max-w-md mx-auto">
+                                {studentSearch
+                                  ? `No students matching "${studentSearch}".`
+                                  : "No enrolled students on record yet. Paid student registrations will appear here."}
+                              </p>
+                            </div>
+                          ) : pagedStudents.map((student) => (
                         <div
                           key={student.id}
                           className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_14px_rgba(0,0,0,0.03)] p-5 flex flex-col justify-between"
@@ -2255,7 +2219,7 @@ function AdminDashboardContent() {
                                 : "No enrolled students on record yet. Paid student registrations will appear here."}
                             </td>
                           </tr>
-                        ) : combinedStudents.map((stu) => (
+                        ) : pagedStudents.map((stu) => (
                             <tr key={stu.id} className="hover:bg-slate-50/80">
                               <td className="py-3.5 px-4 flex items-center gap-3">
                                 <UserAvatar
@@ -2387,40 +2351,53 @@ function AdminDashboardContent() {
                   </div>
                 )}
 
-                {/* Pagination Footer matching Image 4 */}
+                {/* Real Pagination Footer */}
                 <div className="mt-8 pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-[13.5px] text-[#747579]">
-                  <div>Showing 1 to 8 of 20 entries</div>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => setStudentPage((p) => Math.max(1, p - 1))}
-                      className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                    </button>
-                    {[1, 2, 3].map((p) => (
-                      <button
-                        key={p}
-                        type="button"
-                        onClick={() => setStudentPage(p)}
-                        className={`w-8 h-8 rounded-md text-[13px] font-bold flex items-center justify-center transition-colors cursor-pointer ${
-                          studentPage === p
-                            ? "bg-[#AE54C6] text-white"
-                            : "bg-[#F7EDF9] text-[#AE54C6] hover:bg-[#AE54C6] hover:text-white"
-                        }`}
-                      >
-                        {p}
-                      </button>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={() => setStudentPage((p) => Math.min(3, p + 1))}
-                      className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
-                    >
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
+                  <div>
+                    {combinedStudents.length === 0
+                      ? "Showing 0 entries"
+                      : `Showing ${startIdx + 1} to ${endIdx} of ${combinedStudents.length} entries`}
                   </div>
+                  {totalStudentPages > 1 && (
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setStudentPage((p) => Math.max(1, p - 1))}
+                        disabled={currentPage <= 1}
+                        className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                        aria-label="Previous Page"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      {Array.from({ length: totalStudentPages }, (_, i) => i + 1).map((p) => (
+                        <button
+                          key={p}
+                          type="button"
+                          onClick={() => setStudentPage(p)}
+                          className={`w-8 h-8 rounded-md text-[13px] font-bold flex items-center justify-center transition-colors cursor-pointer ${
+                            currentPage === p
+                              ? "bg-[#AE54C6] text-white"
+                              : "bg-[#F7EDF9] text-[#AE54C6] hover:bg-[#AE54C6] hover:text-white"
+                          }`}
+                        >
+                          {p}
+                        </button>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => setStudentPage((p) => Math.min(totalStudentPages, p + 1))}
+                        disabled={currentPage >= totalStudentPages}
+                        className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                        aria-label="Next Page"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
                 </div>
+              </>
+            );
+          })()}
               </div>
             </div>
           )}
@@ -2582,14 +2559,6 @@ function AdminDashboardContent() {
                                 : "Reactivate Access"}
                             </button>
                           )}
-
-                          <button
-                            type="button"
-                            onClick={() => switchTab("instructor-detail")}
-                            className="text-[#747579] hover:text-[#AE54C6] text-xs font-semibold transition-colors cursor-pointer"
-                          >
-                            View Detail &rarr;
-                          </button>
                         </div>
                       </div>
                     ))}
@@ -2680,458 +2649,6 @@ function AdminDashboardContent() {
               </div>
             </div>
           )}
-
-          {/* ========================================================= */}
-          {/* VIEW 3B: INSTRUCTOR DETAIL (Matches Images 4, 2, & 1)     */}
-          {/* ========================================================= */}
-          {activeTab === "instructor-detail" && (
-            <div className="space-y-7">
-              <h1 className="font-display text-[28px] sm:text-[32px] font-extrabold text-[#1D2026] tracking-tight">
-                Instructor detail
-              </h1>
-
-              {/* Top Row: Personal Information (7 cols) + Active Students & New Enrollment (5 cols) */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                {/* Personal Information Card */}
-                <div className="lg:col-span-7 bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
-                  <div className="bg-[#F8F9FA] px-6 py-4 border-b border-slate-200/80">
-                    <h2 className="font-display text-[19px] font-extrabold text-[#1D2026]">
-                      Personal Information
-                    </h2>
-                  </div>
-
-                  <div className="p-6">
-                    <div className="mb-6">
-                      <img
-                        src="https://api.dicebear.com/7.x/initials/svg?seed=Emeka%20Nwosu&backgroundColor=18143D&textColor=ffffff"
-                        alt="Louis Ferguson"
-                        className="w-20 h-20 rounded-full object-cover shadow-md"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6 text-[14px]">
-                      <div>
-                        <span className="text-[#747579]">Title: </span>
-                        <strong className="text-[#1D2026] font-bold">Mr.</strong>
-                      </div>
-                      <div>
-                        <span className="text-[#747579]">Email ID: </span>
-                        <strong className="text-[#1D2026] font-bold">example@gmail.com</strong>
-                      </div>
-                      <div>
-                        <span className="text-[#747579]">Full Name: </span>
-                        <strong className="text-[#1D2026] font-bold">Louis Ferguson</strong>
-                      </div>
-                      <div>
-                        <span className="text-[#747579]">Location: </span>
-                        <strong className="text-[#1D2026] font-bold">California</strong>
-                      </div>
-                      <div>
-                        <span className="text-[#747579]">User Name: </span>
-                        <strong className="text-[#1D2026] font-bold">Lousifer</strong>
-                      </div>
-                      <div>
-                        <span className="text-[#747579]">Joining Date: </span>
-                        <strong className="text-[#1D2026] font-bold">29 Aug 2019</strong>
-                      </div>
-                      <div className="sm:col-span-2">
-                        <span className="text-[#747579]">Mobile Number: </span>
-                        <strong className="text-[#1D2026] font-bold">+123 456 789 10</strong>
-                      </div>
-                      <div className="sm:col-span-2">
-                        <span className="text-[#747579]">Education: </span>
-                        <strong className="text-[#1D2026] font-bold">
-                          Bachelor in Computer Graphics, Masters in Computer Graphics
-                        </strong>
-                      </div>
-                      <div className="sm:col-span-2 flex flex-col sm:flex-row sm:items-start gap-2">
-                        <span className="text-[#747579] shrink-0">Description:</span>
-                        <p className="text-[#1D2026] font-bold leading-relaxed text-[13.5px]">
-                          As it so contrasted oh estimating instrument. Size like body someone had. Are conduct viewing boy minutes warrant the expense Tolerably behavior may admit daughters offending her ask own. Praise effect wishes change way and any wanted. Lively use looked latter regard had. Do he it part more last in
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right Stacked Sparkline Cards */}
-                <div className="lg:col-span-5 flex flex-col gap-6">
-                  {/* Active Students Card */}
-                  <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden flex-1 flex flex-col justify-between">
-                    <div className="bg-[#F8F9FA] px-6 py-4 border-b border-slate-200/80">
-                      <h2 className="font-display text-[19px] font-extrabold text-[#1D2026]">
-                        Active Students
-                      </h2>
-                    </div>
-
-                    <div className="px-6 pt-5 pb-2 flex items-center justify-between">
-                      <span className="font-display text-[28px] font-extrabold text-[#1D3B53]">
-                        984
-                      </span>
-                      <div className="text-[13px]">
-                        <span className="text-[#AE54C6] font-semibold">0.20% ↑</span>{" "}
-                        <span className="text-[#747579]">vs last Week</span>
-                      </div>
-                    </div>
-
-                    <div className="w-full pt-2">
-                      <svg viewBox="0 0 400 115" className="w-full h-28 block" preserveAspectRatio="none">
-                        <defs>
-                          <linearGradient id="activeStudentsGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#AE54C6" stopOpacity="0.32" />
-                            <stop offset="100%" stopColor="#AE54C6" stopOpacity="0.02" />
-                          </linearGradient>
-                        </defs>
-                        <path
-                          d="M 0 95 C 40 85, 65 78, 95 52 C 125 32, 160 40, 205 42 C 245 44, 270 72, 300 68 C 335 64, 365 25, 400 20 L 400 115 L 0 115 Z"
-                          fill="url(#activeStudentsGrad)"
-                        />
-                        <path
-                          d="M 0 95 C 40 85, 65 78, 95 52 C 125 32, 160 40, 205 42 C 245 44, 270 72, 300 68 C 335 64, 365 25, 400 20"
-                          fill="none"
-                          stroke="#AE54C6"
-                          strokeWidth="3"
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-
-                  {/* New Enrollment Card */}
-                  <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden flex-1 flex flex-col justify-between">
-                    <div className="bg-[#F8F9FA] px-6 py-4 border-b border-slate-200/80">
-                      <h2 className="font-display text-[19px] font-extrabold text-[#1D2026]">
-                        New Enrollment
-                      </h2>
-                    </div>
-
-                    <div className="px-6 pt-5 pb-2 flex items-center justify-between">
-                      <span className="font-display text-[28px] font-extrabold text-[#1D3B53]">
-                        140
-                      </span>
-                      <div className="text-[13px]">
-                        <span className="text-[#AE54C6] font-semibold">0.35% ↑</span>{" "}
-                        <span className="text-[#747579]">vs last Week</span>
-                      </div>
-                    </div>
-
-                    <div className="w-full pt-2">
-                      <svg viewBox="0 0 400 115" className="w-full h-28 block" preserveAspectRatio="none">
-                        <defs>
-                          <linearGradient id="newEnrollmentGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#A16EBD" stopOpacity="0.32" />
-                            <stop offset="100%" stopColor="#A16EBD" stopOpacity="0.02" />
-                          </linearGradient>
-                        </defs>
-                        <path
-                          d="M 0 102 C 45 92, 95 92, 140 65 C 175 45, 210 28, 235 32 C 260 36, 275 82, 305 78 C 340 74, 370 18, 400 18 L 400 115 L 0 115 Z"
-                          fill="url(#newEnrollmentGrad)"
-                        />
-                        <path
-                          d="M 0 102 C 45 92, 95 92, 140 65 C 175 45, 210 28, 235 32 C 260 36, 275 82, 305 78 C 340 74, 370 18, 400 18"
-                          fill="none"
-                          stroke="#A16EBD"
-                          strokeWidth="3"
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Middle Card: Courses List (Matches Image 2) */}
-              <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
-                <div className="bg-[#F8F9FA] px-6 py-4 border-b border-slate-200/80">
-                  <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
-                    Courses List
-                  </h2>
-                </div>
-
-                <div className="p-6">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse min-w-[640px]">
-                      <thead>
-                        <tr className="bg-[#24292D] text-white text-[13.5px] font-bold">
-                          <th className="py-3.5 px-5 rounded-l-lg">Course Name</th>
-                          <th className="py-3.5 px-4">Enrolled</th>
-                          <th className="py-3.5 px-4">Status</th>
-                          <th className="py-3.5 px-5 rounded-r-lg">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 text-[14px]">
-                        {[
-                          {
-                            title: "Building Scalable APIs with GraphQL",
-                            enrolled: 412,
-                            status: "Live",
-                            statusStyle: "bg-[#F7EDF9] text-[#AE54C6]",
-                            thumbBg: "bg-[#FDEBC8]",
-                            thumbText: "💎",
-                          },
-                          {
-                            title: "Graphic Design Masterclass",
-                            enrolled: 254,
-                            status: "Live",
-                            statusStyle: "bg-[#F7EDF9] text-[#AE54C6]",
-                            thumbBg: "bg-[#1D3B53] text-[#38BDF8]",
-                            thumbText: "Ps",
-                          },
-                          {
-                            title: "Learn Invision",
-                            enrolled: 0,
-                            status: "Pending",
-                            statusStyle: "bg-[#FEF6E0] text-[#F7C32E]",
-                            thumbBg: "bg-[#D6293E] text-white",
-                            thumbText: "in",
-                          },
-                          {
-                            title: "Deep Learning with React-Native",
-                            enrolled: 98,
-                            status: "Live",
-                            statusStyle: "bg-[#F7EDF9] text-[#AE54C6]",
-                            thumbBg: "bg-[#E0F7FA] text-[#00BCD4]",
-                            thumbText: "⚛",
-                          },
-                          {
-                            title: "Bootstrap 5 From Scratch",
-                            enrolled: 58,
-                            status: "Cancel",
-                            statusStyle: "bg-[#FBE9EB] text-[#D6293E]",
-                            thumbBg: "bg-[#ECD7F2] text-[#A16EBD]",
-                            thumbText: "B",
-                          },
-                        ].map((item) => (
-                          <tr key={item.title} className="hover:bg-slate-50/70">
-                            <td className="py-4 px-5">
-                              <div className="flex items-center gap-3.5">
-                                <div
-                                  className={`w-14 h-10 rounded-md ${item.thumbBg} font-extrabold text-xs flex items-center justify-center shrink-0 shadow-2xs`}
-                                >
-                                  {item.thumbText}
-                                </div>
-                                <span className="font-bold text-[#1D2026]">
-                                  {item.title}
-                                </span>
-                              </div>
-                            </td>
-                            <td className="py-4 px-4 text-[#747579]">{item.enrolled}</td>
-                            <td className="py-4 px-4">
-                              <span
-                                className={`px-2.5 py-1 rounded-md text-[11.5px] font-bold ${item.statusStyle}`}
-                              >
-                                {item.status}
-                              </span>
-                            </td>
-                            <td className="py-4 px-5">
-                              <Link
-                                href="/courses"
-                                className="inline-flex items-center justify-center px-3.5 py-1.5 rounded-md bg-[#E5F6F8] hover:bg-[#17A2B8] text-[#17A2B8] hover:text-white text-[12.5px] font-bold transition-colors"
-                              >
-                                View
-                              </Link>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Pagination Footer */}
-                  <div className="mt-6 pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-[13.5px] text-[#747579]">
-                    <div>Showing 1 to 8 of 20 entries</div>
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
-                      >
-                        <ChevronLeft className="w-4 h-4" />
-                      </button>
-                      <button
-                        type="button"
-                        className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] text-[13px] font-bold flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
-                      >
-                        1
-                      </button>
-                      <button
-                        type="button"
-                        className="w-8 h-8 rounded-md bg-[#AE54C6] text-white text-[13px] font-bold flex items-center justify-center cursor-pointer"
-                      >
-                        2
-                      </button>
-                      <button
-                        type="button"
-                        className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] text-[13px] font-bold flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
-                      >
-                        3
-                      </button>
-                      <button
-                        type="button"
-                        className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
-                      >
-                        <ChevronRight className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Bottom Card: All Reviews (Matches Image 1) */}
-              <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
-                <div className="bg-[#F8F9FA] px-6 py-4 border-b border-slate-200/80">
-                  <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
-                    All Reviews
-                  </h2>
-                </div>
-
-                <div className="p-6">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse min-w-[640px]">
-                      <thead>
-                        <tr className="bg-[#24292D] text-white text-[13.5px] font-bold">
-                          <th className="py-3.5 px-5 rounded-l-lg">Student Name</th>
-                          <th className="py-3.5 px-4">Course Name</th>
-                          <th className="py-3.5 px-4">Rating</th>
-                          <th className="py-3.5 px-5 rounded-r-lg">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 text-[14px]">
-                        {[
-                          {
-                            name: "Ngozi Eze",
-                            course: "Building Scalable APIs with GraphQL",
-                            stars: 5,
-                            activeRow: true,
-                            avatar:
-                              "https://api.dicebear.com/7.x/initials/svg?seed=Ngozi%20Eze&backgroundColor=671FB0&textColor=ffffff",
-                          },
-                          {
-                            name: "Blessing Adeyemi",
-                            course: "Graphic Design Masterclass",
-                            stars: 5,
-                            activeRow: false,
-                            avatar:
-                              "https://api.dicebear.com/7.x/initials/svg?seed=Blessing%20Adeyemi&backgroundColor=7928CA&textColor=ffffff",
-                          },
-                          {
-                            name: "Emeka Nwosu",
-                            course: "Deep Learning with React-Native",
-                            stars: 4,
-                            activeRow: false,
-                            avatar:
-                              "https://api.dicebear.com/7.x/initials/svg?seed=Emeka%20Nwosu&backgroundColor=18143D&textColor=ffffff",
-                          },
-                          {
-                            name: "Tunde Bakare",
-                            course: "Bootstrap 5 From Scratch",
-                            stars: 4,
-                            activeRow: false,
-                            avatar:
-                              "https://api.dicebear.com/7.x/initials/svg?seed=Tunde%20Bakare&backgroundColor=671FB0&textColor=ffffff",
-                          },
-                          {
-                            name: "Chiamaka Nnamdi",
-                            course: "Learn Invision",
-                            stars: 4,
-                            activeRow: false,
-                            avatar:
-                              "https://api.dicebear.com/7.x/initials/svg?seed=Chiamaka%20Nnamdi&backgroundColor=7928CA&textColor=ffffff",
-                          },
-                        ].map((rev) => (
-                          <tr
-                            key={rev.name}
-                            className={rev.activeRow ? "bg-[#F2F4F6]" : "hover:bg-slate-50/70"}
-                          >
-                            <td className="py-4 px-5">
-                              <div className="flex items-center gap-3">
-                                <img
-                                  src={rev.avatar}
-                                  alt={rev.name}
-                                  className="w-10 h-10 rounded-full object-cover shrink-0"
-                                />
-                                <span className="font-bold text-[#1D2026]">
-                                  {rev.name}
-                                </span>
-                              </div>
-                            </td>
-                            <td className="py-4 px-4 font-bold text-[#1D2026]">
-                              {rev.course}
-                            </td>
-                            <td className="py-4 px-4">
-                              <div className="flex items-center gap-1">
-                                {[1, 2, 3, 4, 5].map((s) => (
-                                  <Star
-                                    key={s}
-                                    className={`w-4 h-4 ${
-                                      s <= rev.stars
-                                        ? "text-[#F7C32E] fill-[#F7C32E]"
-                                        : "text-[#F7C32E]"
-                                    }`}
-                                  />
-                                ))}
-                              </div>
-                            </td>
-                            <td className="py-4 px-5">
-                              <button
-                                type="button"
-                                onClick={() => switchTab("reviews")}
-                                className={`px-3.5 py-1.5 rounded-md text-[12.5px] font-bold transition-colors cursor-pointer ${
-                                  rev.activeRow
-                                    ? "bg-[#17A2B8] text-white"
-                                    : "bg-[#E5F6F8] text-[#17A2B8] hover:bg-[#17A2B8] hover:text-white"
-                                }`}
-                              >
-                                View
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Pagination Footer */}
-                  <div className="mt-6 pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-[13.5px] text-[#747579]">
-                    <div>Showing 1 to 8 of 20 entries</div>
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
-                      >
-                        <ChevronLeft className="w-4 h-4" />
-                      </button>
-                      <button
-                        type="button"
-                        className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] text-[13px] font-bold flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
-                      >
-                        1
-                      </button>
-                      <button
-                        type="button"
-                        className="w-8 h-8 rounded-md bg-[#AE54C6] text-white text-[13px] font-bold flex items-center justify-center cursor-pointer"
-                      >
-                        2
-                      </button>
-                      <button
-                        type="button"
-                        className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] text-[13px] font-bold flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
-                      >
-                        3
-                      </button>
-                      <button
-                        type="button"
-                        className="w-8 h-8 rounded-md bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center hover:bg-[#AE54C6] hover:text-white transition-colors cursor-pointer"
-                      >
-                        <ChevronRight className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-
 
           {/* ========================================================= */}
           {/* VIEW 4: COURSES MANAGEMENT                                */}

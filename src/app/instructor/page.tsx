@@ -349,11 +349,7 @@ function InstructorDashboardContent() {
                                 View Cert
                               </Button>
                             </Link>
-                          ) : (
-                            <Button variant="outline" size="sm" className="text-xs" disabled title="Certificate record pending">
-                              View Cert
-                            </Button>
-                          );
+                          ) : null;
                         })()
                       ) : student.phone ? (
                         // Phone numbers are only sent to admins (docs/admin-audit.md B9).
