@@ -8,8 +8,17 @@ section.
 
 | Task | Agent | Branch | Files / areas | Started |
 |---|---|---|---|---|
-| **Trial task:** audit main @ `cabc99f`: payment → admissions gating (no course access before payment *and* admin confirmation), certificate integrity (issued only by a graded capstone, can't be forged or viewed wrongly), plus edge cases turned into new vitest tests. Report bugs with file:line here; flag fixes for the owning agent rather than changing their code. | Codex | `codex/audit-cabc99f` | Read: whole repo. Write: `backend/src/__tests__/`, `docs/` | 2026-11-14 |
+| Review the payment and registration flow; add Paystack edge-case tests | Codex | `codex/payment-flow-edge-cases` | Review: `backend/src/routes/payments.ts`, `lms.ts`, `admin.ts`, `lib/payment-ledger.ts`. Write: `backend/src/__tests__/payment-flow.test.ts` | 2026-11-14 |
 
+## Codex payment review (2026-11-14)
+
+- **High — repeated checkout initialization can create duplicate live charges.** `backend/src/routes/payments.ts:75-79` always creates a new pending transaction for the current remaining balance. There is no per-enrollment reservation or invalidation of earlier pending references. If multiple checkout references are paid, sequential confirmation can credit beyond `totalDue`; concurrent confirmation can mark both ledger entries successful while a stale enrollment write records only one. Suggested owner fix: serialize/reserve the outstanding balance and make confirmation conditional/atomic per enrollment.
+- **Medium — amount verification rounds away kobo differences.** `backend/src/lib/payment-ledger.ts:38-45` rounds the Paystack amount to whole naira before comparing. A charge up to 50 kobo below the expected amount can round up and be credited. Compare integer kobo exactly against `txn.amount * 100`.
+- **Low — legacy enrollment endpoint reports free enrollment as unlocked.** `backend/src/routes/lms.ts:150,201-223` treats every non-`bank` payment method as `null`, creates an ACTIVE/PENDING enrollment, and sends a notification claiming classroom access is unlocked. The access guard still blocks course content while payment is PENDING, but the confirmation is false. Reject unsupported/missing payment methods or return a neutral pending response.
+
+**Added:** `backend/src/__tests__/payment-flow.test.ts` covers failed and abandoned results, amount mismatch, duplicate success webhooks, and installment deposit followed by balance payment. No payment or registration behavior was changed.
+
+**Checks:** root and backend TypeScript checks pass; focused ESLint on the new test file passes (with the repo's `pages` directory advisory). Root ESLint reports 34 errors / 61 warnings across existing files. `next build` failed in the Google Fonts Turbopack import after a fonts.gstatic.com request timed out. Backend Vitest was not run: its tests load database configuration and `cleanupTestData` deletes rows, and I could not establish that the configured database is disposable without opening protected environment files or risking the prohibited database actions.
 ## Done: production merge (Claude Code, 2026-11-14)
 
 `main` @ `cabc99f` merges `antigravity/lms-core-upgrade`,
