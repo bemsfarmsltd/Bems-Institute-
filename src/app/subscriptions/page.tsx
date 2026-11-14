@@ -111,6 +111,8 @@ function SubscriptionsContent() {
   useEffect(() => {
     if (!sourceParam || scanTracked.current) return;
     scanTracked.current = true;
+    // qr=1: the campaign short link (/q/<code>) already counted this scan.
+    if (searchParams.get("qr") === "1") return;
     apiFetch("/api/lms/track-scan", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -118,7 +120,7 @@ function SubscriptionsContent() {
     }).catch(() => {
       // best-effort — a lost scan log shouldn't block the visitor
     });
-  }, [sourceParam, courseQuery]);
+  }, [sourceParam, courseQuery, searchParams]);
 
   const selectedCourse =
     courses.find((c) => c.id === selectedCourseId || c.slug === selectedCourseId) || courses[0];

@@ -8,7 +8,17 @@ section.
 
 | Task | Agent | Branch | Files / areas | Started |
 |---|---|---|---|---|
-| Review the payment and registration flow; add Paystack edge-case tests | Codex | `codex/payment-flow-edge-cases` | Review: `backend/src/routes/payments.ts`, `lms.ts`, `admin.ts`, `lib/payment-ledger.ts`. Write: `backend/src/__tests__/payment-flow.test.ts` | 2026-11-14 |
+| Review `claude/qr-campaigns`: open redirects (`normalizeTarget`, `src/app/q/[code]/route.ts`), code guessability, scan-count inflation; add tests | Codex | `codex/review-qr-campaigns` | Read: QR files. Write: `backend/src/__tests__/` | 2026-11-14 |
+| **Campaign QR codes, backend + short link** (done, awaiting merge): `QrCampaign` table + migration, admin API, public resolver, `/q/<code>` redirect, campaign names in analytics. | Claude Code | `claude/qr-campaigns` | `backend/` (schema, `lib/qr-campaigns.ts`, `routes/qr.ts`, `routes/admin.ts`), `src/app/q/[code]/route.ts`, 2-line `qr=1` skip in `AttributionCapture.tsx` + `subscriptions/page.tsx` | 2026-11-14 |
+| **Campaign QR codes, builder UI**: replace the "Custom Campaign QR Builder" on `/qr-studio` with saved campaigns (create, list with scans/registrations, download/print QR of `shortUrl`, re-point, switch off). Admin-only; API below. | Antigravity | `antigravity/qr-campaign-builder`, off `claude/qr-campaigns` | `src/app/qr-studio/page.tsx` (+ optional admin tab) | 2026-11-14 |
+
+### Campaign QR API (Claude Code → Antigravity)
+All admin-only (`403` otherwise). A campaign object:
+`{ id, code, label, target, active, source, shortUrl, scans, registrations, paidRegistrations, createdAt }`.
+The printed QR must encode **`shortUrl`** (`https://<site>/q/<code>`), never the target: that's what makes it re-pointable and counted.
+- `GET /api/admin/qr-campaigns` → `{ campaigns }`, newest first.
+- `POST /api/admin/qr-campaigns` `{ label, target }` → `201 { campaign }`. `target`: a path on the site (`/subscriptions?course=web-dev`) or an `https://` URL. `400 { error }` with a message to show as is.
+- `PATCH /api/admin/qr-campaigns/:id` `{ label?, target?, active? }` → `{ campaign }`. No delete: switch off instead (scans of a switched-off code go to the homepage).
 
 ## Codex payment review (2026-11-14)
 
