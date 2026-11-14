@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { LMSProvider } from "@/context/LMSContext";
+import { MotionProvider } from "@/components/MotionProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -59,6 +60,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col font-sans bg-white text-[#303654]">
         <LMSProvider>{children}</LMSProvider>
+        <MotionProvider />
         <script
           dangerouslySetInnerHTML={{
             __html: `

@@ -1,0 +1,150 @@
+/*
+ * BEMS motion system. One set of springs and effects for the whole site, so
+ * every page moves the same way. Usage guide: docs/motion.md.
+ *
+ *   .m-lift            cards: rise and grow on hover, squash on press/touch
+ *   .m-press           buttons/chips: springy squash on press/touch
+ *   .m-pop             small things (badges, avatars, icons): pop on hover
+ *   .m-icon            inside an .m-lift/.group: icon tilts when the card is hovered
+ *   data-reveal        animates in when scrolled into view ("up" default,
+ *                      "left", "right", "zoom", "fade")
+ *   data-reveal-group  on a list/grid: its children reveal one after another
+ *
+ * Everything sits behind prefers-reduced-motion: visitors who turn motion
+ * off get the static site. Hover effects only apply on devices that can
+ * hover; touchscreens get the press/touch effects instead.
+ */
+
+:root {
+  /* Overshoots a little and settles: the "bounce". */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-fast: 160ms;
+  --motion-base: 380ms;
+  --motion-slow: 700ms;
+  --lift-shadow: 0 22px 45px -18px rgba(48, 54, 84, 0.35), 0 8px 18px -10px rgba(174, 84, 198, 0.25);
+}
+
+/* A real spring curve where the browser supports one (Chrome/Edge 113+,
+   Safari 17.2+, Firefox 112+); the cubic-bezier above otherwise. */
+@supports (transition-timing-function: linear(0, 1)) {
+  :root {
+    --ease-spring: linear(
+      0, 0.013 0.6%, 0.05 1.2%, 0.2 2.5%, 0.43 4%, 0.69 5.8%, 0.92 7.8%,
+      1.06 9.8%, 1.12 11.8%, 1.13 13.4%, 1.1 15.6%, 1.04 18.5%, 0.99 21.6%,
+      0.97 24.8%, 0.98 29.5%, 1.01 36%, 1 47%, 1
+    );
+  }
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* ---- Scroll reveal --------------------------------------------------- */
+  /* Hidden only once MotionProvider has started (html.motion-ready), so
+     content is never stuck hidden if JavaScript fails or motion is off. */
+  html.motion-ready [data-reveal]:not([data-revealed]) {
+    opacity: 0;
+    transform: translate3d(0, 28px, 0) scale(0.97);
+  }
+  html.motion-ready [data-reveal="left"]:not([data-revealed]) {
+    transform: translate3d(-36px, 0, 0);
+  }
+  html.motion-ready [data-reveal="right"]:not([data-revealed]) {
+    transform: translate3d(36px, 0, 0);
+  }
+  html.motion-ready [data-reveal="zoom"]:not([data-revealed]) {
+    transform: scale(0.88);
+  }
+  html.motion-ready [data-reveal="fade"]:not([data-revealed]) {
+    transform: none;
+  }
+  [data-reveal] {
+    transition:
+      opacity var(--motion-slow) var(--ease-out-soft),
+      transform var(--motion-slow) var(--ease-spring),
+      box-shadow var(--motion-base) var(--ease-out-soft);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+  /* After the entrance, hover reacts instantly. */
+  [data-reveal][data-settled] {
+    --reveal-delay: 0ms;
+  }
+
+  /* ---- Cards ----------------------------------------------------------- */
+  .m-lift {
+    transition:
+      opacity var(--motion-slow) var(--ease-out-soft),
+      transform var(--motion-base) var(--ease-spring),
+      box-shadow var(--motion-base) var(--ease-out-soft),
+      border-color var(--motion-base) var(--ease-out-soft);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+  @media (hover: hover) {
+    .m-lift:hover {
+      transform: translate3d(0, -6px, 0) scale(1.015);
+      box-shadow: var(--lift-shadow);
+    }
+  }
+  .m-lift:active {
+    transform: translate3d(0, -1px, 0) scale(0.975);
+    transition-duration: var(--motion-fast);
+  }
+
+  /* ---- Buttons, chips -------------------------------------------------- */
+  .m-press {
+    transition:
+      transform var(--motion-base) var(--ease-spring),
+      box-shadow var(--motion-base) var(--ease-out-soft),
+      background-color 200ms ease,
+      color 200ms ease,
+      border-color 200ms ease;
+  }
+  @media (hover: hover) {
+    .m-press:hover {
+      transform: translate3d(0, -2px, 0) scale(1.03);
+    }
+  }
+  .m-press:active {
+    transform: scale(0.94);
+    transition-duration: 110ms;
+  }
+
+  /* ---- Small elements -------------------------------------------------- */
+  .m-pop {
+    transition: transform var(--motion-base) var(--ease-spring);
+  }
+  @media (hover: hover) {
+    .m-pop:hover {
+      transform: scale(1.08) rotate(-2deg);
+    }
+  }
+  .m-pop:active {
+    transform: scale(0.92);
+  }
+
+  .m-icon {
+    transition: transform var(--motion-base) var(--ease-spring);
+  }
+  @media (hover: hover) {
+    .m-lift:hover .m-icon,
+    .group:hover .m-icon {
+      transform: rotate(-10deg) scale(1.15);
+    }
+  }
+  .m-lift:active .m-icon {
+    transform: scale(0.9);
+  }
+}
+
+/* Reduced motion: keep the colour/shadow feedback, drop the movement. */
+@media (prefers-reduced-motion: reduce) {
+  .m-lift,
+  .m-press,
+  .m-pop,
+  .m-icon {
+    transition: box-shadow 150ms ease, background-color 150ms ease, color 150ms ease;
+  }
+}
