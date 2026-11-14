@@ -16,6 +16,7 @@ import { sendWhatsAppMessage } from "@/lib/twilio";
 import { checkUsageQuota, recordAttempt, rateLimitMessage } from "@/lib/rate-limit";
 import type { QuizResult } from "@/types/lms";
 import type { NotificationCategory } from "@prisma/client";
+import { getBankTransferDetails } from "@/lib/site-settings";
 
 const router = Router();
 
@@ -156,6 +157,10 @@ router.post("/enroll", async (req, res) => {
   // match against the actual bank statement before confirming it.
   if (paymentMethod === "bank" && !bankReference) {
     return res.status(400).json({ error: "Please enter the transfer reference or narration you used." });
+  }
+  // No account set in Admin Settings means nowhere real to have paid into.
+  if (paymentMethod === "bank" && !(await getBankTransferDetails())) {
+    return res.status(400).json({ error: "Bank transfer isn't available right now. Please pay by card or contact admissions." });
   }
 
   const course = await prisma.course.findUnique({

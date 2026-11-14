@@ -281,7 +281,9 @@ router.post("/signup", async (req, res) => {
   const name = typeof body.name === "string" ? body.name.trim() : "";
   const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
   const password = typeof body.password === "string" ? body.password : "";
-  const role = body.role === "INSTRUCTOR" ? "INSTRUCTOR" : "STUDENT";
+  // Public sign-up only ever creates students. Staff accounts come from an
+  // admin (placement promotion, or a staff invite).
+  const role = "STUDENT" as const;
   const referralCode = typeof body.referralCode === "string" ? body.referralCode : "";
 
   if (!name || !email) {

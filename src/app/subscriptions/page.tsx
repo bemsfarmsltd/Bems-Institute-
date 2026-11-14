@@ -69,6 +69,21 @@ function SubscriptionsContent() {
   const [selectedPlan, setSelectedPlan] = useState<PaymentPlan | null>(initialPlan);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"PAYSTACK" | "BANK">("PAYSTACK");
+  // The account to pay into, from Admin Settings > General. null = not set,
+  // so bank transfer isn't offered at all (never show a placeholder account).
+  const [bankAccount, setBankAccount] = useState<{ bankName: string; accountName: string; accountNumber: string } | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    apiFetch("/api/settings/bank-transfer")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!cancelled) setBankAccount(data?.bankTransfer ?? null);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [bankReference, setBankReference] = useState("");
@@ -692,7 +707,7 @@ function SubscriptionsContent() {
               <span className="text-xs font-bold text-[#645F80] block">
                 Select Payment Method:
               </span>
-              <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className={`grid ${bankAccount ? "grid-cols-2" : "grid-cols-1"} gap-2 text-xs`}>
                 <button
                   type="button"
                   onClick={() => setPaymentMethod("PAYSTACK")}
@@ -704,6 +719,7 @@ function SubscriptionsContent() {
                 >
                   <CreditCard className="w-4 h-4" /> Paystack Inline
                 </button>
+                {bankAccount && (
                 <button
                   type="button"
                   onClick={() => setPaymentMethod("BANK")}
@@ -715,15 +731,16 @@ function SubscriptionsContent() {
                 >
                   <Building2 className="w-4 h-4" /> Bank Transfer
                 </button>
+                )}
               </div>
             </div>
 
-            {paymentMethod === "BANK" ? (
+            {paymentMethod === "BANK" && bankAccount ? (
               <div className="mb-6 space-y-3">
                 <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-950 space-y-1">
-                  <strong className="block font-bold">Zenith Bank Plc</strong>
-                  <div>Account Name: BEMS Institute of Technology Ltd</div>
-                  <div>Account Number: <code className="font-mono font-bold text-sm">1012345678</code></div>
+                  <strong className="block font-bold">{bankAccount.bankName}</strong>
+                  <div>Account Name: {bankAccount.accountName}</div>
+                  <div>Account Number: <code className="font-mono font-bold text-sm">{bankAccount.accountNumber}</code></div>
                   <div className="text-[10px] text-amber-800 pt-1">
                     Once transfer is made, enter the reference/narration below and click Confirm — admissions will match it against the bank statement and unlock your classroom once verified.
                   </div>

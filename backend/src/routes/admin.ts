@@ -12,6 +12,7 @@ import { toCsv } from "@/lib/csv";
 import { generateCampaignCode, campaignSource, normalizeTarget } from "@/lib/qr-campaigns";
 import type { AnalyticsSummary } from "@/types/lms";
 import type { QrCampaign } from "@prisma/client";
+import { getSiteSettings, integrationStatus, ACCOUNT_NUMBER_PATTERN } from "@/lib/site-settings";
 
 const router = Router();
 
@@ -1488,6 +1489,62 @@ router.patch("/settings", async (req, res) => {
   });
 
   return res.json({ settings });
+});
+
+// General settings: registration mode, bank-transfer account, and a
+// read-only view of which integrations are configured on the server.
+router.get("/settings/general", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
+  }
+  const s = await getSiteSettings();
+  return res.json({
+    general: {
+      allowRegistration: s.allowRegistration,
+      bankName: s.bankName,
+      bankAccountName: s.bankAccountName,
+      bankAccountNumber: s.bankAccountNumber
+    },
+    integrations: integrationStatus()
+  });
+});
+
+router.patch("/settings/general", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
+  }
+  const body = req.body ?? {};
+  const text = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : undefined);
+
+  const allowRegistration = body.allowRegistration === undefined
+    ? undefined
+    : ["enable", "disable", "request"].includes(body.allowRegistration) ? body.allowRegistration : null;
+  if (allowRegistration === null) {
+    return res.status(400).json({ error: "Registration must be enable, disable or request." });
+  }
+  const bankName = text(body.bankName, 80);
+  const bankAccountName = text(body.bankAccountName, 120);
+  const bankAccountNumber = typeof body.bankAccountNumber === "string" ? body.bankAccountNumber.replace(/[\s-]+/g, "") : undefined;
+  if (bankAccountNumber && !ACCOUNT_NUMBER_PATTERN.test(bankAccountNumber)) {
+    return res.status(400).json({ error: "Account number must be exactly 10 digits." });
+  }
+
+  const s = await prisma.siteSettings.upsert({
+    where: { id: "singleton" },
+    update: { allowRegistration, bankName, bankAccountName, bankAccountNumber },
+    create: { id: "singleton", allowRegistration: allowRegistration ?? undefined, bankName, bankAccountName, bankAccountNumber }
+  });
+  return res.json({
+    general: {
+      allowRegistration: s.allowRegistration,
+      bankName: s.bankName,
+      bankAccountName: s.bankAccountName,
+      bankAccountNumber: s.bankAccountNumber
+    },
+    integrations: integrationStatus()
+  });
 });
 
 router.patch("/settings/notifications", async (req, res) => {

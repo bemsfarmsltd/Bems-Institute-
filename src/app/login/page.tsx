@@ -70,7 +70,6 @@ export default function LoginPage() {
       }
     }
   }, []);
-  const [role, setRole] = useState<UserRole>("STUDENT");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -150,7 +149,7 @@ export default function LoginPage() {
       name,
       email,
       password,
-      role === "INSTRUCTOR" ? "INSTRUCTOR" : "STUDENT",
+      "STUDENT",
       referralCode || undefined
     );
     setSubmitting(false);
@@ -354,21 +353,8 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Role & Campus Stream Row */}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[13px] font-medium text-[#475569] mb-1.5">
-                  Account Type
-                </label>
-                <select
-                  value={role}
-                  onChange={(e) => setRole(e.target.value as UserRole)}
-                  className="w-full bg-[#F3F5F7] rounded-lg px-3.5 py-2.5 text-[13.5px] text-[#1D2026] focus:outline-none focus:ring-1 focus:ring-[#AE54C6]"
-                >
-                  <option value="STUDENT">Student</option>
-                  <option value="INSTRUCTOR">Instructor</option>
-                </select>
-              </div>
+            {/* Campus Stream (public sign-up is students only; staff are invited) */}
+            <div className="grid grid-cols-1 gap-3">
               <div>
                 <label className="block text-[13px] font-medium text-[#475569] mb-1.5">
                   Campus Stream

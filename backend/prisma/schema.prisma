@@ -147,6 +147,11 @@ model SiteSettings {
   contactAddress    String   @default("") @db.Text
   // "enable" | "disable" | "request" — enforced on POST /api/auth/signup.
   allowRegistration String   @default("enable")
+  // Where students send tuition by bank transfer (shown on /subscriptions).
+  // Bank transfer stays hidden until all three are set in Admin Settings.
+  bankName          String   @default("")
+  bankAccountName   String   @default("")
+  bankAccountNumber String   @default("")
   updatedAt         DateTime @updatedAt
 }
 
