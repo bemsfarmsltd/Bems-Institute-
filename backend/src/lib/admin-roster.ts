@@ -50,7 +50,7 @@ export async function computeAdminRoster(): Promise<AdminStudent[]> {
     submissions.map((s) => [`${s.userId}:${s.assignmentId}`, s])
   );
 
-  const certifiedPairs = new Set(certificates.map((c) => `${c.userId}:${c.courseId}`));
+  const certByPair = new Map(certificates.map((c) => [`${c.userId}:${c.courseId}`, c]));
 
   return enrollments.map((e) => {
     const totalLessons = lessonCountByCourse.get(e.courseId) || 0;
@@ -72,6 +72,8 @@ export async function computeAdminRoster(): Promise<AdminStudent[]> {
       ? "GRADED"
       : "SUBMITTED";
 
+    const cert = certByPair.get(`${e.userId}:${e.courseId}`);
+
     return {
       id: e.id,
       name: e.user.name,
@@ -91,7 +93,9 @@ export async function computeAdminRoster(): Promise<AdminStudent[]> {
       progressPercent,
       quizScore,
       capstoneStatus,
-      certificateIssued: certifiedPairs.has(`${e.userId}:${e.courseId}`),
+      certificateIssued: Boolean(cert),
+      certificateId: cert?.id,
+      certificateNumber: cert?.certNumber,
       qrSource: e.source || "website",
       enrolledAt: e.createdAt.toISOString()
     } as AdminStudent;

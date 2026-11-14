@@ -55,7 +55,7 @@ export const INITIAL_NOTIFICATIONS: AppNotification[] = [
     category: "GRADING",
     timestamp: "2 hours ago",
     read: false,
-    linkUrl: "/certificate/cert-001"
+    linkUrl: "/dashboard"
   },
   {
     id: "notif-3",
