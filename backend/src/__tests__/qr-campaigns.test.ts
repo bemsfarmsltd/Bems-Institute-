@@ -36,7 +36,20 @@ describe("campaign QR codes", () => {
 
   it("refuses targets that would send scans somewhere unsafe", () => {
     const site = "https://bems-institute.vercel.app/";
-    for (const bad of ["", "//evil.example", "/\\evil.example", "http://example.com", "javascript:alert(1)", "/q/abc", "https://u:p@example.com"]) {
+    for (const bad of [
+      "",
+      "//evil.example",
+      "/\\evil.example",
+      "http://example.com",
+      "javascript:alert(1)",
+      "/q/abc",
+      "https://u:p@example.com",
+      // URL() would repair these into off-site links (found by Codex).
+      "https:/evil.example",
+      "https:\\\\evil.example",
+      "https:///evil.example",
+      "https://\\evil.example"
+    ]) {
       expect(normalizeTarget(bad, site).ok, bad).toBe(false);
     }
     expect(normalizeTarget("https://partner.example/page", site)).toEqual({ ok: true, target: "https://partner.example/page" });
@@ -71,6 +84,9 @@ describe("campaign QR codes", () => {
     await admin.patch(`/api/admin/qr-campaigns/${id}`, { target: "https://partner.example/event" });
     const external = await request(app).get(`/api/qr/${code}`);
     expect(external.body).toEqual({ target: "https://partner.example/event", external: true });
+
+    // The same phone again within a day (the site's cookie): sent on, not counted.
+    expect((await request(app).get(`/api/qr/${code}?repeat=1`)).status).toBe(200);
 
     const stats = (await admin.get("/api/admin/qr-campaigns")).body.campaigns.find((c: { id: string }) => c.id === id);
     expect(stats.scans).toBe(2);

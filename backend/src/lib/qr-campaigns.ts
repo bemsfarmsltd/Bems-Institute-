@@ -40,6 +40,12 @@ export function normalizeTarget(
     return { ok: true, target: raw };
   }
 
+  // Literally "https://". URL() would quietly repair "https:/evil.example"
+  // or "https:\\evil.example" into an off-site link, and an admin could
+  // take that malformed text for a path on this site.
+  if (!/^https:\/\/[^/\\]/i.test(raw)) {
+    return { ok: false, error: 'Use a path starting with "/" or a full https:// address.' };
+  }
   let url: URL;
   try {
     url = new URL(raw);

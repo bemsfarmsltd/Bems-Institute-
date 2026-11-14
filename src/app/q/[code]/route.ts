@@ -20,10 +20,18 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.redirect(home, 302);
   }
 
+  // One scan per phone per code per day: a repeat isn't counted again.
+  const seenCookie = `bems_qr_${code}`;
+  const repeat = request.cookies.has(seenCookie);
+  const remember = (response: NextResponse) => {
+    response.cookies.set(seenCookie, "1", { maxAge: 60 * 60 * 24, httpOnly: true, sameSite: "lax", secure: true, path: "/q" });
+    return response;
+  };
+
   const apiBase = process.env.NEXT_PUBLIC_API_URL;
   if (apiBase) {
     try {
-      const res = await fetch(`${apiBase}/api/qr/${code}`, {
+      const res = await fetch(`${apiBase}/api/qr/${code}${repeat ? "?repeat=1" : ""}`, {
         cache: "no-store",
         signal: AbortSignal.timeout(RESOLVE_TIMEOUT_MS)
       });
@@ -37,7 +45,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           // backend already validated when an admin saved it.
           const destination = target.startsWith("/") ? new URL(target, request.url) : new URL(target);
           if (destination.protocol === "https:" || destination.origin === home.origin) {
-            return NextResponse.redirect(destination, 302);
+            return remember(NextResponse.redirect(destination, 302));
           }
         }
       }
