@@ -120,7 +120,7 @@ export default function CommunityPage() {
             <button
               key={chan.id}
               onClick={() => setActiveChannelId(chan.id)}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer ${
+              className={`m-press px-3.5 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer ${
                 activeChannelId === chan.id
                   ? "bg-[#AE54C6] text-white shadow-xs"
                   : "bg-white border border-[#F1E2F5] text-[#4A4568] hover:text-[#303654]"
@@ -147,7 +147,7 @@ export default function CommunityPage() {
                   <button
                     key={chan.id}
                     onClick={() => setActiveChannelId(chan.id)}
-                    className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                    className={`m-press w-full text-left px-3 py-2.5 rounded-xl text-xs font-bold transition-colors flex items-center gap-2 cursor-pointer ${
                       activeChannelId === chan.id
                         ? "bg-[#AE54C6] text-white shadow-xs"
                         : "text-[#4A4568] hover:bg-white hover:text-[#303654]"
@@ -200,10 +200,10 @@ export default function CommunityPage() {
                 </div>
               ) : (
                 messages.map((msg) => (
-                  <div key={msg.id} className="p-4 rounded-2xl bg-[#FAF8FF] border border-[#F1E2F5] space-y-2.5">
+                  <div key={msg.id} className="m-lift p-4 rounded-2xl bg-[#FAF8FF] border border-[#F1E2F5] space-y-2.5">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="w-7 h-7 rounded-full bg-[#303654] text-white flex items-center justify-center text-xs font-bold">
+                        <span className="m-pop w-7 h-7 rounded-full bg-[#303654] text-white flex items-center justify-center text-xs font-bold">
                           {msg.senderName.substring(0, 2).toUpperCase()}
                         </span>
                         <span className="font-bold text-xs text-[#303654]">
@@ -233,7 +233,7 @@ export default function CommunityPage() {
                     <div className="flex items-center gap-2 pt-1">
                       <button
                         onClick={() => handleLike(msg.id)}
-                        className="inline-flex items-center gap-1 text-[11px] text-[#645F80] hover:text-[#AE54C6] font-semibold bg-white px-2.5 py-1 rounded-lg border border-[#F1E2F5] transition-colors cursor-pointer"
+                        className="m-press inline-flex items-center gap-1 text-[11px] text-[#645F80] hover:text-[#AE54C6] font-semibold bg-white px-2.5 py-1 rounded-lg border border-[#F1E2F5] transition-colors cursor-pointer"
                       >
                         <ThumbsUp className="w-3 h-3 text-[#AE54C6]" />
                         <span>{msg.likes}</span>

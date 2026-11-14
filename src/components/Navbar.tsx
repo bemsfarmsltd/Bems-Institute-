@@ -69,7 +69,7 @@ export function Navbar() {
   };
 
   const navLinkClass = (href: string) =>
-    `inline-flex items-center gap-1 transition-colors ${
+    `m-press inline-flex items-center gap-1 transition-colors ${
       isActive(href)
         ? "text-[#AE54C6] font-extrabold"
         : "text-[#24292D] hover:text-[#AE54C6]"
@@ -81,8 +81,8 @@ export function Navbar() {
         <div className="flex items-center justify-between h-20 gap-3">
           {/* Brand Logo */}
           <div className="flex items-center gap-3 min-w-0 shrink lg:shrink-0">
-            <Link href="/" className="flex items-center gap-2 sm:gap-3 min-w-0">
-              <div className="relative w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden shrink-0">
+            <Link href="/" className="group flex items-center gap-2 sm:gap-3 min-w-0">
+              <div className="m-pop relative w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden shrink-0">
                 <Image
                   src="/images/bems-logo.jpg"
                   alt="BEMS Logo"
@@ -411,7 +411,7 @@ export function Navbar() {
                   <Link
                     href={dashboardHref}
                     title={`${user.name} (${user.role})`}
-                    className="inline-flex hover:scale-105 transition-transform"
+                    className="m-pop inline-flex"
                   >
                     <UserAvatar user={user} size={40} className="border-2 border-white ring-1 ring-slate-200 text-xs" />
                   </Link>
@@ -449,7 +449,7 @@ export function Navbar() {
             <button
               type="button"
               onClick={() => setMobileMenuOpen((prev) => !prev)}
-              className="lg:hidden p-2 rounded-xl text-[#24292D] hover:bg-slate-100 border border-slate-200 transition-colors"
+              className="m-press lg:hidden p-2 rounded-xl text-[#24292D] hover:bg-slate-100 border border-slate-200 transition-colors"
               aria-label="Toggle navigation menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -507,7 +507,7 @@ export function Navbar() {
                 <Link
                   href="/courses"
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-all ${
+                  className={`m-press px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-colors ${
                     isActive("/courses")
                       ? "bg-[#F7EDF9] border-[#AE54C6]/40 text-[#AE54C6]"
                       : "bg-[#F5F7F9] border-transparent text-[#24292D] hover:text-[#AE54C6]"
@@ -519,7 +519,7 @@ export function Navbar() {
                 <Link
                   href={dashboardHref}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-all ${
+                  className={`m-press px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-colors ${
                     isActive("/dashboard")
                       ? "bg-[#F7EDF9] border-[#AE54C6]/40 text-[#AE54C6]"
                       : "bg-[#F5F7F9] border-transparent text-[#24292D] hover:text-[#AE54C6]"
@@ -531,7 +531,7 @@ export function Navbar() {
                 <Link
                   href="/subscriptions"
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-all ${
+                  className={`m-press px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-colors ${
                     isActive("/subscriptions")
                       ? "bg-[#F7EDF9] border-[#AE54C6]/40 text-[#AE54C6]"
                       : "bg-[#F5F7F9] border-transparent text-[#24292D] hover:text-[#AE54C6]"
@@ -543,7 +543,7 @@ export function Navbar() {
                 <Link
                   href={user ? dashboardHref : "/login"}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-all ${
+                  className={`m-press px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-colors ${
                     isActive("/login")
                       ? "bg-[#F7EDF9] border-[#AE54C6]/40 text-[#AE54C6]"
                       : "bg-[#F5F7F9] border-transparent text-[#24292D] hover:text-[#AE54C6]"
@@ -564,7 +564,7 @@ export function Navbar() {
                 <Link
                   href="/ai"
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-all ${
+                  className={`m-press px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-colors ${
                     isActive("/ai")
                       ? "bg-[#F7EDF9] border-[#AE54C6]/40 text-[#AE54C6]"
                       : "bg-[#F5F7F9] border-transparent text-[#24292D] hover:text-[#AE54C6]"
@@ -576,7 +576,7 @@ export function Navbar() {
                 <Link
                   href="/sandbox"
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-all ${
+                  className={`m-press px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-colors ${
                     isActive("/sandbox")
                       ? "bg-[#F7EDF9] border-[#AE54C6]/40 text-[#AE54C6]"
                       : "bg-[#F5F7F9] border-transparent text-[#24292D] hover:text-[#AE54C6]"
@@ -588,7 +588,7 @@ export function Navbar() {
                 <Link
                   href="/live"
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-all ${
+                  className={`m-press px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-colors ${
                     isActive("/live")
                       ? "bg-[#F7EDF9] border-[#AE54C6]/40 text-[#AE54C6]"
                       : "bg-[#F5F7F9] border-transparent text-[#24292D] hover:text-[#AE54C6]"
@@ -600,7 +600,7 @@ export function Navbar() {
                 <Link
                   href="/community"
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-all ${
+                  className={`m-press px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-colors ${
                     isActive("/community")
                       ? "bg-[#F7EDF9] border-[#AE54C6]/40 text-[#AE54C6]"
                       : "bg-[#F5F7F9] border-transparent text-[#24292D] hover:text-[#AE54C6]"
@@ -612,7 +612,7 @@ export function Navbar() {
                 <Link
                   href="/leaderboard"
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-all ${
+                  className={`m-press px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-colors ${
                     isActive("/leaderboard")
                       ? "bg-[#F7EDF9] border-[#AE54C6]/40 text-[#AE54C6]"
                       : "bg-[#F5F7F9] border-transparent text-[#24292D] hover:text-[#AE54C6]"
@@ -624,7 +624,7 @@ export function Navbar() {
                 <Link
                   href="/qr-studio"
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-all ${
+                  className={`m-press px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-colors ${
                     isActive("/qr-studio")
                       ? "bg-[#F7EDF9] border-[#AE54C6]/40 text-[#AE54C6]"
                       : "bg-[#F5F7F9] border-transparent text-[#24292D] hover:text-[#AE54C6]"
@@ -646,7 +646,7 @@ export function Navbar() {
                   <Link
                     href="/instructor"
                     onClick={() => setMobileMenuOpen(false)}
-                    className={`px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-all ${
+                    className={`m-press px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-colors ${
                       isActive("/instructor")
                         ? "bg-[#F7EDF9] border-[#AE54C6]/40 text-[#AE54C6]"
                         : "bg-[#F5F7F9] border-transparent text-[#24292D] hover:text-[#AE54C6]"
@@ -659,7 +659,7 @@ export function Navbar() {
                     <Link
                       href="/admin"
                       onClick={() => setMobileMenuOpen(false)}
-                      className={`px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-all ${
+                      className={`m-press px-3 py-2.5 rounded-xl border flex items-center gap-2 transition-colors ${
                         isActive("/admin")
                           ? "bg-[#F7EDF9] border-[#AE54C6]/40 text-[#AE54C6]"
                           : "bg-[#F5F7F9] border-transparent text-[#24292D] hover:text-[#AE54C6]"

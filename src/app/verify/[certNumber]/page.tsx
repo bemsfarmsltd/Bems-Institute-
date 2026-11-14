@@ -96,7 +96,7 @@ export default function CertificateVerificationPage({
       {/* Verification Card */}
       <div className="flex-1 max-w-3xl mx-auto w-full px-4 sm:px-6 py-12">
         {certificate ? (
-          <div className="bg-white rounded-3xl border border-[#F1E2F5] shadow-xl overflow-hidden">
+          <div data-reveal="zoom" className="m-lift bg-white rounded-3xl border border-[#F1E2F5] shadow-xl overflow-hidden">
             {/* Status bar */}
             <div className="bg-emerald-500 text-white p-4 sm:p-5 flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -205,7 +205,7 @@ export default function CertificateVerificationPage({
             </div>
           </div>
         ) : (
-          <div className="bg-white rounded-3xl border border-red-200 p-8 text-center shadow-lg">
+          <div data-reveal="zoom" className="bg-white rounded-3xl border border-red-200 p-8 text-center shadow-lg">
             <div className="w-16 h-16 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-4">
               <XCircle className="w-8 h-8" />
             </div>

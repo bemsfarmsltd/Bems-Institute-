@@ -216,7 +216,7 @@ export default function CourseDetailPage({
 
       <div className="bg-gradient-to-r from-[#303654] via-[#3E4569] to-[#303654] text-white py-14 border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Link href="/courses" className="inline-flex items-center gap-2 text-xs text-[#F4E0FA] hover:text-white mb-6">
+          <Link href="/courses" className="m-press inline-flex items-center gap-2 text-xs text-[#F4E0FA] hover:text-white mb-6">
             <ArrowLeft className="w-4 h-4" /> Back to Course Catalog
           </Link>
 
@@ -331,11 +331,11 @@ export default function CourseDetailPage({
                 </p>
               </div>
             ) : (
-            <div className="space-y-6">
+            <div data-reveal-group className="space-y-6">
               {course.modules.map((mod) => (
                 <div 
                   key={mod.id} 
-                  className="bg-white border border-[#F1E2F5] rounded-2xl overflow-hidden shadow-xs"
+                  className="m-lift bg-white border border-[#F1E2F5] rounded-2xl overflow-hidden shadow-xs"
                 >
                   <div className="bg-[#FAF8FF] px-6 py-4 border-b border-[#F1E2F5] flex items-center justify-between">
                     <h3 className="font-bold text-[#303654] text-base">
@@ -409,8 +409,8 @@ export default function CourseDetailPage({
             )}
 
             {course.modules.length > 0 && (
-              <div className="bg-[#FFFBEB] border border-[#FDE68A] rounded-2xl p-6 flex items-start gap-4">
-                <Award className="w-8 h-8 text-[#D97706] shrink-0" />
+              <div data-reveal className="m-lift bg-[#FFFBEB] border border-[#FDE68A] rounded-2xl p-6 flex items-start gap-4">
+                <Award className="m-icon w-8 h-8 text-[#D97706] shrink-0" />
                 <div>
                   <h4 className="font-bold text-[#92400E] text-base mb-1">
                     Mandatory Final Capstone Project (Proof for Employers)
@@ -423,7 +423,7 @@ export default function CourseDetailPage({
             )}
 
             {/* Reviews Section — Verified Student Feedback */}
-            <div className="bg-white rounded-3xl border border-[#F1E2F5] p-6 sm:p-8 shadow-xs w-full" data-tour="reviews">
+            <div data-reveal className="bg-white rounded-3xl border border-[#F1E2F5] p-6 sm:p-8 shadow-xs w-full" data-tour="reviews">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-6 border-b border-[#F7EDF9]">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
@@ -483,7 +483,7 @@ export default function CourseDetailPage({
                           key={n}
                           type="button"
                           onClick={() => setMyRatingDraft(n)}
-                          className="p-1 hover:scale-115 active:scale-95 transition-transform cursor-pointer"
+                          className="m-pop p-1 cursor-pointer"
                           title={`${n} Stars`}
                         >
                           <Star
@@ -549,15 +549,15 @@ export default function CourseDetailPage({
                   </div>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div data-reveal-group className="space-y-4">
                   {reviews.map((r) => (
                     <div
                       key={r.id}
-                      className="p-4 sm:p-5 rounded-2xl bg-[#FAF8FF] border border-[#F1E2F5] transition-all hover:border-[#E5C8ED]"
+                      className="m-lift p-4 sm:p-5 rounded-2xl bg-[#FAF8FF] border border-[#F1E2F5] hover:border-[#E5C8ED]"
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2.5">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#AE54C6] to-[#303654] text-white font-black text-xs flex items-center justify-center shadow-xs shrink-0">
+                          <div className="m-pop w-9 h-9 rounded-full bg-gradient-to-br from-[#AE54C6] to-[#303654] text-white font-black text-xs flex items-center justify-center shadow-xs shrink-0">
                             {r.name.slice(0, 2).toUpperCase()}
                           </div>
                           <div>
@@ -605,7 +605,7 @@ export default function CourseDetailPage({
           </div>
 
           <div className="lg:col-span-4 sticky top-28">
-            <div className="bg-white border border-[#F1E2F5] rounded-3xl p-6 sm:p-8 shadow-lg">
+            <div className="m-lift bg-white border border-[#F1E2F5] rounded-3xl p-6 sm:p-8 shadow-lg">
               
               {enrolled ? (
                 <div>
@@ -762,7 +762,7 @@ export default function CourseDetailPage({
                     type="button"
                     onClick={openInterestModal}
                     data-tour="register-interest"
-                    className="w-full mt-3 py-2 text-xs font-bold text-[#AE54C6] hover:text-[#8f3ba3] cursor-pointer text-center block"
+                    className="m-press w-full mt-3 py-2 text-xs font-bold text-[#AE54C6] hover:text-[#8f3ba3] cursor-pointer text-center block"
                   >
                     Not ready to pay yet? Register your interest &rarr;
                   </button>

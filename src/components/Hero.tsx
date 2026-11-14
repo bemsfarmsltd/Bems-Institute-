@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useLMS } from "@/context/LMSContext";
+import { CountUp } from "@/components/CountUp";
 import {
   CheckCircle2,
   Play,
@@ -20,21 +21,24 @@ import {
 // stays static marketing copy.
 const OTHER_STATS = [
   {
-    value: "20+",
+    count: 20,
+    format: (n: number) => `${n}+`,
     label: "Expert Tutors & Mentors",
     bg: "bg-[#E8EEF2]",
     iconColor: "text-[#1D3B53]",
     Icon: UserCheck
   },
   {
-    value: "80 Seats",
+    count: 80,
+    format: (n: number) => `${n} Seats`,
     label: "October 2026 Cohort",
     bg: "bg-[#F6ECF9]",
     iconColor: "text-[#A16EBD]",
     Icon: GraduationCap
   },
   {
-    value: "100%",
+    count: 100,
+    format: (n: number) => `${n}%`,
     label: "QR-Verified Certificates",
     bg: "bg-[#E5F5F7]",
     iconColor: "text-[#17A2B8]",
@@ -45,7 +49,8 @@ const OTHER_STATS = [
 export function Hero() {
   const { courses } = useLMS();
   const trackStat = {
-    value: `${courses.length || 5} Tracks`,
+    count: courses.length || 5,
+    format: (n: number) => `${n} Tracks`,
     label: "Hands-On Tech Courses",
     bg: "bg-[#FEF6E0]",
     iconColor: "text-[#F7C32E]",
@@ -55,6 +60,33 @@ export function Hero() {
 
   return (
     <section className="relative overflow-hidden bg-white pt-8 pb-16 md:pt-14 md:pb-20">
+      <style>{`
+        @media (prefers-reduced-motion: no-preference) {
+          @keyframes bemsHeroFadeUp {
+            0% { opacity: 0; transform: translate3d(0, 18px, 0); }
+            100% { opacity: 1; transform: translate3d(0, 0, 0); }
+          }
+          @keyframes bemsHeroPopIn {
+            0% { opacity: 0; transform: scale(0.84) translate3d(0, 12px, 0); }
+            100% { opacity: 1; transform: scale(1) translate3d(0, 0, 0); }
+          }
+          .bems-hero-copy {
+            animation: bemsHeroFadeUp 580ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+          }
+          .bems-hero-portrait {
+            animation: bemsHeroPopIn 620ms 80ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+          }
+          .bems-hero-badge-1 {
+            animation: bemsHeroPopIn 540ms 180ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+          }
+          .bems-hero-badge-2 {
+            animation: bemsHeroPopIn 540ms 260ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+          }
+          .bems-hero-badge-3 {
+            animation: bemsHeroPopIn 540ms 340ms cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+          }
+        }
+      `}</style>
       {/* Decorative Eduport Top-Left Peach Circle */}
       <div
         aria-hidden="true"
@@ -90,7 +122,7 @@ export function Hero() {
         {/* Main Hero 2-Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center pb-16 md:pb-20">
           {/* Left Column: Eduport Typography, Yellow Brush Highlight, Checkmarks & CTAs */}
-          <div className="lg:col-span-6 relative">
+          <div className="lg:col-span-6 relative bems-hero-copy">
             {/* Green Starburst Accent */}
             <svg
               aria-hidden="true"
@@ -152,16 +184,16 @@ export function Hero() {
               <Link
                 href="/subscriptions"
                 data-tour="hero-cta"
-                className="inline-flex items-center justify-center rounded-lg bg-[#AE54C6] hover:bg-[#A03BBC] text-white font-bold text-xs sm:text-sm px-5 sm:px-7 py-3 sm:py-3.5 transition-all duration-200 shadow-2xs"
+                className="m-press inline-flex items-center justify-center rounded-lg bg-[#AE54C6] hover:bg-[#A03BBC] text-white font-bold text-xs sm:text-sm px-5 sm:px-7 py-3 sm:py-3.5 transition-colors duration-200 shadow-2xs"
               >
                 Get Started
               </Link>
 
               <Link
                 href="#courses"
-                className="inline-flex items-center gap-2.5 sm:gap-3.5 group text-xs sm:text-sm font-bold text-[#24292D] hover:text-[#AE54C6] transition-colors"
+                className="m-press inline-flex items-center gap-2.5 sm:gap-3.5 group text-xs sm:text-sm font-bold text-[#24292D] hover:text-[#AE54C6] transition-colors"
               >
-                <span className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#AE54C6] text-white flex items-center justify-center ring-4 sm:ring-8 ring-[#AE54C6]/15 group-hover:scale-105 transition-transform">
+                <span className="m-pop w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#AE54C6] text-white flex items-center justify-center ring-4 sm:ring-8 ring-[#AE54C6]/15">
                   <Play className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-white ml-0.5" />
                 </span>
                 <span>Explore Courses</span>
@@ -169,7 +201,7 @@ export function Hero() {
 
               <Link
                 href="/qr-studio"
-                className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#747579] hover:text-[#AE54C6] transition-colors"
+                className="m-press inline-flex items-center gap-1.5 text-xs font-semibold text-[#747579] hover:text-[#AE54C6] transition-colors"
               >
                 <QrCode className="w-4 h-4 text-[#AE54C6]" />
                 <span>Banner QR Studio</span>
@@ -189,7 +221,7 @@ export function Hero() {
 
           {/* Right Column: Eduport Organic Navy Shape + Student Portrait + Floating Badges */}
           <div className="lg:col-span-6 relative flex justify-center w-full px-2 sm:px-0">
-            <div className="relative w-full max-w-[490px] flex justify-center">
+            <div className="relative w-full max-w-[490px] flex justify-center bems-hero-portrait">
               {/* Organic Eduport Navy Shape Container */}
               <div className="relative mx-auto w-[270px] h-[310px] sm:w-[410px] sm:h-[440px] rounded-[46%_54%_48%_52%/54%_46%_54%_46%] bg-[#334E5B] overflow-hidden shadow-xl">
                 <Image
@@ -222,127 +254,152 @@ export function Hero() {
               </div>
 
               {/* Floating Tech Icon 1: React / Atom (Left) */}
-              <div aria-hidden="true" className="absolute top-1/3 left-0 sm:-left-6 bg-white rounded-xl p-2 sm:p-3 shadow-lg border border-slate-100 flex items-center justify-center">
-                <svg className="w-5 h-5 sm:w-7 sm:h-7 text-[#2B2848]" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="2.2" fill="currentColor" />
-                  <ellipse
-                    cx="12"
-                    cy="12"
-                    rx="10"
-                    ry="4.2"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                  />
-                  <ellipse
-                    cx="12"
-                    cy="12"
-                    rx="10"
-                    ry="4.2"
-                    transform="rotate(60 12 12)"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                  />
-                  <ellipse
-                    cx="12"
-                    cy="12"
-                    rx="10"
-                    ry="4.2"
-                    transform="rotate(120 12 12)"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                  />
-                </svg>
+              <div aria-hidden="true" className="bems-hero-badge-1 absolute top-1/3 left-0 sm:-left-6">
+                <div
+                  className="m-pop m-float bg-white rounded-xl p-2 sm:p-3 shadow-lg border border-slate-100 flex items-center justify-center"
+                  style={{ "--float-delay": "800ms" } as React.CSSProperties}
+                >
+                  <svg className="w-5 h-5 sm:w-7 sm:h-7 text-[#2B2848]" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="2.2" fill="currentColor" />
+                    <ellipse
+                      cx="12"
+                      cy="12"
+                      rx="10"
+                      ry="4.2"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                    />
+                    <ellipse
+                      cx="12"
+                      cy="12"
+                      rx="10"
+                      ry="4.2"
+                      transform="rotate(60 12 12)"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                    />
+                    <ellipse
+                      cx="12"
+                      cy="12"
+                      rx="10"
+                      ry="4.2"
+                      transform="rotate(120 12 12)"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                    />
+                  </svg>
+                </div>
               </div>
 
               {/* Floating Tech Icon 2: Code / Shield (Top-Right) */}
-              <div aria-hidden="true" className="absolute -top-2 right-2 sm:right-6 bg-white rounded-xl p-2 sm:p-2.5 shadow-lg border border-slate-100 flex items-center justify-center">
-                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M12 2L3 5.2L4.4 17.2L12 21.5L19.6 17.2L21 5.2L12 2Z"
-                    fill="#DD0031"
-                  />
-                  <path
-                    d="M12 4.3L6.4 16.8H8.5L9.7 13.8H14.3L15.5 16.8H17.6L12 4.3ZM10.5 11.9L12 8.2L13.5 11.9H10.5Z"
-                    fill="white"
-                  />
-                </svg>
+              <div aria-hidden="true" className="bems-hero-badge-2 absolute -top-2 right-2 sm:right-6">
+                <div
+                  className="m-pop m-float bg-white rounded-xl p-2 sm:p-2.5 shadow-lg border border-slate-100 flex items-center justify-center"
+                  style={{ "--float-delay": "1100ms" } as React.CSSProperties}
+                >
+                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M12 2L3 5.2L4.4 17.2L12 21.5L19.6 17.2L21 5.2L12 2Z"
+                      fill="#DD0031"
+                    />
+                    <path
+                      d="M12 4.3L6.4 16.8H8.5L9.7 13.8H14.3L15.5 16.8H17.6L12 4.3ZM10.5 11.9L12 8.2L13.5 11.9H10.5Z"
+                      fill="white"
+                    />
+                  </svg>
+                </div>
               </div>
 
               {/* Floating Tech Icon 3: Figma (Bottom-Right) */}
-              <div aria-hidden="true" className="absolute bottom-16 sm:bottom-20 right-1 sm:-right-4 bg-white rounded-xl p-2 sm:p-2.5 shadow-lg border border-slate-100 flex items-center justify-center">
-                <svg className="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M8.5 2C6.8 2 5.5 3.3 5.5 5C5.5 6.7 6.8 8 8.5 8H11.5V2H8.5Z"
-                    fill="#F24E1E"
-                  />
-                  <path
-                    d="M11.5 2H14.5C16.2 2 17.5 3.3 17.5 5C17.5 6.7 16.2 8 14.5 8H11.5V2Z"
-                    fill="#FF7262"
-                  />
-                  <path
-                    d="M8.5 8C6.8 8 5.5 9.3 5.5 11C5.5 12.7 6.8 14 8.5 14H11.5V8H8.5Z"
-                    fill="#A259FF"
-                  />
-                  <path
-                    d="M8.5 14C6.8 14 5.5 15.3 5.5 17C5.5 18.7 6.8 20 8.5 20C10.2 20 11.5 18.7 11.5 17V14H8.5Z"
-                    fill="#0ACF83"
-                  />
-                  <circle cx="14.5" cy="11" r="3" fill="#1ABCFE" />
-                </svg>
+              <div aria-hidden="true" className="bems-hero-badge-3 absolute bottom-16 sm:bottom-20 right-1 sm:-right-4">
+                <div
+                  className="m-pop m-float bg-white rounded-xl p-2 sm:p-2.5 shadow-lg border border-slate-100 flex items-center justify-center"
+                  style={{ "--float-delay": "1400ms" } as React.CSSProperties}
+                >
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M8.5 2C6.8 2 5.5 3.3 5.5 5C5.5 6.7 6.8 8 8.5 8H11.5V2H8.5Z"
+                      fill="#F24E1E"
+                    />
+                    <path
+                      d="M11.5 2H14.5C16.2 2 17.5 3.3 17.5 5C17.5 6.7 16.2 8 14.5 8H11.5V2Z"
+                      fill="#FF7262"
+                    />
+                    <path
+                      d="M8.5 8C6.8 8 5.5 9.3 5.5 11C5.5 12.7 6.8 14 8.5 14H11.5V8H8.5Z"
+                      fill="#A259FF"
+                    />
+                    <path
+                      d="M8.5 14C6.8 14 5.5 15.3 5.5 17C5.5 18.7 6.8 20 8.5 20C10.2 20 11.5 18.7 11.5 17V14H8.5Z"
+                      fill="#0ACF83"
+                    />
+                    <circle cx="14.5" cy="11" r="3" fill="#1ABCFE" />
+                  </svg>
+                </div>
               </div>
 
               {/* Floating card: October 2026 cohort avatar stack */}
-              <div className="absolute top-16 sm:top-24 right-0 sm:-right-8 bg-[#AE54C6] text-white rounded-2xl p-3 sm:p-4 shadow-xl w-44 sm:w-52 overflow-hidden">
-                {/* Subtle topographic wave pattern */}
-                <svg
-                  aria-hidden="true"
-                  className="absolute inset-0 w-full h-full opacity-20 pointer-events-none"
-                  viewBox="0 0 200 100"
-                  fill="none"
+              <div className="bems-hero-badge-2 absolute top-16 sm:top-24 right-0 sm:-right-8">
+                <div
+                  className="m-lift m-float bg-[#AE54C6] text-white rounded-2xl p-3 sm:p-4 shadow-xl w-44 sm:w-52 overflow-hidden relative"
+                  style={{ "--float-delay": "1100ms" } as React.CSSProperties}
                 >
-                  <path
-                    d="M-20 80 C40 20, 120 100, 220 30 M-20 60 C50 0, 130 80, 220 10 M-20 100 C60 40, 140 120, 220 50"
-                    stroke="white"
-                    strokeWidth="1.5"
-                  />
-                </svg>
-                <p className="text-[11px] sm:text-xs font-bold text-white mb-2 relative z-10">
-                  October 2026 Cohort
-                </p>
-                <div className="flex items-center -space-x-1.5 sm:-space-x-2 relative z-10">
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-white bg-[#F7C32E] text-[#24292D] text-[9px] sm:text-[10px] font-extrabold flex items-center justify-center">
-                    CO
-                  </div>
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-white bg-[#D6293E] text-white text-[9px] sm:text-[10px] font-extrabold flex items-center justify-center">
-                    AN
-                  </div>
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-white bg-[#A16EBD] text-white text-[9px] sm:text-[10px] font-extrabold flex items-center justify-center">
-                    EK
-                  </div>
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-white bg-[#1D3B53] text-white text-[9px] sm:text-[10px] font-extrabold flex items-center justify-center">
-                    UI
-                  </div>
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border-2 border-white bg-[#AE54C6] text-white text-[9px] sm:text-[10px] font-extrabold flex items-center justify-center">
-                    80+
+                  {/* Subtle topographic wave pattern */}
+                  <svg
+                    aria-hidden="true"
+                    className="absolute inset-0 w-full h-full opacity-20 pointer-events-none"
+                    viewBox="0 0 200 100"
+                    fill="none"
+                  >
+                    <path
+                      d="M-20 80 C40 20, 120 100, 220 30 M-20 60 C50 0, 130 80, 220 10 M-20 100 C60 40, 140 120, 220 50"
+                      stroke="white"
+                      strokeWidth="1.5"
+                    />
+                  </svg>
+                  <p className="text-[11px] sm:text-xs font-bold text-white mb-2 relative z-10">
+                    October 2026 Cohort
+                  </p>
+                  <div className="flex items-center -space-x-1.5 sm:-space-x-2 relative z-10">
+                    <div className="m-pop w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-white bg-[#F7C32E] text-[#24292D] text-[9px] sm:text-[10px] font-extrabold flex items-center justify-center">
+                      CO
+                    </div>
+                    <div className="m-pop w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-white bg-[#D6293E] text-white text-[9px] sm:text-[10px] font-extrabold flex items-center justify-center">
+                      AN
+                    </div>
+                    <div className="m-pop w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-white bg-[#A16EBD] text-white text-[9px] sm:text-[10px] font-extrabold flex items-center justify-center">
+                      EK
+                    </div>
+                    <div className="m-pop w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-white bg-[#1D3B53] text-white text-[9px] sm:text-[10px] font-extrabold flex items-center justify-center">
+                      UI
+                    </div>
+                    <div className="m-pop w-8 h-8 sm:w-9 sm:h-9 rounded-full border-2 border-white bg-[#AE54C6] text-white text-[9px] sm:text-[10px] font-extrabold flex items-center justify-center">
+                      80+
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Eduport Frosted Floating Card: "Congratulations · Your admission completed" */}
-              <div className="absolute bottom-2 left-0 sm:-left-6 bg-white/95 backdrop-blur-md border border-white rounded-2xl p-2.5 sm:p-3.5 pr-4 sm:pr-5 shadow-xl flex items-center gap-2.5 sm:gap-3.5 max-w-[260px] sm:max-w-none">
-                <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-[#F7C32E] text-white flex items-center justify-center shrink-0 shadow-sm">
-                  <Mail className="w-4 h-4 sm:w-5 sm:h-5" />
-                </div>
-                <div className="min-w-0">
-                  <div className="flex items-center justify-between gap-2">
-                    <h4 className="text-[11px] sm:text-sm font-extrabold text-[#24292D] truncate">
-                      Congratulations
-                    </h4>
-                    <span className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-[#AE54C6] text-white flex items-center justify-center text-[9px] sm:text-[10px] font-bold shrink-0">
-                      ✓
-                    </span>
+              <div className="bems-hero-badge-3 absolute bottom-2 left-0 sm:-left-6">
+                <div
+                  className="m-lift m-float bg-white/95 backdrop-blur-md border border-white rounded-2xl p-2.5 sm:p-3.5 pr-4 sm:pr-5 shadow-xl flex items-center gap-2.5 sm:gap-3.5 max-w-[260px] sm:max-w-none"
+                  style={{ "--float-delay": "1400ms" } as React.CSSProperties}
+                >
+                  <div className="m-icon w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-[#F7C32E] text-white flex items-center justify-center shrink-0 shadow-sm">
+                    <Mail className="w-4 h-4 sm:w-5 sm:h-5" />
                   </div>
-                  <p className="text-[10px] sm:text-xs text-[#747579] mt-0.5 truncate">Your admission completed</p>
+                  <div className="min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <h4 className="text-[11px] sm:text-sm font-extrabold text-[#24292D] truncate">
+                        Congratulations
+                      </h4>
+                      <span className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-[#AE54C6] text-white flex items-center justify-center text-[9px] sm:text-[10px] font-bold shrink-0">
+                        ✓
+                      </span>
+                    </div>
+                    <p className="text-[10px] sm:text-xs text-[#747579] mt-0.5 truncate">Your admission completed</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -350,16 +407,16 @@ export function Hero() {
         </div>
 
         {/* Eduport 4 Pastel Stat Counter Cards Row (Image 3) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {STATS.map(({ value, label, bg, iconColor, Icon }) => (
+        <div data-reveal-group className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {STATS.map(({ count, format, label, bg, iconColor, Icon }) => (
             <div
               key={label}
-              className={`${bg} rounded-xl p-6 flex items-center justify-center sm:justify-start gap-5 transition-transform duration-200 hover:-translate-y-1`}
+              className={`m-lift ${bg} rounded-xl p-6 flex items-center justify-center sm:justify-start gap-5`}
             >
-              <Icon className={`w-12 h-12 ${iconColor} shrink-0 stroke-[1.75]`} />
+              <Icon className={`m-icon w-12 h-12 ${iconColor} shrink-0 stroke-[1.75]`} />
               <div>
                 <span className="text-2xl font-extrabold text-[#24292D] block leading-tight">
-                  {value}
+                  <CountUp value={count} format={format} />
                 </span>
                 <span className="text-xs sm:text-sm font-medium text-[#24292D]/80">{label}</span>
               </div>

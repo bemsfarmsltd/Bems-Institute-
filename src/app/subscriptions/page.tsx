@@ -384,9 +384,9 @@ function SubscriptionsContent() {
 
         {/* Guest Registration Callout */}
         {!user && (
-          <div className="rounded-2xl border border-[#AE54C6]/30 bg-white p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-in fade-in duration-200">
+          <div data-reveal className="m-lift rounded-2xl border border-[#AE54C6]/30 bg-white p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3.5">
-              <div className="w-11 h-11 rounded-full bg-[#F6ECF9] text-[#AE54C6] flex items-center justify-center shrink-0">
+              <div className="m-pop w-11 h-11 rounded-full bg-[#F6ECF9] text-[#AE54C6] flex items-center justify-center shrink-0">
                 <UserCheck className="w-5 h-5" />
               </div>
               <div>
@@ -416,7 +416,7 @@ function SubscriptionsContent() {
 
         {/* Course Track Selector */}
         {courses.length > 0 && (
-          <div className="bg-white rounded-3xl border border-[#F1E2F5] p-6 sm:p-8 shadow-xs space-y-4" data-tour="track-selector">
+          <div data-reveal className="bg-white rounded-3xl border border-[#F1E2F5] p-6 sm:p-8 shadow-xs space-y-4" data-tour="track-selector">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#AE54C6] flex items-center gap-1.5">
@@ -444,7 +444,7 @@ function SubscriptionsContent() {
               )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div data-reveal-group className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               {courses.map((course) => {
                 const active = selectedCourse?.id === course.id;
                 const enrolled = isEnrolled(course.id);
@@ -453,7 +453,7 @@ function SubscriptionsContent() {
                     key={course.id}
                     type="button"
                     onClick={() => setSelectedCourseId(course.id)}
-                    className={`text-left p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between gap-2 ${
+                    className={`m-lift text-left p-4 rounded-2xl border cursor-pointer flex flex-col justify-between gap-2 ${
                       active
                         ? "border-2 border-[#AE54C6] bg-[#FAF8FF] shadow-sm"
                         : "border-[#F1E2F5] bg-white hover:border-[#AE54C6]/40"
@@ -515,8 +515,8 @@ function SubscriptionsContent() {
 
         {/* Payment Plan Cards — two ways to pay, per course (PRD §3.1) */}
         {selectedCourse && awaitingFor(selectedCourse.id)?.paymentStatus !== "PAID_FULL" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch" data-tour="payment-plans">
-            <div className="rounded-3xl p-8 flex flex-col justify-between transition-all duration-300 relative bg-white border-2 border-[#AE54C6] shadow-2xl ring-4 ring-[#AE54C6]/10 -translate-y-2">
+          <div data-reveal-group className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch" data-tour="payment-plans">
+            <div className="m-lift rounded-3xl p-8 flex flex-col justify-between relative bg-white border-2 border-[#AE54C6] shadow-2xl ring-4 ring-[#AE54C6]/10">
               <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
                 <span className="px-4 py-1 rounded-full bg-[#AE54C6] text-white text-[11px] font-black uppercase tracking-wider shadow-sm">
                   Save 12%
@@ -568,7 +568,7 @@ function SubscriptionsContent() {
               </div>
             </div>
 
-            <div className="rounded-3xl p-8 flex flex-col justify-between transition-all duration-300 relative bg-white border border-[#F1E2F5] shadow-xs hover:border-[#AE54C6]/40">
+            <div className="m-lift rounded-3xl p-8 flex flex-col justify-between relative bg-white border border-[#F1E2F5] shadow-xs hover:border-[#AE54C6]/40">
               <div>
                 <div className="mb-4">
                   <h3 className="text-xl font-black text-[#303654]">Pay in 3 Parts</h3>
@@ -617,9 +617,9 @@ function SubscriptionsContent() {
         )}
 
         {/* Guarantee Banner */}
-        <div className="bg-white rounded-3xl border border-[#F1E2F5] p-6 sm:p-8 shadow-xs flex flex-col md:flex-row items-center justify-between gap-6">
+        <div data-reveal className="m-lift bg-white rounded-3xl border border-[#F1E2F5] p-6 sm:p-8 shadow-xs flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
+            <div className="m-icon w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>

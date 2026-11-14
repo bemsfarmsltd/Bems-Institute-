@@ -34,7 +34,7 @@ export function EduportTrendingCourses() {
     <section className="py-14 md:py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Heading */}
-        <div className="text-center max-w-2xl mx-auto mb-12">
+        <div data-reveal className="text-center max-w-2xl mx-auto mb-12">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[#24292D] tracking-tight mb-2.5">
             Our Career Tracks
           </h2>
@@ -43,7 +43,7 @@ export function EduportTrendingCourses() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
+        <div data-reveal-group className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
           {courses.map((course, idx) => {
             const isSaved = !!bookmarked[course.id];
             const lectureCount = course.modules.reduce((sum, m) => sum + m.lessons.length, 0);
@@ -52,7 +52,7 @@ export function EduportTrendingCourses() {
             return (
               <div
                 key={course.id}
-                className="group bg-white rounded-2xl border border-slate-200/80 shadow-[0_4px_20px_rgba(24,20,61,0.05)] hover:shadow-[0_12px_32px_rgba(24,20,61,0.10)] transition-all duration-300 overflow-hidden flex flex-col justify-between"
+                className="m-lift group bg-white rounded-2xl border border-slate-200/80 shadow-[0_4px_20px_rgba(24,20,61,0.05)] overflow-hidden flex flex-col justify-between"
               >
                 <div>
                   {/* Card Visual Header */}
@@ -67,7 +67,7 @@ export function EduportTrendingCourses() {
                         type="button"
                         onClick={() => toggleBookmark(course.id)}
                         aria-label="Bookmark course"
-                        className="w-8 h-8 rounded-full bg-white shadow-xs flex items-center justify-center text-[#24292D] hover:text-[#AE54C6] transition-colors cursor-pointer"
+                        className="m-pop w-8 h-8 rounded-full bg-white shadow-xs flex items-center justify-center text-[#24292D] hover:text-[#AE54C6] transition-colors cursor-pointer"
                       >
                         <Bookmark
                           className={`w-4 h-4 ${
@@ -79,7 +79,7 @@ export function EduportTrendingCourses() {
 
                     <Link
                       href={`/courses/${course.slug}`}
-                      className="relative z-10 bg-white/90 backdrop-blur-md rounded-xl p-3.5 shadow-md border border-white/80 group-hover:-translate-y-1 transition-transform duration-300 block"
+                      className="m-press relative z-10 bg-white/90 backdrop-blur-md rounded-xl p-3.5 shadow-md border border-white/80 block"
                     >
                       <div className="flex items-center gap-1.5 mb-2">
                         <span className="w-2 h-2 rounded-full bg-[#D6293E]" />
@@ -128,7 +128,7 @@ export function EduportTrendingCourses() {
                 {/* Card Footer: Tutor + Price / Enroll */}
                 <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-[#AE54C6] text-white text-xs font-extrabold flex items-center justify-center shrink-0">
+                    <div className="m-pop w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-[#AE54C6] text-white text-xs font-extrabold flex items-center justify-center shrink-0">
                       {initials(course.tutor)}
                     </div>
                     <span className="text-xs font-bold text-[#24292D] truncate">{course.tutor}</span>
@@ -140,7 +140,7 @@ export function EduportTrendingCourses() {
                     </span>
                     <Link
                       href={`/subscriptions?course=${course.slug}`}
-                      className="inline-flex items-center gap-1.5 bg-[#F7EDF9] hover:bg-[#AE54C6] text-[#AE54C6] hover:text-white text-xs font-bold px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg transition-colors cursor-pointer"
+                      className="m-press inline-flex items-center gap-1.5 bg-[#F7EDF9] hover:bg-[#AE54C6] text-[#AE54C6] hover:text-white text-xs font-bold px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg transition-colors cursor-pointer"
                       title={`Enroll in ${course.title}`}
                     >
                       <ShoppingCart className="w-3.5 h-3.5" />

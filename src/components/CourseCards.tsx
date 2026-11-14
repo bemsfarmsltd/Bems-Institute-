@@ -23,7 +23,7 @@ export function CourseCards() {
     <section id="courses" className="py-14 md:py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Heading */}
-        <div className="text-center max-w-2xl mx-auto mb-8">
+        <div data-reveal className="text-center max-w-2xl mx-auto mb-8">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[#24292D] tracking-tight mb-2.5">
             Most Popular Courses
           </h2>
@@ -34,7 +34,7 @@ export function CourseCards() {
 
         {/* Category Filter Bar */}
         {courses.length > 0 && (
-          <div className="bg-[#F7EDF9] rounded-xl py-2.5 px-3 sm:py-3 sm:px-4 mb-8 sm:mb-10 flex items-center gap-2 sm:gap-4 overflow-x-auto no-scrollbar sm:flex-wrap sm:justify-center">
+          <div data-reveal className="bg-[#F7EDF9] rounded-xl py-2.5 px-3 sm:py-3 sm:px-4 mb-8 sm:mb-10 flex items-center gap-2 sm:gap-4 overflow-x-auto no-scrollbar sm:flex-wrap sm:justify-center">
             {categories.map((cat) => {
               const isActive = activeCategory === cat.key;
               return (
@@ -42,7 +42,7 @@ export function CourseCards() {
                   key={cat.key}
                   type="button"
                   onClick={() => setActiveCategory(cat.key)}
-                  className={`px-3.5 sm:px-5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
+                  className={`m-press px-3.5 sm:px-5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors cursor-pointer shrink-0 ${
                     isActive
                       ? "bg-[#AE54C6] text-white shadow-xs"
                       : "text-[#AE54C6] hover:bg-[#AE54C6]/10"
@@ -70,7 +70,7 @@ export function CourseCards() {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
+          <div data-reveal-group className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
             {filteredCourses.map((course) => {
               const isLiked = !!likedIds[course.id];
               const lectureCount = course.modules.reduce((sum, m) => sum + m.lessons.length, 0);
@@ -79,7 +79,7 @@ export function CourseCards() {
               return (
                 <div
                   key={course.id}
-                  className="group bg-white rounded-2xl border border-slate-100 shadow-[0_4px_24px_rgba(24,20,61,0.06)] hover:shadow-[0_12px_32px_rgba(24,20,61,0.12)] transition-all duration-300 overflow-hidden flex flex-col justify-between"
+                  className="m-lift group bg-white rounded-2xl border border-slate-100 shadow-[0_4px_24px_rgba(24,20,61,0.06)] overflow-hidden flex flex-col justify-between"
                 >
                   <div>
                     {/* Top Illustrated Gradient Banner */}
@@ -111,7 +111,7 @@ export function CourseCards() {
                           strokeWidth="0.95"
                         />
                       </svg>
-                      <div className="relative z-10 group-hover:scale-105 transition-transform duration-300">
+                      <div className="m-icon relative z-10">
                         {banner.icon}
                       </div>
                     </Link>
@@ -127,7 +127,7 @@ export function CourseCards() {
                           type="button"
                           onClick={() => toggleLike(course.id)}
                           aria-label="Save course to wishlist"
-                          className="text-slate-400 hover:text-[#D6293E] transition-colors cursor-pointer"
+                          className="m-pop text-slate-400 hover:text-[#D6293E] transition-colors cursor-pointer"
                         >
                           <Heart
                             className={`w-4 h-4 ${
@@ -172,13 +172,13 @@ export function CourseCards() {
                     <div className="flex items-center justify-between pt-2 border-t border-slate-100/80 text-xs font-bold">
                       <Link
                         href={`/courses/${course.slug}`}
-                        className="text-[#747579] hover:text-[#24292D] transition-colors"
+                        className="m-press text-[#747579] hover:text-[#24292D] transition-colors"
                       >
                         View Syllabus
                       </Link>
                       <Link
                         href={`/subscriptions?course=${course.slug}`}
-                        className="inline-flex items-center gap-1 text-[#AE54C6] hover:text-[#A03BBC] transition-colors"
+                        className="m-press inline-flex items-center gap-1 text-[#AE54C6] hover:text-[#A03BBC] transition-colors"
                       >
                         <span>Enroll Now</span>
                         <ArrowRight className="w-3.5 h-3.5" />
@@ -192,7 +192,7 @@ export function CourseCards() {
         )}
 
         {/* Bottom Callout Banner */}
-        <div className="relative overflow-hidden rounded-2xl bg-[#139EB2] px-6 py-10 sm:px-12 sm:py-12 text-white shadow-lg">
+        <div data-reveal="zoom" className="relative overflow-hidden rounded-2xl bg-[#139EB2] px-6 py-10 sm:px-12 sm:py-12 text-white shadow-lg">
           <div
             aria-hidden="true"
             className="pointer-events-none absolute -bottom-16 left-10 w-56 h-56 rounded-full bg-white/10"
@@ -219,13 +219,13 @@ export function CourseCards() {
             <div className="flex flex-wrap items-center gap-3 shrink-0">
               <Link
                 href="/become-instructor"
-                className="inline-flex items-center gap-2 rounded-lg border-2 border-[#F7C32E] bg-transparent hover:bg-[#F7C32E] text-[#F7C32E] hover:text-[#24292D] font-bold text-sm px-6 py-3 transition-colors"
+                className="m-press inline-flex items-center gap-2 rounded-lg border-2 border-[#F7C32E] bg-transparent hover:bg-[#F7C32E] text-[#F7C32E] hover:text-[#24292D] font-bold text-sm px-6 py-3 transition-colors"
               >
                 <span>Start Teaching Today</span>
               </Link>
               <Link
                 href="/subscriptions"
-                className="inline-flex items-center gap-2 rounded-lg bg-white text-[#139EB2] hover:bg-white/90 font-bold text-sm px-5 py-3 transition-colors"
+                className="m-press inline-flex items-center gap-2 rounded-lg bg-white text-[#139EB2] hover:bg-white/90 font-bold text-sm px-5 py-3 transition-colors"
               >
                 <span>Apply as Student</span>
                 <ArrowRight className="w-4 h-4" />
