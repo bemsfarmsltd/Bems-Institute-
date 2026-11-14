@@ -79,7 +79,9 @@
       opacity var(--motion-slow) var(--ease-out-soft),
       transform var(--motion-base) var(--ease-spring),
       box-shadow var(--motion-base) var(--ease-out-soft),
-      border-color var(--motion-base) var(--ease-out-soft);
+      border-color var(--motion-base) var(--ease-out-soft),
+      background-color 200ms ease,
+      color 200ms ease;
     transition-delay: var(--reveal-delay, 0ms);
   }
   @media (hover: hover) {
@@ -136,6 +138,27 @@
   }
   .m-lift:active .m-icon {
     transform: scale(0.9);
+  }
+
+  /* ---- Idle float ------------------------------------------------------ */
+  /* Gentle bob for decorative floating cards. It animates the `translate`
+     property, not `transform`, so it stacks with m-lift/m-pop: a running
+     transform animation would otherwise block their hover and tap effects. */
+  @keyframes m-float {
+    0%, 100% { translate: 0 0; }
+    50% { translate: 0 -6px; }
+  }
+  .m-float {
+    animation: m-float 4.8s ease-in-out infinite;
+    animation-delay: var(--float-delay, 0ms);
+  }
+}
+
+/* Printing (certificates): never print something mid-entrance. */
+@media print {
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
   }
 }
 
