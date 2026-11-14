@@ -1249,6 +1249,70 @@ router.post("/enrollments/:id/refund", async (req, res) => {
   return res.json({ enrollment: updated });
 });
 
+// Records the refund of an overpayment (money received beyond what the
+// registration owes, e.g. a student paid in two checkout windows; see
+// confirmPaymentTransaction). Unlike /refund this leaves the registration
+// as it is: the student keeps their place. The admin refunds the money in
+// the Paystack dashboard first; this writes it to the ledger.
+router.post("/enrollments/:id/refund-excess", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
+  }
+  const { id } = req.params;
+
+  const result = await prisma.$transaction(async (tx) => {
+    // Lock the registration so a double click can't record the excess twice.
+    const locked = await tx.$queryRaw<{ id: string }[]>`SELECT id FROM "Enrollment" WHERE id = ${id} FOR UPDATE`;
+    if (locked.length === 0) return { status: 404 as const, error: "Enrollment not found." };
+    const enrollment = await tx.enrollment.findUniqueOrThrow({ where: { id } });
+
+    const ledger = await tx.paymentTransaction.findMany({
+      where: { userId: enrollment.userId, courseId: enrollment.courseId, status: { in: ["SUCCESS", "REFUNDED"] } },
+      select: { amount: true, status: true, channel: true }
+    });
+    let received = 0;
+    let waived = 0;
+    for (const t of ledger) {
+      if (t.status === "REFUNDED") received -= t.amount;
+      else if (t.channel === WAIVER_CHANNEL) waived += t.amount;
+      else received += t.amount;
+    }
+    // What the registration keeps: nothing once it's been refunded, otherwise
+    // the real money credited to it (amountPaid includes any waiver).
+    const kept = enrollment.paymentStatus === "REFUNDED" ? 0 : Math.max(enrollment.amountPaid - waived, 0);
+    const excess = received - kept;
+    if (excess <= 0) return { status: 400 as const, error: "There's no overpayment on this registration." };
+
+    await tx.paymentTransaction.create({
+      data: {
+        reference: `refund_excess_${crypto.randomUUID().replace(/-/g, "")}`,
+        userId: enrollment.userId,
+        courseId: enrollment.courseId,
+        paymentPlan: enrollment.paymentPlan,
+        amount: excess,
+        status: "REFUNDED",
+        channel: "overpayment_refund",
+        gatewayResponse: `Overpayment refunded by ${session?.name ?? "admin"}.`,
+        paidAt: new Date()
+      }
+    });
+    return { status: 200 as const, refunded: excess, userId: enrollment.userId };
+  });
+
+  if (result.status !== 200) {
+    return res.status(result.status).json({ error: result.error });
+  }
+  await createNotification({
+    userId: result.userId,
+    title: "Overpayment refunded",
+    message: `We've refunded ₦${result.refunded.toLocaleString()} you paid beyond your course balance. Your registration is unchanged.`,
+    category: "PAYMENT",
+    linkUrl: "/dashboard"
+  });
+  return res.json({ refunded: result.refunded });
+});
+
 // Staff accounts. Admins join with the shared ADMIN_ACCESS_CODE, so without
 // this there was no way to see who has admin access, or to remove someone
 // who left: their account kept working for good.

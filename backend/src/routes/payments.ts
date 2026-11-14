@@ -42,9 +42,23 @@ router.post("/init", async (req, res) => {
   const totalDue = paymentPlan === "installment" ? course.priceParts : course.priceFull;
   const activeCohort = await prisma.cohort.findFirst({ orderBy: { createdAt: "desc" } });
 
+  const existing = await prisma.enrollment.findUnique({
+    where: { userId_courseId: { userId: session.id, courseId } },
+    select: { amountPaid: true, paymentStatus: true }
+  });
+  if (existing?.paymentStatus === "REFUNDED") {
+    return res.status(400).json({ error: "This registration was refunded. Please contact admissions to re-register." });
+  }
+  // Once anything has been paid, the registration's plan, price and cohort
+  // are settled: paying the balance must not move a student into whichever
+  // cohort is newest or reprice their course.
+  const settled = !!existing && existing.amountPaid > 0;
+
   const enrollment = await prisma.enrollment.upsert({
     where: { userId_courseId: { userId: session.id, courseId } },
-    update: { source, deliveryMode, paymentPlan, totalDue, ...(activeCohort ? { cohortId: activeCohort.id } : {}) },
+    update: settled
+      ? {}
+      : { source, deliveryMode, paymentPlan, totalDue, ...(activeCohort ? { cohortId: activeCohort.id } : {}) },
     create: {
       userId: session.id,
       courseId,
@@ -69,13 +83,17 @@ router.post("/init", async (req, res) => {
   // On the installment plan, the first charge is just the deposit; once
   // that's paid, any further "init" call (e.g. paying off the balance) goes
   // after the full remaining amount.
+  // The registration's own plan, not the request's: for a settled
+  // registration the request can't change it.
   const amount =
-    paymentPlan === "installment" && enrollment.amountPaid === 0 ? Math.min(course.deposit, remaining) : remaining;
+    enrollment.paymentPlan === "installment" && enrollment.amountPaid === 0
+      ? Math.min(course.deposit, remaining)
+      : remaining;
 
   const reference = `bems_${crypto.randomUUID().replace(/-/g, "")}`;
 
   await prisma.paymentTransaction.create({
-    data: { reference, userId: session.id, courseId, paymentPlan, amount, status: "PENDING" }
+    data: { reference, userId: session.id, courseId, paymentPlan: enrollment.paymentPlan, amount, status: "PENDING" }
   });
 
   return res.json({

@@ -10,7 +10,6 @@ import {
   touchLearningStreak
 } from "@/lib/learning-engine";
 import { createNotification, notifyStaff, formatRelativeTime } from "@/lib/notifications";
-import { creditReferralIfEligible } from "@/lib/referrals";
 import { computeLeaderboard } from "@/lib/leaderboard";
 import { ensurePlacementSeeking } from "@/lib/job-placements";
 import { sendWhatsAppMessage } from "@/lib/twilio";
@@ -173,27 +172,66 @@ router.post("/enroll", async (req, res) => {
     return res.status(404).json({ error: "Course not found." });
   }
 
-  const totalDue = paymentPlan === "installment" ? course.priceParts : course.priceFull;
-  let amountPaid: number | undefined;
-  let paymentStatus: "PENDING" | "PARTIAL" | "PAID_FULL" | undefined;
-
-  // A bank-transfer "enrollment" always lands PENDING — a human (admin) is
-  // the only thing that can turn it into PAID_FULL/PARTIAL, via the
-  // staff-gated POST /admin/enrollments/:id/payment route.
-  if (paymentMethod === "bank") {
-    amountPaid = 0;
-    paymentStatus = "PENDING";
+  // Without a payment method this is the staff-only "demo enroll" on the
+  // course page. Students pay through /payments/init (card) or the bank
+  // path here; letting them in without either only produced a registration
+  // with nothing paid and a notification wrongly saying it was unlocked.
+  const isStaffSession = session.role === "ADMIN" || session.role === "INSTRUCTOR";
+  if (!paymentMethod && !isStaffSession) {
+    return res.status(400).json({ error: "Choose a payment method to register for this course." });
   }
 
+  const existing = await prisma.enrollment.findUnique({
+    where: { userId_courseId: { userId: session.id, courseId } },
+    select: { id: true, amountPaid: true, paymentStatus: true }
+  });
+  if (existing?.paymentStatus === "REFUNDED") {
+    return res.status(400).json({ error: "This registration was refunded. Please contact admissions to re-register." });
+  }
+
+  const firstLessonId = course.modules[0]?.lessons[0]?.id ?? "les-1";
+
+  // Already paid something (a card deposit, or a transfer staff recorded):
+  // this is a transfer for the balance. Record the new reference for staff
+  // to match, and leave the amounts, plan and cohort alone. Before, this
+  // reset amountPaid to 0, wiping the deposit from the record.
+  if (existing && existing.amountPaid > 0 && paymentMethod === "bank") {
+    await prisma.enrollment.update({ where: { id: existing.id }, data: { paymentReference: bankReference } });
+    await createNotification({
+      userId: session.id,
+      title: `Transfer details received: ${course.title}`,
+      message: "Thanks. Admissions will match your transfer and update your balance.",
+      category: "PAYMENT",
+      linkUrl: "/dashboard"
+    });
+    await notifyStaff({
+      title: `Balance transfer to match: ${course.title}`,
+      message: `${session.name} reported a bank transfer (reference "${bankReference}"). Match it and record the new total.`,
+      category: "PAYMENT",
+      linkUrl: "/admin?tab=earnings"
+    });
+    const enrollments = await prisma.enrollment.findMany({ where: { userId: session.id }, select: { courseId: true } });
+    return res.json({ enrolledCourseIds: enrollments.map((e) => e.courseId) });
+  }
+  if (existing && existing.amountPaid > 0) {
+    // Staff demo enroll on a paid registration: nothing to change.
+    const enrollments = await prisma.enrollment.findMany({ where: { userId: session.id }, select: { courseId: true } });
+    return res.json({ enrolledCourseIds: enrollments.map((e) => e.courseId) });
+  }
+
+  const totalDue = paymentPlan === "installment" ? course.priceParts : course.priceFull;
   const activeCohort = await prisma.cohort.findFirst({ orderBy: { createdAt: "desc" } });
 
+  // Nothing paid yet. A bank-transfer registration lands PENDING: only an
+  // admin can turn it into PAID_FULL/PARTIAL, via the admin-only
+  // POST /admin/enrollments/:id/payment route.
   const baseData = {
     source,
     deliveryMode,
     paymentPlan,
     totalDue,
-    ...(amountPaid !== undefined ? { amountPaid } : {}),
-    ...(paymentStatus !== undefined ? { paymentStatus } : {}),
+    amountPaid: 0,
+    paymentStatus: "PENDING" as const,
     ...(paymentMethod === "bank" ? { paymentReference: bankReference } : {}),
     ...(activeCohort ? { cohortId: activeCohort.id } : {})
   };
@@ -204,22 +242,15 @@ router.post("/enroll", async (req, res) => {
     create: { userId: session.id, courseId, status: "ACTIVE", ...baseData }
   });
 
-  if (amountPaid && amountPaid > 0) {
-    await creditReferralIfEligible(session.id);
-  }
-
-  const firstLessonId = course.modules[0]?.lessons[0]?.id ?? "les-1";
-  const paymentSummary =
-    paymentMethod === "bank"
-      ? "Bank transfer logged (pending admin verification)."
-      : "Your classroom access is now unlocked.";
-
   await createNotification({
     userId: session.id,
-    title: `Enrolled in ${course.title}`,
-    message: `${paymentSummary} Click to start Lesson 1.`,
+    title: paymentMethod === "bank" ? `Transfer details received: ${course.title}` : `Enrolled in ${course.title}`,
+    message:
+      paymentMethod === "bank"
+        ? "Bank transfer logged. Admissions will verify it and confirm your registration."
+        : "Staff demo enrollment. Click to open Lesson 1.",
     category: paymentMethod ? "PAYMENT" : "CLASS",
-    linkUrl: `/learn/${course.slug}/${firstLessonId}`
+    linkUrl: paymentMethod === "bank" ? "/dashboard" : `/learn/${course.slug}/${firstLessonId}`
   });
 
   const enrollments = await prisma.enrollment.findMany({ where: { userId: session.id }, select: { courseId: true } });
