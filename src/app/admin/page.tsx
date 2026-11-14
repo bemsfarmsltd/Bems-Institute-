@@ -50,6 +50,8 @@ import {
   Edit3,
   Trash2,
   Shield,
+  AlertTriangle,
+  CreditCard,
 } from "lucide-react";
 
 interface EduportStudentCard {
@@ -394,27 +396,27 @@ function AdminDashboardContent() {
   const [reviewsLoaded, setReviewsLoaded] = useState(false);
   const [deletingReviewId, setDeletingReviewId] = useState<string | null>(null);
 
-  // Admin Settings state — Website Settings and Notification Settings are
-  // real, persisted via /api/admin/settings; the other sub-tabs don't tie
-  // to any real integration in this app (see those sub-tabs' content).
+  // Admin Settings state — General Settings (/api/admin/settings/general)
+  // and Notification Settings (/api/admin/settings/notifications) are live.
   const [settingsSubTab, setSettingsSubTab] = useState<
-    "website" | "general" | "notification" | "account" | "social" | "email"
-  >("website");
-  const [siteSettingsForm, setSiteSettingsForm] = useState({
-    siteName: "",
-    copyrightText: "",
-    siteEmail: "",
-    description: "",
-    contactPhone: "",
-    supportEmail: "",
-    contactAddress: "",
-    allowRegistration: "enable" as "enable" | "disable" | "request"
+    "general" | "notification" | "account" | "email"
+  >("general");
+  const [generalSettingsForm, setGeneralSettingsForm] = useState({
+    allowRegistration: "enable" as "enable" | "disable" | "request",
+    bankName: "",
+    bankAccountName: "",
+    bankAccountNumber: ""
   });
+  const [integrationsStatus, setIntegrationsStatus] = useState<{
+    paystack: { secretKeySet: boolean; publicKeySet: boolean; mode: "live" | "test" | null };
+    email: { configured: boolean; usingTestSender: boolean };
+  } | null>(null);
   const [notifyCategories, setNotifyCategories] = useState<string[]>([
     "CLASS", "GRADING", "PAYMENT", "GAMIFICATION", "ATTENDANCE"
   ]);
   const [settingsLoaded, setSettingsLoaded] = useState(false);
-  const [savingSiteSettings, setSavingSiteSettings] = useState(false);
+  const [savingGeneralSettings, setSavingGeneralSettings] = useState(false);
+  const [generalSettingsError, setGeneralSettingsError] = useState<string | null>(null);
   const [savingNotifyPrefs, setSavingNotifyPrefs] = useState(false);
 
   interface LedgerEntry {
@@ -1040,35 +1042,61 @@ function AdminDashboardContent() {
 
   useEffect(() => {
     if (activeTab !== "settings" || settingsLoaded) return;
-    apiFetch("/api/admin/settings")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (!data) return;
-        setSiteSettingsForm({
-          siteName: data.settings.siteName || "",
-          copyrightText: data.settings.copyrightText || "",
-          siteEmail: data.settings.siteEmail || "",
-          description: data.settings.description || "",
-          contactPhone: data.settings.contactPhone || "",
-          supportEmail: data.settings.supportEmail || "",
-          contactAddress: data.settings.contactAddress || "",
-          allowRegistration: data.settings.allowRegistration || "enable"
-        });
-        setNotifyCategories(data.notifyCategories || []);
+    Promise.all([
+      apiFetch("/api/admin/settings/general").then((res) => (res.ok ? res.json() : null)),
+      apiFetch("/api/admin/settings").then((res) => (res.ok ? res.json() : null))
+    ])
+      .then(([generalData, legacyData]) => {
+        if (generalData?.general) {
+          setGeneralSettingsForm({
+            allowRegistration: generalData.general.allowRegistration || "enable",
+            bankName: generalData.general.bankName || "",
+            bankAccountName: generalData.general.bankAccountName || "",
+            bankAccountNumber: generalData.general.bankAccountNumber || ""
+          });
+        }
+        if (generalData?.integrations) {
+          setIntegrationsStatus(generalData.integrations);
+        }
+        if (legacyData?.notifyCategories) {
+          setNotifyCategories(legacyData.notifyCategories);
+        }
         setSettingsLoaded(true);
       })
       .catch(() => {});
   }, [activeTab, settingsLoaded]);
 
-  const saveSiteSettings = async () => {
-    setSavingSiteSettings(true);
-    const res = await apiFetch("/api/admin/settings", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(siteSettingsForm)
-    });
-    setSavingSiteSettings(false);
-    if (res.ok) setAdminNotice("Website settings updated successfully.");
+  const saveGeneralSettings = async () => {
+    setGeneralSettingsError(null);
+    setSavingGeneralSettings(true);
+    try {
+      const res = await apiFetch("/api/admin/settings/general", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(generalSettingsForm)
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setGeneralSettingsError(data?.error || "Could not update general settings.");
+        return;
+      }
+      if (data.general) {
+        setGeneralSettingsForm({
+          allowRegistration: data.general.allowRegistration || "enable",
+          bankName: data.general.bankName || "",
+          bankAccountName: data.general.bankAccountName || "",
+          bankAccountNumber: data.general.bankAccountNumber || ""
+        });
+      }
+      if (data.integrations) {
+        setIntegrationsStatus(data.integrations);
+      }
+      setAdminNotice("General settings updated successfully.");
+    } catch {
+      setGeneralSettingsError("Network error while saving general settings.");
+    } finally {
+      setSavingGeneralSettings(false);
+    }
   };
 
   const toggleNotifyCategory = async (category: string) => {
@@ -4273,11 +4301,9 @@ function AdminDashboardContent() {
                 {/* Left Dark Sub-Sidebar */}
                 <div className="lg:col-span-3 bg-[#24292D] rounded-xl p-4 space-y-1.5">
                   {[
-                    { id: "website", label: "Website Settings", icon: Globe },
                     { id: "general", label: "General Settings", icon: Settings },
                     { id: "notification", label: "Notification Settings", icon: Bell },
                     { id: "account", label: "Account Settings", icon: UserIcon },
-                    { id: "social", label: "Social Settings", icon: BarChart3 },
                     { id: "email", label: "Email Settings", icon: Mail },
                   ].map((item) => {
                     const Icon = item.icon;
@@ -4288,13 +4314,7 @@ function AdminDashboardContent() {
                         type="button"
                         onClick={() =>
                           setSettingsSubTab(
-                            item.id as
-                              | "website"
-                              | "general"
-                              | "notification"
-                              | "account"
-                              | "social"
-                              | "email"
+                            item.id as "general" | "notification" | "account" | "email"
                           )
                         }
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
@@ -4312,201 +4332,253 @@ function AdminDashboardContent() {
 
                 {/* Right Settings Content Column */}
                 <div className="lg:col-span-9">
-                  {settingsSubTab === "website" && (
-                    /* Sub-Tab 1: Website Settings */
-                    <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
-                      <div className="px-6 py-4 border-b border-slate-100">
-                        <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
-                          Website Settings
-                        </h2>
-                      </div>
-
-                      <form
-                        onSubmit={(e) => {
-                          e.preventDefault();
-                          saveSiteSettings();
-                        }}
-                        className="p-6 space-y-5"
-                      >
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                          <div>
-                            <label className="block text-[13.5px] font-medium text-[#747579] mb-2">
-                              Site Name
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="Site Name"
-                              value={siteSettingsForm.siteName}
-                              onChange={(e) => setSiteSettingsForm((prev) => ({ ...prev, siteName: e.target.value }))}
-                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#AE54C6]"
-                            />
-                            <p className="text-[11.5px] text-[#9A9EA4] mt-1.5 leading-snug">
-                              Enter Website Name. It Display in Website and Email.
-                            </p>
-                          </div>
-
-                          <div>
-                            <label className="block text-[13.5px] font-medium text-[#747579] mb-2">
-                              Site Copyrights
-                            </label>
-                            <input
-                              type="text"
-                              placeholder="Site Copyrights"
-                              value={siteSettingsForm.copyrightText}
-                              onChange={(e) => setSiteSettingsForm((prev) => ({ ...prev, copyrightText: e.target.value }))}
-                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#AE54C6]"
-                            />
-                            <p className="text-[11.5px] text-[#9A9EA4] mt-1.5 leading-snug">
-                              For the copyright text shown in the site footer.
-                            </p>
-                          </div>
-
-                          <div>
-                            <label className="block text-[13.5px] font-medium text-[#747579] mb-2">
-                              Site Email
-                            </label>
-                            <input
-                              type="email"
-                              placeholder="Site Email"
-                              value={siteSettingsForm.siteEmail}
-                              onChange={(e) => setSiteSettingsForm((prev) => ({ ...prev, siteEmail: e.target.value }))}
-                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#AE54C6]"
-                            />
-                            <p className="text-[11.5px] text-[#9A9EA4] mt-1.5 leading-snug">
-                              Using for contact and outbound email.
-                            </p>
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-[13.5px] font-medium text-[#747579] mb-2">
-                            Site Description
-                          </label>
-                          <textarea
-                            rows={4}
-                            value={siteSettingsForm.description}
-                            onChange={(e) => setSiteSettingsForm((prev) => ({ ...prev, description: e.target.value }))}
-                            className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] focus:outline-none focus:border-[#AE54C6]"
-                          />
-                          <p className="text-[11.5px] text-[#9A9EA4] mt-1.5">
-                            For write brief description of your organization, or a Website.
+                  {settingsSubTab === "general" && (
+                    /* Sub-Tab 1: General Settings + Read-Only Integrations */
+                    <div className="space-y-6">
+                      <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
+                        <div className="px-6 py-4 border-b border-slate-100">
+                          <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
+                            General Settings
+                          </h2>
+                          <p className="text-[12.5px] text-[#747579] mt-0.5">
+                            Manage live student registration mode and bank transfer payout details.
                           </p>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <form
+                          onSubmit={(e) => {
+                            e.preventDefault();
+                            void saveGeneralSettings();
+                          }}
+                          className="p-6 space-y-6"
+                        >
+                          {generalSettingsError && (
+                            <div className="rounded-lg bg-rose-50 border border-rose-200 px-4 py-3 text-[13px] font-semibold text-rose-700 flex items-start gap-2.5">
+                              <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                              <span>{generalSettingsError}</span>
+                            </div>
+                          )}
+
+                          {/* Registration Mode */}
                           <div>
-                            <label className="block text-[13.5px] font-medium text-[#747579] mb-2">
-                              Contact Phone
+                            <label className="block text-[13.5px] font-semibold text-[#1D2026] mb-2.5">
+                              Registration Mode
                             </label>
-                            <input
-                              type="text"
-                              placeholder="Contact Phone"
-                              value={siteSettingsForm.contactPhone}
-                              onChange={(e) => setSiteSettingsForm((prev) => ({ ...prev, contactPhone: e.target.value }))}
-                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#AE54C6]"
-                            />
-                            <p className="text-[11.5px] text-[#9A9EA4] mt-1.5">
-                              Using for Contact and Support.
+                            <div className="flex flex-wrap items-center gap-5 text-[14px] text-[#475569]">
+                              {[
+                                { id: "enable", label: "Enable" },
+                                { id: "disable", label: "Disable" },
+                                { id: "request", label: "On Request" },
+                              ].map((opt) => (
+                                <label
+                                  key={opt.id}
+                                  className="inline-flex items-center gap-2 cursor-pointer"
+                                >
+                                  <input
+                                    type="radio"
+                                    name="allowRegistration"
+                                    checked={generalSettingsForm.allowRegistration === opt.id}
+                                    onChange={() =>
+                                      setGeneralSettingsForm((prev) => ({
+                                        ...prev,
+                                        allowRegistration: opt.id as "enable" | "disable" | "request"
+                                      }))
+                                    }
+                                    className="w-4 h-4 accent-[#AE54C6]"
+                                  />
+                                  <span>{opt.label}</span>
+                                </label>
+                              ))}
+                            </div>
+                            <p className="text-[12px] text-[#747579] mt-2 leading-snug">
+                              Enforced live on signup — Disable blocks new accounts, On Request shows an admissions
+                              contact message instead of creating an account.
                             </p>
                           </div>
 
-                          <div>
-                            <label className="block text-[13.5px] font-medium text-[#747579] mb-2">
-                              Support Email
-                            </label>
-                            <input
-                              type="email"
-                              placeholder="Support Email"
-                              value={siteSettingsForm.supportEmail}
-                              onChange={(e) => setSiteSettingsForm((prev) => ({ ...prev, supportEmail: e.target.value }))}
-                              className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#AE54C6]"
-                            />
-                            <p className="text-[11.5px] text-[#9A9EA4] mt-1.5">
-                              For Support Email.
-                            </p>
-                          </div>
-                        </div>
+                          {/* Bank Transfer Details */}
+                          <div className="pt-5 border-t border-slate-100 space-y-4">
+                            <div>
+                              <h3 className="font-display text-[16px] font-extrabold text-[#1D2026]">
+                                Bank Transfer Details
+                              </h3>
+                              <p className="text-[12px] text-[#747579] mt-1">
+                                Bank transfer only shows to students at checkout once all three bank fields are saved.
+                              </p>
+                            </div>
 
-                        <div>
-                          <label className="block text-[13.5px] font-medium text-[#747579] mb-2.5">
-                            Allow Registration
-                          </label>
-                          <div className="flex flex-wrap items-center gap-6 text-[14px] text-[#747579]">
-                            {[
-                              { id: "enable", label: "Enable" },
-                              { id: "disable", label: "Disable" },
-                              { id: "request", label: "On Request" },
-                            ].map((opt) => (
-                              <label
-                                key={opt.id}
-                                className="inline-flex items-center gap-2 cursor-pointer"
-                              >
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div>
+                                <label className="block text-[13px] font-medium text-[#475569] mb-1.5">
+                                  Bank Name
+                                </label>
                                 <input
-                                  type="radio"
-                                  name="allowRegistration"
-                                  checked={siteSettingsForm.allowRegistration === opt.id}
-                                  onChange={() =>
-                                    setSiteSettingsForm((prev) => ({
+                                  type="text"
+                                  placeholder="e.g. Zenith Bank"
+                                  value={generalSettingsForm.bankName}
+                                  onChange={(e) =>
+                                    setGeneralSettingsForm((prev) => ({ ...prev, bankName: e.target.value }))
+                                  }
+                                  className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#AE54C6]"
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-[13px] font-medium text-[#475569] mb-1.5">
+                                  Account Name
+                                </label>
+                                <input
+                                  type="text"
+                                  placeholder="e.g. BEMS Institute Ltd"
+                                  value={generalSettingsForm.bankAccountName}
+                                  onChange={(e) =>
+                                    setGeneralSettingsForm((prev) => ({
                                       ...prev,
-                                      allowRegistration: opt.id as "enable" | "disable" | "request"
+                                      bankAccountName: e.target.value
                                     }))
                                   }
-                                  className="w-4 h-4 accent-[#AE54C6]"
+                                  className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#AE54C6]"
                                 />
-                                <span>{opt.label}</span>
-                              </label>
-                            ))}
+                              </div>
+
+                              <div>
+                                <label className="block text-[13px] font-medium text-[#475569] mb-1.5">
+                                  10-Digit Account Number
+                                </label>
+                                <input
+                                  type="text"
+                                  inputMode="numeric"
+                                  maxLength={14}
+                                  placeholder="0123456789"
+                                  value={generalSettingsForm.bankAccountNumber}
+                                  onChange={(e) =>
+                                    setGeneralSettingsForm((prev) => ({
+                                      ...prev,
+                                      bankAccountNumber: e.target.value
+                                    }))
+                                  }
+                                  className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-[14px] font-mono text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#AE54C6]"
+                                />
+                              </div>
+                            </div>
                           </div>
-                          <p className="text-[11.5px] text-[#9A9EA4] mt-2 leading-snug">
-                            Enforced live on signup — Disable blocks new accounts, On Request shows an admissions
-                            contact message instead of letting the account get created.
-                          </p>
-                        </div>
 
-                        <div>
-                          <label className="block text-[13.5px] font-medium text-[#747579] mb-2">
-                            Contact Address
-                          </label>
-                          <textarea
-                            rows={3}
-                            placeholder="Contact Address"
-                            value={siteSettingsForm.contactAddress}
-                            onChange={(e) => setSiteSettingsForm((prev) => ({ ...prev, contactAddress: e.target.value }))}
-                            className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#AE54C6]"
-                          />
-                        </div>
-
-                        <div className="flex justify-end pt-2">
-                          <button
-                            type="submit"
-                            disabled={savingSiteSettings}
-                            className="px-5 py-2.5 rounded-lg bg-[#AE54C6] hover:bg-[#A03BBC] text-white text-[14px] font-bold transition-colors cursor-pointer disabled:opacity-60"
-                          >
-                            {savingSiteSettings ? "Saving…" : "Update"}
-                          </button>
-                        </div>
-                      </form>
-                    </div>
-                  )}
-
-                  {settingsSubTab === "general" && (
-                    /* Sub-Tab 2: General Settings — not configurable yet, see note below */
-                    <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
-                      <div className="px-6 py-4 border-b border-slate-100">
-                        <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
-                          General Settings
-                        </h2>
+                          <div className="flex justify-end pt-2">
+                            <button
+                              type="submit"
+                              disabled={savingGeneralSettings}
+                              className="px-5 py-2.5 rounded-lg bg-[#AE54C6] hover:bg-[#A03BBC] text-white text-[14px] font-bold transition-colors cursor-pointer disabled:opacity-60"
+                            >
+                              {savingGeneralSettings ? "Saving…" : "Save Changes"}
+                            </button>
+                          </div>
+                        </form>
                       </div>
 
-                      <div className="p-6 space-y-4">
-                        <div className="rounded-lg bg-[#F8F9FA] border border-slate-200/80 p-5 text-[14px] text-[#747579] leading-relaxed">
-                          These aren&apos;t configurable from the admin console yet:
-                          <ul className="list-disc pl-5 mt-2 space-y-1">
-                            <li>Site URL — set via the <code className="text-[13px]">FRONTEND_URL</code> environment variable, not the UI.</li>
-                            <li>Currency — BEMS prices everything in Naira (₦) only; multi-currency isn&apos;t built.</li>
-                            <li>Language — the site is English-only; no translations exist.</li>
-                            <li>Maintenance mode — there&apos;s no site-wide offline gate implemented.</li>
-                          </ul>
+                      {/* Read-Only Integrations Panel */}
+                      <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
+                        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between gap-2">
+                          <div>
+                            <h2 className="font-display text-[18px] font-extrabold text-[#1D2026]">
+                              Integrations
+                            </h2>
+                            <p className="text-[12px] text-[#747579] mt-0.5">
+                              Read-only status of server-side payment and email environment variables.
+                            </p>
+                          </div>
+                          <span className="px-2.5 py-1 rounded-md bg-slate-100 text-[#475569] text-[11px] font-bold uppercase tracking-wider shrink-0">
+                            Read-Only
+                          </span>
+                        </div>
+
+                        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+                          {/* Paystack Card */}
+                          <div className="rounded-xl border border-slate-200/80 bg-[#FAF8FF] p-4 space-y-3">
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-2">
+                                <CreditCard className="w-4 h-4 text-[#AE54C6]" />
+                                <span className="font-display text-[15px] font-extrabold text-[#1D2026]">
+                                  Paystack
+                                </span>
+                              </div>
+                              <span
+                                className={`px-2 py-0.5 rounded-full text-[11px] font-bold uppercase ${
+                                  integrationsStatus?.paystack.mode === "live"
+                                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                    : integrationsStatus?.paystack.mode === "test"
+                                    ? "bg-amber-50 text-amber-800 border border-amber-200"
+                                    : "bg-slate-100 text-slate-600"
+                                }`}
+                              >
+                                {integrationsStatus?.paystack.mode === "live"
+                                  ? "Live Mode"
+                                  : integrationsStatus?.paystack.mode === "test"
+                                  ? "Test Mode"
+                                  : "Mode Unknown"}
+                              </span>
+                            </div>
+
+                            <div className="space-y-1.5 text-[13px]">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[#475569]">Secret Key</span>
+                                <span
+                                  className={`font-bold ${
+                                    integrationsStatus?.paystack.secretKeySet
+                                      ? "text-emerald-700"
+                                      : "text-rose-600"
+                                  }`}
+                                >
+                                  {integrationsStatus?.paystack.secretKeySet ? "Set" : "Not set"}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-[#475569]">Public Key</span>
+                                <span
+                                  className={`font-bold ${
+                                    integrationsStatus?.paystack.publicKeySet
+                                      ? "text-emerald-700"
+                                      : "text-rose-600"
+                                  }`}
+                                >
+                                  {integrationsStatus?.paystack.publicKeySet ? "Set" : "Not set"}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Email Card */}
+                          <div className="rounded-xl border border-slate-200/80 bg-[#FAF8FF] p-4 space-y-3">
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-2">
+                                <Mail className="w-4 h-4 text-[#AE54C6]" />
+                                <span className="font-display text-[15px] font-extrabold text-[#1D2026]">
+                                  Email (Resend)
+                                </span>
+                              </div>
+                              <span
+                                className={`px-2 py-0.5 rounded-full text-[11px] font-bold uppercase ${
+                                  integrationsStatus?.email.configured
+                                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                    : "bg-rose-50 text-rose-700 border border-rose-200"
+                                }`}
+                              >
+                                {integrationsStatus?.email.configured ? "Configured" : "Not Configured"}
+                              </span>
+                            </div>
+
+                            <p className="text-[12.5px] text-[#475569] leading-relaxed">
+                              Used for payment receipts, registration confirmations, cohort welcome emails, and password resets.
+                            </p>
+
+                            {integrationsStatus?.email.usingTestSender && (
+                              <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-[12px] text-amber-900 flex items-start gap-2">
+                                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                                <span>
+                                  <strong>Test sender active:</strong> <code className="font-mono">@resend.dev</code> only delivers to the Resend account owner. Verify a custom domain in <code className="font-mono">EMAIL_FROM</code> before emailing students.
+                                </span>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -4594,7 +4666,7 @@ function AdminDashboardContent() {
                               });
                               setAdminNotice(
                                 res.ok
-                                  ? "Password reset link sent — check the server log (email delivery is simulated)."
+                                  ? "Password reset link sent to your account email."
                                   : "Could not send reset link. Try again."
                               );
                             }}
@@ -4612,23 +4684,6 @@ function AdminDashboardContent() {
                           <li>2-Step Verification — no TOTP/SMS code infrastructure exists.</li>
                           <li>Session activity logs — sign-ins aren&apos;t tracked with browser/IP metadata, so there&apos;s nothing real to show or revoke here.</li>
                         </ul>
-                      </div>
-                    </div>
-                  )}
-
-                  {settingsSubTab === "social" && (
-                    /* Sub-Tab 5: Social Media Settings — no OAuth login exists in this app */
-                    <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
-                      <div className="px-6 py-4 border-b border-slate-100">
-                        <h2 className="font-display text-[20px] font-extrabold text-[#1D2026]">
-                          Social Media Settings
-                        </h2>
-                      </div>
-                      <div className="p-6">
-                        <div className="rounded-lg bg-[#F8F9FA] border border-slate-200/80 p-5 text-[14px] text-[#747579] leading-relaxed">
-                          Not configurable — BEMS sign-in is email &amp; password only. Google/Facebook OAuth login
-                          isn&apos;t built, so there&apos;s nothing real for these fields to control yet.
-                        </div>
                       </div>
                     </div>
                   )}
