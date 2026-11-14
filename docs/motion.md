@@ -18,6 +18,7 @@ CSS in `src/app/motion.css`; the scroll watcher is `src/components/MotionProvide
 | A small thing that pops (avatar, logo, stat icon) | `m-pop` |
 | A section or card that animates in when scrolled to | `data-reveal` (`"up"` default, `"left"`, `"right"`, `"zoom"`, `"fade"`) |
 | A grid/list whose items come in one after another | `data-reveal-group` on the parent (optionally `="zoom"` etc.) |
+| A decorative card that gently bobs (hero badges) | `m-float` (stagger with `style={{ "--float-delay": "600ms" }}`) |
 | A number that counts up when seen | `<CountUp value={n} />` from `@/components/CountUp` (`format` for ₦ or %) |
 
 Example:
@@ -37,5 +38,6 @@ Example:
 - **Don't hide first-screen content behind a reveal.** Whatever is on screen when a page first loads stays put, by design. For a hero entrance, use a CSS keyframe animation.
 - **Reveal blocks, not every element.** A section, a card, a row. Revealing each line of text makes the page feel slow.
 - **Not on**: form inputs, the Paystack checkout, the lesson video player, modals, or table rows in the admin console (the cards/tiles there are fine).
+- **Entrance keyframes must not keep `transform` afterwards.** Use `animation-fill-mode: backwards` (not `both`/`forwards`), and never put an infinite `transform` animation on an element with `m-lift`/`m-pop`/`m-press`: an animated `transform` overrides the hover and tap effects. For a bob, use `m-float`.
 - **Don't add your own `hover:-translate-y-*` / `hover:scale-*`** next to `m-lift`/`m-press`; the system already moves it.
 - Motion is off for visitors with "reduce motion" turned on, and hover effects only run on devices with a mouse. Test both, and test on a phone: tap feedback is what most visitors see.
