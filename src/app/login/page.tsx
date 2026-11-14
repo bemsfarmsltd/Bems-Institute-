@@ -60,7 +60,10 @@ export default function LoginPage() {
         setMode("signup");
       }
       const redir = params.get("redirect") || params.get("returnUrl");
-      if (redir && redir.startsWith("/")) {
+      // Same-site paths only. "//evil.com" and "/\evil.com" also start
+      // with "/", but browsers treat them as links to another site, which
+      // would turn this page into a phishing redirect after sign-in.
+      if (redir && /^\/(?![/\\])/.test(redir)) {
         setRedirectUrl(redir);
       }
     }
