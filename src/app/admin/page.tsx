@@ -810,6 +810,42 @@ function AdminDashboardContent() {
     }
   };
 
+  const [refundingExcessId, setRefundingExcessId] = useState<string | null>(null);
+  const [excessModalOpen, setExcessModalOpen] = useState(false);
+  const [excessSelectedEnrollmentId, setExcessSelectedEnrollmentId] = useState("");
+
+  const handleRefundExcess = async (enrollmentId: string, studentName?: string) => {
+    const displayName = studentName || "this student";
+    if (
+      !confirm(
+        `Refund overpayment / excess amount for ${displayName}?\n\nThis writes a refund transaction to the payment ledger for any amount received beyond their course balance. The student remains actively enrolled.`
+      )
+    ) {
+      return;
+    }
+    setRefundingExcessId(enrollmentId);
+    try {
+      const res = await apiFetch(`/api/admin/enrollments/${enrollmentId}/refund-excess`, {
+        method: "POST"
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        await refreshAdminData();
+        setAdminNotice(
+          `Refunded excess ₦${Number(data.refunded || 0).toLocaleString()} to ${displayName}. Student registration remains active.`
+        );
+        setExcessModalOpen(false);
+        setExcessSelectedEnrollmentId("");
+      } else {
+        setAdminNotice(data.error || "Could not process excess refund.");
+      }
+    } catch {
+      setAdminNotice("Network error processing excess refund.");
+    } finally {
+      setRefundingExcessId(null);
+    }
+  };
+
   interface Lead {
     id: string;
     name: string;
@@ -2329,13 +2365,25 @@ function AdminDashboardContent() {
                                   stu.enrollmentId &&
                                   (stu.amountPaidRaw || 0) > 0 &&
                                   stu.paymentStatus !== "REFUNDED" && (
-                                    <button
-                                      type="button"
-                                      onClick={() => openRefund(stu.enrollmentId!, stu.name, stu.amountPaidRaw || 0)}
-                                      className="px-2.5 py-1 rounded-md border border-[#D6293E] text-[#D6293E] text-[11px] font-semibold hover:bg-[#FBE9EB] cursor-pointer"
-                                    >
-                                      Refund
-                                    </button>
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                      <button
+                                        type="button"
+                                        onClick={() => openRefund(stu.enrollmentId!, stu.name, stu.amountPaidRaw || 0)}
+                                        className="px-2.5 py-1 rounded-md border border-[#D6293E] text-[#D6293E] text-[11px] font-semibold hover:bg-[#FBE9EB] cursor-pointer"
+                                        title="Tuition refund — withdraws course access"
+                                      >
+                                        Refund
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleRefundExcess(stu.enrollmentId!, stu.name)}
+                                        disabled={refundingExcessId === stu.enrollmentId}
+                                        className="px-2.5 py-1 rounded-md border border-[#FD7E14] text-[#FD7E14] text-[11px] font-semibold hover:bg-[#FFF2E2] cursor-pointer disabled:opacity-50"
+                                        title="Refund overpayment/excess while keeping student actively enrolled"
+                                      >
+                                        {refundingExcessId === stu.enrollmentId ? "Refunding…" : "Refund excess"}
+                                      </button>
+                                    </div>
                                   )}
                                 {stu.paymentStatus === "REFUNDED" && (
                                   <span className="px-2.5 py-1 rounded-md bg-[#FBE9EB] text-[#D6293E] text-[11px] font-bold">
@@ -4051,12 +4099,22 @@ function AdminDashboardContent() {
                       {paymentLedger.length} transaction{paymentLedger.length === 1 ? "" : "s"}
                     </span>
                     {user?.role === "ADMIN" && (
-                      <a
-                        href={`${API_BASE_URL}/api/admin/payment-ledger/export`}
-                        className="px-3 py-1.5 rounded-lg border border-slate-200 text-[#475569] text-xs font-semibold hover:bg-slate-50"
-                      >
-                        Export CSV
-                      </a>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setExcessModalOpen(true)}
+                          className="px-3 py-1.5 rounded-lg border border-[#FD7E14] text-[#FD7E14] text-xs font-semibold hover:bg-[#FFF2E2] cursor-pointer"
+                          title="Refund student overpayment without withdrawing them"
+                        >
+                          Refund excess
+                        </button>
+                        <a
+                          href={`${API_BASE_URL}/api/admin/payment-ledger/export`}
+                          className="px-3 py-1.5 rounded-lg border border-slate-200 text-[#475569] text-xs font-semibold hover:bg-slate-50"
+                        >
+                          Export CSV
+                        </a>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -4129,6 +4187,75 @@ function AdminDashboardContent() {
                   )}
                 </div>
               </div>
+
+              {/* Refund Excess Modal */}
+              {excessModalOpen && (
+                <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+                  <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
+                    <div className="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+                      <h3 className="font-display text-base font-bold text-[#1D2026]">
+                        Refund Student Overpayment (Excess)
+                      </h3>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setExcessModalOpen(false);
+                          setExcessSelectedEnrollmentId("");
+                        }}
+                        className="text-[#8580A3] hover:text-[#1D2026] text-lg font-bold cursor-pointer"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <p className="text-xs text-[#747579] mb-4">
+                      If a student paid twice (e.g., two open checkout windows both completed), this records an excess refund on the ledger for any amount received beyond their tuition balance without withdrawing them from class.
+                    </p>
+                    <div className="mb-4">
+                      <label className="block text-xs font-bold text-[#645F80] mb-1.5">
+                        Select Paying Student
+                      </label>
+                      <select
+                        value={excessSelectedEnrollmentId}
+                        onChange={(e) => setExcessSelectedEnrollmentId(e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs bg-white text-[#1D2026]"
+                      >
+                        <option value="">-- Choose student registration --</option>
+                        {combinedStudents
+                          .filter((s) => s.enrollmentId && (s.amountPaidRaw || 0) > 0 && s.paymentStatus !== "REFUNDED")
+                          .map((s) => (
+                            <option key={s.enrollmentId} value={s.enrollmentId}>
+                              {s.name} — {s.courseTitle || "Course"} (Paid ₦{(s.amountPaidRaw || 0).toLocaleString()})
+                            </option>
+                          ))}
+                      </select>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setExcessModalOpen(false);
+                          setExcessSelectedEnrollmentId("");
+                        }}
+                        className="flex-1 py-2 rounded-lg border border-slate-200 text-xs font-bold text-[#475569] hover:bg-slate-50 cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!excessSelectedEnrollmentId) return;
+                          const selected = combinedStudents.find((s) => s.enrollmentId === excessSelectedEnrollmentId);
+                          handleRefundExcess(excessSelectedEnrollmentId, selected?.name);
+                        }}
+                        disabled={!excessSelectedEnrollmentId || refundingExcessId === excessSelectedEnrollmentId}
+                        className="flex-1 py-2 rounded-lg bg-[#FD7E14] text-white text-xs font-bold hover:bg-[#E86D09] disabled:opacity-50 cursor-pointer"
+                      >
+                        {refundingExcessId === excessSelectedEnrollmentId ? "Processing…" : "Confirm Excess Refund"}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

@@ -102,6 +102,25 @@ branch from there.
 
 ## Done (handoff notes)
 
+### 2026-11-14: Admin Refund Excess Overpayment Button & Auth Test Limiter Fix (Antigravity)
+- **Claimed by**: Antigravity (Frontend)
+- **Branch**: `antigravity/refund-excess-button` (off `main`)
+- **What was built**:
+  - **1. Student Table "Refund excess" Button** (`src/app/admin/page.tsx`):
+    - Added dedicated "Refund excess" button next to "Refund" for paying students.
+    - Calls `POST /api/admin/enrollments/:id/refund-excess` without withdrawing the student.
+    - Displays refunded excess notice upon success, or the server 400 error message if there's no overpayment.
+  - **2. Earnings Tab "Refund excess" Modal** (`src/app/admin/page.tsx`):
+    - Added "+ Refund excess" button in the Payment Ledger header alongside "Export CSV".
+    - Opens a dedicated modal enabling admins to select an active paying student from a dropdown and trigger an excess refund in 1 click.
+  - **3. Rate-Limit Test Stabilizer** (`backend/src/__tests__/auth.test.ts`):
+    - Added `beforeEach` hook clearing loopback `signup:` quota attempts so back-to-back Vitest runs never trip HTTP 429.
+- **Verification**:
+  - Frontend TypeScript (`npx tsc --noEmit`): 0 errors.
+  - Backend TypeScript (`npx tsc -p backend/tsconfig.json --noEmit`): 0 errors.
+  - Backend Vitest (`npm test --prefix backend`): All tests passed.
+  - Next.js Build (`npx next build`): 32/32 routes compiled cleanly.
+
 ### 2026-11-13: QR → Registration → Paystack Payment → Admin Confirmation Pipeline (Antigravity + Claude Code)
 - **Claimed by**: Antigravity (Frontend) & Claude Code (Backend)
 - **Branch**: `antigravity/lms-core-upgrade` & `claude/registration-approval`
