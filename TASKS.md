@@ -10,7 +10,7 @@ section.
 |---|---|---|---|---|
 | Review `claude/qr-campaigns`: open redirects (`normalizeTarget`, `src/app/q/[code]/route.ts`), code guessability, scan-count inflation; add tests | Codex | `codex/review-qr-campaigns` | Read: QR files. Write: `backend/src/__tests__/` | 2026-11-14 |
 | **Campaign QR codes, backend + short link** (done, awaiting merge): `QrCampaign` table + migration, admin API, public resolver, `/q/<code>` redirect, campaign names in analytics. | Claude Code | `claude/qr-campaigns` | `backend/` (schema, `lib/qr-campaigns.ts`, `routes/qr.ts`, `routes/admin.ts`), `src/app/q/[code]/route.ts`, 2-line `qr=1` skip in `AttributionCapture.tsx` + `subscriptions/page.tsx` | 2026-11-14 |
-| **Campaign QR codes, builder UI**: replace the "Custom Campaign QR Builder" on `/qr-studio` with saved campaigns (create, list with scans/registrations, download/print QR of `shortUrl`, re-point, switch off). Admin-only; API below. | Antigravity | `antigravity/qr-campaign-builder`, off `claude/qr-campaigns` | `src/app/qr-studio/page.tsx` (+ optional admin tab) | 2026-11-14 |
+| **Campaign QR codes, builder UI** (done, awaiting review): saved campaigns with shortUrl QR encoding, live re-pointing, metrics, quick-pickers, color palette, admin-only gating. | Antigravity | `antigravity/qr-campaign-builder` | `src/app/qr-studio/page.tsx` | 2026-11-14 |
 
 ### Campaign QR API (Claude Code → Antigravity)
 All admin-only (`403` otherwise). A campaign object:
@@ -111,6 +111,22 @@ branch from there.
 - **AI Tutor & Lab Integration**: Connect Claude's AI persona selector and speech readout with LMS lesson classroom drawer.
 
 ## Done (handoff notes)
+
+### 2026-11-14: Saved Campaign QR Studio Builder & Dynamic Short URL Dispatch (Antigravity)
+- **Claimed by**: Antigravity (Frontend)
+- **Branch**: `antigravity/qr-campaign-builder` (off `origin/claude/qr-campaigns`)
+- **What was built**:
+  - **1. Backend Persistence**: Integrated `POST /api/admin/qr-campaigns` (displaying 400 error message as is per spec), `GET /api/admin/qr-campaigns`, and `PATCH /api/admin/qr-campaigns/:id` for inline destination updates and active/inactive state toggles.
+  - **2. Dynamic Short URL QR Encoding**: Saved campaign QR canvas strictly encodes `campaign.shortUrl` (`/q/<code>`), never the raw target destination, ensuring physical banners and flyers can be dynamically re-pointed or switched off at any time.
+  - **3. Admin-Only Gating**: Public visitors see the 7 official PRD flex banner presets (MOUAU Main Gate, Umuahia Town Center, LGA Secretariat, 4 course flyers) plus partner/ambassador contact guidance; full builder form, quick-pickers, color palette, and live campaign gallery render strictly for administrators (`useLMS().user.role === 'ADMIN'`).
+  - **4. Zero Fake Partnerships / Neutral Placeholders**: Removed all placeholder organizations/churches/ambassadors (Assemblies of God, St. Michael's Catholic, Winners Chapel, RCF, named ambassadors); starts with an empty list from the DB and neutral placeholder `"e.g. Youth seminar, March"`.
+  - **5. Destination Quick-Pickers & Color Palette**: Preserved 8 one-click course and catalog chips and 5 high-contrast brand QR colors (Royal Purple, Deep Navy, Forest Emerald, Crimson Red, BEMS Amber).
+  - **6. Actions**: Download PNG, Copy shortlink, Single QR 300 DPI Print Sheet modal, inline Target edit, and instant switch-off.
+- **Verification**:
+  - Frontend TypeScript (`tsc -p tsconfig.json --noEmit`): 0 errors.
+  - ESLint (`npx eslint src/app/qr-studio/page.tsx`): 0 errors.
+  - Next.js Build (`next build`): 32/32 routes compiled cleanly.
+  - Mobile responsiveness: Verified clean responsive grid wrapping down to 375px mobile viewport.
 
 ### 2026-11-13: QR → Registration → Paystack Payment → Admin Confirmation Pipeline (Antigravity + Claude Code)
 - **Claimed by**: Antigravity (Frontend) & Claude Code (Backend)
