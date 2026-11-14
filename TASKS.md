@@ -8,7 +8,7 @@ section.
 
 | Task | Agent | Branch | Files / areas | Started |
 |---|---|---|---|---|
-| **Trial task:** audit main @ `cabc99f`: payment → admissions gating (no course access before payment *and* admin confirmation), certificate integrity (issued only by a graded capstone, can't be forged or viewed wrongly), plus edge cases turned into new vitest tests. Report bugs with file:line here; flag fixes for the owning agent rather than changing their code. | Codex | `codex/audit-cabc99f` | Read: whole repo. Write: `backend/src/__tests__/`, `docs/` | 2026-11-14 |
+| Review `claude/qr-campaigns`: open redirects (`normalizeTarget`, `src/app/q/[code]/route.ts`), code guessability, scan-count inflation; add tests | Codex | `codex/review-qr-campaigns` | Read: QR files. Write: `backend/src/__tests__/` | 2026-11-14 |
 | **Campaign QR codes, backend + short link** (done, awaiting merge): `QrCampaign` table + migration, admin API, public resolver, `/q/<code>` redirect, campaign names in analytics. | Claude Code | `claude/qr-campaigns` | `backend/` (schema, `lib/qr-campaigns.ts`, `routes/qr.ts`, `routes/admin.ts`), `src/app/q/[code]/route.ts`, 2-line `qr=1` skip in `AttributionCapture.tsx` + `subscriptions/page.tsx` | 2026-11-14 |
 | **Campaign QR codes, builder UI**: replace the "Custom Campaign QR Builder" on `/qr-studio` with saved campaigns (create, list with scans/registrations, download/print QR of `shortUrl`, re-point, switch off). Admin-only; API below. | Antigravity | `antigravity/qr-campaign-builder`, off `claude/qr-campaigns` | `src/app/qr-studio/page.tsx` (+ optional admin tab) | 2026-11-14 |
 
@@ -20,6 +20,15 @@ The printed QR must encode **`shortUrl`** (`https://<site>/q/<code>`), never the
 - `POST /api/admin/qr-campaigns` `{ label, target }` → `201 { campaign }`. `target`: a path on the site (`/subscriptions?course=web-dev`) or an `https://` URL. `400 { error }` with a message to show as is.
 - `PATCH /api/admin/qr-campaigns/:id` `{ label?, target?, active? }` → `{ campaign }`. No delete: switch off instead (scans of a switched-off code go to the homepage).
 
+## Codex payment review (2026-11-14)
+
+- **High — repeated checkout initialization can create duplicate live charges.** `backend/src/routes/payments.ts:75-79` always creates a new pending transaction for the current remaining balance. There is no per-enrollment reservation or invalidation of earlier pending references. If multiple checkout references are paid, sequential confirmation can credit beyond `totalDue`; concurrent confirmation can mark both ledger entries successful while a stale enrollment write records only one. Suggested owner fix: serialize/reserve the outstanding balance and make confirmation conditional/atomic per enrollment.
+- **Medium — amount verification rounds away kobo differences.** `backend/src/lib/payment-ledger.ts:38-45` rounds the Paystack amount to whole naira before comparing. A charge up to 50 kobo below the expected amount can round up and be credited. Compare integer kobo exactly against `txn.amount * 100`.
+- **Low — legacy enrollment endpoint reports free enrollment as unlocked.** `backend/src/routes/lms.ts:150,201-223` treats every non-`bank` payment method as `null`, creates an ACTIVE/PENDING enrollment, and sends a notification claiming classroom access is unlocked. The access guard still blocks course content while payment is PENDING, but the confirmation is false. Reject unsupported/missing payment methods or return a neutral pending response.
+
+**Added:** `backend/src/__tests__/payment-flow.test.ts` covers failed and abandoned results, amount mismatch, duplicate success webhooks, and installment deposit followed by balance payment. No payment or registration behavior was changed.
+
+**Checks:** root and backend TypeScript checks pass; focused ESLint on the new test file passes (with the repo's `pages` directory advisory). Root ESLint reports 34 errors / 61 warnings across existing files. `next build` failed in the Google Fonts Turbopack import after a fonts.gstatic.com request timed out. Backend Vitest was not run: its tests load database configuration and `cleanupTestData` deletes rows, and I could not establish that the configured database is disposable without opening protected environment files or risking the prohibited database actions.
 ## Done: production merge (Claude Code, 2026-11-14)
 
 `main` @ `cabc99f` merges `antigravity/lms-core-upgrade`,
