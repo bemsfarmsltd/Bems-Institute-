@@ -10,7 +10,7 @@ export function Footer() {
           {/* Column 1 (4 cols): Brand Info + Social Icons */}
           <div className="lg:col-span-4">
             <Link href="/" className="flex items-center gap-3 mb-4">
-              <div className="relative w-10 h-10 rounded-lg overflow-hidden border border-slate-200 bg-white p-0.5 shrink-0">
+              <div className="m-pop relative w-10 h-10 rounded-lg overflow-hidden border border-slate-200 bg-white p-0.5 shrink-0">
                 <Image src="/images/bems-logo.jpg" alt="BEMS Logo" fill sizes="40px" className="object-contain" />
               </div>
               <div>
@@ -34,7 +34,7 @@ export function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Facebook"
-                className="w-9 h-9 rounded-lg bg-white border border-slate-200 shadow-2xs hover:bg-[#5D82D1] hover:text-white text-[#5D82D1] flex items-center justify-center transition-colors text-xs font-extrabold"
+                className="m-pop w-9 h-9 rounded-lg bg-white border border-slate-200 shadow-2xs hover:bg-[#5D82D1] hover:text-white text-[#5D82D1] flex items-center justify-center transition-colors text-xs font-extrabold"
               >
                 f
               </a>
@@ -43,7 +43,7 @@ export function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"
-                className="w-9 h-9 rounded-lg bg-white border border-slate-200 shadow-2xs hover:bg-[#C22B72] hover:text-white text-[#C22B72] flex items-center justify-center transition-colors text-xs font-extrabold"
+                className="m-pop w-9 h-9 rounded-lg bg-white border border-slate-200 shadow-2xs hover:bg-[#C22B72] hover:text-white text-[#C22B72] flex items-center justify-center transition-colors text-xs font-extrabold"
               >
                 ig
               </a>
@@ -52,7 +52,7 @@ export function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Twitter"
-                className="w-9 h-9 rounded-lg bg-white border border-slate-200 shadow-2xs hover:bg-[#40BFF5] hover:text-white text-[#40BFF5] flex items-center justify-center transition-colors text-xs font-extrabold"
+                className="m-pop w-9 h-9 rounded-lg bg-white border border-slate-200 shadow-2xs hover:bg-[#40BFF5] hover:text-white text-[#40BFF5] flex items-center justify-center transition-colors text-xs font-extrabold"
               >
                 𝕏
               </a>
@@ -61,7 +61,7 @@ export function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="LinkedIn"
-                className="w-9 h-9 rounded-lg bg-white border border-slate-200 shadow-2xs hover:bg-[#238CC8] hover:text-white text-[#238CC8] flex items-center justify-center transition-colors text-xs font-extrabold"
+                className="m-pop w-9 h-9 rounded-lg bg-white border border-slate-200 shadow-2xs hover:bg-[#238CC8] hover:text-white text-[#238CC8] flex items-center justify-center transition-colors text-xs font-extrabold"
               >
                 in
               </a>

@@ -2070,7 +2070,7 @@ function AdminDashboardContent() {
                     <>
                       {studentViewMode === "grid" ? (
                         /* 3-Column Student Cards Grid (Matches Images 3 & 4) */
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        <div data-reveal-group className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                           {combinedStudents.length === 0 ? (
                             <div className="col-span-full py-16 text-center bg-[#F8F9FA] rounded-xl border border-slate-200/80 p-8">
                               <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-[#F7EDF9] text-[#AE54C6] flex items-center justify-center">
@@ -2088,7 +2088,7 @@ function AdminDashboardContent() {
                           ) : pagedStudents.map((student) => (
                         <div
                           key={student.id}
-                          className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_14px_rgba(0,0,0,0.03)] p-5 flex flex-col justify-between"
+                          className="m-lift bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_14px_rgba(0,0,0,0.03)] p-5 flex flex-col justify-between"
                         >
                           {/* Card Header: Avatar + Name + Location + Menu */}
                           <div className="flex items-center justify-between gap-3 pb-4 border-b border-slate-100">
@@ -2527,11 +2527,11 @@ function AdminDashboardContent() {
                   </div>
                 ) : instructorViewMode === "grid" ? (
                   /* 3-Column Staff Cards Grid */
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  <div data-reveal-group className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     {filteredStaff.map((inst) => (
                       <div
                         key={inst.id}
-                        className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_14px_rgba(0,0,0,0.03)] p-5 flex flex-col justify-between"
+                        className="m-lift bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_14px_rgba(0,0,0,0.03)] p-5 flex flex-col justify-between"
                       >
                         {/* Top Header */}
                         <div className="flex items-start justify-between gap-3 pb-4 border-b border-slate-100">
@@ -2718,7 +2718,7 @@ function AdminDashboardContent() {
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div data-reveal-group className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {(adminCourses.length > 0
                   ? adminCourses
                   : courses.map((c) => ({
@@ -2740,7 +2740,7 @@ function AdminDashboardContent() {
                 ).map((course) => (
                   <div
                     key={course.id}
-                    className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_14px_rgba(0,0,0,0.03)] p-6 flex flex-col justify-between"
+                    className="m-lift bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_14px_rgba(0,0,0,0.03)] p-6 flex flex-col justify-between"
                   >
                     <div>
                       <div className="flex items-center justify-between gap-2 mb-3">
@@ -3878,14 +3878,14 @@ function AdminDashboardContent() {
               </h1>
 
               {/* 4 Summary Cards from /api/admin/analytics */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-7">
+              <div data-reveal-group className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-7">
                 {/* 1. Total Net Revenue */}
-                <div className="bg-[#F7EDF9] rounded-xl p-6 border border-[#AE54C6]/20">
+                <div className="m-lift bg-[#F7EDF9] rounded-xl p-6 border border-[#AE54C6]/20">
                   <div className="text-[14px] font-bold text-[#1D2026] mb-2">
                     Total Net Revenue
                   </div>
                   <div className="font-display text-[32px] sm:text-[36px] font-extrabold text-[#AE54C6] leading-tight">
-                    ₦{analytics.totalRevenue.toLocaleString()}
+                    <CountUp value={analytics.totalRevenue} format={(n) => `₦${n.toLocaleString()}`} />
                   </div>
                   <div className="text-[12px] text-[#747579] mt-1">
                     Payments minus refunds across {analytics.totalStudents} paid student{analytics.totalStudents === 1 ? "" : "s"}
@@ -3893,12 +3893,12 @@ function AdminDashboardContent() {
                 </div>
 
                 {/* 2. Outstanding Balance */}
-                <div className="bg-[#F6ECF9] rounded-xl p-6 border border-[#A16EBD]/20">
+                <div className="m-lift bg-[#F6ECF9] rounded-xl p-6 border border-[#A16EBD]/20">
                   <div className="text-[14px] font-bold text-[#1D2026] mb-2 flex items-center gap-1.5">
                     <span>Outstanding Balance</span>
                   </div>
                   <div className="font-display text-[32px] sm:text-[36px] font-extrabold text-[#A16EBD] leading-tight">
-                    ₦{analytics.outstandingBalance.toLocaleString()}
+                    <CountUp value={analytics.outstandingBalance} format={(n) => `₦${n.toLocaleString()}`} />
                   </div>
                   <div className="text-[12px] text-[#747579] mt-1">
                     Remaining balance due across active installment plans
@@ -3906,12 +3906,12 @@ function AdminDashboardContent() {
                 </div>
 
                 {/* 3. Refunded Total */}
-                <div className="bg-[#FBE9EB] rounded-xl p-6 border border-rose-200">
+                <div className="m-lift bg-[#FBE9EB] rounded-xl p-6 border border-rose-200">
                   <div className="text-[14px] font-bold text-[#1D2026] mb-2">
                     Refunded Total
                   </div>
                   <div className="font-display text-[32px] sm:text-[36px] font-extrabold text-[#D6293E] leading-tight">
-                    ₦{analytics.refundedTotal.toLocaleString()}
+                    <CountUp value={analytics.refundedTotal} format={(n) => `₦${n.toLocaleString()}`} />
                   </div>
                   <div className="text-[12px] text-[#747579] mt-1">
                     Total tuition refunded on record
@@ -3919,12 +3919,12 @@ function AdminDashboardContent() {
                 </div>
 
                 {/* 4. Waived Total */}
-                <div className="bg-[#FFF8E6] rounded-xl p-6 border border-amber-200">
+                <div className="m-lift bg-[#FFF8E6] rounded-xl p-6 border border-amber-200">
                   <div className="text-[14px] font-bold text-[#1D2026] mb-2">
                     Waived Total
                   </div>
                   <div className="font-display text-[32px] sm:text-[36px] font-extrabold text-amber-700 leading-tight">
-                    ₦{analytics.waivedTotal.toLocaleString()}
+                    <CountUp value={analytics.waivedTotal} format={(n) => `₦${n.toLocaleString()}`} />
                   </div>
                   <div className="text-[12px] text-[#747579] mt-1">
                     Second-chance balance waivers granted
@@ -3965,35 +3965,35 @@ function AdminDashboardContent() {
                 </div>
 
                 <div className="p-6 space-y-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                    <div className="bg-[#FFF2E2] rounded-xl p-5">
+                  <div data-reveal-group className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <div className="m-lift bg-[#FFF2E2] rounded-xl p-5">
                       <div className="text-[13px] font-bold text-[#1D2026] mb-1.5">
                         Estimated Ad Views
                       </div>
                       <div className="font-display text-[26px] font-extrabold text-[#FD7E14] leading-tight">
-                        {analytics.estimatedAdViews.toLocaleString()}
+                        <CountUp value={analytics.estimatedAdViews} />
                       </div>
                       <div className="text-[11px] text-[#747579] mt-1">
                         Manual estimate — banner/flier impressions aren&apos;t measurable online
                       </div>
                     </div>
-                    <div className="bg-[#F6ECF9] rounded-xl p-5">
+                    <div className="m-lift bg-[#F6ECF9] rounded-xl p-5">
                       <div className="text-[13px] font-bold text-[#1D2026] mb-1.5">
                         Homepage Visits
                       </div>
                       <div className="font-display text-[26px] font-extrabold text-[#A16EBD] leading-tight">
-                        {analytics.homePageViews.toLocaleString()}
+                        <CountUp value={analytics.homePageViews} />
                       </div>
                       <div className="text-[11px] text-[#747579] mt-1">
                         Real, deduped per visitor per day
                       </div>
                     </div>
-                    <div className="bg-[#F7EDF9] rounded-xl p-5">
+                    <div className="m-lift bg-[#F7EDF9] rounded-xl p-5">
                       <div className="text-[13px] font-bold text-[#1D2026] mb-1.5">
                         Signup Page Visits
                       </div>
                       <div className="font-display text-[26px] font-extrabold text-[#AE54C6] leading-tight">
-                        {analytics.signupPageViews.toLocaleString()}
+                        <CountUp value={analytics.signupPageViews} />
                       </div>
                       <div className="text-[11px] text-[#747579] mt-1">
                         /subscriptions — PRD&apos;s step 2 target
