@@ -38,6 +38,14 @@ router.post("/", async (req, res) => {
     return res.status(500).json({ error: "Admin access is not configured on this server." });
   }
 
+  // The shared code only bootstraps the FIRST admin. Once one exists, new
+  // admins join by invite (Admin > Staff & Access), so a leaked code can't
+  // mint admin accounts.
+  const activeAdmins = await prisma.user.count({ where: { role: "ADMIN", deactivatedAt: null } });
+  if (activeAdmins > 0) {
+    return res.status(403).json({ error: "Staff accounts are now invite-only. Ask an existing admin to invite you." });
+  }
+
   const RATE_LIMIT_KEY = rateLimitKeyFor(req);
   const limit = await checkRateLimit(RATE_LIMIT_KEY);
   if (limit.blocked) {

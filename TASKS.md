@@ -8,11 +8,9 @@ section.
 
 | Task | Agent | Branch | Files / areas | Started |
 |---|---|---|---|---|
-| **Motion foundation** (merged into main): `src/app/motion.css` (m-lift, m-press, m-pop, m-icon, data-reveal, data-reveal-group), `MotionProvider` in layout, `CountUp`; Button/Badge bounce site-wide. Guide: `docs/motion.md`. | Claude Code | `claude/motion-foundation` | `src/app/motion.css`, `src/components/MotionProvider.tsx`, `CountUp.tsx`, `ui/button.tsx`, `ui/badge.tsx`, `layout.tsx`, `globals.css` | 2026-11-14 |
-| **Apply motion site-wide** (merged into main) per `docs/motion.md`: home (`Hero`, `CourseCards`, `EduportTrendingCourses`, `EduportStudentFeedback`), `Navbar`, courses, course detail, subscriptions, dashboard (`dashboard/page`, `LearningInsights`, `ReferAFriendCard`), learn pages (lesson, quiz, assignment), certificates & verifier, graduates, community, leaderboard, qr-studio, admin & instructor KPI tiles/cards; hero entrance & float keyframes; stat `<CountUp>`s. Phone-first. | Antigravity | `antigravity/motion-pages`, off `claude/motion-foundation` | Page files under `src/app/`, `src/components/` (not the motion files) | 2026-11-14 |
-| **Motion QA** (done; see Claude browser QA below): reduced-motion leaves nothing hidden; no content stuck invisible on slow load or when JS fails; mobile Lighthouse performance + CLS before/after; tap feedback on phone width. Report numbers here. | Codex | `codex/motion-qa` | Read only, plus tests/docs | 2026-11-14 |
-| **Campaign QR codes, backend + short link** (merged, live in main @ c4cf776): `QrCampaign` table + migration, admin API, public resolver, `/q/<code>` redirect, campaign names in analytics. | Claude Code | `claude/qr-campaigns` | `backend/` (schema, `lib/qr-campaigns.ts`, `routes/qr.ts`, `routes/admin.ts`), `src/app/q/[code]/route.ts`, 2-line `qr=1` skip in `AttributionCapture.tsx` + `subscriptions/page.tsx` | 2026-11-14 |
-| **Campaign QR codes, builder UI** (done, awaiting review): saved campaigns with shortUrl QR encoding, live re-pointing, metrics, quick-pickers, color palette, admin-only gating. | Antigravity | `antigravity/qr-campaign-builder` | `src/app/qr-studio/page.tsx` | 2026-11-14 |
+| **Staff & Access + Security API** (done, awaiting merge): staff invites (replace the shared ADMIN_ACCESS_CODE), role changes, 2-step verification (authenticator app + recovery codes), sign-in history, sign out everywhere; reset links emailed; a reset link can no longer skip 2FA. API below. | Claude Code | `claude/staff-security-api` | `backend/` (schema + migration, `lib/totp.ts`, `lib/account-security.ts`, `lib/staff-invites.ts`, `routes/account.ts`, `routes/staff-invites.ts`, `routes/admin.ts`, `routes/auth.ts`, `routes/admin-auth.ts`) | 2026-11-15 |
+| **Staff & Access + Security tabs, 2FA sign-in step, invite page**, per the API below | Antigravity | `antigravity/staff-security-ui`, off `claude/staff-security-api` | `src/app/admin/page.tsx`, `src/app/login/page.tsx`, `src/components/AdminGate.tsx`, `src/context/LMSContext.tsx` (login), new `src/app/staff-invite/[token]/page.tsx` | 2026-11-15 |
+| **Security review + tests** of `claude/staff-security-api`; placeholder/fake-content sweep of the live site | Codex | `codex/staff-security-review` | Read all; write `backend/src/__tests__/` + notes here | 2026-11-15 |
 
 ### Campaign QR API (Claude Code → Antigravity)
 All admin-only (`403` otherwise). A campaign object:
@@ -21,6 +19,34 @@ The printed QR must encode **`shortUrl`** (`https://<site>/q/<code>`), never the
 - `GET /api/admin/qr-campaigns` → `{ campaigns }`, newest first.
 - `POST /api/admin/qr-campaigns` `{ label, target }` → `201 { campaign }`. `target`: a path on the site (`/subscriptions?course=web-dev`) or an `https://` URL. `400 { error }` with a message to show as is.
 - `PATCH /api/admin/qr-campaigns/:id` `{ label?, target?, active? }` → `{ campaign }`. No delete: switch off instead (scans of a switched-off code go to the homepage).
+
+### Staff & Access + Security API (Claude Code → Antigravity)
+Errors are always `{ error }` with a message to show as is. `429` = too many tries.
+
+**Sign-in now has an optional second step** (login page AND `AdminGate`):
+- `POST /api/auth/login` may return `200 { twoFactorRequired: true, challenge }` instead of `{ user }`: no session yet. Ask for the 6-digit code from their authenticator app (or a recovery code like `k7m2-9xq4`), then
+- `POST /api/auth/login/2fa` `{ challenge, code }` → `{ user }` (+ `recoveryCodesLeft` if a recovery code was used: warn when low). Challenge lasts 5 minutes; on `401` "timed out" go back to the password step.
+- `POST /api/auth/reset-password` may return `{ ok: true, signInRequired: true }` (2-step is on): send them to sign in instead of assuming they're signed in.
+
+**Security tab** (any signed-in user, `/api/account`):
+- `GET /security` → `{ twoFactor: { enabled, enabledAt, recoveryCodesLeft }, recentSignIns: [{ method, ip, userAgent, createdAt }], failedSignInsLast7Days }`. `method`: `password`, `password+2fa`, `password+recovery-code`, `invite`.
+- Turn on: `POST /2fa/setup` `{ password }` → `{ secret, otpauthUrl }`. Show `otpauthUrl` as a QR code (the `qrcode` package is already used by qr-studio) and `secret` for typing in. Then `POST /2fa/enable` `{ code }` → `{ recoveryCodes: string[8] }`: show once, with copy/download, and say they won't be shown again.
+- Turn off: `POST /2fa/disable` `{ password, code }`.
+- New recovery codes: `POST /2fa/recovery-codes` `{ code }` → `{ recoveryCodes }`.
+- `POST /sign-out-everywhere` → ends every other session; this browser stays signed in.
+
+**Staff & Access tab** (admin-only, `/api/admin`):
+- `GET /staff` → `{ staff: [{ id, name, email, role, active, createdAt, twoFactorEnabled, lastSignInAt, isYou }] }`.
+- Invite: `POST /staff/invites` `{ email, role: "INSTRUCTOR" | "ADMIN" }` → `201 { invite, inviteUrl, emailed }`. Always show `inviteUrl` with a copy button (and a WhatsApp share link): `emailed` is false while email isn't set up. `409` if they already have that access.
+- `GET /staff/invites` → `{ invites: [{ id, email, role, status: pending|accepted|revoked|expired, invitedBy, expiresAt, acceptedAt, createdAt }] }`. `POST /staff/invites/:id/revoke`.
+- `POST /staff/:id/role` `{ role: "STUDENT" | "INSTRUCTOR" | "ADMIN" }` (STUDENT = remove staff access, keep the account). Not on yourself (`isYou`).
+- `POST /staff/:id/reset-2fa` for someone who lost their phone. Not on yourself.
+- Existing: `POST /staff/:id/deactivate`, `POST /staff/:id/reactivate`.
+
+**New public page `/staff-invite/[token]`** (what the invite link opens):
+- `GET /api/staff-invites/:token` → `{ invite: { email, role, expiresAt, accountExists } }`, or `410` (expired/used: show the message).
+- `POST /api/staff-invites/:token/accept`: new person `{ name, password }` (8+ chars); `accountExists` → just `{ password }` of that account. → `{ user }` (signed in: go to `/admin` or `/instructor` by role) or `{ ok, signInRequired: true }` (send to `/login`).
+- `AdminGate`'s "register with staff code" now returns `403` once any admin exists: replace that tab with "Staff accounts are invite-only. Ask an admin for an invite link."
 
 ## Codex motion QA (2026-11-14)
 

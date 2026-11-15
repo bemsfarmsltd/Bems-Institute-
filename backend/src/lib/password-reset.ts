@@ -1,5 +1,6 @@
 import { randomBytes, createHash } from "crypto";
 import { prisma } from "@/lib/prisma";
+import { sendEmail } from "@/lib/email";
 
 const TOKEN_BYTES = 32;
 const TOKEN_MAX_AGE_MS = 30 * 60 * 1000; // 30 minutes
@@ -26,18 +27,19 @@ export async function createPasswordResetToken(userId: string): Promise<string> 
 }
 
 /**
- * Sends the reset link. No email provider is configured in this
- * environment, so this logs it to the server console — the same
- * "simulated" pattern already used for Paystack payments elsewhere in this
- * app. Swap this one function for a real email provider call (Resend,
- * SendGrid, SES, …) when one is wired up; nothing else in the reset flow
- * needs to change.
+ * Emails the reset link through Resend. sendEmail never throws, and only
+ * logs instead of sending when Resend isn't configured (local development),
+ * so production links no longer end up in the server log.
  */
 export function deliverPasswordResetLink(email: string, resetUrl: string): void {
-  console.log(
-    `\n[password reset] Link for ${email} (valid 30 min):\n  ${resetUrl}\n` +
-      `  (No email provider configured — this would normally be emailed, not logged.)\n`
-  );
+  void sendEmail({
+    to: email,
+    subject: "Reset your BEMS Institute password",
+    text:
+      `Someone asked to reset the password for your BEMS Institute account.\n\n` +
+      `Reset it here (link valid for 30 minutes):\n${resetUrl}\n\n` +
+      `If this wasn't you, ignore this email: your password stays the same.`
+  });
 }
 
 export interface ResetTokenLookup {

@@ -96,6 +96,15 @@ model User {
   // every session token issued before that point fails verification on its
   // next use — a stateless signed cookie has no other way to be revoked.
   tokenVersion Int            @default(0)
+  // 2-step verification (authenticator app). Secrets are AES-GCM encrypted
+  // (lib/totp.ts); recovery codes are stored as SHA-256 hashes, one-time use.
+  totpSecret        String?
+  totpPendingSecret String?
+  totpEnabledAt     DateTime?
+  totpLastUsedStep  Int?
+  totpRecoveryCodes String[]      @default([])
+  staffInvitesSent  StaffInvite[] @relation("StaffInvitesSent")
+  loginEvents       LoginEvent[]
   enrollments      Enrollment[]
   progress         UserProgress[]
   quizAttempts     QuizAttempt[]
@@ -886,3 +895,33 @@ model Notification {
   @@index([userId, createdAt])
 }
 
+// An admin invites someone to join as INSTRUCTOR or ADMIN. Replaces the
+// shared ADMIN_ACCESS_CODE once one admin exists. Only the token's hash is
+// stored; the link is shown/emailed once.
+model StaffInvite {
+  id          String    @id @default(cuid())
+  email       String
+  role        UserRole
+  tokenHash   String    @unique
+  invitedById String?
+  invitedBy   User?     @relation("StaffInvitesSent", fields: [invitedById], references: [id], onDelete: SetNull)
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  revokedAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([email])
+}
+
+// Successful sign-ins, for the Security screen's sign-in history.
+model LoginEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  method    String
+  ip        String   @default("")
+  userAgent String   @default("")
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}

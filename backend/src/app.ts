@@ -23,6 +23,8 @@ import communityRoutes from "@/routes/community";
 import paymentsRoutes from "@/routes/payments";
 import qrRoutes from "@/routes/qr";
 import settingsRoutes from "@/routes/settings";
+import accountRoutes from "@/routes/account";
+import staffInviteRoutes from "@/routes/staff-invites";
 
 // The configured Express app, with no .listen() call — split out from
 // index.ts so tests can import this directly (via supertest) without
@@ -94,6 +96,8 @@ app.use("/api/community", communityRoutes);
 app.use("/api/payments", paymentsRoutes);
 app.use("/api/qr", qrRoutes);
 app.use("/api/settings", settingsRoutes);
+app.use("/api/account", accountRoutes);
+app.use("/api/staff-invites", staffInviteRoutes);
 
 app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   void _next;

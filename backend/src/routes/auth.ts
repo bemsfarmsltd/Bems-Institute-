@@ -5,6 +5,8 @@ import { verifyPassword, hashPassword, isPasswordStrongEnough } from "@/lib/pass
 import { createSessionToken, SESSION_COOKIE, SESSION_COOKIE_OPTIONS } from "@/lib/session";
 import { getSessionUser } from "@/lib/api-auth";
 import { isBlockedDemoAccount } from "@/lib/demo-accounts";
+import { signPayload, verifyPayload } from "@/lib/signed-token";
+import { consumeSecondFactor, recordLogin, twoFactorSelect } from "@/lib/account-security";
 import { checkRateLimit, recordAttempt, rateLimitMessage, clearAttempts, checkUsageQuota } from "@/lib/rate-limit";
 import { createPasswordResetToken, deliverPasswordResetLink, lookupResetToken, consumeResetToken } from "@/lib/password-reset";
 import { recordReferralSignup } from "@/lib/referrals";
@@ -58,9 +60,60 @@ router.post("/login", async (req, res) => {
     return res.status(403).json({ error: "This account has been deactivated. Contact admissions to restore it." });
   }
 
+  // 2-step verification on: the password alone doesn't sign in. Hand back
+  // a 5-minute signed challenge to redeem with a code at /login/2fa.
+  if (user.totpEnabledAt) {
+    const challenge = await signPayload({ purpose: TWO_FACTOR_PURPOSE, uid: user.id, tv: user.tokenVersion }, 300);
+    return res.json({ twoFactorRequired: true, challenge });
+  }
+
   const token = await createSessionToken({ id: user.id, name: user.name, email: user.email, role: user.role, tokenVersion: user.tokenVersion });
   res.cookie(SESSION_COOKIE, token, SESSION_COOKIE_OPTIONS);
+  await recordLogin(req, user.id, "password");
   return res.json({ user: { id: user.id, name: user.name, email: user.email, role: user.role, avatarUrl: user.avatarUrl } });
+});
+
+const TWO_FACTOR_PURPOSE = "2fa-login";
+const CHALLENGE_EXPIRED = "Your sign-in timed out. Enter your email and password again.";
+
+// Second step of sign-in: { challenge, code } where code is the 6-digit
+// authenticator code or a one-time recovery code.
+router.post("/login/2fa", async (req, res) => {
+  const body = req.body ?? {};
+  const payload = await verifyPayload<{ purpose: string; uid: string; tv: number }>(
+    typeof body.challenge === "string" ? body.challenge : ""
+  );
+  if (!payload || payload.purpose !== TWO_FACTOR_PURPOSE) {
+    return res.status(401).json({ error: CHALLENGE_EXPIRED });
+  }
+
+  const rateLimitKey = `2fa:${payload.uid}`;
+  const limit = await checkRateLimit(rateLimitKey);
+  if (limit.blocked) {
+    return res.status(429).json({ error: rateLimitMessage(limit.retryAfterSeconds!) });
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: payload.uid },
+    select: { id: true, name: true, email: true, role: true, avatarUrl: true, tokenVersion: true, deactivatedAt: true, ...twoFactorSelect }
+  });
+  if (!user || user.tokenVersion !== payload.tv || user.deactivatedAt || isBlockedDemoAccount(user.email)) {
+    return res.status(401).json({ error: CHALLENGE_EXPIRED });
+  }
+
+  const used = await consumeSecondFactor(user, typeof body.code === "string" ? body.code : "");
+  await recordAttempt(rateLimitKey, !!used);
+  if (!used) {
+    return res.status(401).json({ error: "That code didn't work. Check your authenticator app and try again." });
+  }
+
+  const token = await createSessionToken({ id: user.id, name: user.name, email: user.email, role: user.role, tokenVersion: user.tokenVersion });
+  res.cookie(SESSION_COOKIE, token, SESSION_COOKIE_OPTIONS);
+  await recordLogin(req, user.id, used === "recovery" ? "password+recovery-code" : "password+2fa");
+  return res.json({
+    user: { id: user.id, name: user.name, email: user.email, role: user.role, avatarUrl: user.avatarUrl },
+    ...(used === "recovery" ? { recoveryCodesLeft: user.totpRecoveryCodes.length - 1 } : {})
+  });
 });
 
 router.post("/logout", async (_req, res) => {
@@ -399,6 +452,12 @@ router.post("/reset-password", async (req, res) => {
   });
   await consumeResetToken(lookup.tokenId);
   await clearAttempts(`login:${user.email}`);
+
+  // A reset link proves the email, not the phone: with 2-step verification
+  // on, sign in normally (password + code) instead of being let straight in.
+  if (user.totpEnabledAt) {
+    return res.json({ ok: true, signInRequired: true });
+  }
 
   const sessionToken = await createSessionToken({ id: user.id, name: user.name, email: user.email, role: user.role, tokenVersion: user.tokenVersion });
   res.cookie(SESSION_COOKIE, sessionToken, SESSION_COOKIE_OPTIONS);

@@ -13,6 +13,9 @@ import { generateCampaignCode, campaignSource, normalizeTarget } from "@/lib/qr-
 import type { AnalyticsSummary } from "@/types/lms";
 import type { QrCampaign } from "@prisma/client";
 import { getSiteSettings, integrationStatus, ACCOUNT_NUMBER_PATTERN } from "@/lib/site-settings";
+import { createStaffInvite, emailStaffInvite, inviteStatus, inviteUrl, STAFF_ROLES } from "@/lib/staff-invites";
+import { DEMO_ACCOUNT_EMAILS } from "@/lib/demo-accounts";
+import { isValidEmail } from "@/lib/validation";
 
 const router = Router();
 
@@ -1337,7 +1340,10 @@ router.get("/staff", async (req, res) => {
   const staff = await prisma.user.findMany({
     where: { role: { in: ["ADMIN", "INSTRUCTOR"] } },
     orderBy: [{ role: "asc" }, { name: "asc" }],
-    select: { id: true, name: true, email: true, role: true, avatarUrl: true, deactivatedAt: true, createdAt: true }
+    select: {
+      id: true, name: true, email: true, role: true, avatarUrl: true, deactivatedAt: true, createdAt: true, totpEnabledAt: true,
+      loginEvents: { orderBy: { createdAt: "desc" }, take: 1, select: { createdAt: true } }
+    }
   });
 
   return res.json({
@@ -1348,7 +1354,10 @@ router.get("/staff", async (req, res) => {
       role: s.role,
       avatarUrl: s.avatarUrl,
       active: !s.deactivatedAt,
-      createdAt: s.createdAt.toISOString()
+      createdAt: s.createdAt.toISOString(),
+      twoFactorEnabled: !!s.totpEnabledAt,
+      lastSignInAt: s.loginEvents[0]?.createdAt.toISOString() ?? null,
+      isYou: s.id === session?.id
     }))
   });
 });
@@ -1397,6 +1406,124 @@ router.post("/staff/:id/reactivate", async (req, res) => {
   }
 
   await prisma.user.update({ where: { id: target.id }, data: { deactivatedAt: null } });
+  return res.json({ ok: true });
+});
+
+// ---- Staff invites (replace the shared ADMIN_ACCESS_CODE) -----------------
+router.get("/staff/invites", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
+  }
+  const invites = await prisma.staffInvite.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 50,
+    include: { invitedBy: { select: { name: true } } }
+  });
+  return res.json({
+    invites: invites.map((i) => ({
+      id: i.id,
+      email: i.email,
+      role: i.role,
+      status: inviteStatus(i),
+      invitedBy: i.invitedBy?.name ?? null,
+      expiresAt: i.expiresAt.toISOString(),
+      acceptedAt: i.acceptedAt?.toISOString() ?? null,
+      createdAt: i.createdAt.toISOString()
+    }))
+  });
+});
+
+// { email, role: "INSTRUCTOR" | "ADMIN" }. Emails the link and also returns
+// it once (inviteUrl), so the admin can send it another way (WhatsApp) if
+// email isn't set up yet.
+router.post("/staff/invites", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isAdmin(session) || !session) {
+    return res.status(403).json({ error: "Admin access required." });
+  }
+  const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
+  const role = req.body?.role;
+  if (!isValidEmail(email)) return res.status(400).json({ error: "Enter a valid email address." });
+  if (!STAFF_ROLES.includes(role)) return res.status(400).json({ error: "Role must be INSTRUCTOR or ADMIN." });
+  if (DEMO_ACCOUNT_EMAILS.has(email)) return res.status(400).json({ error: "That's a demo account." });
+
+  const existing = await prisma.user.findUnique({ where: { email }, select: { role: true, deactivatedAt: true } });
+  if (existing && !existing.deactivatedAt && (existing.role === role || existing.role === "ADMIN")) {
+    return res.status(409).json({ error: `${email} already has ${existing.role === "ADMIN" ? "admin" : "instructor"} access.` });
+  }
+
+  const { invite, rawToken } = await createStaffInvite(email, role, session.id);
+  const { sent } = await emailStaffInvite(email, role, session.name, rawToken);
+  return res.status(201).json({
+    invite: { id: invite.id, email, role, status: "pending", expiresAt: invite.expiresAt.toISOString() },
+    inviteUrl: inviteUrl(rawToken),
+    emailed: sent
+  });
+});
+
+router.post("/staff/invites/:id/revoke", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
+  }
+  const done = await prisma.staffInvite.updateMany({
+    where: { id: req.params.id, acceptedAt: null, revokedAt: null },
+    data: { revokedAt: new Date() }
+  });
+  if (done.count === 0) return res.status(404).json({ error: "No pending invite with that id." });
+  return res.json({ ok: true });
+});
+
+// { role: "STUDENT" | "INSTRUCTOR" | "ADMIN" }. STUDENT removes staff access
+// but keeps the account (and any courses). Ends their sessions, because the
+// role is carried in the session cookie.
+router.post("/staff/:id/role", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isAdmin(session) || !session) {
+    return res.status(403).json({ error: "Admin access required." });
+  }
+  const role = req.body?.role;
+  if (!["STUDENT", "INSTRUCTOR", "ADMIN"].includes(role)) {
+    return res.status(400).json({ error: "Role must be STUDENT, INSTRUCTOR or ADMIN." });
+  }
+  if (req.params.id === session.id) {
+    return res.status(400).json({ error: "You can't change your own role. Ask another admin." });
+  }
+  const target = await prisma.user.findUnique({ where: { id: req.params.id } });
+  if (!target) return res.status(404).json({ error: "User not found." });
+  if (target.role === role) return res.json({ ok: true, unchanged: true });
+  if (target.role === "ADMIN" && !target.deactivatedAt) {
+    const activeAdmins = await prisma.user.count({ where: { role: "ADMIN", deactivatedAt: null } });
+    if (activeAdmins <= 1) return res.status(400).json({ error: "That's the last active admin. Add another admin first." });
+  }
+  await prisma.user.update({ where: { id: target.id }, data: { role, tokenVersion: { increment: 1 } } });
+  return res.json({ ok: true });
+});
+
+// For someone who lost their phone and recovery codes. They sign in with
+// just their password afterwards and should set it up again.
+router.post("/staff/:id/reset-2fa", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isAdmin(session) || !session) {
+    return res.status(403).json({ error: "Admin access required." });
+  }
+  if (req.params.id === session.id) {
+    return res.status(400).json({ error: "Use your own Security settings for your account." });
+  }
+  const target = await prisma.user.findUnique({ where: { id: req.params.id }, select: { id: true } });
+  if (!target) return res.status(404).json({ error: "User not found." });
+  await prisma.user.update({
+    where: { id: target.id },
+    data: {
+      totpSecret: null,
+      totpPendingSecret: null,
+      totpEnabledAt: null,
+      totpLastUsedStep: null,
+      totpRecoveryCodes: [],
+      tokenVersion: { increment: 1 }
+    }
+  });
   return res.json({ ok: true });
 });
 
