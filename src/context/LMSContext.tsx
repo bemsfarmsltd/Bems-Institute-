@@ -108,6 +108,7 @@ interface LMSContextType {
   // Enrollment & progress — DB-backed, per user
   enrolledCourseIds: string[];
   userEnrollments: UserEnrollmentRecord[];
+  communityUrl: string | null;
   enrollInCourse: (courseId: string, options?: EnrollOptions) => Promise<void>;
   // Re-fetches enrollment/progress/quiz/submission state from the server —
   // used after a real Paystack payment is verified, since that path updates
@@ -188,6 +189,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
 
   const [enrolledCourseIds, setEnrolledCourseIds] = useState<string[]>([]);
   const [userEnrollments, setUserEnrollments] = useState<UserEnrollmentRecord[]>([]);
+  const [communityUrl, setCommunityUrl] = useState<string | null>(null);
   const [completedLessonIds, setCompletedLessonIds] = useState<string[]>([]);
   const [quizResults, setQuizResults] = useState<Record<string, QuizResult>>({});
   const [submissions, setSubmissions] = useState<Submission[]>([]);
@@ -311,6 +313,11 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
           const lmsMe = await lmsMeRes.json();
           setEnrolledCourseIds(lmsMe.enrolledCourseIds || []);
           setUserEnrollments(lmsMe.enrollments || []);
+          setCommunityUrl(
+            typeof lmsMe.communityUrl === "string" && lmsMe.communityUrl
+              ? lmsMe.communityUrl
+              : null
+          );
           setCompletedLessonIds(lmsMe.completedLessonIds || []);
           setQuizResults(lmsMe.quizResults || {});
           setSubmissions(lmsMe.submissions || []);
@@ -558,6 +565,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     setEnrolledCourseIds([]);
     setUserEnrollments([]);
+    setCommunityUrl(null);
     setCompletedLessonIds([]);
     setQuizResults({});
     setSubmissions([]);
@@ -824,6 +832,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
         getAssignmentsForCourse,
         enrolledCourseIds,
         userEnrollments,
+        communityUrl,
         refreshEnrollments,
         enrollInCourse,
         isEnrolled,

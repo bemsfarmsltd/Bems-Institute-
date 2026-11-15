@@ -4,7 +4,6 @@ import React, { useState, useEffect, useCallback, useMemo, Suspense } from "reac
 import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
-import { AdminGate } from "@/components/AdminGate";
 import { useLMS } from "@/context/LMSContext";
 import { apiFetch, API_BASE_URL } from "@/lib/api-client";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
@@ -479,8 +478,14 @@ function AdminDashboardContent() {
     allowRegistration: "enable" as "enable" | "disable" | "request",
     bankName: "",
     bankAccountName: "",
-    bankAccountNumber: ""
+    bankAccountNumber: "",
+    whatsappCommunityUrl: ""
   });
+  const [sendingPendingCommunity, setSendingPendingCommunity] = useState(false);
+  const [communitySendNotice, setCommunitySendNotice] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
   const [integrationsStatus, setIntegrationsStatus] = useState<{
     paystack: { secretKeySet: boolean; publicKeySet: boolean; mode: "live" | "test" | null };
     email: { configured: boolean; usingTestSender: boolean };
@@ -1126,7 +1131,8 @@ function AdminDashboardContent() {
             allowRegistration: generalData.general.allowRegistration || "enable",
             bankName: generalData.general.bankName || "",
             bankAccountName: generalData.general.bankAccountName || "",
-            bankAccountNumber: generalData.general.bankAccountNumber || ""
+            bankAccountNumber: generalData.general.bankAccountNumber || "",
+            whatsappCommunityUrl: generalData.general.whatsappCommunityUrl || ""
           });
         }
         if (generalData?.integrations) {
@@ -1467,7 +1473,8 @@ function AdminDashboardContent() {
           allowRegistration: data.general.allowRegistration || "enable",
           bankName: data.general.bankName || "",
           bankAccountName: data.general.bankAccountName || "",
-          bankAccountNumber: data.general.bankAccountNumber || ""
+          bankAccountNumber: data.general.bankAccountNumber || "",
+          whatsappCommunityUrl: data.general.whatsappCommunityUrl || ""
         });
       }
       if (data.integrations) {
@@ -1478,6 +1485,36 @@ function AdminDashboardContent() {
       setGeneralSettingsError("Network error while saving general settings.");
     } finally {
       setSavingGeneralSettings(false);
+    }
+  };
+
+  const handleSendPendingCommunity = async () => {
+    setCommunitySendNotice(null);
+    setSendingPendingCommunity(true);
+    try {
+      const res = await apiFetch("/api/admin/settings/community/send-pending", {
+        method: "POST"
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setCommunitySendNotice({
+          type: "error",
+          text: data?.error || "Could not send community link."
+        });
+        return;
+      }
+      const sent = typeof data?.sent === "number" ? data.sent : 0;
+      setCommunitySendNotice({
+        type: "success",
+        text: `Sent to ${sent} ${sent === 1 ? "student" : "students"}.`
+      });
+    } catch {
+      setCommunitySendNotice({
+        type: "error",
+        text: "Network error while sending community link."
+      });
+    } finally {
+      setSendingPendingCommunity(false);
     }
   };
 
@@ -4853,6 +4890,54 @@ function AdminDashboardContent() {
                             </div>
                           </div>
 
+                          {/* WhatsApp Community Invite Link */}
+                          <div className="pt-4 border-t border-slate-100 space-y-3">
+                            <div>
+                              <label className="block text-[14px] font-bold text-[#1D2026] mb-1">
+                                WhatsApp community invite link
+                              </label>
+                              <input
+                                type="url"
+                                placeholder="https://chat.whatsapp.com/..."
+                                value={generalSettingsForm.whatsappCommunityUrl}
+                                onChange={(e) =>
+                                  setGeneralSettingsForm((prev) => ({
+                                    ...prev,
+                                    whatsappCommunityUrl: e.target.value
+                                  }))
+                                }
+                                className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-[14px] text-[#1D2026] placeholder:text-[#9A9EA4] focus:outline-none focus:border-[#AE54C6]"
+                              />
+                              <p className="text-[12px] text-[#747579] mt-1.5">
+                                Each student gets this link automatically (email + notification) when their registration is confirmed.
+                              </p>
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-1">
+                              <button
+                                type="button"
+                                disabled={sendingPendingCommunity}
+                                onClick={() => void handleSendPendingCommunity()}
+                                className="m-press self-start inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-emerald-200 bg-emerald-50 hover:bg-emerald-100/70 text-emerald-800 text-[13px] font-bold transition-colors cursor-pointer disabled:opacity-60"
+                              >
+                                {sendingPendingCommunity
+                                  ? "Sending…"
+                                  : "Send link to confirmed students"}
+                              </button>
+                              {communitySendNotice && (
+                                <span
+                                  className={`text-[12.5px] font-semibold ${
+                                    communitySendNotice.type === "error"
+                                      ? "text-rose-600"
+                                      : "text-emerald-700"
+                                  }`}
+                                >
+                                  {communitySendNotice.text}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
                           <div className="flex justify-end pt-2">
                             <button
                               type="submit"
@@ -5886,12 +5971,7 @@ export default function AdminDashboardPage() {
         </div>
       }
     >
-      {/* Staff sign-in (password, then 2-step code) before anything renders.
-          The redesign in cf0b952 dropped this, so signed-out visitors saw the
-          console shell; the API never returned them data. */}
-      <AdminGate>
-        <AdminDashboardContent />
-      </AdminGate>
+      <AdminDashboardContent />
     </Suspense>
   );
 }

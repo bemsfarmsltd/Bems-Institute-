@@ -86,6 +86,7 @@ function StudentDashboardContent() {
     courses,
     enrolledCourseIds,
     userEnrollments,
+    communityUrl,
     getCourseProgress,
     getQuizForCourse,
     getAssignmentForCourse,
@@ -516,6 +517,37 @@ function StudentDashboardContent() {
               </div>
             </div>
 
+            {communityUrl && (
+              <div
+                data-reveal
+                className="m-lift bg-emerald-50 border border-emerald-200 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-xs"
+              >
+                <div className="flex items-start gap-3.5">
+                  <div className="m-icon w-11 h-11 rounded-xl bg-[#25D366] text-white flex items-center justify-center shrink-0">
+                    <MessageCircle className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-extrabold text-[#1D2026]">
+                      Student WhatsApp Community
+                    </h2>
+                    <p className="text-xs sm:text-sm text-emerald-900/80 mt-0.5">
+                      Chat with your instructor and classmates
+                    </p>
+                  </div>
+                </div>
+                <a
+                  href={communityUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="m-press inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#25D366] hover:bg-[#1ebe5d] text-white font-bold text-sm shadow-sm shrink-0 transition-colors"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  Join the WhatsApp community
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
+            )}
+
             {/* My Courses List */}
             <div data-reveal id="my-courses-list" className="bg-white rounded-2xl border border-[#F1E2F5] p-6 shadow-xs">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
@@ -626,6 +658,15 @@ function StudentDashboardContent() {
                       {courseRows.map(({ course, progress }) => {
                         const visual = getCourseVisual(course.slug);
                         const firstLessonId = course.modules[0]?.lessons[0]?.id || "les-1";
+                        const enrollment = (userEnrollments || []).find(
+                          (e) => e.courseId === course.id
+                        );
+                        const classTypeLabel =
+                          enrollment?.deliveryMode === "VIRTUAL_ZOOM"
+                            ? "Virtual"
+                            : enrollment?.deliveryMode === "PHYSICAL_LAB"
+                            ? "Physical"
+                            : null;
                         return (
                           <tr key={course.id}>
                             <td className="px-6 py-4">
@@ -643,6 +684,11 @@ function StudentDashboardContent() {
                                   >
                                     {course.title}
                                   </Link>
+                                  {classTypeLabel && (
+                                    <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-[#F7EDF9] text-[#AE54C6] text-[10.5px] font-bold">
+                                      Class: {classTypeLabel}
+                                    </span>
+                                  )}
                                   <div className="w-36 bg-[#F7EDF9] rounded-full h-1.5 mt-1.5 overflow-hidden">
                                     <div
                                       className="h-full bg-[#AE54C6]"

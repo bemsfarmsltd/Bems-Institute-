@@ -21,7 +21,9 @@ import {
   PlayCircle,
   AlertTriangle,
   UserCheck,
-  Clock
+  Clock,
+  MapPin,
+  Video
 } from "lucide-react";
 import { apiFetch } from "@/lib/api-client";
 import { buildWhatsAppLink, BEMS_WHATSAPP_NUMBER } from "@/lib/whatsapp";
@@ -68,6 +70,7 @@ function SubscriptionsContent() {
   const [selectedCourseId, setSelectedCourseId] = useState<string>(courseQuery || "web-dev");
   const [selectedPlan, setSelectedPlan] = useState<PaymentPlan | null>(initialPlan);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [deliveryMode, setDeliveryMode] = useState<"PHYSICAL_LAB" | "VIRTUAL_ZOOM" | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<"PAYSTACK" | "BANK">("PAYSTACK");
   // The account to pay into, from Admin Settings > General. null = not set,
   // so bank transfer isn't offered at all (never show a placeholder account).
@@ -146,6 +149,7 @@ function SubscriptionsContent() {
 
   const handleSelectPlan = (plan: PaymentPlan) => {
     setSelectedPlan(plan);
+    setDeliveryMode(null);
     setPaymentError(null);
     setBankReference("");
     setAgreedToTerms(false);
@@ -222,6 +226,12 @@ function SubscriptionsContent() {
       return;
     }
 
+    if (!deliveryMode) {
+      setPaymentError("Please choose Physical class or Virtual class.");
+      setIsProcessing(false);
+      return;
+    }
+
     if (paymentMethod === "BANK") {
       if (!bankReference.trim()) {
         setPaymentError("Please enter the transfer reference or narration you used.");
@@ -232,6 +242,7 @@ function SubscriptionsContent() {
         source: effectiveSource || undefined,
         paymentMethod: "bank",
         paymentPlan: selectedPlan,
+        deliveryMode,
         bankReference: bankReference.trim()
       });
       finalizeEnrollmentUI(selectedPlan, {
@@ -249,6 +260,7 @@ function SubscriptionsContent() {
         body: JSON.stringify({
           courseId: selectedCourse.id,
           paymentPlan: selectedPlan,
+          deliveryMode,
           source: effectiveSource || undefined
         })
       });
@@ -702,6 +714,55 @@ function SubscriptionsContent() {
                   <strong className="text-[#303654]">₦{planAmount(selectedPlan).toLocaleString()}</strong>
                 </div>
               )}
+            </div>
+
+            {/* Class Type Selector (required, no default) */}
+            <div className="space-y-2 mb-5">
+              <span className="text-xs font-bold text-[#645F80] block">
+                Choose Class Type <span className="text-rose-500">*</span>
+              </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDeliveryMode("PHYSICAL_LAB");
+                    if (paymentError === "Please choose Physical class or Virtual class.") {
+                      setPaymentError(null);
+                    }
+                  }}
+                  className={`m-press p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                    deliveryMode === "PHYSICAL_LAB"
+                      ? "border-[#AE54C6] bg-purple-50 text-[#AE54C6]"
+                      : "border-[#F1E2F5] text-[#645F80] hover:border-[#AE54C6]/40"
+                  }`}
+                >
+                  <div className="font-bold flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 shrink-0" />
+                    Physical class
+                  </div>
+                  <div className="text-[11px] opacity-80 mt-0.5">BEMS lab, Umuahia</div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDeliveryMode("VIRTUAL_ZOOM");
+                    if (paymentError === "Please choose Physical class or Virtual class.") {
+                      setPaymentError(null);
+                    }
+                  }}
+                  className={`m-press p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                    deliveryMode === "VIRTUAL_ZOOM"
+                      ? "border-[#AE54C6] bg-purple-50 text-[#AE54C6]"
+                      : "border-[#F1E2F5] text-[#645F80] hover:border-[#AE54C6]/40"
+                  }`}
+                >
+                  <div className="font-bold flex items-center gap-1.5">
+                    <Video className="w-3.5 h-3.5 shrink-0" />
+                    Virtual class
+                  </div>
+                  <div className="text-[11px] opacity-80 mt-0.5">Live online</div>
+                </button>
+              </div>
             </div>
 
             {/* Payment Method Selector */}

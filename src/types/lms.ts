@@ -62,6 +62,7 @@ export interface UserEnrollmentRecord {
   totalDue: number;
   hasAccess: boolean;
   awaitingApproval: boolean;
+  deliveryMode?: "PHYSICAL_LAB" | "VIRTUAL_ZOOM";
 }
 
 export interface LessonProgress {
