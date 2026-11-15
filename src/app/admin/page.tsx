@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useMemo, Suspense } from "reac
 import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams, useRouter } from "next/navigation";
+import { AdminGate } from "@/components/AdminGate";
 import { useLMS } from "@/context/LMSContext";
 import { apiFetch, API_BASE_URL } from "@/lib/api-client";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
@@ -5885,7 +5886,12 @@ export default function AdminDashboardPage() {
         </div>
       }
     >
-      <AdminDashboardContent />
+      {/* Staff sign-in (password, then 2-step code) before anything renders.
+          The redesign in cf0b952 dropped this, so signed-out visitors saw the
+          console shell; the API never returned them data. */}
+      <AdminGate>
+        <AdminDashboardContent />
+      </AdminGate>
     </Suspense>
   );
 }
