@@ -40,6 +40,10 @@ function ResetPasswordContent() {
     const result = await resetPassword(token, password);
     setSubmitting(false);
 
+    if (result.ok && result.signInRequired) {
+      router.push("/login?reset=1");
+      return;
+    }
     if (!result.ok || !result.user) {
       setError(result.error || "Could not reset password.");
       return;

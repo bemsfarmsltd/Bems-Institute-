@@ -44,11 +44,15 @@ function UserIcon() {
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, signup } = useLMS();
+  const { login, completeTwoFactorLogin, signup } = useLMS();
 
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [referralCode, setReferralCode] = useState("");
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
+  const [twoFactorChallenge, setTwoFactorChallenge] = useState<string | null>(null);
+  const [twoFactorCode, setTwoFactorCode] = useState("");
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
+  const [lowRecoveryNotice, setLowRecoveryNotice] = useState<{ count: number; role: UserRole } | null>(null);
 
   // Plain window.location read rather than useSearchParams() — this page
   // doesn't have a Suspense boundary, and a bare browser API avoids
@@ -60,6 +64,9 @@ export default function LoginPage() {
       if (ref) setReferralCode(ref);
       if (params.get("mode") === "signup") {
         setMode("signup");
+      }
+      if (params.get("reset") === "1") {
+        setInfoMessage("Password updated. Sign in with your new password and 2-step code.");
       }
       const redir = params.get("redirect") || params.get("returnUrl");
       // Same-site paths only. "//evil.com" and "/\evil.com" also start
@@ -135,8 +142,33 @@ export default function LoginPage() {
     setSubmitting(true);
 
     if (mode === "signin") {
+      if (twoFactorChallenge) {
+        const result = await completeTwoFactorLogin(twoFactorChallenge, twoFactorCode.trim());
+        setSubmitting(false);
+        if (!result.ok || !result.user) {
+          const msg = result.error ?? "Verification failed.";
+          if (/timed out|expired/i.test(msg)) {
+            setTwoFactorChallenge(null);
+            setTwoFactorCode("");
+          }
+          setError(msg);
+          return;
+        }
+        if (typeof result.recoveryCodesLeft === "number" && result.recoveryCodesLeft <= 2) {
+          setLowRecoveryNotice({ count: result.recoveryCodesLeft, role: result.user.role });
+          return;
+        }
+        routeForRole(result.user.role);
+        return;
+      }
+
       const result = await login(email, password);
       setSubmitting(false);
+      if (result.twoFactorRequired && result.challenge) {
+        setTwoFactorChallenge(result.challenge);
+        setTwoFactorCode("");
+        return;
+      }
       if (!result.ok || !result.user) {
         setError(result.error ?? "Invalid email or password.");
         return;
@@ -170,11 +202,37 @@ export default function LoginPage() {
             👋
           </span>
           <h1 className="font-display text-[30px] sm:text-[36px] font-extrabold text-[#1D2026] tracking-tight leading-[1.15] mb-2">
-            Login into BEMS!
+            {twoFactorChallenge ? "2-Step Verification" : "Login into BEMS!"}
           </h1>
           <p className="text-[#64748B] text-[15px] mb-7">
-            Nice to see you! Please log in with your account.
+            {twoFactorChallenge
+              ? "Enter the 6-digit code from your authenticator app or a recovery code."
+              : "Nice to see you! Please log in with your account."}
           </p>
+
+          {infoMessage && (
+            <div className="mb-5 p-3.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-[13px] font-semibold">
+              {infoMessage}
+            </div>
+          )}
+
+          {lowRecoveryNotice && (
+            <div className="mb-5 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-[13px] space-y-3">
+              <p className="font-bold">
+                Signed in! You only have {lowRecoveryNotice.count} recovery code{lowRecoveryNotice.count === 1 ? "" : "s"} left.
+              </p>
+              <p className="text-[12px]">
+                Generate new recovery codes in Admin Settings &rarr; Security so you don&apos;t get locked out.
+              </p>
+              <button
+                type="button"
+                onClick={() => routeForRole(lowRecoveryNotice.role)}
+                className="m-press px-4 py-2 rounded-lg bg-[#AE54C6] text-white text-xs font-bold cursor-pointer"
+              >
+                Continue to Console &rarr;
+              </button>
+            </div>
+          )}
 
           {error && (
             <div className="mb-5 p-3.5 rounded-lg bg-[#FBE9EB] border border-[#D6293E]/25 text-[#D6293E] text-[13px] font-semibold">
@@ -182,6 +240,47 @@ export default function LoginPage() {
             </div>
           )}
 
+          {twoFactorChallenge ? (
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label className="block text-[13.5px] font-medium text-[#475569] mb-2">
+                  Authenticator or Recovery Code *
+                </label>
+                <div className="flex items-center gap-3 bg-[#F3F5F7] rounded-lg px-4 py-3 border border-transparent focus-within:border-[#AE54C6] focus-within:bg-white transition-colors">
+                  <LockIcon />
+                  <input
+                    type="text"
+                    required
+                    autoFocus
+                    value={twoFactorCode}
+                    onChange={(e) => setTwoFactorCode(e.target.value)}
+                    placeholder="123456 or k7m2-9xq4"
+                    className="w-full bg-transparent text-[15px] font-mono text-[#1D2026] placeholder:text-[#94A3B8] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={submitting}
+                className="m-press w-full py-3 rounded-lg bg-[#AE54C6] hover:bg-[#A03BBC] text-white font-semibold text-[15px] shadow-sm transition-colors disabled:opacity-60 cursor-pointer"
+              >
+                {submitting ? "Verifying..." : "Verify & Sign In"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setTwoFactorChallenge(null);
+                  setTwoFactorCode("");
+                  setError(null);
+                }}
+                className="m-press w-full py-2.5 rounded-lg border border-slate-200 text-[#475569] text-[13px] font-semibold hover:bg-slate-50 cursor-pointer"
+              >
+                &larr; Back to password
+              </button>
+            </form>
+          ) : (
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email Address */}
             <div>
@@ -245,11 +344,12 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-3 rounded-lg bg-[#AE54C6] hover:bg-[#A03BBC] text-white font-semibold text-[15px] shadow-sm transition-colors disabled:opacity-60 cursor-pointer"
+              className="m-press w-full py-3 rounded-lg bg-[#AE54C6] hover:bg-[#A03BBC] text-white font-semibold text-[15px] shadow-sm transition-colors disabled:opacity-60 cursor-pointer"
             >
               {submitting ? "Logging in..." : "Login"}
             </button>
           </form>
+          )}
 
           {/* Instant Demo Access: local development only (the backend refuses
               demo accounts in production; see backend/src/lib/demo-accounts.ts). */}

@@ -7,6 +7,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useLMS } from "@/context/LMSContext";
 import { apiFetch, API_BASE_URL } from "@/lib/api-client";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
+import QRCode from "qrcode";
 import { UserAvatar } from "@/components/UserAvatar";
 import { CountUp } from "@/components/CountUp";
 import {
@@ -52,6 +53,14 @@ import {
   Shield,
   AlertTriangle,
   CreditCard,
+  Copy,
+  Download,
+  KeyRound,
+  Smartphone,
+  LogOut,
+  UserPlus,
+  Share2,
+  RefreshCw,
 } from "lucide-react";
 
 interface EduportStudentCard {
@@ -82,6 +91,35 @@ interface StaffMember {
   role: "ADMIN" | "INSTRUCTOR";
   avatarUrl?: string | null;
   active: boolean;
+  createdAt: string;
+  twoFactorEnabled?: boolean;
+  lastSignInAt?: string | null;
+  isYou?: boolean;
+}
+
+interface SecurityOverview {
+  twoFactor: {
+    enabled: boolean;
+    enabledAt: string | null;
+    recoveryCodesLeft: number;
+  };
+  recentSignIns: Array<{
+    method: string;
+    ip: string | null;
+    userAgent: string | null;
+    createdAt: string;
+  }>;
+  failedSignInsLast7Days: number;
+}
+
+interface StaffInvite {
+  id: string;
+  email: string;
+  role: "INSTRUCTOR" | "ADMIN";
+  status: "pending" | "accepted" | "revoked" | "expired";
+  invitedBy: { name: string; email: string } | string | null;
+  expiresAt: string;
+  acceptedAt: string | null;
   createdAt: string;
 }
 
@@ -399,8 +437,43 @@ function AdminDashboardContent() {
   // Admin Settings state — General Settings (/api/admin/settings/general)
   // and Notification Settings (/api/admin/settings/notifications) are live.
   const [settingsSubTab, setSettingsSubTab] = useState<
-    "general" | "notification" | "account" | "email"
+    "general" | "staff" | "security" | "notification" | "account" | "email"
   >("general");
+  const [securityData, setSecurityData] = useState<SecurityOverview | null>(null);
+  const [securityLoading, setSecurityLoading] = useState(false);
+  const [securityError, setSecurityError] = useState<string | null>(null);
+  const [twoFactorSetupStep, setTwoFactorSetupStep] = useState<"idle" | "qr" | "recovery">("idle");
+  const [twoFactorPassword, setTwoFactorPassword] = useState("");
+  const [twoFactorSetupSecret, setTwoFactorSetupSecret] = useState("");
+  const [twoFactorOtpAuthUrl, setTwoFactorOtpAuthUrl] = useState("");
+  const [twoFactorQrDataUrl, setTwoFactorQrDataUrl] = useState("");
+  const [twoFactorVerifyCode, setTwoFactorVerifyCode] = useState("");
+  const [twoFactorRecoveryCodes, setTwoFactorRecoveryCodes] = useState<string[]>([]);
+  const [twoFactorBusy, setTwoFactorBusy] = useState(false);
+  const [showDisable2fa, setShowDisable2fa] = useState(false);
+  const [disable2faPassword, setDisable2faPassword] = useState("");
+  const [disable2faCode, setDisable2faCode] = useState("");
+  const [showRegenCodes, setShowRegenCodes] = useState(false);
+  const [regenCode, setRegenCode] = useState("");
+  const [copiedRecoveryCodes, setCopiedRecoveryCodes] = useState(false);
+  const [signingOutEverywhere, setSigningOutEverywhere] = useState(false);
+
+  const [staffInvites, setStaffInvites] = useState<StaffInvite[]>([]);
+  const [invitesLoading, setInvitesLoading] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState<"INSTRUCTOR" | "ADMIN">("INSTRUCTOR");
+  const [invitingStaff, setInvitingStaff] = useState(false);
+  const [inviteError, setInviteError] = useState<string | null>(null);
+  const [createdInviteResult, setCreatedInviteResult] = useState<{
+    inviteUrl: string;
+    emailed: boolean;
+    email: string;
+    role: string;
+  } | null>(null);
+  const [copiedInviteUrl, setCopiedInviteUrl] = useState(false);
+  const [revokingInviteId, setRevokingInviteId] = useState<string | null>(null);
+  const [staffRoleSavingId, setStaffRoleSavingId] = useState<string | null>(null);
+  const [staffResetting2faId, setStaffResetting2faId] = useState<string | null>(null);
   const [generalSettingsForm, setGeneralSettingsForm] = useState({
     allowRegistration: "enable" as "enable" | "disable" | "request",
     bankName: "",
@@ -1065,6 +1138,314 @@ function AdminDashboardContent() {
       })
       .catch(() => {});
   }, [activeTab, settingsLoaded]);
+
+  const loadSecurityOverview = useCallback(async () => {
+    setSecurityLoading(true);
+    setSecurityError(null);
+    try {
+      const res = await apiFetch("/api/account/security");
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setSecurityError(data?.error || "Could not load security overview.");
+      } else if (data) {
+        setSecurityData(data);
+      }
+    } catch {
+      setSecurityError("Network error while loading security settings.");
+    } finally {
+      setSecurityLoading(false);
+    }
+  }, []);
+
+  const loadStaffAndInvites = useCallback(async () => {
+    setInvitesLoading(true);
+    setStaffLoading(true);
+    try {
+      const [staffRes, invitesRes] = await Promise.all([
+        apiFetch("/api/admin/staff"),
+        apiFetch("/api/admin/staff/invites")
+      ]);
+      const staffData = await staffRes.json().catch(() => null);
+      const invitesData = await invitesRes.json().catch(() => null);
+      if (staffRes.ok && staffData && Array.isArray(staffData.staff)) {
+        setStaffList(staffData.staff);
+        setStaffLoaded(true);
+      }
+      if (invitesRes.ok && invitesData && Array.isArray(invitesData.invites)) {
+        setStaffInvites(invitesData.invites);
+      }
+    } catch {
+      // handled gracefully in UI
+    } finally {
+      setInvitesLoading(false);
+      setStaffLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeTab !== "settings") return;
+    if (settingsSubTab === "security") {
+      void loadSecurityOverview();
+    } else if (settingsSubTab === "staff") {
+      void loadStaffAndInvites();
+    }
+  }, [activeTab, settingsSubTab, loadSecurityOverview, loadStaffAndInvites]);
+
+  const handleStart2faSetup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSecurityError(null);
+    setTwoFactorBusy(true);
+    try {
+      const res = await apiFetch("/api/account/2fa/setup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: twoFactorPassword })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setSecurityError(data?.error || "Could not start 2-step setup.");
+        return;
+      }
+      const qr = await QRCode.toDataURL(data.otpauthUrl, { width: 220, margin: 2 });
+      setTwoFactorSetupSecret(data.secret || "");
+      setTwoFactorOtpAuthUrl(data.otpauthUrl || "");
+      setTwoFactorQrDataUrl(qr);
+      setTwoFactorPassword("");
+      setTwoFactorVerifyCode("");
+      setTwoFactorSetupStep("qr");
+    } catch {
+      setSecurityError("Network error while starting 2-step setup.");
+    } finally {
+      setTwoFactorBusy(false);
+    }
+  };
+
+  const handleEnable2fa = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSecurityError(null);
+    setTwoFactorBusy(true);
+    try {
+      const res = await apiFetch("/api/account/2fa/enable", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: twoFactorVerifyCode.trim() })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setSecurityError(data?.error || "Could not verify authenticator code.");
+        return;
+      }
+      setTwoFactorRecoveryCodes(Array.isArray(data.recoveryCodes) ? data.recoveryCodes : []);
+      setTwoFactorSetupStep("recovery");
+      setTwoFactorVerifyCode("");
+      await loadSecurityOverview();
+    } catch {
+      setSecurityError("Network error while enabling 2-step verification.");
+    } finally {
+      setTwoFactorBusy(false);
+    }
+  };
+
+  const handleDisable2fa = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSecurityError(null);
+    setTwoFactorBusy(true);
+    try {
+      const res = await apiFetch("/api/account/2fa/disable", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: disable2faPassword, code: disable2faCode.trim() })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setSecurityError(data?.error || "Could not disable 2-step verification.");
+        return;
+      }
+      setShowDisable2fa(false);
+      setDisable2faPassword("");
+      setDisable2faCode("");
+      setTwoFactorSetupStep("idle");
+      setTwoFactorRecoveryCodes([]);
+      setAdminNotice("2-step verification has been disabled.");
+      await loadSecurityOverview();
+    } catch {
+      setSecurityError("Network error while disabling 2-step verification.");
+    } finally {
+      setTwoFactorBusy(false);
+    }
+  };
+
+  const handleRegenRecoveryCodes = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSecurityError(null);
+    setTwoFactorBusy(true);
+    try {
+      const res = await apiFetch("/api/account/2fa/recovery-codes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: regenCode.trim() })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setSecurityError(data?.error || "Could not generate new recovery codes.");
+        return;
+      }
+      setTwoFactorRecoveryCodes(Array.isArray(data.recoveryCodes) ? data.recoveryCodes : []);
+      setTwoFactorSetupStep("recovery");
+      setShowRegenCodes(false);
+      setRegenCode("");
+      await loadSecurityOverview();
+    } catch {
+      setSecurityError("Network error while generating recovery codes.");
+    } finally {
+      setTwoFactorBusy(false);
+    }
+  };
+
+  const handleSignOutEverywhere = async () => {
+    setSecurityError(null);
+    setSigningOutEverywhere(true);
+    try {
+      const res = await apiFetch("/api/account/sign-out-everywhere", {
+        method: "POST"
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setSecurityError(data?.error || "Could not sign out all sessions.");
+        setSigningOutEverywhere(false);
+        return;
+      }
+      logout();
+      router.push("/login");
+    } catch {
+      setSecurityError("Network error while signing out sessions.");
+      setSigningOutEverywhere(false);
+    }
+  };
+
+  const handleCopyRecoveryCodes = async () => {
+    if (twoFactorRecoveryCodes.length === 0) return;
+    await navigator.clipboard.writeText(twoFactorRecoveryCodes.join("\n"));
+    setCopiedRecoveryCodes(true);
+    setTimeout(() => setCopiedRecoveryCodes(false), 2500);
+  };
+
+  const handleDownloadRecoveryCodes = () => {
+    if (twoFactorRecoveryCodes.length === 0) return;
+    const content = [
+      "BEMS Institute of Technology - 2-Step Verification Recovery Codes",
+      "Keep these codes safe. Each code can only be used once.",
+      "",
+      ...twoFactorRecoveryCodes
+    ].join("\n");
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "bems-recovery-codes.txt";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleSendStaffInvite = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setInviteError(null);
+    setCreatedInviteResult(null);
+    setInvitingStaff(true);
+    try {
+      const res = await apiFetch("/api/admin/staff/invites", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: inviteEmail.trim(), role: inviteRole })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setInviteError(data?.error || "Could not create staff invite.");
+        return;
+      }
+      setCreatedInviteResult({
+        inviteUrl: data.inviteUrl || "",
+        emailed: Boolean(data.emailed),
+        email: inviteEmail.trim(),
+        role: inviteRole
+      });
+      setInviteEmail("");
+      await loadStaffAndInvites();
+    } catch {
+      setInviteError("Network error while sending staff invite.");
+    } finally {
+      setInvitingStaff(false);
+    }
+  };
+
+  const handleRevokeInvite = async (inviteId: string) => {
+    setRevokingInviteId(inviteId);
+    try {
+      const res = await apiFetch(`/api/admin/staff/invites/${inviteId}/revoke`, {
+        method: "POST"
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setAdminNotice(data?.error || "Could not revoke invite.");
+      } else {
+        setAdminNotice("Invite revoked.");
+        await loadStaffAndInvites();
+      }
+    } catch {
+      setAdminNotice("Network error while revoking invite.");
+    } finally {
+      setRevokingInviteId(null);
+    }
+  };
+
+  const handleChangeStaffRole = async (
+    member: StaffMember,
+    newRole: "STUDENT" | "INSTRUCTOR" | "ADMIN"
+  ) => {
+    if (member.isYou || member.id === user?.id) return;
+    setStaffRoleSavingId(member.id);
+    try {
+      const res = await apiFetch(`/api/admin/staff/${member.id}/role`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: newRole })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setAdminNotice(data?.error || "Could not update staff role.");
+      } else {
+        setAdminNotice(`Updated ${member.name}'s role to ${newRole}.`);
+        await loadStaffAndInvites();
+      }
+    } catch {
+      setAdminNotice("Network error while updating staff role.");
+    } finally {
+      setStaffRoleSavingId(null);
+    }
+  };
+
+  const handleResetStaff2fa = async (member: StaffMember) => {
+    if (member.isYou || member.id === user?.id) return;
+    setStaffResetting2faId(member.id);
+    try {
+      const res = await apiFetch(`/api/admin/staff/${member.id}/reset-2fa`, {
+        method: "POST"
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setAdminNotice(data?.error || "Could not reset 2-step verification.");
+      } else {
+        setStaffList((prev) =>
+          prev.map((s) => (s.id === member.id ? { ...s, twoFactorEnabled: false } : s))
+        );
+        setAdminNotice(`Reset 2-step verification for ${member.name}.`);
+      }
+    } catch {
+      setAdminNotice("Network error while resetting 2-step verification.");
+    } finally {
+      setStaffResetting2faId(null);
+    }
+  };
 
   const saveGeneralSettings = async () => {
     setGeneralSettingsError(null);
@@ -4302,6 +4683,8 @@ function AdminDashboardContent() {
                 <div className="lg:col-span-3 bg-[#24292D] rounded-xl p-4 space-y-1.5">
                   {[
                     { id: "general", label: "General Settings", icon: Settings },
+                    { id: "staff", label: "Staff & Access", icon: Users },
+                    { id: "security", label: "Security", icon: Shield },
                     { id: "notification", label: "Notification Settings", icon: Bell },
                     { id: "account", label: "Account Settings", icon: UserIcon },
                     { id: "email", label: "Email Settings", icon: Mail },
@@ -4314,10 +4697,16 @@ function AdminDashboardContent() {
                         type="button"
                         onClick={() =>
                           setSettingsSubTab(
-                            item.id as "general" | "notification" | "account" | "email"
+                            item.id as
+                              | "general"
+                              | "staff"
+                              | "security"
+                              | "notification"
+                              | "account"
+                              | "email"
                           )
                         }
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
+                        className={`m-press w-full flex items-center gap-3 px-4 py-3 rounded-lg text-[14px] font-semibold transition-colors cursor-pointer ${
                           isSubActive
                             ? "bg-white text-[#1D2026] shadow-xs"
                             : "text-white/90 hover:text-white hover:bg-white/5"
@@ -4677,13 +5066,696 @@ function AdminDashboardContent() {
                         </div>
                       </div>
 
-                      {/* Honest note on what isn't built */}
-                      <div className="rounded-lg bg-[#F8F9FA] border border-slate-200/80 p-5 text-[14px] text-[#747579] leading-relaxed">
-                        Not available yet:
-                        <ul className="list-disc pl-5 mt-2 space-y-1">
-                          <li>2-Step Verification — no TOTP/SMS code infrastructure exists.</li>
-                          <li>Session activity logs — sign-ins aren&apos;t tracked with browser/IP metadata, so there&apos;s nothing real to show or revoke here.</li>
-                        </ul>
+                      {/* Security link */}
+                      <div className="rounded-lg bg-[#F8F9FA] border border-slate-200/80 p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div className="text-[14px] text-[#747579] leading-relaxed">
+                          <strong className="text-[#1D2026]">2-Step Verification &amp; Sign-in History</strong>
+                          <p className="mt-1">
+                            Manage authenticator 2-step verification, recovery codes, and active sessions in the Security tab.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setSettingsSubTab("security")}
+                          className="m-press shrink-0 px-4 py-2.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-[#1D2026] text-[13.5px] font-bold cursor-pointer"
+                        >
+                          Open Security
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {settingsSubTab === "staff" && (
+                    /* Sub-Tab: Staff & Access */
+                    <div className="space-y-6">
+                      {/* Invite Staff Form */}
+                      <div className="m-lift bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
+                        <div className="px-5 sm:px-6 py-4 border-b border-slate-100 flex items-center gap-2.5">
+                          <UserPlus className="w-5 h-5 text-[#AE54C6] m-pop" />
+                          <div>
+                            <h2 className="font-display text-[19px] sm:text-[20px] font-extrabold text-[#1D2026]">
+                              Invite Staff Member
+                            </h2>
+                            <p className="text-[12.5px] text-[#747579] mt-0.5">
+                              Staff accounts are invite-only. Send an invite link valid for 7 days.
+                            </p>
+                          </div>
+                        </div>
+
+                        <form onSubmit={handleSendStaffInvite} className="p-5 sm:p-6 space-y-4">
+                          {inviteError && (
+                            <div className="rounded-lg bg-rose-50 border border-rose-200 px-4 py-3 text-[13px] font-semibold text-rose-700 flex items-start gap-2.5">
+                              <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                              <span>{inviteError}</span>
+                            </div>
+                          )}
+
+                          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+                            <div className="sm:col-span-6">
+                              <label className="block text-[12.5px] font-bold text-[#1D2026] mb-1.5">
+                                Staff Email
+                              </label>
+                              <input
+                                type="email"
+                                required
+                                value={inviteEmail}
+                                onChange={(e) => setInviteEmail(e.target.value)}
+                                placeholder="instructor@bems.edu.ng"
+                                className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-[14px] text-[#1D2026] focus:outline-none focus:ring-2 focus:ring-[#AE54C6]/25 focus:border-[#AE54C6]"
+                              />
+                            </div>
+                            <div className="sm:col-span-3">
+                              <label className="block text-[12.5px] font-bold text-[#1D2026] mb-1.5">
+                                Role
+                              </label>
+                              <select
+                                value={inviteRole}
+                                onChange={(e) =>
+                                  setInviteRole(e.target.value as "INSTRUCTOR" | "ADMIN")
+                                }
+                                className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-[14px] text-[#1D2026] focus:outline-none focus:ring-2 focus:ring-[#AE54C6]/25 focus:border-[#AE54C6]"
+                              >
+                                <option value="INSTRUCTOR">Instructor</option>
+                                <option value="ADMIN">Admin</option>
+                              </select>
+                            </div>
+                            <div className="sm:col-span-3">
+                              <button
+                                type="submit"
+                                disabled={invitingStaff}
+                                className="m-press w-full px-4 py-2.5 rounded-lg bg-[#AE54C6] hover:bg-[#9B42B3] text-white text-[14px] font-bold transition-colors disabled:opacity-60 cursor-pointer"
+                              >
+                                {invitingStaff ? "Sending..." : "Create Invite"}
+                              </button>
+                            </div>
+                          </div>
+
+                          {createdInviteResult && (
+                            <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-4 space-y-3">
+                              <div className="flex items-start gap-2.5">
+                                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                                <div className="text-[13px] text-emerald-900">
+                                  <p className="font-bold">
+                                    Invite created for {createdInviteResult.email} ({createdInviteResult.role})
+                                  </p>
+                                  <p className="text-emerald-700 mt-0.5">
+                                    {createdInviteResult.emailed
+                                      ? "An invite email was sent. You can also share the link directly below:"
+                                      : "Email delivery is not configured — share this invite link directly:"}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex flex-col sm:flex-row gap-2">
+                                <input
+                                  type="text"
+                                  readOnly
+                                  value={createdInviteResult.inviteUrl}
+                                  className="flex-1 px-3 py-2 rounded-lg border border-emerald-200 bg-white text-[12.5px] font-mono text-[#1D2026]"
+                                />
+                                <div className="flex flex-wrap gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={async () => {
+                                      await navigator.clipboard.writeText(
+                                        createdInviteResult.inviteUrl
+                                      );
+                                      setCopiedInviteUrl(true);
+                                      setTimeout(() => setCopiedInviteUrl(false), 2500);
+                                    }}
+                                    className="m-press inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white border border-emerald-300 text-emerald-900 text-[12.5px] font-bold hover:bg-emerald-100/60 cursor-pointer"
+                                  >
+                                    <Copy className="w-3.5 h-3.5" />
+                                    {copiedInviteUrl ? "Copied" : "Copy link"}
+                                  </button>
+                                  <a
+                                    href={`https://wa.me/?text=${encodeURIComponent(
+                                      `You have been invited to join BEMS Institute of Technology as ${createdInviteResult.role}. Accept your invite here: ${createdInviteResult.inviteUrl}`
+                                    )}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="m-press inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#25D366] text-white text-[12.5px] font-bold hover:opacity-95"
+                                  >
+                                    <Share2 className="w-3.5 h-3.5" />
+                                    WhatsApp
+                                  </a>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </form>
+                      </div>
+
+                      {/* Staff List */}
+                      <div className="m-lift bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
+                        <div className="px-5 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between gap-3">
+                          <div>
+                            <h2 className="font-display text-[19px] sm:text-[20px] font-extrabold text-[#1D2026]">
+                              Staff Members
+                            </h2>
+                            <p className="text-[12.5px] text-[#747579] mt-0.5">
+                              Manage roles, account status, and 2-step verification resets.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => void loadStaffAndInvites()}
+                            className="m-press inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-[12.5px] font-semibold text-[#1D2026] hover:bg-slate-50 cursor-pointer"
+                          >
+                            <RefreshCw className="w-3.5 h-3.5" />
+                            Refresh
+                          </button>
+                        </div>
+
+                        <div className="divide-y divide-slate-100">
+                          {staffLoading && staffList.length === 0 ? (
+                            <div className="p-6 text-[13.5px] text-[#747579]">
+                              Loading staff accounts...
+                            </div>
+                          ) : staffList.length === 0 ? (
+                            <div className="p-6 text-[13.5px] text-[#747579]">
+                              No staff accounts found.
+                            </div>
+                          ) : (
+                            staffList.map((member) => {
+                              const isSelf = Boolean(member.isYou) || member.id === user?.id;
+                              return (
+                                <div
+                                  key={member.id}
+                                  className="p-4 sm:px-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4"
+                                >
+                                  <div className="flex items-start gap-3 min-w-0">
+                                    <UserAvatar
+                                      user={{
+                                        name: member.name,
+                                        avatarUrl: member.avatarUrl
+                                      }}
+                                      size={40}
+                                    />
+                                    <div className="min-w-0">
+                                      <div className="flex flex-wrap items-center gap-2">
+                                        <p className="text-[14.5px] font-bold text-[#1D2026] truncate">
+                                          {member.name}
+                                        </p>
+                                        {isSelf && (
+                                          <span className="px-2 py-0.5 rounded-full bg-[#AE54C6]/10 text-[#AE54C6] text-[11px] font-bold">
+                                            You
+                                          </span>
+                                        )}
+                                        <span
+                                          className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                                            member.active
+                                              ? "bg-emerald-50 text-emerald-700"
+                                              : "bg-slate-100 text-slate-600"
+                                          }`}
+                                        >
+                                          {member.active ? "Active" : "Inactive"}
+                                        </span>
+                                        <span
+                                          className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                                            member.twoFactorEnabled
+                                              ? "bg-sky-50 text-sky-700"
+                                              : "bg-amber-50 text-amber-700"
+                                          }`}
+                                        >
+                                          {member.twoFactorEnabled ? "2-Step On" : "2-Step Off"}
+                                        </span>
+                                      </div>
+                                      <p className="text-[12.5px] text-[#747579] truncate">
+                                        {member.email}
+                                      </p>
+                                      <p className="text-[11.5px] text-[#747579] mt-0.5">
+                                        Last sign-in:{" "}
+                                        {member.lastSignInAt
+                                          ? new Date(member.lastSignInAt).toLocaleString()
+                                          : "Never"}
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    {isSelf ? (
+                                      <span className="px-3 py-1.5 rounded-lg bg-slate-100 text-[12px] font-bold text-[#475569]">
+                                        {member.role} (Own account)
+                                      </span>
+                                    ) : (
+                                      <>
+                                        <select
+                                          aria-label={`Role for ${member.name}`}
+                                          value={member.role}
+                                          disabled={staffRoleSavingId === member.id}
+                                          onChange={(e) =>
+                                            void handleChangeStaffRole(
+                                              member,
+                                              e.target.value as "STUDENT" | "INSTRUCTOR" | "ADMIN"
+                                            )
+                                          }
+                                          className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-[12.5px] font-bold text-[#1D2026] disabled:opacity-60"
+                                        >
+                                          <option value="ADMIN">ADMIN</option>
+                                          <option value="INSTRUCTOR">INSTRUCTOR</option>
+                                          <option value="STUDENT">STUDENT</option>
+                                        </select>
+
+                                        <button
+                                          type="button"
+                                          disabled={staffActionId === member.id}
+                                          onClick={() => void handleToggleStaffActive(member)}
+                                          className={`m-press px-3 py-1.5 rounded-lg text-[12.5px] font-bold border transition-colors cursor-pointer disabled:opacity-60 ${
+                                            member.active
+                                              ? "border-rose-200 text-rose-700 hover:bg-rose-50"
+                                              : "border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                                          }`}
+                                        >
+                                          {staffActionId === member.id
+                                            ? "Saving..."
+                                            : member.active
+                                            ? "Deactivate"
+                                            : "Reactivate"}
+                                        </button>
+
+                                        {member.twoFactorEnabled && (
+                                          <button
+                                            type="button"
+                                            disabled={staffResetting2faId === member.id}
+                                            onClick={() => void handleResetStaff2fa(member)}
+                                            className="m-press px-3 py-1.5 rounded-lg border border-amber-200 text-amber-800 hover:bg-amber-50 text-[12.5px] font-bold cursor-pointer disabled:opacity-60"
+                                          >
+                                            {staffResetting2faId === member.id
+                                              ? "Resetting..."
+                                              : "Reset 2-Step"}
+                                          </button>
+                                        )}
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Pending Invites */}
+                      <div className="m-lift bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
+                        <div className="px-5 sm:px-6 py-4 border-b border-slate-100">
+                          <h2 className="font-display text-[18px] sm:text-[19px] font-extrabold text-[#1D2026]">
+                            Staff Invites
+                          </h2>
+                          <p className="text-[12.5px] text-[#747579] mt-0.5">
+                            Track pending invitations or revoke links before they are used.
+                          </p>
+                        </div>
+
+                        <div className="divide-y divide-slate-100">
+                          {invitesLoading && staffInvites.length === 0 ? (
+                            <div className="p-6 text-[13.5px] text-[#747579]">
+                              Loading invites...
+                            </div>
+                          ) : staffInvites.length === 0 ? (
+                            <div className="p-6 text-[13.5px] text-[#747579]">
+                              No staff invites sent yet.
+                            </div>
+                          ) : (
+                            staffInvites.map((inv) => (
+                              <div
+                                key={inv.id}
+                                className="p-4 sm:px-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+                              >
+                                <div className="min-w-0">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <p className="text-[14px] font-bold text-[#1D2026] truncate">
+                                      {inv.email}
+                                    </p>
+                                    <span className="px-2 py-0.5 rounded-full bg-slate-100 text-[#1D2026] text-[11px] font-bold">
+                                      {inv.role}
+                                    </span>
+                                    <span
+                                      className={`px-2 py-0.5 rounded-full text-[11px] font-bold capitalize ${
+                                        inv.status === "pending"
+                                          ? "bg-amber-50 text-amber-700"
+                                          : inv.status === "accepted"
+                                          ? "bg-emerald-50 text-emerald-700"
+                                          : "bg-slate-100 text-slate-600"
+                                      }`}
+                                    >
+                                      {inv.status}
+                                    </span>
+                                  </div>
+                                  <p className="text-[12px] text-[#747579] mt-0.5">
+                                    Expires {new Date(inv.expiresAt).toLocaleDateString()}
+                                  </p>
+                                </div>
+
+                                {inv.status === "pending" && (
+                                  <button
+                                    type="button"
+                                    disabled={revokingInviteId === inv.id}
+                                    onClick={() => void handleRevokeInvite(inv.id)}
+                                    className="m-press self-start sm:self-auto px-3.5 py-1.5 rounded-lg border border-rose-200 text-rose-700 hover:bg-rose-50 text-[12.5px] font-bold cursor-pointer disabled:opacity-60"
+                                  >
+                                    {revokingInviteId === inv.id ? "Revoking..." : "Revoke"}
+                                  </button>
+                                )}
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {settingsSubTab === "security" && (
+                    /* Sub-Tab: Security (2FA + Recovery Codes + Sign-In History + Sign Out Everywhere) */
+                    <div className="space-y-6">
+                      {securityError && (
+                        <div className="rounded-lg bg-rose-50 border border-rose-200 px-4 py-3 text-[13px] font-semibold text-rose-700 flex items-start gap-2.5">
+                          <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                          <span>{securityError}</span>
+                        </div>
+                      )}
+
+                      {/* 2-Step Verification Card */}
+                      <div className="m-lift bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
+                        <div className="px-5 sm:px-6 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                          <div className="flex items-center gap-2.5">
+                            <Smartphone className="w-5 h-5 text-[#AE54C6] m-pop" />
+                            <div>
+                              <h2 className="font-display text-[19px] sm:text-[20px] font-extrabold text-[#1D2026]">
+                                2-Step Verification
+                              </h2>
+                              <p className="text-[12.5px] text-[#747579] mt-0.5">
+                                Protect your account with an authenticator app (TOTP).
+                              </p>
+                            </div>
+                          </div>
+                          {securityData && (
+                            <span
+                              className={`self-start sm:self-auto px-3 py-1 rounded-full text-[12px] font-bold ${
+                                securityData.twoFactor.enabled
+                                  ? "bg-emerald-50 text-emerald-700"
+                                  : "bg-slate-100 text-slate-600"
+                              }`}
+                            >
+                              {securityData.twoFactor.enabled ? "Enabled" : "Not Enabled"}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="p-5 sm:p-6 space-y-5">
+                          {securityLoading && !securityData ? (
+                            <p className="text-[13.5px] text-[#747579]">
+                              Loading security settings...
+                            </p>
+                          ) : twoFactorSetupStep === "recovery" ? (
+                            <div className="space-y-4">
+                              <div className="rounded-xl bg-amber-50 border border-amber-200 p-4 text-[13px] text-amber-900">
+                                <p className="font-bold">Save your 8 recovery codes now</p>
+                                <p className="mt-1">
+                                  These codes are shown only once. Store them somewhere safe in case you lose your authenticator app.
+                                </p>
+                              </div>
+                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                                {twoFactorRecoveryCodes.map((code) => (
+                                  <div
+                                    key={code}
+                                    className="px-3 py-2 rounded-lg bg-[#F5F7F9] border border-slate-200 text-center font-mono text-[13px] font-bold text-[#1D2026]"
+                                  >
+                                    {code}
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="flex flex-wrap gap-2.5">
+                                <button
+                                  type="button"
+                                  onClick={() => void handleCopyRecoveryCodes()}
+                                  className="m-press inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-[13px] font-bold text-[#1D2026] cursor-pointer"
+                                >
+                                  <Copy className="w-4 h-4" />
+                                  {copiedRecoveryCodes ? "Copied!" : "Copy codes"}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={handleDownloadRecoveryCodes}
+                                  className="m-press inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-[13px] font-bold text-[#1D2026] cursor-pointer"
+                                >
+                                  <Download className="w-4 h-4" />
+                                  Download .txt
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setTwoFactorSetupStep("idle");
+                                    setTwoFactorRecoveryCodes([]);
+                                  }}
+                                  className="m-press px-4 py-2 rounded-lg bg-[#AE54C6] text-white text-[13px] font-bold cursor-pointer"
+                                >
+                                  I&apos;ve saved these codes
+                                </button>
+                              </div>
+                            </div>
+                          ) : twoFactorSetupStep === "qr" ? (
+                            <form onSubmit={handleEnable2fa} className="space-y-4">
+                              <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
+                                <div className="md:col-span-5 flex flex-col items-center p-4 rounded-xl bg-[#F8F9FA] border border-slate-200">
+                                  {twoFactorQrDataUrl && (
+                                    <img
+                                      src={twoFactorQrDataUrl}
+                                      alt="2-Step Verification QR Code"
+                                      className="w-44 h-44 rounded-lg bg-white p-2 border border-slate-200"
+                                    />
+                                  )}
+                                  <p className="text-[11.5px] text-[#747579] mt-2 text-center">
+                                    Scan with Google Authenticator, Authy, or 1Password
+                                  </p>
+                                </div>
+                                <div className="md:col-span-7 space-y-3">
+                                  <div>
+                                    <p className="text-[12.5px] font-bold text-[#1D2026]">
+                                      Manual setup key
+                                    </p>
+                                    <code className="block mt-1 px-3 py-2 rounded-lg bg-[#F5F7F9] border border-slate-200 font-mono text-[12.5px] text-[#1D2026] break-all">
+                                      {twoFactorSetupSecret || twoFactorOtpAuthUrl}
+                                    </code>
+                                  </div>
+                                  <div>
+                                    <label className="block text-[12.5px] font-bold text-[#1D2026] mb-1">
+                                      Enter 6-digit code from your app
+                                    </label>
+                                    <input
+                                      type="text"
+                                      required
+                                      inputMode="numeric"
+                                      value={twoFactorVerifyCode}
+                                      onChange={(e) => setTwoFactorVerifyCode(e.target.value)}
+                                      placeholder="123456"
+                                      className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-[14px] font-mono tracking-widest text-[#1D2026]"
+                                    />
+                                  </div>
+                                  <div className="flex flex-wrap gap-2.5">
+                                    <button
+                                      type="submit"
+                                      disabled={twoFactorBusy}
+                                      className="m-press px-4 py-2.5 rounded-lg bg-[#AE54C6] hover:bg-[#9B42B3] text-white text-[13.5px] font-bold cursor-pointer disabled:opacity-60"
+                                    >
+                                      {twoFactorBusy ? "Verifying..." : "Verify & Enable"}
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setTwoFactorSetupStep("idle")}
+                                      className="m-press px-4 py-2.5 rounded-lg border border-slate-200 text-[13.5px] font-semibold text-[#747579] hover:text-[#1D2026] cursor-pointer"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </form>
+                          ) : securityData?.twoFactor.enabled ? (
+                            <div className="space-y-4">
+                              <div className="rounded-lg bg-emerald-50 border border-emerald-200/70 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                <div className="text-[13px] text-emerald-900">
+                                  <p className="font-bold">2-Step Verification is active</p>
+                                  <p className="text-emerald-700 mt-0.5">
+                                    Recovery codes remaining:{" "}
+                                    <strong>{securityData.twoFactor.recoveryCodesLeft}</strong>
+                                    {securityData.twoFactor.enabledAt
+                                      ? ` · Enabled ${new Date(
+                                          securityData.twoFactor.enabledAt
+                                        ).toLocaleDateString()}`
+                                      : ""}
+                                  </p>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setShowRegenCodes((v) => !v);
+                                      setShowDisable2fa(false);
+                                    }}
+                                    className="m-press inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white border border-emerald-300 text-emerald-900 text-[12.5px] font-bold cursor-pointer"
+                                  >
+                                    <KeyRound className="w-3.5 h-3.5" />
+                                    New recovery codes
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setShowDisable2fa((v) => !v);
+                                      setShowRegenCodes(false);
+                                    }}
+                                    className="m-press px-3.5 py-2 rounded-lg bg-white border border-rose-200 text-rose-700 text-[12.5px] font-bold cursor-pointer"
+                                  >
+                                    Turn off 2-Step
+                                  </button>
+                                </div>
+                              </div>
+
+                              {showRegenCodes && (
+                                <form
+                                  onSubmit={handleRegenRecoveryCodes}
+                                  className="p-4 rounded-xl bg-[#F8F9FA] border border-slate-200 space-y-3"
+                                >
+                                  <p className="text-[13px] font-bold text-[#1D2026]">
+                                    Generate 8 fresh recovery codes (replaces any unused codes)
+                                  </p>
+                                  <div className="flex flex-col sm:flex-row gap-2.5">
+                                    <input
+                                      type="text"
+                                      required
+                                      value={regenCode}
+                                      onChange={(e) => setRegenCode(e.target.value)}
+                                      placeholder="Current 6-digit authenticator code"
+                                      className="flex-1 px-3.5 py-2 rounded-lg border border-slate-200 bg-white text-[13.5px]"
+                                    />
+                                    <button
+                                      type="submit"
+                                      disabled={twoFactorBusy}
+                                      className="m-press px-4 py-2 rounded-lg bg-[#AE54C6] text-white text-[13px] font-bold cursor-pointer disabled:opacity-60"
+                                    >
+                                      {twoFactorBusy ? "Generating..." : "Generate Codes"}
+                                    </button>
+                                  </div>
+                                </form>
+                              )}
+
+                              {showDisable2fa && (
+                                <form
+                                  onSubmit={handleDisable2fa}
+                                  className="p-4 rounded-xl bg-rose-50/50 border border-rose-200 space-y-3"
+                                >
+                                  <p className="text-[13px] font-bold text-rose-900">
+                                    Confirm your password and authenticator code to turn off 2-Step Verification
+                                  </p>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                    <input
+                                      type="password"
+                                      required
+                                      value={disable2faPassword}
+                                      onChange={(e) => setDisable2faPassword(e.target.value)}
+                                      placeholder="Account password"
+                                      className="px-3.5 py-2 rounded-lg border border-slate-200 bg-white text-[13.5px]"
+                                    />
+                                    <input
+                                      type="text"
+                                      required
+                                      value={disable2faCode}
+                                      onChange={(e) => setDisable2faCode(e.target.value)}
+                                      placeholder="6-digit or recovery code"
+                                      className="px-3.5 py-2 rounded-lg border border-slate-200 bg-white text-[13.5px]"
+                                    />
+                                  </div>
+                                  <button
+                                    type="submit"
+                                    disabled={twoFactorBusy}
+                                    className="m-press px-4 py-2 rounded-lg bg-rose-600 text-white text-[13px] font-bold cursor-pointer disabled:opacity-60"
+                                  >
+                                    {twoFactorBusy ? "Disabling..." : "Confirm Turn Off"}
+                                  </button>
+                                </form>
+                              )}
+                            </div>
+                          ) : (
+                            <form onSubmit={handleStart2faSetup} className="space-y-3">
+                              <p className="text-[13.5px] text-[#475569]">
+                                Confirm your current password to generate a QR code for your authenticator app.
+                              </p>
+                              <div className="flex flex-col sm:flex-row gap-2.5 max-w-lg">
+                                <input
+                                  type="password"
+                                  required
+                                  value={twoFactorPassword}
+                                  onChange={(e) => setTwoFactorPassword(e.target.value)}
+                                  placeholder="Enter your password"
+                                  className="flex-1 px-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-[14px]"
+                                />
+                                <button
+                                  type="submit"
+                                  disabled={twoFactorBusy}
+                                  className="m-press px-5 py-2.5 rounded-lg bg-[#AE54C6] hover:bg-[#9B42B3] text-white text-[13.5px] font-bold cursor-pointer disabled:opacity-60"
+                                >
+                                  {twoFactorBusy ? "Starting..." : "Turn On 2-Step"}
+                                </button>
+                              </div>
+                            </form>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Sign-In History & Sign Out Everywhere */}
+                      <div className="m-lift bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
+                        <div className="px-5 sm:px-6 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                          <div>
+                            <h2 className="font-display text-[19px] sm:text-[20px] font-extrabold text-[#1D2026]">
+                              Sign-In Activity
+                            </h2>
+                            <p className="text-[12.5px] text-[#747579] mt-0.5">
+                              {securityData
+                                ? `${securityData.failedSignInsLast7Days} failed sign-in attempt(s) in the last 7 days.`
+                                : "Recent sign-ins on your account."}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            disabled={signingOutEverywhere}
+                            onClick={() => void handleSignOutEverywhere()}
+                            className="m-press self-start sm:self-auto inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-rose-200 text-rose-700 hover:bg-rose-50 text-[13px] font-bold cursor-pointer disabled:opacity-60"
+                          >
+                            <LogOut className="w-4 h-4" />
+                            {signingOutEverywhere ? "Signing out..." : "Sign out everywhere"}
+                          </button>
+                        </div>
+
+                        <div className="divide-y divide-slate-100">
+                          {!securityData || securityData.recentSignIns.length === 0 ? (
+                            <div className="p-6 text-[13.5px] text-[#747579]">
+                              No recent sign-in events recorded yet.
+                            </div>
+                          ) : (
+                            securityData.recentSignIns.map((item, idx) => (
+                              <div
+                                key={`${item.createdAt}-${idx}`}
+                                className="p-4 sm:px-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
+                              >
+                                <div className="min-w-0">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <span className="px-2 py-0.5 rounded-full bg-slate-100 text-[#1D2026] text-[11px] font-bold uppercase">
+                                      {item.method}
+                                    </span>
+                                    <span className="text-[13px] font-semibold text-[#1D2026]">
+                                      IP: {item.ip || "Unknown"}
+                                    </span>
+                                  </div>
+                                  <p className="text-[12px] text-[#747579] truncate mt-0.5">
+                                    {item.userAgent || "Browser details unavailable"}
+                                  </p>
+                                </div>
+                                <span className="text-[12px] text-[#747579] shrink-0">
+                                  {new Date(item.createdAt).toLocaleString()}
+                                </span>
+                              </div>
+                            ))
+                          )}
+                        </div>
                       </div>
                     </div>
                   )}
