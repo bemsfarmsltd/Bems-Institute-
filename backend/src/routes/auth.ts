@@ -370,7 +370,7 @@ router.post("/signup", async (req, res) => {
   }
   if (settings?.allowRegistration === "request") {
     return res.status(403).json({
-      error: "Registration is currently by request only — contact admissions@bemsinstitute.ng to request access."
+      error: "Registration is currently by request only. Please contact the BEMS admissions team to request access."
     });
   }
 

@@ -1,6 +1,8 @@
-// BEMS admissions WhatsApp number — same placeholder used in Footer.tsx
-// ("+234 800 000 0000"). Replace with the real admissions line before launch.
-export const BEMS_WHATSAPP_NUMBER = "2348000000000";
+// BEMS admissions WhatsApp number, digits only (e.g. 2348012345678), from
+// the NEXT_PUBLIC_WHATSAPP_NUMBER environment variable. Empty until the
+// owner provides the real line: every "chat with admissions" button hides
+// while it's empty (the old placeholder could have reached a stranger).
+export const BEMS_WHATSAPP_NUMBER = (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "").replace(/[^0-9]/g, "");
 
 // No WhatsApp Business API is wired up (no account/credentials exist for
 // one), so "instant WhatsApp reply" is built the honest way that needs no

@@ -212,7 +212,7 @@ export function CourseCards() {
                 Become an Instructor!
               </h3>
               <p className="text-sm sm:text-base text-white/90 leading-relaxed">
-                Share your engineering, design, or AI expertise with cohorts at the BEMS Innovation Hub in Umuahia—or enroll in our October 2026 batch with flexible 3-part tuition.
+                Share your engineering, design, or AI expertise with BEMS cohorts in Umuahia and online—or enroll in our October 2026 batch with flexible 3-part tuition.
               </p>
             </div>
 

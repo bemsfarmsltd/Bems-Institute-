@@ -21,8 +21,8 @@ import {
 // stays static marketing copy.
 const OTHER_STATS = [
   {
-    count: 20,
-    format: (n: number) => `${n}+`,
+    count: 4,
+    format: (n: number) => `${n}`,
     label: "Expert Tutors & Mentors",
     bg: "bg-[#E8EEF2]",
     iconColor: "text-[#1D3B53]",

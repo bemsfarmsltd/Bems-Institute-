@@ -350,6 +350,7 @@ function SubscriptionsContent() {
                     <ArrowRight className="w-3.5 h-3.5" />
                   </Button>
                 </Link>
+                {BEMS_WHATSAPP_NUMBER && (
                 <a
                   href={buildWhatsAppLink(
                     BEMS_WHATSAPP_NUMBER,
@@ -363,6 +364,7 @@ function SubscriptionsContent() {
                     <span>Chat with Admissions</span>
                   </Button>
                 </a>
+                )}
               </div>
             </div>
           ) : (

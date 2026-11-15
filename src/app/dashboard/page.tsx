@@ -577,6 +577,7 @@ function StudentDashboardContent() {
                             </div>
                           </div>
                         </div>
+                        {BEMS_WHATSAPP_NUMBER && (
                         <a
                           href={buildWhatsAppLink(
                             BEMS_WHATSAPP_NUMBER,
@@ -591,6 +592,7 @@ function StudentDashboardContent() {
                             <span>Admissions Help Desk</span>
                           </Button>
                         </a>
+                        )}
                       </div>
                     );
                   })}

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { MapPin, Phone, Mail, Clock } from "lucide-react";
+import { CONTACT } from "@/lib/contact";
 
 export function Footer() {
   return (
@@ -157,20 +158,31 @@ export function Footer() {
           <div className="lg:col-span-2">
             <h4 className="text-base font-bold text-[#24292D] mb-4">Contact</h4>
             <ul className="space-y-2.5 text-xs">
-              <li className="flex items-start gap-2">
-                <Phone className="w-4 h-4 text-[#AE54C6] shrink-0 mt-0.5" />
-                <div>
-                  <span className="block text-[#24292D] font-semibold">+234 800 000 0000</span>
-                  <span className="text-[11px] text-[#747579]">(8:00 AM to 6:00 PM)</span>
-                </div>
-              </li>
+              {/* Real details only, from src/lib/contact.ts (env vars). */}
+              {CONTACT.phone && (
+                <li className="flex items-start gap-2">
+                  <Phone className="w-4 h-4 text-[#AE54C6] shrink-0 mt-0.5" />
+                  <a href={`tel:${CONTACT.phone.replace(/[^0-9+]/g, "")}`} className="block text-[#24292D] font-semibold hover:text-[#AE54C6]">
+                    {CONTACT.phone}
+                  </a>
+                </li>
+              )}
+              {CONTACT.email && (
+                <li className="flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-[#AE54C6] shrink-0" />
+                  <a href={`mailto:${CONTACT.email}`} className="truncate hover:text-[#AE54C6]">{CONTACT.email}</a>
+                </li>
+              )}
+              {CONTACT.address && (
+                <li className="flex items-start gap-2">
+                  <MapPin className="w-4 h-4 text-[#AE54C6] shrink-0 mt-0.5" />
+                  <span>{CONTACT.address}</span>
+                </li>
+              )}
               <li className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-[#AE54C6] shrink-0" />
-                <span className="truncate">admissions@bemsinstitute.ng</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <MapPin className="w-4 h-4 text-[#AE54C6] shrink-0 mt-0.5" />
-                <span>BEMS Innovation Hub, Umuahia, Abia State</span>
+                <Link href="/subscriptions" className="font-semibold text-[#AE54C6] hover:underline">
+                  Tuition &amp; admissions
+                </Link>
               </li>
               <li className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-[#F7C32E] shrink-0" />

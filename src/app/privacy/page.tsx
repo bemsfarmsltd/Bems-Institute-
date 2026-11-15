@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { CONTACT } from "@/lib/contact";
 
 export default function PrivacyPage() {
   return (
@@ -114,9 +115,13 @@ export default function PrivacyPage() {
             <h2 className="text-lg font-bold text-[#303654] mb-2">10. Contact Us</h2>
             <p>
               For any privacy question or data request, reach us at{" "}
-              <a href="mailto:admissions@bemsinstitute.ng" className="text-[#AE54C6] font-semibold">
-                admissions@bemsinstitute.ng
-              </a>
+              {CONTACT.email ? (
+                <a href={`mailto:${CONTACT.email}`} className="text-[#AE54C6] font-semibold">
+                  {CONTACT.email}
+                </a>
+              ) : (
+                "the BEMS admissions team"
+              )}
               .
             </p>
           </section>

@@ -689,6 +689,7 @@ export default function CourseDetailPage({
                     </Button>
                   </Link>
 
+                  {BEMS_WHATSAPP_NUMBER && (
                   <a
                     href={buildWhatsAppLink(
                       BEMS_WHATSAPP_NUMBER,
@@ -703,6 +704,7 @@ export default function CourseDetailPage({
                       <span>Chat with Admissions</span>
                     </Button>
                   </a>
+                  )}
                 </div>
               ) : (
                 <div>
@@ -882,12 +884,14 @@ export default function CourseDetailPage({
                     ? `We've just sent you a WhatsApp message at ${interestPhone} — check your chats!`
                     : `We'll reach out to ${interestPhone} soon. You can also message us directly right now:`}
                 </p>
+                {BEMS_WHATSAPP_NUMBER && (
                 <a href={interestWhatsAppUrl} target="_blank" rel="noreferrer" className="block w-full">
                   <Button variant="whatsapp" className="w-full gap-2">
                     <MessageCircle className="w-4 h-4" />
                     <span>Message Us on WhatsApp</span>
                   </Button>
                 </a>
+                )}
               </div>
             ) : (
               <div className="space-y-3.5">
