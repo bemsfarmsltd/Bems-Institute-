@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { apiFetch } from "@/lib/api-client";
 import { useLMS } from "@/context/LMSContext";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -14,7 +15,26 @@ import { ShieldCheck, Lock, ArrowRight } from "lucide-react";
  * /api/auth/login (and /api/auth/login/2fa when 2-step verification is enabled).
  */
 export function AdminGate({ children }: { children: React.ReactNode }) {
-  const { user, isHydrated, isAdminDataLoaded, login, completeTwoFactorLogin } = useLMS();
+  const { user, isHydrated, isAdminDataLoaded, login, completeTwoFactorLogin, setVerifiedUser } = useLMS();
+  // First-admin setup: only offered while the server says no admin exists
+  // yet (GET /api/admin-auth/status). After that, staff join by invite.
+  const [bootstrapOpen, setBootstrapOpen] = useState(false);
+  const [showBootstrap, setShowBootstrap] = useState(false);
+  const [boot, setBoot] = useState({ name: "", email: "", password: "", code: "" });
+  const [bootError, setBootError] = useState<string | null>(null);
+  const [booting, setBooting] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    apiFetch("/api/admin-auth/status")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!cancelled) setBootstrapOpen(!!d?.bootstrapOpen);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -193,7 +213,73 @@ export function AdminGate({ children }: { children: React.ReactNode }) {
             <p className="text-xs text-[#645F80]">
               Staff accounts are invite-only. Ask an admin for an invite link.
             </p>
+            {bootstrapOpen && !showBootstrap && (
+              <button
+                type="button"
+                onClick={() => setShowBootstrap(true)}
+                className="m-press mt-3 text-xs font-bold text-[#AE54C6] hover:underline cursor-pointer"
+              >
+                First-time setup: create the first admin
+              </button>
+            )}
           </div>
+
+          {bootstrapOpen && showBootstrap && (
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setBootError(null);
+                setBooting(true);
+                try {
+                  const res = await apiFetch("/api/admin-auth", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(boot)
+                  });
+                  const data = await res.json().catch(() => ({}));
+                  if (!res.ok || !data.user) {
+                    setBootError(data.error || "Could not create the admin account.");
+                    return;
+                  }
+                  setVerifiedUser(data.user);
+                } catch {
+                  setBootError("Network error. Try again.");
+                } finally {
+                  setBooting(false);
+                }
+              }}
+              className="mt-5 space-y-3 rounded-2xl border border-[#F1E2F5] bg-[#FAF8FF] p-4 text-left"
+            >
+              <p className="text-xs text-[#645F80]">
+                No admin account exists yet. Create yours with the staff access code (set on the server).
+                This form disappears once an admin exists; everyone else is invited from Admin Settings.
+              </p>
+              {(
+                [
+                  ["name", "Full name", "text", "name"],
+                  ["email", "Email address", "email", "email"],
+                  ["password", "Password (8+ characters)", "password", "new-password"],
+                  ["code", "Staff access code", "password", "off"]
+                ] as const
+              ).map(([key, label, type, autoComplete]) => (
+                <label key={key} className="block">
+                  <span className="block text-[11px] font-bold text-[#645F80] mb-1">{label}</span>
+                  <input
+                    type={type}
+                    required
+                    autoComplete={autoComplete}
+                    value={boot[key]}
+                    onChange={(e) => setBoot((b) => ({ ...b, [key]: e.target.value }))}
+                    className="w-full px-3 py-2.5 rounded-xl border border-[#E5C8ED] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[#AE54C6]/30"
+                  />
+                </label>
+              ))}
+              {bootError && <p className="text-xs font-semibold text-red-600">{bootError}</p>}
+              <Button type="submit" variant="purple" disabled={booting} className="w-full">
+                {booting ? "Creating…" : "Create admin account"}
+              </Button>
+            </form>
+          )}
         </div>
       </div>
 

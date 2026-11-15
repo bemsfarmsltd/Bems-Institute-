@@ -20,6 +20,16 @@ function rateLimitKeyFor(req: import("express").Request): string {
   return `admin-register-code:${req.ip || "unknown"}`;
 }
 
+// Whether the first-admin setup (shared code) is still open: only while
+// ADMIN_ACCESS_CODE is set and no active admin exists. The /admin sign-in
+// shows the setup form only then.
+router.get("/status", async (_req, res) => {
+  const activeAdmins = process.env.ADMIN_ACCESS_CODE
+    ? await prisma.user.count({ where: { role: "ADMIN", deactivatedAt: null } })
+    : 1;
+  return res.json({ bootstrapOpen: activeAdmins === 0 });
+});
+
 // The ONLY path that can ever create an ADMIN account. The staff code is
 // checked server-side against ADMIN_ACCESS_CODE (never sent to the browser)
 // and only lets you REGISTER a new admin with a personal password — it acts

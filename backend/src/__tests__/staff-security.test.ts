@@ -199,6 +199,7 @@ describe("staff invites", () => {
     const prev = process.env.ADMIN_ACCESS_CODE;
     process.env.ADMIN_ACCESS_CODE = "test-only-code";
     try {
+      expect((await request(app).get("/api/admin-auth/status")).body.bootstrapOpen).toBe(false);
       const res = await request(app).post("/api/admin-auth").send({ code: "test-only-code", name: "Sneaky", email: testEmail("code"), password: "LongEnough1!" });
       expect(res.status).toBe(403);
     } finally {
