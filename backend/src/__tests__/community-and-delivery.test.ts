@@ -80,6 +80,16 @@ describe("WhatsApp community link", () => {
   });
 });
 
+describe("WhatsApp community link for staff", () => {
+  it("is shown to instructors and admins without an enrollment", async () => {
+    const { agent: admin } = await createTestAdmin("community-staff-admin");
+    await admin.patch("/api/admin/settings/general", { whatsappCommunityUrl: LINK });
+    expect((await admin.get("/api/lms/me")).body.communityUrl).toBe(LINK);
+    const { agent: browsing } = await createTestStudent("community-no-enrollment");
+    expect((await browsing.get("/api/lms/me")).body.communityUrl).toBeNull();
+  });
+});
+
 describe("virtual or physical class", () => {
   it("stores the student's choice and shows it back", async () => {
     const virtual = await bankEnroll("delivery-virtual", { deliveryMode: "VIRTUAL_ZOOM" });

@@ -661,15 +661,17 @@ function SubscriptionsContent() {
             </div>
           </div>
 
+          {BEMS_WHATSAPP_NUMBER && (
           <a
-            href="https://chat.whatsapp.com/BEMS-FutureSkills-2026"
+            href={buildWhatsAppLink(BEMS_WHATSAPP_NUMBER, "Hello BEMS Admissions, I have a question about registration.")}
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
           >
             <Button variant="outline" className="text-xs border-[#25D366] text-[#25D366] hover:bg-[#25D366]/10">
               <MessageCircle className="w-4 h-4 mr-1.5" /> Speak with Admission Team
             </Button>
           </a>
+          )}
         </div>
       </div>
 

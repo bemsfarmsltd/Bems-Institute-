@@ -110,9 +110,10 @@ router.get("/me", async (req, res) => {
     };
   }
 
-  // The WhatsApp community link, only for students with a confirmed
-  // registration (see lib/community.ts).
-  const communityUrl = enrollments.some(hasCourseAccess) ? await getCommunityUrl() : null;
+  // The WhatsApp community link, only for staff and students with a
+  // confirmed registration (see lib/community.ts).
+  const isStaffUser = session.role === "INSTRUCTOR" || session.role === "ADMIN";
+  const communityUrl = isStaffUser || enrollments.some(hasCourseAccess) ? await getCommunityUrl() : null;
 
   return res.json({
     // Only courses the student can actually open (paid AND admin-confirmed).

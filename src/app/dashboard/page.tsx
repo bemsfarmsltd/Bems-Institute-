@@ -961,11 +961,13 @@ function StudentDashboardContent() {
                   </Button>
                 </Link>
               )}
-              <a href="https://chat.whatsapp.com/BEMS-FutureSkills-2026" target="_blank" rel="noreferrer">
+              {communityUrl && (
+              <a href={communityUrl} target="_blank" rel="noopener noreferrer">
                 <Button className="bg-[#25D366] hover:bg-[#20bd5a] text-[#303654] font-bold">
                   <MessageCircle className="w-4 h-4 mr-2" /> Class WhatsApp
                 </Button>
               </a>
+              )}
               <Link href="/courses" className="ml-auto">
                 <Button variant="outline" className="gap-1.5">
                   Explore All Tracks <ArrowRight className="w-3.5 h-3.5" />

@@ -23,7 +23,7 @@ function formatTime(iso: string): string {
 }
 
 export default function CommunityPage() {
-  const { user } = useLMS();
+  const { user, communityUrl } = useLMS();
   const [channels] = useState<CommunityChannel[]>(COMMUNITY_CHANNELS);
   const [activeChannelId, setActiveChannelId] = useState<string>("chan-web-dev");
   const [messages, setMessages] = useState<CommunityMessage[]>([]);
@@ -99,15 +99,14 @@ export default function CommunityPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            <a
-              href="https://chat.whatsapp.com/BEMS-FutureSkills-2026"
-              target="_blank"
-              rel="noreferrer"
-            >
+            {/* Real invite, only for confirmed students and staff (lib/community.ts). */}
+            {communityUrl && (
+            <a href={communityUrl} target="_blank" rel="noopener noreferrer">
               <Button className="bg-[#25D366] hover:bg-[#20bd5a] text-[#303654] font-bold text-xs shadow-md">
                 <MessageCircle className="w-4 h-4 mr-1.5" /> WhatsApp Community Link
               </Button>
             </a>
+            )}
           </div>
         </div>
       </div>

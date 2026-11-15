@@ -31,7 +31,7 @@ function formatSchedule(iso: string): string {
 }
 
 export default function LiveClassesPage() {
-  const { user } = useLMS();
+  const { user, communityUrl } = useLMS();
   const [liveClasses, setLiveClasses] = useState<LiveClass[]>([]);
   const [loading, setLoading] = useState(true);
   const [handRaised, setHandRaised] = useState(false);
@@ -175,11 +175,13 @@ export default function LiveClassesPage() {
                   {handRaised ? "Hand Raised" : "Raise Hand to Speak"}
                 </Button>
 
-                <a href="https://chat.whatsapp.com/BEMS-FutureSkills-2026" target="_blank" rel="noreferrer">
+                {communityUrl && (
+                <a href={communityUrl} target="_blank" rel="noopener noreferrer">
                   <Button variant="outline" className="text-xs text-[#25D366] border-[#25D366]/40 hover:bg-[#25D366]/10">
                     <MessageCircle className="w-4 h-4 mr-1.5" /> WhatsApp Backchannel
                   </Button>
                 </a>
+                )}
               </div>
 
               <div className="flex items-center gap-2 text-xs text-[#645F80]">

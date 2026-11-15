@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 
 function InstructorDashboardContent() {
-  const { adminStudents, submissions, adminCourses, user, certificates } = useLMS();
+  const { adminStudents, submissions, adminCourses, user, certificates, communityUrl } = useLMS();
 
   const [selectedTutor, setSelectedTutor] = useState<string>("Mr. Victor");
   const [selectedCourseFilter, setSelectedCourseFilter] = useState<string>("web-dev");
@@ -198,15 +198,13 @@ function InstructorDashboardContent() {
           </div>
 
           <div className="flex items-center gap-3">
-            <a
-              href="https://chat.whatsapp.com/BEMS-FutureSkills-2026"
-              target="_blank"
-              rel="noreferrer"
-            >
+            {communityUrl && (
+            <a href={communityUrl} target="_blank" rel="noopener noreferrer">
               <Button className="bg-[#25D366] hover:bg-[#20bd5a] text-[#303654] font-black">
                 <MessageCircle className="w-4 h-4 mr-2" /> Class WhatsApp Community
               </Button>
             </a>
+            )}
             <Link href="/instructor/grading">
               <Button variant="purple">
                 Review Submissions &rarr;

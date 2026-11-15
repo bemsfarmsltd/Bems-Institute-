@@ -50,7 +50,8 @@ export default function CourseDetailPage({
     getQuizForCourse,
     getAssignmentForCourse,
     getCertificate,
-    user
+    user,
+    communityUrl
   } = useLMS();
 
   const [showInterestModal, setShowInterestModal] = useState(false);
@@ -658,12 +659,14 @@ export default function CourseDetailPage({
                     )}
                   </div>
 
-                  <Link href="https://chat.whatsapp.com/BEMSFutureSkills2026Cohort" target="_blank" className="block w-full">
+                  {communityUrl && (
+                  <a href={communityUrl} target="_blank" rel="noopener noreferrer" className="block w-full">
                     <Button variant="whatsapp" className="w-full gap-2" size="sm">
                       <MessageCircle className="w-4 h-4" />
                       <span>Cohort WhatsApp Group</span>
                     </Button>
-                  </Link>
+                  </a>
+                  )}
                 </div>
               ) : isAwaitingApproval ? (
                 <div className="space-y-4">
