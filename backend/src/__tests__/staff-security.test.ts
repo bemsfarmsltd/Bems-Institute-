@@ -85,6 +85,21 @@ describe("2-step verification", () => {
     );
   });
 
+  it("rate-limits repeated guesses against a valid 2-step challenge", async () => {
+    const { agent, email, userId } = await createTestStudent("2fa-rate-limit");
+    await turnOn2fa(agent);
+    const key = `2fa:${userId}`;
+    await prisma.authAttempt.deleteMany({ where: { key } });
+
+    const challenge = await new SessionAgent().post("/api/auth/login", { email, password: TEST_PASSWORD });
+    expect(challenge.body.twoFactorRequired).toBe(true);
+    const guesses = await Promise.all(Array.from({ length: 50 }, () =>
+      new SessionAgent().post("/api/auth/login/2fa", { challenge: challenge.body.challenge, code: "000000" })
+    ));
+    expect(guesses.filter((res) => res.status === 401).length).toBeLessThanOrEqual(5);
+    expect(guesses.some((res) => res.status === 429)).toBe(true);
+  });
+
   it("can't be skipped with a password-reset link", async () => {
     const { agent, userId, email } = await createTestStudent("2fa-reset");
     await turnOn2fa(agent);
@@ -203,6 +218,8 @@ describe("staff roles and 2FA reset", () => {
     const { agent: tutor, userId, email } = await createTestStudent("reset2fa-target");
     await turnOn2fa(tutor);
     expect((await admin.post(`/api/admin/staff/${userId}/reset-2fa`)).status).toBe(200);
+    // Reset revokes already-issued sessions as well as disabling future challenges.
+    expect((await tutor.get("/api/auth/me")).body.user).toBeNull();
     const login = await new SessionAgent().post("/api/auth/login", { email, password: TEST_PASSWORD });
     expect(login.body.twoFactorRequired).toBeUndefined();
     expect(login.body.user?.email).toBe(email);

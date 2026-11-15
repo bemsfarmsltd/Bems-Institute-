@@ -12,6 +12,40 @@ section.
 | **Staff & Access + Security tabs, 2FA sign-in step, invite page**, per the API below | Antigravity | `antigravity/staff-security-ui`, off `claude/staff-security-api` | `src/app/admin/page.tsx`, `src/app/login/page.tsx`, `src/components/AdminGate.tsx`, `src/context/LMSContext.tsx` (login), new `src/app/staff-invite/[token]/page.tsx` | 2026-11-15 |
 | **Security review + tests** of `claude/staff-security-api`; placeholder/fake-content sweep of the live site | Codex | `codex/staff-security-review` | Read all; write `backend/src/__tests__/` + notes here | 2026-11-15 |
 
+## Codex staff security review + public content sweep (2026-11-15)
+
+### Security finding for Claude Code
+
+- **High — concurrent 2FA guesses bypass the five-failure limit.** `backend/src/lib/rate-limit.ts` checks failure count and writes attempts in separate operations; `backend/src/routes/auth.ts` calls them separately for `2fa:<userId>`. A regression test fired 50 concurrent invalid codes with one valid challenge and observed all 50 reach verification (401), with no 429. Add an atomic per-account limiter (or equivalent serialized attempt claim) before relying on this limit to stop guessing. Codex did not change runtime behavior.
+- Added `backend/src/__tests__/staff-security.test.ts` coverage for parallel guesses and for an existing session after staff 2FA reset. The parallel-guess test is intentionally failing on this branch; 2FA reset session revocation passed.
+- **Other requested controls reviewed:** no confirmed way found to create staff publicly or accept one invite twice; existing-account invitations require that account’s password; reset links with 2FA enabled do not create a session; 2FA challenge binds to `tokenVersion`; authenticator steps and recovery codes are consumed atomically; role changes and staff 2FA reset bump `tokenVersion`; setup returns the authenticator secret only to the signed-in user after password verification, recovery codes are returned only at creation/rotation, and security/staff listing responses omit secret material. Existing staff-security tests cover the positive/negative paths. Invite acceptance's invite claim is atomic.
+
+### Visitor-facing copy for owner confirmation
+
+The live Vercel host could not be fetched in the available browser lookup, so these are source-confirmed items on public routes/components; owner should confirm what is currently deployed and which statements are accurate. `Real?` means unverified and needs owner confirmation.
+
+| File:line | Visitor-facing content | Real? |
+|---|---|---|
+| `src/components/Footer.tsx:163` and `src/lib/whatsapp.ts:1-3` | `+234 800 000 0000`; WhatsApp helper comment explicitly calls it a placeholder and says replace it before launch. | **No — placeholder; replace with admissions number.** |
+| `src/components/Footer.tsx:169`; `src/app/privacy/page.tsx:117-118`; `src/app/terms/page.tsx:124-125` | `admissions@bemsinstitute.ng`. | Confirm mailbox exists and receives mail. |
+| `src/components/Footer.tsx:173` | `BEMS Innovation Hub, Umuahia, Abia State`. | Confirm exact public address/name. |
+| `src/components/Footer.tsx:33,42,51,60` | Facebook `bitvstudies`, Instagram `bemsinstitute`, X/Twitter `bemsInstitute`, LinkedIn `bemsumuahia`. | Confirm each account is controlled by BEMS and active. |
+| `src/components/Hero.tsx:22-43` | Marketing stats: `20+ Expert Tutors & Mentors`, `80 Seats` for October 2026, `100% QR-Verified Certificates`. | Confirm each metric and cohort availability. |
+| `src/components/Hero.tsx:363-379` | October 2026 cohort card with initials `CO`, `AN`, `EK`, `UI` and `80+` avatar. | Confirm these represent real students and current cohort. |
+| `src/components/EduportAuthSplitLayout.tsx:7,282-292` | Dicebear avatar seeds `Chinedu`, `Amarachi`, `Tunde`, `Ngozi`, labeled BEMS students; text says `80+ students joining the October 2026 cohort`. | Confirm names/count; avatars appear synthetic. |
+| `src/components/EduportBecomeInstructorView.tsx:806-827` | `25K Total Instructors`, `180K Total Courses`, `20+ Languages` (generic template-style counters). | **Likely template filler — confirm or remove.** |
+| `src/data/courses.ts:24-25,47-48,70-71,93-94` (also `src/data/lms-data.ts`) | Course instructor identities/titles: `Timi — AI Solutions Engineer & Automation Specialist`, `Mr. Victor — Senior Full-Stack Software Engineer`, `Temi — Lead Product Designer & UX Researcher`, `Specialist Faculty — Information Security & Infrastructure Auditor`. | Confirm these are real instructors and titles. |
+| `src/app/leaderboard/page.tsx:263-266` | Claims top 10 students in every cohort are featured in an employer matchmaking portfolio distributed to hiring firms in Lagos, Abuja and abroad. | Confirm the program, portfolio, and employer distribution are real. |
+| `src/app/graduates/page.tsx:52,63` | Heading copy says “Real … graduates, hired and building careers in tech”; empty state says the first cohort graduates in early 2027. | Confirm timeline; heading should not imply graduate outcomes before records exist. |
+| `src/components/EduportStudentFeedback.tsx:31-36,64-105` | Testimonials/outcomes load from the graduates API; empty state says “Be our first success story.” No hard-coded student testimonial found. | Dynamic records still need consent/accuracy review; empty state is explicit. |
+
+### Verification
+
+- `backend`: `npx prisma generate` completed from the checked-out schema (no DB/migration action).
+- Focused `staff-security.test.ts` passed before the concurrency case was expanded: 14/14.
+- Re-ran the parallel-guess case with 50 concurrent requests: **failed as intended**, 50 invalid requests returned 401 instead of being stopped at five failures; this is the reported finding.
+- No live-site content was edited. No production services or database were accessed.
+
 ### Campaign QR API (Claude Code → Antigravity)
 All admin-only (`403` otherwise). A campaign object:
 `{ id, code, label, target, active, source, shortUrl, scans, registrations, paidRegistrations, createdAt }`.
