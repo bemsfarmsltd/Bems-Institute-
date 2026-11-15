@@ -72,6 +72,10 @@ export interface AuthResult {
   ok: boolean;
   error?: string;
   user?: User;
+  twoFactorRequired?: boolean;
+  challenge?: string;
+  recoveryCodesLeft?: number;
+  signInRequired?: boolean;
 }
 
 interface LMSContextType {
@@ -79,6 +83,7 @@ interface LMSContextType {
   isHydrated: boolean;
   isAdminDataLoaded: boolean;
   login: (email: string, password: string) => Promise<AuthResult>;
+  completeTwoFactorLogin: (challenge: string, code: string) => Promise<AuthResult>;
   signup: (
     name: string,
     email: string,
@@ -400,6 +405,9 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({ email, password })
       });
       const data = await res.json();
+      if (res.ok && data.twoFactorRequired && data.challenge) {
+        return { ok: true, twoFactorRequired: true, challenge: data.challenge };
+      }
       if (res.ok && data.user) {
         setUser(data.user);
         localStorage.setItem("bems_lms_user", JSON.stringify(data.user));
@@ -407,6 +415,30 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
         return { ok: true, user: data.user };
       }
       return { ok: false, error: data.error || "Sign in failed." };
+    } catch {
+      return { ok: false, error: "Could not reach the server. Please try again." };
+    }
+  };
+
+  const completeTwoFactorLogin = async (challenge: string, code: string): Promise<AuthResult> => {
+    try {
+      const res = await apiFetch("/api/auth/login/2fa", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ challenge, code })
+      });
+      const data = await res.json();
+      if (res.ok && data.user) {
+        setUser(data.user);
+        localStorage.setItem("bems_lms_user", JSON.stringify(data.user));
+        await loadOwnLmsData(data.user.role);
+        return {
+          ok: true,
+          user: data.user,
+          recoveryCodesLeft: typeof data.recoveryCodesLeft === "number" ? data.recoveryCodesLeft : undefined
+        };
+      }
+      return { ok: false, error: data.error || "Verification failed." };
     } catch {
       return { ok: false, error: "Could not reach the server. Please try again." };
     }
@@ -463,6 +495,9 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({ token, password })
       });
       const data = await res.json();
+      if (res.ok && data.signInRequired) {
+        return { ok: true, signInRequired: true };
+      }
       if (res.ok && data.user) {
         setUser(data.user);
         localStorage.setItem("bems_lms_user", JSON.stringify(data.user));
@@ -772,6 +807,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
         isHydrated,
         isAdminDataLoaded,
         login,
+        completeTwoFactorLogin,
         signup,
         setVerifiedUser,
         logout,
