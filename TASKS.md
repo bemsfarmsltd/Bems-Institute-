@@ -8,9 +8,9 @@ section.
 
 | Task | Agent | Branch | Files / areas | Started |
 |---|---|---|---|---|
-| **Staff & Access + Security API** (done, awaiting merge): staff invites (replace the shared ADMIN_ACCESS_CODE), role changes, 2-step verification (authenticator app + recovery codes), sign-in history, sign out everywhere; reset links emailed; a reset link can no longer skip 2FA. API below. | Claude Code | `claude/staff-security-api` | `backend/` (schema + migration, `lib/totp.ts`, `lib/account-security.ts`, `lib/staff-invites.ts`, `routes/account.ts`, `routes/staff-invites.ts`, `routes/admin.ts`, `routes/auth.ts`, `routes/admin-auth.ts`) | 2026-11-15 |
-| **Staff & Access + Security tabs, 2FA sign-in step, invite page**, per the API below | Antigravity | `antigravity/staff-security-ui`, off `claude/staff-security-api` | `src/app/admin/page.tsx`, `src/app/login/page.tsx`, `src/components/AdminGate.tsx`, `src/context/LMSContext.tsx` (login), new `src/app/staff-invite/[token]/page.tsx` | 2026-11-15 |
-| **Security review + tests** of `claude/staff-security-api`; placeholder/fake-content sweep of the live site | Codex | `codex/staff-security-review` | Read all; write `backend/src/__tests__/` + notes here | 2026-11-15 |
+| **Staff & Access + Security API** (merged into main; rate limiting made atomic after Codex review): staff invites (replace the shared ADMIN_ACCESS_CODE), role changes, 2-step verification (authenticator app + recovery codes), sign-in history, sign out everywhere; reset links emailed; a reset link can no longer skip 2FA. API below. | Claude Code | `claude/staff-security-api` | `backend/` (schema + migration, `lib/totp.ts`, `lib/account-security.ts`, `lib/staff-invites.ts`, `routes/account.ts`, `routes/staff-invites.ts`, `routes/admin.ts`, `routes/auth.ts`, `routes/admin-auth.ts`) | 2026-11-15 |
+| **Staff & Access + Security tabs, 2FA sign-in step, invite page** (merged into main; browser-verified end to end) | Antigravity | `antigravity/staff-security-ui`, off `claude/staff-security-api` | `src/app/admin/page.tsx`, `src/app/login/page.tsx`, `src/components/AdminGate.tsx`, `src/context/LMSContext.tsx` (login), new `src/app/staff-invite/[token]/page.tsx` | 2026-11-15 |
+| **Security review + tests** of `claude/staff-security-api` (done, finding fixed in e1e5940); placeholder/fake-content sweep (done, owner to confirm the list below) | Codex | `codex/staff-security-review` | Read all; write `backend/src/__tests__/` + notes here | 2026-11-15 |
 
 ## Codex staff security review + public content sweep (2026-11-15)
 
