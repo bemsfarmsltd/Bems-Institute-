@@ -2,7 +2,7 @@ import { Router } from "express";
 import { prisma } from "@/lib/prisma";
 import { hashPassword, isPasswordStrongEnough } from "@/lib/password";
 import { createSessionToken, SESSION_COOKIE, SESSION_COOKIE_OPTIONS } from "@/lib/session";
-import { checkRateLimit, recordAttempt, rateLimitMessage } from "@/lib/rate-limit";
+import { checkRateLimit, rateLimitMessage } from "@/lib/rate-limit";
 import { isValidEmail } from "@/lib/validation";
 
 const MAX_NAME_LENGTH = 100;
@@ -53,7 +53,7 @@ router.post("/", async (req, res) => {
   }
 
   const codeValid = !!code && code === expected;
-  await recordAttempt(RATE_LIMIT_KEY, codeValid);
+  await limit.settle(codeValid);
   if (!codeValid) {
     return res.status(401).json({ error: "Incorrect staff access code." });
   }

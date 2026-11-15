@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/api-auth";
 import { verifyPassword } from "@/lib/password";
 import { createSessionToken, SESSION_COOKIE, SESSION_COOKIE_OPTIONS } from "@/lib/session";
-import { checkRateLimit, recordAttempt, rateLimitMessage } from "@/lib/rate-limit";
+import { checkRateLimit, rateLimitMessage } from "@/lib/rate-limit";
 import { consumeSecondFactor, twoFactorSelect } from "@/lib/account-security";
 import { decryptSecret, encryptSecret, generateRecoveryCodes, generateTotpSecret, otpauthUrl, verifyTotp } from "@/lib/totp";
 
@@ -61,7 +61,7 @@ router.post("/2fa/setup", async (req, res) => {
   if (limit.blocked) return res.status(429).json({ error: rateLimitMessage(limit.retryAfterSeconds!) });
 
   const ok = await verifyPassword(String(req.body?.password ?? ""), user.passwordHash);
-  await recordAttempt(`account-security:${user.id}`, ok);
+  await limit.settle(ok);
   if (!ok) return res.status(401).json({ error: "Incorrect password." });
 
   const secret = generateTotpSecret();
@@ -81,7 +81,7 @@ router.post("/2fa/enable", async (req, res) => {
   if (limit.blocked) return res.status(429).json({ error: rateLimitMessage(limit.retryAfterSeconds!) });
 
   const step = verifyTotp(secret, String(req.body?.code ?? ""), null);
-  await recordAttempt(`account-security:${user.id}`, step !== null);
+  await limit.settle(step !== null);
   if (step === null) return res.status(400).json({ error: "That code didn't match. Check the time on your phone and try the newest code." });
 
   const recovery = generateRecoveryCodes();
@@ -109,7 +109,7 @@ router.post("/2fa/disable", async (req, res) => {
 
   const passwordOk = await verifyPassword(String(req.body?.password ?? ""), user.passwordHash);
   const codeOk = passwordOk ? await consumeSecondFactor(user, String(req.body?.code ?? "")) : null;
-  await recordAttempt(`account-security:${user.id}`, !!codeOk);
+  await limit.settle(!!codeOk);
   if (!passwordOk || !codeOk) return res.status(401).json({ error: "Incorrect password or code." });
 
   await prisma.user.update({
@@ -128,7 +128,7 @@ router.post("/2fa/recovery-codes", async (req, res) => {
   if (limit.blocked) return res.status(429).json({ error: rateLimitMessage(limit.retryAfterSeconds!) });
 
   const used = await consumeSecondFactor(user, String(req.body?.code ?? ""));
-  await recordAttempt(`account-security:${user.id}`, !!used);
+  await limit.settle(!!used);
   if (!used) return res.status(401).json({ error: "That code didn't work." });
 
   const recovery = generateRecoveryCodes();

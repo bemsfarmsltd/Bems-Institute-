@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { prisma } from "@/lib/prisma";
 
 // Durable account-lockout for password/code-guessing endpoints (login,
@@ -14,26 +15,61 @@ export interface RateLimitResult {
   retryAfterSeconds?: number;
 }
 
-/** Call before checking a password/code. Does not itself record anything. */
-export async function checkRateLimit(key: string): Promise<RateLimitResult> {
-  const since = new Date(Date.now() - WINDOW_MS);
-  const recentFailures = await prisma.authAttempt.findMany({
+export interface AttemptSlot extends RateLimitResult {
+  /** After checking the password/code: settle(true) marks the attempt a success. */
+  settle: (success: boolean) => Promise<void>;
+}
+
+const noop = async () => {};
+
+/**
+ * Call before checking a password/code. Atomically reserves this attempt,
+ * counted as a FAILURE until settle(true): under a per-key advisory lock it
+ * counts recent failures and only inserts the attempt if under the limit.
+ * Checking and recording separately let a burst of parallel requests all
+ * pass the check before any was recorded (found by Codex: 50 parallel 2FA
+ * guesses, no 429).
+ *
+ * Timestamps go in as UTC wall-clock text cast to timestamp, matching how
+ * Prisma stores DateTime in a "timestamp without time zone" column.
+ */
+export async function checkRateLimit(key: string): Promise<AttemptSlot> {
+  const now = new Date();
+  const since = new Date(now.getTime() - WINDOW_MS);
+  const id = randomUUID();
+  const [, inserted] = await prisma.$transaction([
+    prisma.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${"rate:" + key}))`,
+    prisma.$queryRaw<{ id: string }[]>`
+      INSERT INTO "AuthAttempt" ("id", "key", "success", "createdAt")
+      SELECT ${id}, ${key}, false, ${now.toISOString()}::timestamp
+      WHERE (
+        SELECT COUNT(*) FROM "AuthAttempt"
+        WHERE "key" = ${key} AND "success" = false AND "createdAt" > ${since.toISOString()}::timestamp
+      ) < ${MAX_FAILURES}
+      RETURNING "id"`
+  ]);
+
+  if (inserted.length === 1) {
+    return {
+      blocked: false,
+      settle: async (success) => {
+        if (success) await prisma.authAttempt.update({ where: { id }, data: { success: true } }).catch(() => {});
+      }
+    };
+  }
+
+  // Conservative on purpose: unblocks when the OLDEST of the recent
+  // failures ages out of the window.
+  const oldest = await prisma.authAttempt.findFirst({
     where: { key, success: false, createdAt: { gt: since } },
     orderBy: { createdAt: "asc" },
     select: { createdAt: true }
   });
-
-  if (recentFailures.length < MAX_FAILURES) return { blocked: false };
-
-  // Conservative on purpose: unblocks when the OLDEST of the recent
-  // failures ages out of the window, not the earliest moment the count
-  // could theoretically drop below the threshold.
-  const oldest = recentFailures[0].createdAt;
-  const retryAfterMs = WINDOW_MS - (Date.now() - oldest.getTime());
-  return { blocked: true, retryAfterSeconds: Math.max(1, Math.ceil(retryAfterMs / 1000)) };
+  const retryAfterMs = oldest ? WINDOW_MS - (Date.now() - oldest.createdAt.getTime()) : WINDOW_MS;
+  return { blocked: true, retryAfterSeconds: Math.max(1, Math.ceil(retryAfterMs / 1000)), settle: noop };
 }
 
-/** Call once per attempt, after the password/code has been checked. */
+/** Records a usage-quota call (see checkUsageQuota). Not for password/code checks: use checkRateLimit's settle. */
 export async function recordAttempt(key: string, success: boolean): Promise<void> {
   await prisma.authAttempt.create({ data: { key, success } });
 }

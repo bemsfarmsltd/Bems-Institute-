@@ -50,7 +50,7 @@ router.post("/login", async (req, res) => {
 
   const user = await prisma.user.findUnique({ where: { email } });
   const valid = user ? await verifyPassword(password, user.passwordHash) : false;
-  await recordAttempt(rateLimitKey, valid);
+  await limit.settle(valid);
 
   // Demo accounts get the same answer as a wrong password (see demo-accounts.ts).
   if (!user || !valid || isBlockedDemoAccount(user.email)) {
@@ -102,7 +102,7 @@ router.post("/login/2fa", async (req, res) => {
   }
 
   const used = await consumeSecondFactor(user, typeof body.code === "string" ? body.code : "");
-  await recordAttempt(rateLimitKey, !!used);
+  await limit.settle(!!used);
   if (!used) {
     return res.status(401).json({ error: "That code didn't work. Check your authenticator app and try again." });
   }
@@ -265,7 +265,7 @@ router.post("/change-password", async (req, res) => {
   if (!user) return res.status(404).json({ error: "Account not found." });
 
   const valid = await verifyPassword(currentPassword, user.passwordHash);
-  await recordAttempt(rateLimitKey, valid);
+  await limit.settle(valid);
   if (!valid) {
     return res.status(401).json({ error: "Current password is incorrect." });
   }
@@ -314,7 +314,7 @@ router.post("/deactivate", async (req, res) => {
   if (!user) return res.status(404).json({ error: "Account not found." });
 
   const valid = await verifyPassword(password, user.passwordHash);
-  await recordAttempt(rateLimitKey, valid);
+  await limit.settle(valid);
   if (!valid) {
     return res.status(401).json({ error: "Password is incorrect." });
   }
@@ -410,7 +410,7 @@ router.post("/request-reset", async (req, res) => {
   if (limit.blocked) {
     return res.status(429).json({ error: rateLimitMessage(limit.retryAfterSeconds!) });
   }
-  await recordAttempt(rateLimitKey, false);
+  await limit.settle(false);
 
   const user = await prisma.user.findUnique({ where: { email } });
   if (user) {

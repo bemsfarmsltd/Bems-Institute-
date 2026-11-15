@@ -2,7 +2,7 @@ import { Router } from "express";
 import { prisma } from "@/lib/prisma";
 import { hashPassword, isPasswordStrongEnough, verifyPassword } from "@/lib/password";
 import { createSessionToken, SESSION_COOKIE, SESSION_COOKIE_OPTIONS } from "@/lib/session";
-import { checkRateLimit, recordAttempt, rateLimitMessage } from "@/lib/rate-limit";
+import { checkRateLimit, rateLimitMessage } from "@/lib/rate-limit";
 import { recordLogin } from "@/lib/account-security";
 import { findUsableInvite } from "@/lib/staff-invites";
 
@@ -31,7 +31,7 @@ router.post("/:token/accept", async (req, res) => {
 
   const invite = await findUsableInvite(req.params.token);
   if (!invite) {
-    await recordAttempt(rateLimitKey, false);
+    await limit.settle(false);
     return res.status(410).json({ error: GONE });
   }
 
@@ -42,12 +42,14 @@ router.post("/:token/accept", async (req, res) => {
 
   if (existing) {
     const ok = await verifyPassword(password, existing.passwordHash);
-    await recordAttempt(rateLimitKey, ok);
+    await limit.settle(ok);
     if (!ok) return res.status(401).json({ error: "That's not the password for this account." });
     if (existing.deactivatedAt) return res.status(403).json({ error: "This account has been deactivated. Contact an admin." });
   } else {
     if (!name || name.length > MAX_NAME_LENGTH) return res.status(400).json({ error: "Enter your name (up to 100 characters)." });
     if (!isPasswordStrongEnough(password)) return res.status(400).json({ error: "Password must be at least 8 characters." });
+    // A valid invite plus a well-formed new account is a successful attempt.
+    await limit.settle(true);
   }
 
   // Claim the invite first, atomically, so one link can't be used twice.

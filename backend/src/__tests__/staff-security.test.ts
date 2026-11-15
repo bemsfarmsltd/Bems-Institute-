@@ -1,4 +1,4 @@
-import { describe, it, expect, afterAll } from "vitest";
+import { describe, it, expect, afterAll, beforeEach } from "vitest";
 import request from "supertest";
 import { app } from "@/app";
 import { prisma } from "@/lib/prisma";
@@ -133,6 +133,11 @@ describe("sign out everywhere", () => {
 });
 
 describe("staff invites", () => {
+  // Invite accepts are limited per IP, and every test request shares one IP.
+  beforeEach(async () => {
+    await prisma.authAttempt.deleteMany({ where: { key: { startsWith: "staff-invite:" } } });
+  });
+
   it("only admins can invite", async () => {
     const { agent } = await createTestStudent("invite-student");
     expect((await agent.post("/api/admin/staff/invites", { email: testEmail("x"), role: "ADMIN" })).status).toBe(403);
