@@ -161,6 +161,9 @@ model SiteSettings {
   bankName          String   @default("")
   bankAccountName   String   @default("")
   bankAccountNumber String   @default("")
+  // WhatsApp community invite (https://chat.whatsapp.com/...), sent to each
+  // student once their registration is confirmed. Never shown publicly.
+  whatsappCommunityUrl String @default("")
   updatedAt         DateTime @updatedAt
 }
 
@@ -447,6 +450,8 @@ model Enrollment {
   // (see PATCH /admin/enrollments/:id/welcome-call), not self-booked.
   welcomeCallStatus WelcomeCallStatus @default(NOT_SCHEDULED)
   welcomeCallAt     DateTime?
+  // When the WhatsApp community link was sent (once, on confirmation).
+  communityInviteSentAt DateTime?
   // PRD §4.2: "A public goal: each student states their goal in the class
   // group... saying it out loud, in front of others." Visible to every
   // other student in the same cohort+course (see GET /lms/class-goals) —

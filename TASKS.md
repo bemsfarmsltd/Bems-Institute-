@@ -8,6 +8,8 @@ section.
 
 | Task | Agent | Branch | Files / areas | Started |
 |---|---|---|---|---|
+| **WhatsApp community link + class type API** (done, awaiting merge): community invite set in Settings > General, sent once to each student when their registration is confirmed (approval, bank-payment confirmation, or a card payment completing a confirmed registration); `communityUrl` on `/api/lms/me` for confirmed students only; `deliveryMode` returned per enrollment. API below. | Claude Code | `claude/community-and-delivery` | `backend/` (schema + migration, `lib/community.ts`, `routes/admin.ts`, `routes/lms.ts`, `lib/payment-ledger.ts`) | 2026-11-15 |
+| **Physical/virtual choice at registration, community button on dashboard, community link in Settings**, per the API below | Antigravity | `antigravity/community-and-delivery-ui`, off `claude/community-and-delivery` | `src/app/subscriptions/page.tsx`, `src/app/dashboard/page.tsx`, `src/context/LMSContext.tsx`, `src/app/admin/page.tsx` (General tab) | 2026-11-15 |
 | **Staff & Access + Security API** (merged into main; rate limiting made atomic after Codex review): staff invites (replace the shared ADMIN_ACCESS_CODE), role changes, 2-step verification (authenticator app + recovery codes), sign-in history, sign out everywhere; reset links emailed; a reset link can no longer skip 2FA. API below. | Claude Code | `claude/staff-security-api` | `backend/` (schema + migration, `lib/totp.ts`, `lib/account-security.ts`, `lib/staff-invites.ts`, `routes/account.ts`, `routes/staff-invites.ts`, `routes/admin.ts`, `routes/auth.ts`, `routes/admin-auth.ts`) | 2026-11-15 |
 | **Staff & Access + Security tabs, 2FA sign-in step, invite page** (merged into main; browser-verified end to end) | Antigravity | `antigravity/staff-security-ui`, off `claude/staff-security-api` | `src/app/admin/page.tsx`, `src/app/login/page.tsx`, `src/components/AdminGate.tsx`, `src/context/LMSContext.tsx` (login), new `src/app/staff-invite/[token]/page.tsx` | 2026-11-15 |
 | **Security review + tests** of `claude/staff-security-api` (done, finding fixed in e1e5940); placeholder/fake-content sweep (done, owner to confirm the list below) | Codex | `codex/staff-security-review` | Read all; write `backend/src/__tests__/` + notes here | 2026-11-15 |
@@ -81,6 +83,17 @@ Errors are always `{ error }` with a message to show as is. `429` = too many tri
 - `GET /api/staff-invites/:token` → `{ invite: { email, role, expiresAt, accountExists } }`, or `410` (expired/used: show the message).
 - `POST /api/staff-invites/:token/accept`: new person `{ name, password }` (8+ chars); `accountExists` → just `{ password }` of that account. → `{ user }` (signed in: go to `/admin` or `/instructor` by role) or `{ ok, signInRequired: true }` (send to `/login`).
 - `AdminGate`'s "register with staff code" now returns `403` once any admin exists: replace that tab with "Staff accounts are invite-only. Ask an admin for an invite link."
+
+### WhatsApp community + class type API (Claude Code → Antigravity)
+**Class type at registration** (`src/app/subscriptions/page.tsx`): before payment, the student picks **Physical class (BEMS lab, Umuahia)** or **Virtual class (live online)**. No default: they must choose. Send it as `deliveryMode: "PHYSICAL_LAB" | "VIRTUAL_ZOOM"` in BOTH `POST /api/payments/init` and `POST /api/lms/enroll` (the server already stores it; without it everyone was recorded as physical). `GET /api/lms/me` now returns `deliveryMode` on each enrollment: show it on the dashboard ("Class: Virtual").
+
+**Community button** (dashboard): `GET /api/lms/me` returns `communityUrl` (a `https://chat.whatsapp.com/...` link) only when the student has a confirmed registration, else `null`. When set, show a prominent green "Join the WhatsApp community" button (opens in a new tab) with a line like "Chat with your instructor and classmates". Don't render or log the link anywhere else.
+
+**Settings > General** (admin):
+- `GET/PATCH /api/admin/settings/general` now include `whatsappCommunityUrl`. Field label "WhatsApp community invite link", placeholder `https://chat.whatsapp.com/...`. Empty clears it. `400` with a message if it isn't a WhatsApp invite link.
+- Button "Send link to confirmed students" → `POST /api/admin/settings/community/send-pending` → `{ sent }` ("Sent to 12 students"). For students confirmed before the link was set; each student only ever gets it once. `400` if no link is saved.
+- Note under the field: "Each student gets this link automatically (email + notification) when their registration is confirmed."
+
 
 ## Codex motion QA (2026-11-14)
 

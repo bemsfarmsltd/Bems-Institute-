@@ -17,6 +17,7 @@ import { checkUsageQuota, recordAttempt, rateLimitMessage } from "@/lib/rate-lim
 import type { QuizResult } from "@/types/lms";
 import type { NotificationCategory } from "@prisma/client";
 import { getBankTransferDetails } from "@/lib/site-settings";
+import { getCommunityUrl } from "@/lib/community";
 
 const router = Router();
 
@@ -85,7 +86,7 @@ router.get("/me", async (req, res) => {
   const [enrollments, progress, quizAttempts, submissions] = await Promise.all([
     prisma.enrollment.findMany({
       where: { userId: session.id },
-      select: { id: true, courseId: true, status: true, paymentStatus: true, paymentPlan: true, amountPaid: true, totalDue: true }
+      select: { id: true, courseId: true, status: true, paymentStatus: true, paymentPlan: true, amountPaid: true, totalDue: true, deliveryMode: true }
     }),
     prisma.userProgress.findMany({ where: { userId: session.id, isCompleted: true }, select: { lessonId: true } }),
     prisma.quizAttempt.findMany({ where: { userId: session.id }, orderBy: { createdAt: "desc" } }),
@@ -109,9 +110,14 @@ router.get("/me", async (req, res) => {
     };
   }
 
+  // The WhatsApp community link, only for students with a confirmed
+  // registration (see lib/community.ts).
+  const communityUrl = enrollments.some(hasCourseAccess) ? await getCommunityUrl() : null;
+
   return res.json({
     // Only courses the student can actually open (paid AND admin-confirmed).
     enrolledCourseIds: enrollments.filter(hasCourseAccess).map((e) => e.courseId),
+    communityUrl,
     // Every registration with its state, so the UI can show "awaiting
     // payment" / "paid — awaiting admissions confirmation" / "active".
     enrollments: enrollments.map((e) => ({
@@ -122,6 +128,7 @@ router.get("/me", async (req, res) => {
       paymentPlan: e.paymentPlan,
       amountPaid: e.amountPaid,
       totalDue: e.totalDue,
+      deliveryMode: e.deliveryMode,
       hasAccess: hasCourseAccess(e),
       awaitingApproval: e.status === "PENDING" && e.paymentStatus !== "PENDING" && e.paymentStatus !== "REFUNDED"
     })),

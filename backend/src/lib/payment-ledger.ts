@@ -3,6 +3,7 @@ import { createNotification, notifyStaff } from "@/lib/notifications";
 import { sendEmail, adminEmailAddresses, frontendUrl, naira } from "@/lib/email";
 import { creditReferralIfEligible } from "@/lib/referrals";
 import type { PaystackVerifyData } from "@/lib/paystack";
+import { sendCommunityInviteIfReady } from "@/lib/community";
 
 export type ConfirmResult =
   | { ok: true; alreadyProcessed?: true }
@@ -198,6 +199,10 @@ export async function confirmPaymentTransaction(
       ].join("\n\n")
     });
   }
+
+  // A card payment can complete a registration admissions already confirmed.
+  const confirmed = await prisma.enrollment.findUnique({ where: { userId_courseId: { userId: txn.userId, courseId: txn.courseId } }, select: { id: true } });
+  if (confirmed) await sendCommunityInviteIfReady(confirmed.id);
 
   return { ok: true };
 }

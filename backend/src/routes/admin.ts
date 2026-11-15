@@ -14,6 +14,7 @@ import type { AnalyticsSummary } from "@/types/lms";
 import type { QrCampaign } from "@prisma/client";
 import { getSiteSettings, integrationStatus, ACCOUNT_NUMBER_PATTERN } from "@/lib/site-settings";
 import { createStaffInvite, emailStaffInvite, inviteStatus, inviteUrl, STAFF_ROLES } from "@/lib/staff-invites";
+import { COMMUNITY_URL_PATTERN, getCommunityUrl, sendCommunityInviteIfReady } from "@/lib/community";
 import { DEMO_ACCOUNT_EMAILS } from "@/lib/demo-accounts";
 import { isValidEmail } from "@/lib/validation";
 
@@ -917,6 +918,8 @@ router.post("/enrollments/:id/payment", async (req, res) => {
   if (amountPaid > 0) {
     await creditReferralIfEligible(enrollment.userId);
   }
+  // If this payment completed a confirmed registration, send the community link.
+  await sendCommunityInviteIfReady(id);
 
   return res.json({ enrollment });
 });
@@ -1040,6 +1043,8 @@ router.post("/enrollments/:id/approve", async (req, res) => {
       .filter(Boolean)
       .join("\n\n")
   });
+
+  await sendCommunityInviteIfReady(existing.id);
 
   const enrollment = await prisma.enrollment.findUnique({ where: { id: existing.id } });
   return res.json({ enrollment, alreadyApproved: false });
@@ -1631,7 +1636,8 @@ router.get("/settings/general", async (req, res) => {
       allowRegistration: s.allowRegistration,
       bankName: s.bankName,
       bankAccountName: s.bankAccountName,
-      bankAccountNumber: s.bankAccountNumber
+      bankAccountNumber: s.bankAccountNumber,
+      whatsappCommunityUrl: s.whatsappCommunityUrl
     },
     integrations: integrationStatus()
   });
@@ -1657,21 +1663,49 @@ router.patch("/settings/general", async (req, res) => {
   if (bankAccountNumber && !ACCOUNT_NUMBER_PATTERN.test(bankAccountNumber)) {
     return res.status(400).json({ error: "Account number must be exactly 10 digits." });
   }
+  const whatsappCommunityUrl = typeof body.whatsappCommunityUrl === "string" ? body.whatsappCommunityUrl.trim() : undefined;
+  if (whatsappCommunityUrl && !COMMUNITY_URL_PATTERN.test(whatsappCommunityUrl)) {
+    return res.status(400).json({ error: "Paste a WhatsApp invite link like https://chat.whatsapp.com/AbC123..." });
+  }
 
   const s = await prisma.siteSettings.upsert({
     where: { id: "singleton" },
-    update: { allowRegistration, bankName, bankAccountName, bankAccountNumber },
-    create: { id: "singleton", allowRegistration: allowRegistration ?? undefined, bankName, bankAccountName, bankAccountNumber }
+    update: { allowRegistration, bankName, bankAccountName, bankAccountNumber, whatsappCommunityUrl },
+    create: { id: "singleton", allowRegistration: allowRegistration ?? undefined, bankName, bankAccountName, bankAccountNumber, whatsappCommunityUrl }
   });
   return res.json({
     general: {
       allowRegistration: s.allowRegistration,
       bankName: s.bankName,
       bankAccountName: s.bankAccountName,
-      bankAccountNumber: s.bankAccountNumber
+      bankAccountNumber: s.bankAccountNumber,
+      whatsappCommunityUrl: s.whatsappCommunityUrl
     },
     integrations: integrationStatus()
   });
+});
+
+// Sends the community link to every confirmed student who hasn't had it
+// (e.g. those confirmed before the link was set). Each gets it once.
+router.post("/settings/community/send-pending", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
+  }
+  if (!(await getCommunityUrl())) {
+    return res.status(400).json({ error: "Save the WhatsApp community link first." });
+  }
+  const pending = await prisma.enrollment.findMany({
+    where: {
+      communityInviteSentAt: null,
+      status: { notIn: ["PENDING", "WITHDRAWN"] },
+      paymentStatus: { notIn: ["PENDING", "REFUNDED"] }
+    },
+    select: { id: true }
+  });
+  let sent = 0;
+  for (const e of pending) if (await sendCommunityInviteIfReady(e.id)) sent++;
+  return res.json({ sent });
 });
 
 router.patch("/settings/notifications", async (req, res) => {
