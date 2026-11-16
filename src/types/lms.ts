@@ -252,3 +252,76 @@ export interface AnalyticsSummary {
   revenueByMonth: { month: string; amount: number }[];
 }
 
+export type MySpaceGoalType = "JOB" | "FREELANCE" | "OWN_PRODUCT" | "UPSKILL" | "OTHER";
+export type MySpaceExperienceLevel = "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
+
+export interface MySpaceProfile {
+  goalType: MySpaceGoalType;
+  goal: string | null;
+  experienceLevel: MySpaceExperienceLevel;
+  weeklyHours: number;
+  motivation: string | null;
+  onboardedAt: string | null;
+}
+
+export interface MySpaceCourse {
+  enrollmentId: string;
+  courseId: string;
+  slug: string;
+  title: string;
+  color: string | null;
+  tutor: string;
+  tutorRole: string | null;
+  deliveryMode: "PHYSICAL_LAB" | "VIRTUAL_ZOOM";
+  hasAccess: boolean;
+  cohort: {
+    name: string;
+    startDate: string;
+    endDate: string;
+    phase: "BEFORE_START" | "IN_PROGRESS" | "FINISHED";
+    daysToStart: number;
+    daysToEnd: number;
+  } | null;
+  progress: {
+    completed: number;
+    total: number;
+    percent: number;
+  };
+  nextLesson: {
+    id: string;
+    title: string;
+    moduleTitle: string;
+    href: string;
+  } | null;
+  nextLiveSession: {
+    title: string;
+    type: string;
+    scheduledAt: string;
+    meetingUrl: string | null;
+  } | null;
+  latestFeedback: {
+    assignmentTitle: string;
+    score: number | null;
+    feedback: string | null;
+    gradedBy: string | null;
+    gradedAt: string | null;
+  } | null;
+}
+
+export interface MySpaceData {
+  firstName: string;
+  greeting: string;
+  onboarded: boolean;
+  profile: MySpaceProfile | null;
+  courses: MySpaceCourse[];
+  week: {
+    startsAt: string;
+    lessonsCompleted: number;
+    minutesStudied: number;
+    goalMinutes: number | null;
+    percentOfGoal: number | null;
+  };
+  streak: number;
+  communityUrl: string | null;
+}
+

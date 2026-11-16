@@ -40,7 +40,12 @@ import {
   Bell,
   AlertTriangle,
   Target,
-  Clock
+  Clock,
+  Flame,
+  PlayCircle,
+  Calendar,
+  MapPin,
+  Video
 } from "lucide-react";
 
 type NotifyCategory = "CLASS" | "GRADING" | "PAYMENT" | "GAMIFICATION" | "ATTENDANCE";
@@ -87,6 +92,7 @@ function StudentDashboardContent() {
     enrolledCourseIds,
     userEnrollments,
     communityUrl,
+    mySpace,
     getCourseProgress,
     getQuizForCourse,
     getAssignmentForCourse,
@@ -184,6 +190,33 @@ function StudentDashboardContent() {
         // payment history unavailable — the rest of the dashboard still works
       });
   }, []);
+
+  useEffect(() => {
+    if (
+      user?.role === "STUDENT" &&
+      mySpace &&
+      mySpace.onboarded === false &&
+      typeof window !== "undefined" &&
+      sessionStorage.getItem("bems_skip_welcome") !== "1"
+    ) {
+      router.replace("/welcome");
+    }
+  }, [user?.role, mySpace, router]);
+
+  const primarySpaceCourse = mySpace?.courses?.[0] ?? null;
+  const cohortCountdownText = useMemo(() => {
+    const cohort = primarySpaceCourse?.cohort;
+    if (!cohort) return null;
+    if (cohort.phase === "BEFORE_START") {
+      if (cohort.daysToStart <= 0) return "Class starts today";
+      if (cohort.daysToStart === 1) return "Class starts tomorrow";
+      return `Class starts in ${cohort.daysToStart} days`;
+    }
+    if (cohort.phase === "IN_PROGRESS") {
+      return `${cohort.name} · ${cohort.daysToEnd} ${cohort.daysToEnd === 1 ? "day" : "days"} to graduation`;
+    }
+    return `${cohort.name} · Completed`;
+  }, [primarySpaceCourse]);
 
   const enrolledCourses = courses.filter((c) => enrolledCourseIds.includes(c.id));
   const pendingApprovals = (userEnrollments || []).filter((e) => e.awaitingApproval);
@@ -368,10 +401,10 @@ function StudentDashboardContent() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-1 w-full">
-        {/* Profile Row */}
-        <div className="-mt-12 sm:-mt-14 mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-5 sm:gap-6">
-          <div className="flex items-center sm:items-end gap-3.5 sm:gap-5">
-            <div className="m-pop relative shrink-0">
+        {/* Profile Row — stacked on 375px so avatar & level badge never overlap text */}
+        <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4 sm:gap-6">
+          <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-5 min-w-0">
+            <div className="m-pop -mt-11 sm:-mt-14 mb-2 sm:mb-0 relative self-start shrink-0">
               <UserAvatar
                 user={user ? { name: user.name, avatarUrl: user.avatarUrl } : { name: "Student", avatarUrl: null }}
                 size={88}
@@ -379,24 +412,55 @@ function StudentDashboardContent() {
                 className="ring-4 ring-white shadow-lg text-xl sm:text-2xl"
               />
               {xp && (
-                <span className="pointer-events-none absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 sm:px-2.5 py-0.5 rounded-full bg-emerald-500 text-white text-[9px] sm:text-[10px] font-bold shadow-sm whitespace-nowrap">
+                <span className="pointer-events-none absolute -bottom-2 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-bold shadow-sm whitespace-nowrap">
                   {xp.levelTitle}
                 </span>
               )}
             </div>
-            <div className="pb-1 min-w-0">
-              <h1 className="text-xl sm:text-3xl font-black text-[#303654] truncate">
-                {user?.name || "Student"}
+            <div className="pt-1 sm:pt-3 min-w-0 space-y-1.5">
+              <h1 className="text-2xl sm:text-3xl font-black text-[#303654] leading-tight">
+                {mySpace ? `${mySpace.greeting}, ${mySpace.firstName}` : user?.name || "Student"}
               </h1>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs sm:text-sm text-[#645F80] font-semibold">
-                {xp && <span>{xp.points} XP</span>}
-                <span>{completedCoursesCount} Completed courses</span>
-                <span>{totalCompletedLessons} Completed lessons</span>
-              </div>
+
+              {primarySpaceCourse ? (
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs sm:text-sm text-[#645F80] font-semibold">
+                  <span className="text-[#303654] font-bold">{primarySpaceCourse.title}</span>
+                  <span>Your tutor: {primarySpaceCourse.tutor}</span>
+                  <span className="inline-flex items-center gap-1 text-[#AE54C6]">
+                    {primarySpaceCourse.deliveryMode === "VIRTUAL_ZOOM" ? (
+                      <>
+                        <Video className="w-3.5 h-3.5" /> Virtual, live online
+                      </>
+                    ) : (
+                      <>
+                        <MapPin className="w-3.5 h-3.5" /> Physical, BEMS lab, Umuahia
+                      </>
+                    )}
+                  </span>
+                  {cohortCountdownText && (
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#F7EDF9] text-[#AE54C6] text-[11px] font-bold">
+                      {cohortCountdownText}
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm text-[#645F80] font-semibold">
+                  {xp && <span>{xp.points} XP</span>}
+                  <span>{completedCoursesCount} Completed courses</span>
+                  <span>{totalCompletedLessons} Completed lessons</span>
+                </div>
+              )}
+
+              {mySpace?.profile?.goal && (
+                <p className="text-xs sm:text-sm text-[#303654] font-medium">
+                  You&apos;re here to:{" "}
+                  <span className="font-bold text-[#AE54C6]">{mySpace.profile.goal}</span>
+                </p>
+              )}
             </div>
           </div>
 
-          <a href="#my-courses-list" className="self-start sm:self-auto">
+          <a href="#my-courses-list" className="self-start sm:self-auto shrink-0">
             <Button variant="outline" size="sm" className="shrink-0 text-xs sm:text-sm">
               View my courses
             </Button>
@@ -480,6 +544,230 @@ function StudentDashboardContent() {
 
           {/* Main Content */}
           <div className="space-y-8 min-w-0">
+            {/* My Space: Continue where you left off + Weekly Goal Ring */}
+            {mySpace && (
+              <div className="space-y-5">
+                <div
+                  data-reveal
+                  className="m-lift bg-white rounded-2xl border border-[#F1E2F5] p-5 sm:p-7 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6"
+                >
+                  <div className="space-y-3 flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="px-2.5 py-1 rounded-full bg-[#F7EDF9] text-[#AE54C6] text-[11px] font-extrabold uppercase tracking-wider">
+                        Continue where you left off
+                      </span>
+                      {mySpace.streak > 0 && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-[11px] font-extrabold">
+                          <Flame className="w-3.5 h-3.5" /> {mySpace.streak} day streak
+                        </span>
+                      )}
+                    </div>
+
+                    {!primarySpaceCourse ? (
+                      <>
+                        <h2 className="text-lg sm:text-xl font-black text-[#303654]">
+                          Pick your first BEMS track
+                        </h2>
+                        <p className="text-xs sm:text-sm text-[#645F80]">
+                          Enroll in a hands-on cohort to unlock lessons, live classes, and tutor feedback.
+                        </p>
+                        <Link href="/courses" className="inline-block pt-1">
+                          <Button variant="purple" size="sm" className="gap-2">
+                            Browse courses <ArrowRight className="w-4 h-4" />
+                          </Button>
+                        </Link>
+                      </>
+                    ) : !primarySpaceCourse.hasAccess ? (
+                      <>
+                        <h2 className="text-lg sm:text-xl font-black text-[#303654]">
+                          {primarySpaceCourse.title}
+                        </h2>
+                        <p className="text-xs sm:text-sm text-[#645F80]">
+                          Your space opens when admissions confirms your registration.
+                        </p>
+                      </>
+                    ) : primarySpaceCourse.nextLesson ? (
+                      <>
+                        <h2 className="text-lg sm:text-xl font-black text-[#303654]">
+                          {primarySpaceCourse.nextLesson.moduleTitle} · {primarySpaceCourse.nextLesson.title}
+                        </h2>
+                        <div className="space-y-1.5 max-w-md">
+                          <div className="flex items-center justify-between text-xs font-bold text-[#645F80]">
+                            <span>{primarySpaceCourse.title}</span>
+                            <span className="text-[#AE54C6]">
+                              {primarySpaceCourse.progress.percent}% ({primarySpaceCourse.progress.completed}/{primarySpaceCourse.progress.total})
+                            </span>
+                          </div>
+                          <div className="w-full bg-[#F7EDF9] rounded-full h-2 overflow-hidden">
+                            <div
+                              className="h-full bg-[#AE54C6] rounded-full transition-all"
+                              style={{ width: `${primarySpaceCourse.progress.percent}%` }}
+                            />
+                          </div>
+                        </div>
+                        <div className="pt-1">
+                          <Link href={primarySpaceCourse.nextLesson.href}>
+                            <Button variant="purple" size="sm" className="gap-2">
+                              <PlayCircle className="w-4 h-4" /> Resume Lesson
+                            </Button>
+                          </Link>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <h2 className="text-lg sm:text-xl font-black text-[#303654]">
+                          All lessons completed in {primarySpaceCourse.title}!
+                        </h2>
+                        <p className="text-xs sm:text-sm text-[#645F80]">
+                          Submit your final capstone or view your verified certificate.
+                        </p>
+                        <div className="flex flex-wrap gap-2.5 pt-1">
+                          <Link href={`/courses/${primarySpaceCourse.slug}`}>
+                            <Button variant="purple" size="sm" className="gap-2">
+                              Open Course <ArrowRight className="w-4 h-4" />
+                            </Button>
+                          </Link>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Weekly Goal Ring */}
+                  <div className="flex items-center gap-4 bg-[#FAF8FF] border border-[#F1E2F5] rounded-2xl p-4 shrink-0">
+                    {(() => {
+                      const pct = Math.min(100, Math.max(0, mySpace.week.percentOfGoal ?? 0));
+                      const radius = 28;
+                      const circumference = 2 * Math.PI * radius;
+                      const dashOffset = circumference - (pct / 100) * circumference;
+                      return (
+                        <div className="relative w-16 h-16 shrink-0 flex items-center justify-center">
+                          <svg className="w-16 h-16 -rotate-90" viewBox="0 0 68 68">
+                            <circle
+                              cx="34"
+                              cy="34"
+                              r={radius}
+                              fill="none"
+                              stroke="#E5C8ED"
+                              strokeWidth="6"
+                            />
+                            <circle
+                              cx="34"
+                              cy="34"
+                              r={radius}
+                              fill="none"
+                              stroke="#AE54C6"
+                              strokeWidth="6"
+                              strokeLinecap="round"
+                              strokeDasharray={circumference}
+                              strokeDashoffset={dashOffset}
+                            />
+                          </svg>
+                          <span className="absolute text-xs font-black text-[#303654]">
+                            {mySpace.week.goalMinutes ? `${pct}%` : `${mySpace.week.lessonsCompleted}`}
+                          </span>
+                        </div>
+                      );
+                    })()}
+                    <div className="min-w-0">
+                      <div className="text-xs font-extrabold text-[#303654]">This week</div>
+                      {mySpace.week.goalMinutes ? (
+                        <p className="text-xs text-[#645F80] font-semibold mt-0.5">
+                          {mySpace.week.minutesStudied} of {mySpace.week.goalMinutes} min this week
+                        </p>
+                      ) : (
+                        <div className="mt-0.5 space-y-1">
+                          <p className="text-xs text-[#645F80] font-semibold">
+                            {mySpace.week.minutesStudied} min this week
+                          </p>
+                          <Link
+                            href="/welcome"
+                            className="text-[11px] font-bold text-[#AE54C6] hover:underline inline-block"
+                          >
+                            Set weekly goal
+                          </Link>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Next Class + Latest Feedback */}
+                {primarySpaceCourse && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="m-lift bg-white rounded-2xl border border-[#F1E2F5] p-5 shadow-xs flex flex-col justify-between gap-3">
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-[#AE54C6]">
+                          <Calendar className="w-4 h-4" /> Next Class
+                        </div>
+                        {primarySpaceCourse.nextLiveSession ? (
+                          <>
+                            <h3 className="text-base font-extrabold text-[#303654]">
+                              {primarySpaceCourse.nextLiveSession.title}
+                            </h3>
+                            <p className="text-xs text-[#645F80] font-semibold">
+                              {new Date(
+                                primarySpaceCourse.nextLiveSession.scheduledAt
+                              ).toLocaleString()}
+                            </p>
+                          </>
+                        ) : (
+                          <p className="text-xs sm:text-sm text-[#645F80]">
+                            No upcoming live class scheduled yet.
+                          </p>
+                        )}
+                      </div>
+                      {primarySpaceCourse.nextLiveSession?.meetingUrl && (
+                        <a
+                          href={primarySpaceCourse.nextLiveSession.meetingUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="self-start"
+                        >
+                          <Button variant="purple" size="sm" className="gap-1.5">
+                            Join Live Class <ExternalLink className="w-3.5 h-3.5" />
+                          </Button>
+                        </a>
+                      )}
+                    </div>
+
+                    <div className="m-lift bg-white rounded-2xl border border-[#F1E2F5] p-5 shadow-xs space-y-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-emerald-700">
+                          <MessageCircle className="w-4 h-4" /> Latest Feedback
+                        </div>
+                        {primarySpaceCourse.latestFeedback?.score !== null &&
+                          primarySpaceCourse.latestFeedback?.score !== undefined && (
+                            <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-black">
+                              {primarySpaceCourse.latestFeedback.score}/100
+                            </span>
+                          )}
+                      </div>
+                      {primarySpaceCourse.latestFeedback ? (
+                        <>
+                          <div className="text-xs font-bold text-[#645F80]">
+                            {primarySpaceCourse.latestFeedback.assignmentTitle}
+                          </div>
+                          <p className="text-xs sm:text-sm text-[#303654] font-medium">
+                            <strong className="font-extrabold">
+                              {primarySpaceCourse.latestFeedback.gradedBy ||
+                                primarySpaceCourse.tutor}
+                              :
+                            </strong>{" "}
+                            {primarySpaceCourse.latestFeedback.feedback || "Graded"}
+                          </p>
+                        </>
+                      ) : (
+                        <p className="text-xs sm:text-sm text-[#645F80]">
+                          No graded feedback yet — submit assignments to get notes from{" "}
+                          {primarySpaceCourse.tutor}.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Stat Cards */}
             <div data-reveal-group className="grid grid-cols-1 sm:grid-cols-3 gap-5">
               <div className="m-lift bg-[#FEF6E0] rounded-2xl p-5 flex items-center gap-4">
