@@ -106,6 +106,8 @@ describe("milestone badges", () => {
     const b = await createTestStudent("p3-seen-b");
     await a.agent.post("/api/lms/progress", { lessonId: "les-1" });
     await a.agent.get("/api/lms/my-space");
+    const bSpace = (await b.agent.get(`/api/lms/my-space?userId=${a.userId}`)).body;
+    expect(bSpace.badges.every((entry: { earned: boolean; isNew: boolean }) => !entry.earned && !entry.isNew)).toBe(true);
     await b.agent.post("/api/lms/my-space/badges/seen");
     expect(badge((await a.agent.get("/api/lms/my-space")).body, "first-lesson").isNew).toBe(true);
   });
