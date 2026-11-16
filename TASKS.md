@@ -10,6 +10,7 @@ section.
 |---|---|---|---|---|
 | **My Space Phase 2 API** (done; Codex review found no defects; browser-tested with the UI; awaiting merge): roadmap per course (modules → projects → capstone → certificate), Lagos-day study streak + this week's 7-day strip + weeks-in-a-row on target, AI tutor told the student's name / goal / level / current lesson, weekly recap (Sunday 18:00 Lagos: in-app + email, opt-out) via GitHub Actions + `POST /api/jobs/weekly-recap` and an admin fallback. API below. | Claude Code | `claude/my-space-phase2` | `backend/` (schema + migration, `lib/my-space.ts`, `lib/weekly-recap.ts`, `routes/jobs.ts`, `routes/ai.ts`, `routes/admin.ts`), `.github/workflows/weekly-recap.yml` | 2026-11-16 |
 | **My Space Phase 2 UI** (done, browser-tested at 375px + desktop, awaiting merge): roadmap, streak strip, weekly-email toggle, admin "Send weekly recaps now" button, per the API below | Antigravity | `antigravity/my-space-phase2-ui`, off `claude/my-space-phase2` (after Phase 1b is pushed) | `src/app/dashboard/page.tsx`, `src/app/courses/[slug]/page.tsx`, `src/app/admin/page.tsx`, `src/types/lms.ts`, `src/app/welcome/page.tsx` (one line) | 2026-11-16 |
+| **Review `antigravity/my-space-copy`** (done; remaining issues listed below) | Codex | `codex/my-space-copy-review` | `TASKS.md` + review of `src/` | 2026-11-16 |
 | **Review `claude/my-space-phase2`** (done, 1a23b5f): recap job auth (secret compare, no secret = 503), once-per-week claim under concurrent runs, week choice around Sunday/Monday midnight Lagos, what goes to the AI provider (no motivation, email, phone, payment), streak edge cases; add tests | Codex | `codex/my-space-phase2-review` | Read all; write `backend/src/__tests__/` + notes here | 2026-11-16 |
 | **My Space Phase 1b, Codex audit copy fixes**: the items in Codex's journey audit below (signup heading, track choice on direct checkout visits, personal pending/confirmation copy with name + class type, no "Student" fallback while loading, personal AI-tutor intro from `mySpace.profile`, neutral empty states instead of "Be the First Graduate!", stale October 2026 labels: read the cohort from data, Hero static counts). Use `mySpace` from LMSContext. | Antigravity | `antigravity/my-space-copy`, off main after the Phase 1 merge | `src/app/login`, `src/app/subscriptions`, `src/app/dashboard`, `src/app/courses/[slug]`, `src/app/learn`, `src/components/Hero.tsx`, `src/components/EduportStudentFeedback.tsx` | 2026-11-16 |
 | **My Space API, Phase 1** (done; Codex findings fixed in fee8b17; browser-tested with the UI, awaiting merge): welcome-setup answers saved privately; one `GET /api/lms/my-space` with first name + Lagos-time greeting, per course tutor / class type / cohort countdown / progress / next lesson / next live class / latest feedback, this week's study time vs the student's own weekly hours, streak. Also: the student live-classes list no longer gives meeting links to unpaid registrations. API below. | Claude Code | `claude/my-space` | `backend/` (schema + migration, `lib/my-space.ts`, `routes/lms.ts`, `routes/attendance.ts`) | 2026-11-16 |
@@ -25,6 +26,44 @@ section.
 - **Streak edges:** `backend/src/lib/my-space.ts:163-198,315-350` uses Lagos date keys, keeps yesterday's streak alive until today's activity, breaks after a missed calendar day, and computes weekly targets from Lagos Monday boundaries. Added Sunday/Monday midnight and missed-day assertions; all pass.
 - **Tests:** `backend/src/__tests__/my-space-phase2.test.ts` — 13/13 passed; backend `npx tsc --noEmit` passed. The full backend suite did not produce reporter output after about 90 seconds and was interrupted. The clone initially had a stale generated Prisma client; regenerated it from `backend/prisma/schema.prisma` (no database command/access) before verification.
 - **Findings for Claude:** No confirmed security, duplicate-send, week-boundary, AI-context privacy, or dashboard-streak defects in the reviewed scope. No runtime behavior changed.
+
+### Codex My Space copy review (2026-11-16)
+
+Compared `origin/antigravity/my-space-copy` at `fda5263` (including `f7d85b8`) with latest `main` `1b3f492`.
+
+#### Audit checklist
+
+| Audit item | Result |
+|---|---|
+| Signup heading and instructions | Fixed on `/login`; the heading identifies BEMS and tells students the next steps. However, the adjacent `EduportAuthSplitLayout` still shows synthetic named avatars, an `80+` count and an expired October 2026 cohort (below). |
+| Direct checkout without a course | Fixed: selection starts empty and the page asks the visitor to choose a track. The header badge only says “CURRENT COHORT”; confirm a current cohort is actually available or display its data. |
+| Payment pending / confirmation | Mostly personalized with the student's name, class mode and next lesson. The new “typically within 24 hours” confirmation promise is unverified; owner should confirm the admissions SLA. `Tuition Verified!` remains a generic fallback if My Space has not loaded. |
+| Dashboard identity | Fixed: skeleton while the session hydrates, then the account name; no hard-coded “Student” fallback found in the dashboard heading/avatar. |
+| AI tutor intro | Personalized with name, track, current lesson/progress, level and (when set) goal. **Privacy finding:** the private goal is also embedded in the `/ai` URL's `prompt` query parameter (`src/app/learn/[slug]/[lessonId]/page.tsx:687-711`), where it may enter browser history and request/referrer logs. Pass the context through app state or the request body instead. |
+| Review prompt / empty state | Fixed to a course/name-specific thank-you and neutral “No reviews yet.” `EduportStudentFeedback` fetches outcomes from `/api/graduates`; no hard-coded testimonial quote was found in that component. Accuracy and student consent for database records still need owner confirmation. |
+| Stale dates and Hero counts | Not fully fixed: old cohort/date copy remains in the auth split panel and CourseCards, and Hero still shows unverified counts (details below). |
+
+#### Remaining visitor-facing issues for Antigravity / owner
+
+| File:line | What remains | Suggested follow-up |
+|---|---|---|
+| `src/app/page.tsx:23-25` | The signed-in Hero can greet the student, but the home page still renders generic `CourseCards`, trending courses and graduate feedback directly after it. | Hide or personalize marketing sections for signed-in students. |
+| `src/components/EduportAuthSplitLayout.tsx:7,282-292` | Dicebear avatars seeded with `Chinedu`, `Amarachi`, `Tunde`, `Ngozi` are labeled “BEMS student”; the copy claims “80+ students joining the October 2026 cohort.” These are synthetic identities and a stale date/count. | Remove the seeded people/count and use a neutral illustration with current, verified cohort information. |
+| `src/components/Hero.tsx:171,179-189` | `courses.length || 5` can claim five tracks before data loads; static “4 Expert Tutors & Mentors” and “80 Seats Per Cohort” remain without a live source or verification. | Render a loading state then real catalog count; remove or connect tutor/capacity claims to verified data. |
+| `src/components/Hero.tsx:374` | The image's alt text identifies the pictured person as a “BEMS Institute Tech Student”; source/identity and consent are not established by code. | Confirm it is a real, consented BEMS learner or relabel/replace it as illustrative. |
+| `src/components/CourseCards.tsx:215` | “October 2026 batch” remains in the instructor promo shown on the home page. | Remove the date or read the next cohort from current data. |
+| `src/components/EduportStudentFeedback.tsx:100-103` | When there are no outcome records, “Be our first success story” is generic promotional copy. | Use a neutral “No graduate outcomes published yet” empty state. |
+| `src/data/courses.ts:24,47,70,93` | Tutor identities/titles (`Timi`, `Mr. Victor`, `Temi`, `Specialist Faculty`) remain hard-coded and were not substantiated in this source review. | Owner to confirm the named people/titles are real; replace unverified entries with accurate faculty labels. |
+| `src/app/subscriptions/page.tsx:367-368`; `src/app/courses/[slug]/page.tsx:708`; `src/app/dashboard/page.tsx:676` | “Reviews typically complete within 24 hours” is repeated as an operational promise. | Owner to confirm this is the actual admissions SLA or remove the timeframe. |
+| `src/app/courses/[slug]/page.tsx:696,714` | Pending approval can still say “Tuition Verified!” without a name, and the button label is “Go to Student Dashboard.” | Use the loaded user's name in the fallback too, and label the destination “Dashboard.” |
+
+No hard-coded student testimonial remains in the reviewed feedback component; it displays API outcomes or an explicit empty state. This was a source review, not a visual browser pass.
+
+#### Full backend suite on latest main
+
+- Checked out `origin/main` at `1b3f492` before running tests.
+- Command: `npx.cmd vitest run --maxWorkers=1 --reporter=verbose` in `backend/` against the local test database.
+- **Passed: 16 test files, 100 tests; 95.63 seconds.**
 
 ### Codex My Space review (2026-11-16)
 
