@@ -686,13 +686,10 @@ export default function LessonViewPage({
                   const firstName = mySpace?.firstName || user?.name?.trim().split(/\s+/)[0] || "";
                   const myGoal = mySpace?.profile?.goal;
                   const myLevel = mySpace?.profile?.experienceLevel?.toLowerCase();
-                  const contextPrompt = [
-                    `I'm studying "${currentLesson.title}" in ${course.title} (${progress.percent}% complete).`,
-                    myLevel ? `My level is ${myLevel}.` : "",
-                    myGoal ? `My goal is: ${myGoal}.` : ""
-                  ]
-                    .filter(Boolean)
-                    .join(" ");
+                  // Only the lesson goes in the link: the tutor already gets the
+                  // student's private goal and level server-side (lib/my-space.ts
+                  // tutorContextFor), and URLs end up in history and logs.
+                  const contextPrompt = `I'm studying "${currentLesson.title}" in ${course.title} (${progress.percent}% complete).`;
                   return (
                   <div className="pt-5 space-y-4">
                     <div className="p-5 rounded-2xl bg-gradient-to-r from-[#AE54C6]/10 to-[#303654]/10 border border-[#AE54C6]/20">

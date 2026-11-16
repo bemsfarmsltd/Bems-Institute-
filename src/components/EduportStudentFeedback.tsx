@@ -101,7 +101,7 @@ export function EduportStudentFeedback() {
                     <p className="text-xs sm:text-sm text-[#747579] leading-relaxed mb-2">
                       Graduate outcomes are published here as BEMS students complete their capstones and get hired.
                     </p>
-                    <h4 className="text-sm font-bold text-[#24292D]">Be our first success story</h4>
+                    <h4 className="text-sm font-bold text-[#24292D]">No graduate outcomes published yet</h4>
                   </div>
                 )}
               </div>

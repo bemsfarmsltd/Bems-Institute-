@@ -364,8 +364,8 @@ function SubscriptionsContent() {
                 </h2>
                 <p className="text-xs sm:text-sm text-[#4A4568] max-w-2xl leading-relaxed">
                   {confirmedEnrollment.bankTransfer
-                    ? `Thank you${studentFirstName ? `, ${studentFirstName}` : ""}! Our admissions team is matching your transfer against our bank statement for your ${deliveryLabel || "chosen"} seat. Reviews typically complete within 24 hours, and we'll email you as soon as your space unlocks.`
-                    : `Thank you${studentFirstName ? `, ${studentFirstName}` : ""}! Your payment is verified and your receipt is on the way. Admissions reviews and confirms ${deliveryLabel || "cohort"} placements within 24 hours — you'll get an email as soon as your space opens.`}
+                    ? `Thank you${studentFirstName ? `, ${studentFirstName}` : ""}! Our admissions team is matching your transfer against our bank statement for your ${deliveryLabel || "chosen"} seat. We'll email you as soon as your space unlocks.`
+                    : `Thank you${studentFirstName ? `, ${studentFirstName}` : ""}! Your payment is verified and your receipt is on the way. Admissions will confirm your ${deliveryLabel || "cohort"} place and email you as soon as your space opens.`}
                 </p>
                 {confirmedEnrollment.paymentReference && (
                   <p className="text-[11.5px] text-[#645F80] flex items-center gap-1.5 pt-1">

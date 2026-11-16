@@ -168,7 +168,7 @@ export function Hero() {
 
   const STATS = [
     {
-      count: courses.length || 5,
+      count: courses.length,
       format: (n: number) => `${n} Tracks`,
       label: "Hands-On Tech Courses",
       bg: "bg-[#FEF6E0]",
@@ -371,7 +371,7 @@ export function Hero() {
               <div className="relative mx-auto w-[270px] h-[310px] sm:w-[410px] sm:h-[440px] rounded-[46%_54%_48%_52%/54%_46%_54%_46%] bg-[#334E5B] overflow-hidden shadow-xl">
                 <Image
                   src="/images/eduport-hero-student.jpg"
-                  alt="BEMS Institute Tech Student"
+                  alt="Student learning on a laptop"
                   fill
                   priority
                   sizes="(min-width: 640px) 410px, 270px"
@@ -489,7 +489,7 @@ export function Hero() {
 
         {/* Eduport 4 Pastel Stat Counter Cards Row (Image 3) */}
         <div data-reveal-group className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {STATS.map(({ count, format, label, bg, iconColor, Icon }) => (
+          {STATS.filter((s) => s.count > 0).map(({ count, format, label, bg, iconColor, Icon }) => (
             <div
               key={label}
               className={`m-lift ${bg} rounded-xl p-6 flex items-center justify-center sm:justify-start gap-5`}

@@ -4,8 +4,6 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 
-const COMMUNITY_AVATAR_SEEDS = ["Chinedu", "Amarachi", "Tunde", "Ngozi"];
-
 function EduportCommunityIllustration() {
   return (
     <svg
@@ -276,20 +274,10 @@ export default function EduportAuthSplitLayout({
           <EduportCommunityIllustration />
         </div>
 
-        {/* Bottom Avatar Stack + Community Count */}
+        {/* Verified facts only (owner-confirmed): Umuahia lab or online, 80 seats a cohort. */}
         <div className="w-full max-w-[520px] flex flex-wrap items-center justify-center gap-3 sm:gap-4 pt-2">
-          <div className="flex items-center -space-x-2.5">
-            {COMMUNITY_AVATAR_SEEDS.map((seed, idx) => (
-              <img
-                key={idx}
-                src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(seed)}&backgroundColor=7928CA,18143D,671FB0&textColor=ffffff`}
-                alt="BEMS student"
-                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover ring-2 ring-white shadow-sm"
-              />
-            ))}
-          </div>
-          <p className="text-[13px] sm:text-[14px] font-medium text-[#1D2026]">
-            <span className="font-bold">80+</span> students joining the October 2026 cohort.
+          <p className="text-[13px] sm:text-[14px] font-medium text-[#1D2026] text-center">
+            Physical classes in Umuahia or live online · <span className="font-bold">80 seats</span> per cohort
           </p>
         </div>
       </div>

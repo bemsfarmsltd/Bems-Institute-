@@ -146,7 +146,7 @@ export default function CertificateVerificationPage({
                     {certificate.courseTitle}
                   </div>
                   <span className="text-xs text-[#645F80]">
-                    3-Month Practical Accelerator (October 2026 Cohort)
+                    3-Month Practical Accelerator
                   </span>
                 </div>
 

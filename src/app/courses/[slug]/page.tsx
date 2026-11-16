@@ -693,7 +693,7 @@ export default function CourseDetailPage({
                   </span>
                   <div>
                     <h3 className="text-xl font-black text-[#303654]">
-                      {mySpace?.firstName ? `${mySpace.firstName}, your payment is verified` : "Tuition Verified!"}
+                      {(mySpace?.firstName || user?.name?.trim().split(/\s+/)[0]) ? `${mySpace?.firstName || user?.name?.trim().split(/\s+/)[0]}, your payment is verified` : "Your payment is verified"}
                     </h3>
                     <p className="text-xs text-[#645F80] mt-1.5 leading-relaxed">
                       We have received your payment of <strong className="text-[#303654]">₦{courseEnrollment?.amountPaid?.toLocaleString()}</strong> for{" "}
@@ -705,13 +705,13 @@ export default function CourseDetailPage({
                       . Admissions is reviewing your cohort placement.
                     </p>
                     <div className="mt-3 p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 leading-relaxed">
-                      Reviews typically complete within 24 hours. You&apos;ll receive an email confirmation as soon as your classroom unlocks.
+                      You&apos;ll receive an email as soon as admissions confirms your place and your classroom unlocks.
                     </div>
                   </div>
 
                   <Link href="/dashboard" className="block w-full">
                     <Button variant="purple" className="w-full gap-2 text-xs font-bold" size="lg">
-                      <span>Go to Student Dashboard</span>
+                      <span>Go to your dashboard</span>
                       <ArrowRight className="w-4 h-4" />
                     </Button>
                   </Link>
