@@ -166,12 +166,6 @@ export function Hero() {
     );
   }
 
-  const uniqueTutorsCount =
-    new Set(courses.map((c) => c.tutor).filter(Boolean)).size || courses.length || 4;
-  const totalLessonsCount = courses.reduce(
-    (sum, c) => sum + c.modules.reduce((mSum, m) => mSum + m.lessons.length, 0),
-    0
-  );
   const STATS = [
     {
       count: courses.length || 5,
@@ -182,17 +176,17 @@ export function Hero() {
       Icon: Monitor
     },
     {
-      count: uniqueTutorsCount,
+      count: 4,
       format: (n: number) => `${n}`,
-      label: "Track Tutors",
+      label: "Expert Tutors & Mentors",
       bg: "bg-[#E8EEF2]",
       iconColor: "text-[#1D3B53]",
       Icon: UserCheck
     },
     {
-      count: totalLessonsCount || 24,
-      format: (n: number) => `${n}+`,
-      label: "Guided Video Lessons",
+      count: 80,
+      format: (n: number) => `${n} Seats`,
+      label: "Per Cohort",
       bg: "bg-[#F6ECF9]",
       iconColor: "text-[#A16EBD]",
       Icon: GraduationCap

@@ -67,7 +67,7 @@ function SubscriptionsContent() {
     userEnrollments.find((e) => e.courseId === courseId && e.awaitingApproval);
   const [effectiveSource, setEffectiveSource] = useState<string | null>(null);
 
-  const [selectedCourseId, setSelectedCourseId] = useState<string>(courseQuery || "web-dev");
+  const [selectedCourseId, setSelectedCourseId] = useState<string>(courseQuery || "");
   const [selectedPlan, setSelectedPlan] = useState<PaymentPlan | null>(initialPlan);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [deliveryMode, setDeliveryMode] = useState<"PHYSICAL_LAB" | "VIRTUAL_ZOOM" | null>(null);
@@ -141,8 +141,9 @@ function SubscriptionsContent() {
     });
   }, [sourceParam, courseQuery, searchParams]);
 
-  const selectedCourse =
-    courses.find((c) => c.id === selectedCourseId || c.slug === selectedCourseId) || courses[0];
+  const selectedCourse = selectedCourseId
+    ? courses.find((c) => c.id === selectedCourseId || c.slug === selectedCourseId) || null
+    : null;
 
   const planAmount = (plan: PaymentPlan) =>
     selectedCourse ? (plan === "full" ? selectedCourse.priceFull : selectedCourse.priceParts) : 0;
@@ -313,12 +314,12 @@ function SubscriptionsContent() {
             <Badge variant="gold">FLEXIBLE TUITION</Badge>
           </div>
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight mb-4">
-            {courseQuery && selectedCourse
+            {selectedCourse
               ? `Enroll in ${selectedCourse.title}`
               : "Choose Your Tech Track & Class Type"}
           </h1>
           <p className="text-sm sm:text-base text-[#C6BDD3] max-w-2xl mx-auto leading-relaxed">
-            {courseQuery && selectedCourse
+            {selectedCourse
               ? "Pay in full for 12% off or spread tuition across 3 parts — then pick Physical (BEMS lab, Umuahia) or Virtual (live online)."
               : "Pick the track you want to join below, then pay in full for 12% off or spread it across 3 parts."}
           </p>
@@ -416,12 +417,22 @@ function SubscriptionsContent() {
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3 shrink-0">
-                <Link href={`/learn/${confirmedEnrollment.courseSlug}/${confirmedEnrollment.firstLessonId}`}>
-                  <Button variant="purple" className="gap-2 text-xs font-bold">
-                    <PlayCircle className="w-4 h-4" />
-                    <span>Start First Lesson</span>
-                  </Button>
-                </Link>
+                {(() => {
+                  const matchedNextHref = mySpace?.courses?.find(
+                    (c) => c.slug === confirmedEnrollment.courseSlug
+                  )?.nextLesson?.href;
+                  const startHref =
+                    matchedNextHref ||
+                    `/learn/${confirmedEnrollment.courseSlug}/${confirmedEnrollment.firstLessonId}`;
+                  return (
+                    <Link href={startHref}>
+                      <Button variant="purple" className="gap-2 text-xs font-bold">
+                        <PlayCircle className="w-4 h-4" />
+                        <span>Start First Lesson</span>
+                      </Button>
+                    </Link>
+                  );
+                })()}
                 <Link href="/dashboard">
                   <Button variant="outline" className="text-xs font-bold">
                     <span>Go to Dashboard</span>
@@ -561,6 +572,15 @@ function SubscriptionsContent() {
                 <ArrowRight className="w-3.5 h-3.5" />
               </Button>
             </Link>
+          </div>
+        )}
+
+        {/* Prompt when no track has been picked yet */}
+        {!selectedCourse && courses.length > 0 && !confirmedEnrollment && (
+          <div className="rounded-3xl border border-[#E5C8ED] bg-white p-6 sm:p-8 text-center shadow-xs">
+            <p className="text-sm sm:text-base font-bold text-[#303654]">
+              Pick a track above to see tuition plans and choose Physical or Virtual class.
+            </p>
           </div>
         )}
 
