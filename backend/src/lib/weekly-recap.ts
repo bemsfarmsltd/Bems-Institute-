@@ -44,7 +44,11 @@ export async function buildRecap(userId: string, weekStart: Date, now: Date = ne
   const goal = space.week.goalMinutes;
   const course = space.courses.find((c) => c.hasAccess) ?? null;
 
-  const lines: string[] = [`Hello ${space.firstName},`, "", "Here's your week at BEMS:"];
+  // The Sunday run recaps the week ending today; an admin's mid-week "send
+  // now" recaps last week, so say which.
+  const isThisWeek = weekStart.getTime() === lagosWeekStart(now).getTime();
+  const which = isThisWeek ? "this week" : "last week";
+  const lines: string[] = [`Hello ${space.firstName},`, "", `Here's your ${isThisWeek ? "week" : "last week"} at BEMS:`];
   lines.push(`• ${completed.length} lesson${completed.length === 1 ? "" : "s"} completed${minutes ? ` (${formatMinutes(minutes)})` : ""}`);
   if (goal) {
     lines.push(minutes >= goal
@@ -61,12 +65,12 @@ export async function buildRecap(userId: string, weekStart: Date, now: Date = ne
     lines.push(`Next class: ${course.nextLiveSession.title}, ${when}`);
   }
   if (space.profile?.goal) lines.push("", `Remember why you're here: "${space.profile.goal}"`);
-  if (completed.length === 0) lines.push("", `A fresh week starts tomorrow. Even one lesson keeps you moving${course ? ` with ${course.tutor}` : ""}.`);
+  if (completed.length === 0) lines.push("", `${isThisWeek ? "A fresh week starts tomorrow." : "This week is a fresh start."} Even one lesson keeps you moving${course ? ` with ${course.tutor}` : ""}.`);
   lines.push("", "You can turn these emails off in your dashboard.");
 
   const summary = completed.length
-    ? `${completed.length} lesson${completed.length === 1 ? "" : "s"}${goal ? `, ${Math.min(100, Math.round((minutes / goal) * 100))}% of your weekly goal` : ""}${course?.nextLesson ? `. Next: ${course.nextLesson.title}` : ""}`
-    : `No lessons this week${course?.nextLesson ? `. Pick up with ${course.nextLesson.title}` : ""}.`;
+    ? `${isThisWeek ? "This week" : "Last week"}: ${completed.length} lesson${completed.length === 1 ? "" : "s"}${goal ? `, ${Math.min(100, Math.round((minutes / goal) * 100))}% of your weekly goal` : ""}${course?.nextLesson ? `. Next: ${course.nextLesson.title}` : ""}`
+    : `No lessons ${which}${course?.nextLesson ? `. Pick up with ${course.nextLesson.title}` : ""}.`;
 
   return { subject: `Your BEMS week, ${space.firstName}`, text: lines.join("\n"), summary, wantsEmail: space.profile?.weeklyRecapEmail ?? true };
 }

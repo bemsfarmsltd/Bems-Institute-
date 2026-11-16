@@ -182,3 +182,17 @@ describe("weekly recap job", () => {
     expect(await prisma.notification.count({ where: { userId: student.userId, title: "Your week at BEMS" } })).toBe(1);
   });
 });
+
+describe("recap wording", () => {
+  it("says 'last week' when an admin sends it mid-week, 'this week' on Sunday", async () => {
+    const { buildRecap } = await import("@/lib/weekly-recap");
+    const { userId } = await confirmedStudent("p2-recap-wording");
+    const wednesday = new Date("2026-11-18T10:00:00Z");
+    const mid = await buildRecap(userId, recapWeekStart(wednesday), wednesday);
+    expect(mid.summary).toMatch(/last week/i);
+    expect(mid.text).toContain("Here's your last week at BEMS");
+    const sunday = new Date("2026-11-22T17:00:00Z");
+    const sun = await buildRecap(userId, recapWeekStart(sunday), sunday);
+    expect(sun.summary).toMatch(/this week/i);
+  });
+});
