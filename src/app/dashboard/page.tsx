@@ -673,7 +673,7 @@ function StudentDashboardContent() {
                         <p className="text-xs sm:text-sm text-[#645F80]">
                           {mySpace.firstName}, your{" "}
                           {primarySpaceCourse.cohort ? `${primarySpaceCourse.cohort.name} ` : ""}
-                          seat is awaiting admissions confirmation. Your space will open as soon as it&apos;s approved.
+                          seat is awaiting admissions confirmation. Reviews are completed within 24 hours, and your space will open as soon as it&apos;s approved.
                         </p>
                       </>
                     ) : primarySpaceCourse.nextLesson ? (

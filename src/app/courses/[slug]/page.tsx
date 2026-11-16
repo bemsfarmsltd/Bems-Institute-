@@ -705,7 +705,7 @@ export default function CourseDetailPage({
                       . Admissions is reviewing your cohort placement.
                     </p>
                     <div className="mt-3 p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 leading-relaxed">
-                      You&apos;ll receive an email as soon as admissions confirms your place and your classroom unlocks.
+                      Admissions confirms registrations within 24 hours. You&apos;ll receive an email as soon as your classroom unlocks.
                     </div>
                   </div>
 

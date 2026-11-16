@@ -8,6 +8,7 @@ import { Footer } from "@/components/Footer";
 import { AttributionCapture } from "@/components/AttributionCapture";
 import { PageViewTracker } from "@/components/PageViewTracker";
 import { HomeTour } from "@/components/tours/HomeTour";
+import { VisitorOnly } from "@/components/VisitorOnly";
 
 export default function Home() {
   return (
@@ -16,13 +17,18 @@ export default function Home() {
         <AttributionCapture />
         <PageViewTracker page="home" />
       </Suspense>
-      <HomeTour />
+      <VisitorOnly>
+        <HomeTour />
+      </VisitorOnly>
       <Navbar />
       <main>
+        {/* Signed-in students get their personal panel here (Hero) and nothing else. */}
         <Hero />
-        <CourseCards />
-        <EduportTrendingCourses />
-        <EduportStudentFeedback />
+        <VisitorOnly>
+          <CourseCards />
+          <EduportTrendingCourses />
+          <EduportStudentFeedback />
+        </VisitorOnly>
       </main>
       <Footer />
     </div>
