@@ -12,7 +12,9 @@ import {
   AdminStudent,
   AdminCourse,
   AnalyticsSummary,
-  UserEnrollmentRecord
+  UserEnrollmentRecord,
+  MySpaceData,
+  MySpaceProfile
 } from "@/types/lms";
 import type { LearningProfileSummary } from "@/lib/learning-engine";
 import type { AppNotification } from "@/types/advanced";
@@ -109,6 +111,13 @@ interface LMSContextType {
   enrolledCourseIds: string[];
   userEnrollments: UserEnrollmentRecord[];
   communityUrl: string | null;
+  mySpace: MySpaceData | null;
+  refreshMySpace: () => Promise<MySpaceData | null>;
+  updateMySpaceProfile: (
+    payload: Partial<
+      Pick<MySpaceProfile, "goalType" | "goal" | "experienceLevel" | "weeklyHours" | "motivation">
+    >
+  ) => Promise<{ ok: boolean; error?: string; profile?: MySpaceProfile }>;
   enrollInCourse: (courseId: string, options?: EnrollOptions) => Promise<void>;
   // Re-fetches enrollment/progress/quiz/submission state from the server —
   // used after a real Paystack payment is verified, since that path updates
@@ -190,6 +199,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
   const [enrolledCourseIds, setEnrolledCourseIds] = useState<string[]>([]);
   const [userEnrollments, setUserEnrollments] = useState<UserEnrollmentRecord[]>([]);
   const [communityUrl, setCommunityUrl] = useState<string | null>(null);
+  const [mySpace, setMySpace] = useState<MySpaceData | null>(null);
   const [completedLessonIds, setCompletedLessonIds] = useState<string[]>([]);
   const [quizResults, setQuizResults] = useState<Record<string, QuizResult>>({});
   const [submissions, setSubmissions] = useState<Submission[]>([]);
@@ -305,10 +315,50 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
   // stays mounted across a client-side navigation, so without this a
   // freshly-logged-in user would keep seeing empty state until a full page
   // reload.
+  const refreshMySpace = useCallback(async (): Promise<MySpaceData | null> => {
+    try {
+      const res = await apiFetch("/api/lms/my-space");
+      if (!res.ok) return null;
+      const data: MySpaceData = await res.json();
+      setMySpace(data);
+      return data;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const updateMySpaceProfile = useCallback(
+    async (
+      payload: Partial<
+        Pick<MySpaceProfile, "goalType" | "goal" | "experienceLevel" | "weeklyHours" | "motivation">
+      >
+    ): Promise<{ ok: boolean; error?: string; profile?: MySpaceProfile }> => {
+      try {
+        const res = await apiFetch("/api/lms/my-space/profile", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          return { ok: false, error: data?.error || "Could not save your preferences." };
+        }
+        await refreshMySpace();
+        return { ok: true, profile: data.profile };
+      } catch {
+        return { ok: false, error: "Could not reach the server. Please try again." };
+      }
+    },
+    [refreshMySpace]
+  );
+
   const loadOwnLmsData = useCallback(
     async (role: User["role"]) => {
       try {
-        const lmsMeRes = await apiFetch("/api/lms/me");
+        const [lmsMeRes, mySpaceRes] = await Promise.all([
+          apiFetch("/api/lms/me"),
+          apiFetch("/api/lms/my-space")
+        ]);
         if (lmsMeRes.ok) {
           const lmsMe = await lmsMeRes.json();
           setEnrolledCourseIds(lmsMe.enrolledCourseIds || []);
@@ -321,6 +371,10 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
           setCompletedLessonIds(lmsMe.completedLessonIds || []);
           setQuizResults(lmsMe.quizResults || {});
           setSubmissions(lmsMe.submissions || []);
+        }
+        if (mySpaceRes.ok) {
+          const mySpaceData: MySpaceData = await mySpaceRes.json();
+          setMySpace(mySpaceData);
         }
       } catch {
         // per-user data unavailable — catalog still loaded fine
@@ -416,6 +470,9 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
         return { ok: true, twoFactorRequired: true, challenge: data.challenge };
       }
       if (res.ok && data.user) {
+        if (typeof window !== "undefined") {
+          sessionStorage.removeItem("bems_skip_welcome");
+        }
         setUser(data.user);
         localStorage.setItem("bems_lms_user", JSON.stringify(data.user));
         await loadOwnLmsData(data.user.role);
@@ -466,6 +523,9 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
       });
       const data = await res.json();
       if (res.ok && data.user) {
+        if (typeof window !== "undefined") {
+          sessionStorage.removeItem("bems_skip_welcome");
+        }
         setUser(data.user);
         localStorage.setItem("bems_lms_user", JSON.stringify(data.user));
         await loadOwnLmsData(data.user.role);
@@ -506,6 +566,9 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
         return { ok: true, signInRequired: true };
       }
       if (res.ok && data.user) {
+        if (typeof window !== "undefined") {
+          sessionStorage.removeItem("bems_skip_welcome");
+        }
         setUser(data.user);
         localStorage.setItem("bems_lms_user", JSON.stringify(data.user));
         await loadOwnLmsData(data.user.role);
@@ -566,6 +629,10 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
     setEnrolledCourseIds([]);
     setUserEnrollments([]);
     setCommunityUrl(null);
+    setMySpace(null);
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem("bems_skip_welcome");
+    }
     setCompletedLessonIds([]);
     setQuizResults({});
     setSubmissions([]);
@@ -833,6 +900,9 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
         enrolledCourseIds,
         userEnrollments,
         communityUrl,
+        mySpace,
+        refreshMySpace,
+        updateMySpaceProfile,
         refreshEnrollments,
         enrollInCourse,
         isEnrolled,

@@ -13,7 +13,13 @@ import {
   UserCheck,
   GraduationCap,
   BadgeCheck,
-  QrCode
+  QrCode,
+  ArrowRight,
+  Calendar,
+  ExternalLink,
+  Flame,
+  MapPin,
+  Video
 } from "lucide-react";
 
 // Track count comes from the real catalog (useLMS) so this card never goes
@@ -47,7 +53,148 @@ const OTHER_STATS = [
 ];
 
 export function Hero() {
-  const { courses, user } = useLMS();
+  const { courses, user, mySpace } = useLMS();
+
+  if (user?.role === "STUDENT" && mySpace) {
+    const primaryCourse = mySpace.courses[0] ?? null;
+    return (
+      <section className="relative overflow-hidden bg-gradient-to-b from-[#FAF8FF] to-white pt-8 pb-12 md:pt-12 md:pb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+          <div className="m-lift bg-white rounded-3xl border border-[#F1E2F5] p-6 sm:p-8 shadow-sm">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+              <div className="space-y-2.5 max-w-2xl">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="px-3 py-1 rounded-full bg-[#F7EDF9] text-[#AE54C6] text-xs font-extrabold">
+                    {mySpace.greeting}
+                  </span>
+                  {mySpace.streak > 0 && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-extrabold">
+                      <Flame className="w-3.5 h-3.5" /> {mySpace.streak} day streak
+                    </span>
+                  )}
+                </div>
+                <h1 className="font-display text-2xl sm:text-4xl font-black text-[#1D2026] leading-tight">
+                  Welcome back, {mySpace.firstName}
+                </h1>
+                {mySpace.profile?.goal && (
+                  <p className="text-sm sm:text-base text-[#475569] font-medium">
+                    You&apos;re here to:{" "}
+                    <strong className="text-[#AE54C6]">{mySpace.profile.goal}</strong>
+                  </p>
+                )}
+                {primaryCourse && (
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm text-[#645F80] font-semibold pt-1">
+                    <span className="text-[#1D2026] font-bold">{primaryCourse.title}</span>
+                    <span>Your tutor: {primaryCourse.tutor}</span>
+                    <span className="inline-flex items-center gap-1 text-[#AE54C6]">
+                      {primaryCourse.deliveryMode === "VIRTUAL_ZOOM" ? (
+                        <>
+                          <Video className="w-3.5 h-3.5" /> Virtual, live online
+                        </>
+                      ) : (
+                        <>
+                          <MapPin className="w-3.5 h-3.5" /> Physical, BEMS lab, Umuahia
+                        </>
+                      )}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-wrap gap-3 shrink-0">
+                <Link
+                  href="/dashboard"
+                  className="m-press inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#AE54C6] hover:bg-[#9B42B3] text-white text-sm font-bold shadow-sm transition-colors"
+                >
+                  Open My Dashboard <ArrowRight className="w-4 h-4" />
+                </Link>
+                {!mySpace.onboarded && (
+                  <Link
+                    href="/welcome"
+                    className="m-press inline-flex items-center gap-2 px-4 py-3 rounded-xl border border-[#E5C8ED] bg-white hover:bg-[#FAF8FF] text-[#303654] text-sm font-bold transition-colors"
+                  >
+                    Personalize my space
+                  </Link>
+                )}
+              </div>
+            </div>
+
+            {primaryCourse && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 pt-6 border-t border-[#F7EDF9]">
+                <div className="m-lift rounded-2xl bg-[#FAF8FF] border border-[#F1E2F5] p-4 sm:p-5 flex flex-col justify-between gap-3">
+                  <div>
+                    <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#AE54C6]">
+                      Continue Lesson
+                    </span>
+                    {!primaryCourse.hasAccess ? (
+                      <p className="text-sm text-[#645F80] mt-1 font-medium">
+                        Your space opens when admissions confirms your registration.
+                      </p>
+                    ) : primaryCourse.nextLesson ? (
+                      <>
+                        <h2 className="text-base font-extrabold text-[#1D2026] mt-1">
+                          {primaryCourse.nextLesson.moduleTitle} · {primaryCourse.nextLesson.title}
+                        </h2>
+                        <p className="text-xs text-[#645F80] mt-1">
+                          {primaryCourse.progress.percent}% complete ({primaryCourse.progress.completed}/
+                          {primaryCourse.progress.total} lessons)
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-sm text-[#303654] font-semibold mt-1">
+                        You&apos;ve completed all lessons in {primaryCourse.title}!
+                      </p>
+                    )}
+                  </div>
+                  {primaryCourse.hasAccess && primaryCourse.nextLesson && (
+                    <Link
+                      href={primaryCourse.nextLesson.href}
+                      className="m-press self-start inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#303654] text-white text-xs font-bold hover:opacity-95"
+                    >
+                      <Play className="w-3.5 h-3.5 fill-current" /> Resume Lesson
+                    </Link>
+                  )}
+                </div>
+
+                <div className="m-lift rounded-2xl bg-[#FAF8FF] border border-[#F1E2F5] p-4 sm:p-5 flex flex-col justify-between gap-3">
+                  <div>
+                    <span className="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider text-emerald-700">
+                      <Calendar className="w-3.5 h-3.5" /> Next Live Class
+                    </span>
+                    {primaryCourse.nextLiveSession ? (
+                      <>
+                        <h2 className="text-base font-extrabold text-[#1D2026] mt-1">
+                          {primaryCourse.nextLiveSession.title}
+                        </h2>
+                        <p className="text-xs text-[#645F80] mt-1">
+                          {new Date(primaryCourse.nextLiveSession.scheduledAt).toLocaleString()}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-sm text-[#645F80] mt-1">
+                        No upcoming live class scheduled yet.
+                      </p>
+                    )}
+                  </div>
+                  {primaryCourse.nextLiveSession?.meetingUrl && (
+                    <a
+                      href={primaryCourse.nextLiveSession.meetingUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="m-press self-start inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700"
+                    >
+                      Join Class <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   const trackStat = {
     count: courses.length || 5,
     format: (n: number) => `${n} Tracks`,
