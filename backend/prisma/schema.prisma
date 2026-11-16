@@ -839,6 +839,13 @@ model LearningProfile {
   experienceLevel String    @default("BEGINNER")
   learningStreak  Int       @default(0)
   lastActiveAt    DateTime?
+  // "My Space" welcome answers (GET/PATCH /api/lms/my-space). Private to
+  // the student and staff; unlike Enrollment.goalStatement (the public
+  // class goal), classmates never see these.
+  goalType        String?   // JOB | FREELANCE | OWN_PRODUCT | UPSKILL | OTHER
+  weeklyHours     Int?
+  motivation      String?
+  onboardedAt     DateTime?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 }

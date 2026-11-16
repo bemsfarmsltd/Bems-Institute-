@@ -18,6 +18,7 @@ import type { QuizResult } from "@/types/lms";
 import type { NotificationCategory } from "@prisma/client";
 import { getBankTransferDetails } from "@/lib/site-settings";
 import { getCommunityUrl } from "@/lib/community";
+import { getMySpace, saveSpaceProfile, ProfileError } from "@/lib/my-space";
 
 const router = Router();
 
@@ -137,6 +138,27 @@ router.get("/me", async (req, res) => {
     quizResults,
     submissions: submissions.map(mapSubmission)
   });
+});
+
+// "My Space": the student's personal dashboard data in one call (lib/my-space.ts).
+router.get("/my-space", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!session) return res.status(401).json({ error: "Not authenticated." });
+  return res.json(await getMySpace(session));
+});
+
+// The welcome-setup answers (goal, experience, weekly hours, why they joined).
+// Partial updates allowed, so the same call edits them later.
+router.patch("/my-space/profile", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!session) return res.status(401).json({ error: "Not authenticated." });
+  try {
+    const profile = await saveSpaceProfile(session.id, req.body ?? {});
+    return res.json({ profile });
+  } catch (err) {
+    if (err instanceof ProfileError) return res.status(400).json({ error: err.message });
+    throw err;
+  }
 });
 
 router.post("/enroll", async (req, res) => {

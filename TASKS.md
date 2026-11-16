@@ -8,11 +8,9 @@ section.
 
 | Task | Agent | Branch | Files / areas | Started |
 |---|---|---|---|---|
-| **WhatsApp community link + class type API** (done, awaiting merge): community invite set in Settings > General, sent once to each student when their registration is confirmed (approval, bank-payment confirmation, or a card payment completing a confirmed registration); `communityUrl` on `/api/lms/me` for confirmed students only; `deliveryMode` returned per enrollment. API below. | Claude Code | `claude/community-and-delivery` | `backend/` (schema + migration, `lib/community.ts`, `routes/admin.ts`, `routes/lms.ts`, `lib/payment-ledger.ts`) | 2026-11-15 |
-| **Physical/virtual choice at registration, community button on dashboard, community link in Settings**, per the API below | Antigravity | `antigravity/community-and-delivery-ui`, off `claude/community-and-delivery` | `src/app/subscriptions/page.tsx`, `src/app/dashboard/page.tsx`, `src/context/LMSContext.tsx`, `src/app/admin/page.tsx` (General tab) | 2026-11-15 |
-| **Staff & Access + Security API** (merged into main; rate limiting made atomic after Codex review): staff invites (replace the shared ADMIN_ACCESS_CODE), role changes, 2-step verification (authenticator app + recovery codes), sign-in history, sign out everywhere; reset links emailed; a reset link can no longer skip 2FA. API below. | Claude Code | `claude/staff-security-api` | `backend/` (schema + migration, `lib/totp.ts`, `lib/account-security.ts`, `lib/staff-invites.ts`, `routes/account.ts`, `routes/staff-invites.ts`, `routes/admin.ts`, `routes/auth.ts`, `routes/admin-auth.ts`) | 2026-11-15 |
-| **Staff & Access + Security tabs, 2FA sign-in step, invite page** (merged into main; browser-verified end to end) | Antigravity | `antigravity/staff-security-ui`, off `claude/staff-security-api` | `src/app/admin/page.tsx`, `src/app/login/page.tsx`, `src/components/AdminGate.tsx`, `src/context/LMSContext.tsx` (login), new `src/app/staff-invite/[token]/page.tsx` | 2026-11-15 |
-| **Security review + tests** of `claude/staff-security-api` (done, finding fixed in e1e5940); placeholder/fake-content sweep (done, owner to confirm the list below) | Codex | `codex/staff-security-review` | Read all; write `backend/src/__tests__/` + notes here | 2026-11-15 |
+| **My Space API, Phase 1** (done, awaiting review): welcome-setup answers saved privately; one `GET /api/lms/my-space` with first name + Lagos-time greeting, per course tutor / class type / cohort countdown / progress / next lesson / next live class / latest feedback, this week's study time vs the student's own weekly hours, streak. Also: the student live-classes list no longer gives meeting links to unpaid registrations. API below. | Claude Code | `claude/my-space` | `backend/` (schema + migration, `lib/my-space.ts`, `routes/lms.ts`, `routes/attendance.ts`) | 2026-11-16 |
+| **My Space UI, Phase 1**: welcome setup, personal dashboard header, Continue-where-you-left-off, personal home for signed-in students, fix the 375px dashboard header overlap. Per the API below. | Antigravity | `antigravity/my-space-ui`, off `claude/my-space` | `src/app/dashboard/page.tsx`, new `src/app/welcome/page.tsx`, `src/app/page.tsx` / `src/components/Hero.tsx`, `src/context/LMSContext.tsx` | 2026-11-16 |
+| **Personalisation audit + My Space review**: (1) walk the whole student journey (sign up → register → pay → confirmed → learn → feedback) at 375px and desktop, and list every spot that feels generic or impersonal (same for everyone, placeholder people/numbers, "Student" instead of their name, fake activity), with file:line and a one-line fix; (2) review `claude/my-space` for privacy (no other student's data, no meeting/lesson links before confirmation, staff behaviour) and the Lagos week/greeting edge cases; add tests in `backend/src/__tests__/` | Codex | `codex/my-space-review` | Read all; write `backend/src/__tests__/` + notes here | 2026-11-16 |
 
 ## Codex staff security review + public content sweep (2026-11-15)
 
@@ -83,6 +81,43 @@ Errors are always `{ error }` with a message to show as is. `429` = too many tri
 - `GET /api/staff-invites/:token` → `{ invite: { email, role, expiresAt, accountExists } }`, or `410` (expired/used: show the message).
 - `POST /api/staff-invites/:token/accept`: new person `{ name, password }` (8+ chars); `accountExists` → just `{ password }` of that account. → `{ user }` (signed in: go to `/admin` or `/instructor` by role) or `{ ok, signInRequired: true }` (send to `/login`).
 - `AdminGate`'s "register with staff code" now returns `403` once any admin exists: replace that tab with "Staff accounts are invite-only. Ask an admin for an invite link."
+
+### My Space API, Phase 1 (Claude Code → Antigravity)
+Goal (from the owner): the student should feel they are in their own space. Use their name, their goal, their tutor, their class type and their progress everywhere it fits; never placeholder people or numbers.
+
+**`GET /api/lms/my-space`** (signed in; 401 otherwise). Load it on the dashboard and the signed-in home page.
+```
+{ firstName: "Ada", greeting: "Good morning",          // Lagos time
+  onboarded: false,                                    // false → show the welcome setup (staff: always true)
+  profile: null | { goalType, goal, experienceLevel, weeklyHours, motivation, onboardedAt },
+  courses: [{ enrollmentId, courseId, slug, title, color,
+    tutor: "Mr. Victor", tutorRole,                     // one tutor per track
+    deliveryMode: "PHYSICAL_LAB" | "VIRTUAL_ZOOM", hasAccess,
+    cohort: null | { name, startDate, endDate, phase: "BEFORE_START"|"IN_PROGRESS"|"FINISHED", daysToStart, daysToEnd },
+    progress: { completed, total, percent },
+    nextLesson: null | { id, title, moduleTitle, href },        // null until confirmed, or when finished
+    nextLiveSession: null | { title, type, scheduledAt, meetingUrl }, // confirmed only
+    latestFeedback: null | { assignmentTitle, score, feedback, gradedBy, gradedAt } }],
+  week: { startsAt, lessonsCompleted, minutesStudied, goalMinutes, percentOfGoal },  // goal null until weeklyHours set
+  streak: 3, communityUrl }
+```
+
+**`PATCH /api/lms/my-space/profile`**: any subset of
+- `goalType`: `JOB` "Get a tech job" · `FREELANCE` "Freelance / earn on my own" · `OWN_PRODUCT` "Build my own product or business" · `UPSKILL` "Grow in my current job" · `OTHER`
+- `goal`: their own words, max 160 chars, e.g. "Build websites for shops in Umuahia"
+- `experienceLevel`: `BEGINNER` | `INTERMEDIATE` | `ADVANCED`
+- `weeklyHours`: whole number 1–60
+- `motivation`: "Why did you join BEMS?", max 280 chars
+
+Returns `{ profile }`; `400 { error }` with a message to show. `onboarded` becomes true once goalType, experienceLevel and weeklyHours are all set. These answers are private (classmates never see them); the public class goal is still `PATCH /api/lms/my-goal`.
+
+**UI, Phase 1:**
+1. **Welcome setup** (`/welcome`, or a full-screen step): after sign-in, students with `onboarded: false` see 4 short steps (goal + their own words, experience, weekly hours, why they joined). Friendly, one question per screen on phones, "Skip for now" (ask again next sign-in, not every page). Ends on "Your space is ready, Ada" → dashboard.
+2. **Dashboard header**: "{greeting}, {firstName}", their track, "Your tutor: {tutor}", class type ("Physical, BEMS lab, Umuahia" / "Virtual, live online"), cohort countdown ("Class starts in 5 days" / "Week 3 · 41 days to graduation"), and their goal quoted back ("You're here to: Build websites for shops in Umuahia").
+3. **Continue where you left off**: big card linking to `nextLesson.href` ("Module 2 · Flexbox layouts"), with the course progress bar and the weekly ring "{minutesStudied} of {goalMinutes} min this week". Not confirmed yet → "Your space opens when admissions confirms your registration". Finished → certificate/capstone prompt.
+4. **Next class + latest feedback** cards from `nextLiveSession` (Join button only when `meetingUrl`) and `latestFeedback` ("Mr. Victor: Clean layout. 88/100").
+5. **Signed-in home page**: a signed-in student landing on `/` sees a personal "Welcome back, Ada" panel (continue lesson, next class) in place of the marketing hero; visitors and staff see the normal page.
+6. **Fix**: the dashboard profile header overlaps the avatar at 375px.
 
 ### WhatsApp community + class type API (Claude Code → Antigravity)
 **Class type at registration** (`src/app/subscriptions/page.tsx`): before payment, the student picks **Physical class (BEMS lab, Umuahia)** or **Virtual class (live online)**. No default: they must choose. Send it as `deliveryMode: "PHYSICAL_LAB" | "VIRTUAL_ZOOM"` in BOTH `POST /api/payments/init` and `POST /api/lms/enroll` (the server already stores it; without it everyone was recorded as physical). `GET /api/lms/me` now returns `deliveryMode` on each enrollment: show it on the dashboard ("Class: Virtual").

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { prisma } from "@/lib/prisma";
-import { getSessionUser, isStaff, isAdmin } from "@/lib/api-auth";
+import { getSessionUser, isStaff, isAdmin, hasCourseAccess } from "@/lib/api-auth";
 import { checkAndNotifyMissedClasses, notifyWelcomeSessionNoShow } from "@/lib/attendance";
 
 const router = Router();
@@ -90,11 +90,13 @@ router.get("/live", async (req, res) => {
 
   let courseIds: string[] | undefined;
   if (!isStaff(session)) {
+    // Only courses the student can open (paid AND confirmed): an unpaid
+    // registration must not get the class meeting links.
     const enrollments = await prisma.enrollment.findMany({
       where: { userId: session.id },
-      select: { courseId: true }
+      select: { courseId: true, status: true, paymentStatus: true }
     });
-    courseIds = enrollments.map((e) => e.courseId);
+    courseIds = enrollments.filter(hasCourseAccess).map((e) => e.courseId);
     if (courseIds.length === 0) {
       return res.json({ sessions: [] });
     }
