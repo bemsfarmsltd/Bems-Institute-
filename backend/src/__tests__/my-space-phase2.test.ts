@@ -38,6 +38,16 @@ describe("streak helpers (Lagos days)", () => {
   it("uses the Lagos calendar day", () => {
     expect(lagosDateKey(new Date("2026-11-16T23:30:00Z"))).toBe("2026-11-17");
   });
+  it("keeps streaks continuous across Lagos Sunday/Monday midnight and breaks after a missed day", () => {
+    const sundayLate = new Date("2026-11-22T22:59:59Z"); // Sunday 23:59:59 Lagos
+    const mondayMidnight = new Date("2026-11-22T23:00:00Z"); // Monday 00:00 Lagos
+    const sundayAndMonday = new Set(["2026-11-22", "2026-11-23"]);
+    expect(lagosDateKey(sundayLate)).toBe("2026-11-22");
+    expect(lagosDateKey(mondayMidnight)).toBe("2026-11-23");
+    expect(dayStreak(sundayAndMonday, mondayMidnight)).toBe(2);
+    expect(dayStreak(new Set(["2026-11-22"]), mondayMidnight)).toBe(1); // yesterday remains alive
+    expect(dayStreak(new Set(["2026-11-21"]), mondayMidnight)).toBe(0); // a full missed day breaks it
+  });
   it("counts weeks in a row on target", () => {
     const lesson = (iso: string, mins: number) => ({ completedAt: new Date(iso), lesson: { duration: `${mins}:00` } });
     const done = [lesson("2026-11-03T10:00:00Z", 60), lesson("2026-11-10T10:00:00Z", 60), lesson("2026-11-17T10:00:00Z", 30)];
@@ -47,6 +57,8 @@ describe("streak helpers (Lagos days)", () => {
   });
   it("recaps the week ending today on a Sunday, otherwise last week", () => {
     expect(recapWeekStart(new Date("2026-11-22T17:00:00Z")).toISOString()).toBe("2026-11-15T23:00:00.000Z"); // Sunday 18:00 Lagos
+    expect(recapWeekStart(new Date("2026-11-22T22:59:59Z")).toISOString()).toBe("2026-11-15T23:00:00.000Z"); // Sunday 23:59:59 Lagos
+    expect(recapWeekStart(new Date("2026-11-22T23:00:00Z")).toISOString()).toBe("2026-11-15T23:00:00.000Z"); // Monday 00:00 Lagos: same completed week
     expect(recapWeekStart(new Date("2026-11-23T01:00:00Z")).toISOString()).toBe("2026-11-15T23:00:00.000Z"); // Monday 02:00 Lagos, late run
     expect(recapWeekStart(new Date("2026-11-18T10:00:00Z")).toISOString()).toBe("2026-11-08T23:00:00.000Z"); // Wednesday
   });
@@ -92,6 +104,9 @@ describe("My Space roadmap and activity", () => {
 describe("AI tutor context", () => {
   it("knows the student's name, goal, level and lesson, but not their private reason", async () => {
     const { agent, userId } = await confirmedStudent("p2-tutor");
+    const privateEmail = `PRIVATE-${userId}@example.test`;
+    await prisma.user.update({ where: { id: userId }, data: { email: privateEmail, phone: `PHONE-${userId}` } });
+    await prisma.enrollment.update({ where: { userId_courseId: { userId, courseId: "web-dev" } }, data: { paymentReference: "PAYMENT-REFERENCE-SENTINEL" } });
     await agent.patch("/api/lms/my-space/profile", { goalType: "FREELANCE", goal: "Sites for shops", experienceLevel: "BEGINNER", weeklyHours: 5, motivation: "SECRET-REASON" });
     await agent.post("/api/lms/progress", { lessonId: "les-1" });
     const ctx = (await tutorContextFor(userId, "web-dev"))!;
@@ -101,6 +116,9 @@ describe("AI tutor context", () => {
     expect(ctx).toContain("beginner");
     expect(ctx).toContain("1 of 12 lessons");
     expect(ctx).not.toContain("SECRET-REASON");
+    expect(ctx).not.toContain(privateEmail);
+    expect(ctx).not.toContain(`PHONE-${userId}`);
+    expect(ctx).not.toContain("PAYMENT-REFERENCE-SENTINEL");
   });
 
   it("leaves out course details before confirmation, and is off for staff", async () => {
@@ -119,6 +137,11 @@ describe("weekly recap job", () => {
     process.env.CRON_SECRET = SECRET;
     expect((await request(app).post("/api/jobs/weekly-recap")).status).toBe(401);
     expect((await request(app).post("/api/jobs/weekly-recap").set("Authorization", "Bearer wrong")).status).toBe(401);
+  });
+
+  it("rejects a configured but too-short cron secret", async () => {
+    process.env.CRON_SECRET = "short";
+    expect((await request(app).post("/api/jobs/weekly-recap").set("Authorization", "Bearer short")).status).toBe(401);
   });
 
   it("sends each confirmed student one recap a week, and skips unconfirmed ones", async () => {
@@ -146,5 +169,16 @@ describe("weekly recap job", () => {
     expect((await student.post("/api/admin/recaps/send")).status).toBe(403);
     expect((await active.admin.post("/api/admin/recaps/send")).status).toBe(200);
     expect(await count(active.userId)).toBe(1);
+  });
+
+  it("claims a student's week once when two authorized jobs run concurrently", async () => {
+    process.env.CRON_SECRET = SECRET;
+    const student = await confirmedStudent("p2-recap-race");
+    // Ensure the profile exists before the two workers reach the atomic claim.
+    await prisma.learningProfile.upsert({ where: { userId: student.userId }, update: {}, create: { userId: student.userId } });
+    const run = () => request(app).post("/api/jobs/weekly-recap").set("Authorization", `Bearer ${SECRET}`);
+    const responses = await Promise.all([run(), run()]);
+    expect(responses.map((r) => r.status)).toEqual([200, 200]);
+    expect(await prisma.notification.count({ where: { userId: student.userId, title: "Your week at BEMS" } })).toBe(1);
   });
 });
