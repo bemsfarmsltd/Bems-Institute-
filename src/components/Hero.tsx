@@ -8,7 +8,6 @@ import { CountUp } from "@/components/CountUp";
 import {
   CheckCircle2,
   Play,
-  Mail,
   Monitor,
   UserCheck,
   GraduationCap,
@@ -22,35 +21,7 @@ import {
   Video
 } from "lucide-react";
 
-// Track count comes from the real catalog (useLMS) so this card never goes
-// stale again as courses are added or removed; everything else in STATS
-// stays static marketing copy.
-const OTHER_STATS = [
-  {
-    count: 4,
-    format: (n: number) => `${n}`,
-    label: "Expert Tutors & Mentors",
-    bg: "bg-[#E8EEF2]",
-    iconColor: "text-[#1D3B53]",
-    Icon: UserCheck
-  },
-  {
-    count: 80,
-    format: (n: number) => `${n} Seats`,
-    label: "October 2026 Cohort",
-    bg: "bg-[#F6ECF9]",
-    iconColor: "text-[#A16EBD]",
-    Icon: GraduationCap
-  },
-  {
-    count: 100,
-    format: (n: number) => `${n}%`,
-    label: "QR-Verified Certificates",
-    bg: "bg-[#E5F5F7]",
-    iconColor: "text-[#17A2B8]",
-    Icon: BadgeCheck
-  }
-];
+// Derived from live catalog data so counts reflect the real curriculum.
 
 export function Hero() {
   const { courses, user, mySpace } = useLMS();
@@ -195,15 +166,46 @@ export function Hero() {
     );
   }
 
-  const trackStat = {
-    count: courses.length || 5,
-    format: (n: number) => `${n} Tracks`,
-    label: "Hands-On Tech Courses",
-    bg: "bg-[#FEF6E0]",
-    iconColor: "text-[#F7C32E]",
-    Icon: Monitor
-  };
-  const STATS = [trackStat, ...OTHER_STATS];
+  const uniqueTutorsCount =
+    new Set(courses.map((c) => c.tutor).filter(Boolean)).size || courses.length || 4;
+  const totalLessonsCount = courses.reduce(
+    (sum, c) => sum + c.modules.reduce((mSum, m) => mSum + m.lessons.length, 0),
+    0
+  );
+  const STATS = [
+    {
+      count: courses.length || 5,
+      format: (n: number) => `${n} Tracks`,
+      label: "Hands-On Tech Courses",
+      bg: "bg-[#FEF6E0]",
+      iconColor: "text-[#F7C32E]",
+      Icon: Monitor
+    },
+    {
+      count: uniqueTutorsCount,
+      format: (n: number) => `${n}`,
+      label: "Track Tutors",
+      bg: "bg-[#E8EEF2]",
+      iconColor: "text-[#1D3B53]",
+      Icon: UserCheck
+    },
+    {
+      count: totalLessonsCount || 24,
+      format: (n: number) => `${n}+`,
+      label: "Guided Video Lessons",
+      bg: "bg-[#F6ECF9]",
+      iconColor: "text-[#A16EBD]",
+      Icon: GraduationCap
+    },
+    {
+      count: 2,
+      format: () => "Lab & Live",
+      label: "Physical or Virtual Class",
+      bg: "bg-[#E5F5F7]",
+      iconColor: "text-[#17A2B8]",
+      Icon: BadgeCheck
+    }
+  ];
 
   return (
     <section className="relative overflow-hidden bg-white pt-8 pb-16 md:pt-14 md:pb-20">
@@ -487,70 +489,6 @@ export function Hero() {
                 </div>
               </div>
 
-              {/* Floating card: October 2026 cohort avatar stack */}
-              <div className="bems-hero-badge-2 absolute top-16 sm:top-24 right-0 sm:-right-8">
-                <div
-                  className="m-lift m-float bg-[#AE54C6] text-white rounded-2xl p-3 sm:p-4 shadow-xl w-44 sm:w-52 overflow-hidden relative"
-                  style={{ "--float-delay": "1100ms" } as React.CSSProperties}
-                >
-                  {/* Subtle topographic wave pattern */}
-                  <svg
-                    aria-hidden="true"
-                    className="absolute inset-0 w-full h-full opacity-20 pointer-events-none"
-                    viewBox="0 0 200 100"
-                    fill="none"
-                  >
-                    <path
-                      d="M-20 80 C40 20, 120 100, 220 30 M-20 60 C50 0, 130 80, 220 10 M-20 100 C60 40, 140 120, 220 50"
-                      stroke="white"
-                      strokeWidth="1.5"
-                    />
-                  </svg>
-                  <p className="text-[11px] sm:text-xs font-bold text-white mb-2 relative z-10">
-                    October 2026 Cohort
-                  </p>
-                  <div className="flex items-center -space-x-1.5 sm:-space-x-2 relative z-10">
-                    <div className="m-pop w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-white bg-[#F7C32E] text-[#24292D] text-[9px] sm:text-[10px] font-extrabold flex items-center justify-center">
-                      CO
-                    </div>
-                    <div className="m-pop w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-white bg-[#D6293E] text-white text-[9px] sm:text-[10px] font-extrabold flex items-center justify-center">
-                      AN
-                    </div>
-                    <div className="m-pop w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-white bg-[#A16EBD] text-white text-[9px] sm:text-[10px] font-extrabold flex items-center justify-center">
-                      EK
-                    </div>
-                    <div className="m-pop w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-white bg-[#1D3B53] text-white text-[9px] sm:text-[10px] font-extrabold flex items-center justify-center">
-                      UI
-                    </div>
-                    <div className="m-pop w-8 h-8 sm:w-9 sm:h-9 rounded-full border-2 border-white bg-[#AE54C6] text-white text-[9px] sm:text-[10px] font-extrabold flex items-center justify-center">
-                      80+
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Eduport Frosted Floating Card: "Congratulations · Your admission completed" */}
-              <div className="bems-hero-badge-3 absolute bottom-2 left-0 sm:-left-6">
-                <div
-                  className="m-lift m-float bg-white/95 backdrop-blur-md border border-white rounded-2xl p-2.5 sm:p-3.5 pr-4 sm:pr-5 shadow-xl flex items-center gap-2.5 sm:gap-3.5 max-w-[260px] sm:max-w-none"
-                  style={{ "--float-delay": "1400ms" } as React.CSSProperties}
-                >
-                  <div className="m-icon w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-[#F7C32E] text-white flex items-center justify-center shrink-0 shadow-sm">
-                    <Mail className="w-4 h-4 sm:w-5 sm:h-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center justify-between gap-2">
-                      <h4 className="text-[11px] sm:text-sm font-extrabold text-[#24292D] truncate">
-                        Congratulations
-                      </h4>
-                      <span className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-[#AE54C6] text-white flex items-center justify-center text-[9px] sm:text-[10px] font-bold shrink-0">
-                        ✓
-                      </span>
-                    </div>
-                    <p className="text-[10px] sm:text-xs text-[#747579] mt-0.5 truncate">Your admission completed</p>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>

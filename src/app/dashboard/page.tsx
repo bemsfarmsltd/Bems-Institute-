@@ -88,6 +88,7 @@ function StudentDashboardContent() {
   const router = useRouter();
   const {
     user,
+    isHydrated,
     logout,
     updateProfile,
     courses,
@@ -459,12 +460,16 @@ function StudentDashboardContent() {
         <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4 sm:gap-6">
           <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-5 min-w-0">
             <div className="m-pop -mt-11 sm:-mt-14 mb-2 sm:mb-0 relative self-start shrink-0">
-              <UserAvatar
-                user={user ? { name: user.name, avatarUrl: user.avatarUrl } : { name: "Student", avatarUrl: null }}
-                size={88}
-                editable
-                className="ring-4 ring-white shadow-lg text-xl sm:text-2xl"
-              />
+              {!isHydrated || !user ? (
+                <div className="w-[88px] h-[88px] rounded-full bg-slate-200 animate-pulse ring-4 ring-white shadow-lg" />
+              ) : (
+                <UserAvatar
+                  user={{ name: user.name, avatarUrl: user.avatarUrl }}
+                  size={88}
+                  editable
+                  className="ring-4 ring-white shadow-lg text-xl sm:text-2xl"
+                />
+              )}
               {xp && (
                 <span className="pointer-events-none absolute -bottom-2 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-bold shadow-sm whitespace-nowrap">
                   {xp.levelTitle}
@@ -472,9 +477,16 @@ function StudentDashboardContent() {
               )}
             </div>
             <div className="pt-1 sm:pt-3 min-w-0 space-y-1.5">
-              <h1 className="text-2xl sm:text-3xl font-black text-[#303654] leading-tight">
-                {mySpace ? `${mySpace.greeting}, ${mySpace.firstName}` : user?.name || "Student"}
-              </h1>
+              {!isHydrated || !user ? (
+                <div className="space-y-2">
+                  <div className="h-8 w-52 rounded-lg bg-slate-200 animate-pulse" />
+                  <div className="h-4 w-72 rounded bg-slate-200 animate-pulse" />
+                </div>
+              ) : (
+                <h1 className="text-2xl sm:text-3xl font-black text-[#303654] leading-tight">
+                  {mySpace ? `${mySpace.greeting}, ${mySpace.firstName}` : user.name}
+                </h1>
+              )}
 
               {primarySpaceCourse ? (
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs sm:text-sm text-[#645F80] font-semibold">
@@ -653,10 +665,15 @@ function StudentDashboardContent() {
                     ) : !primarySpaceCourse.hasAccess ? (
                       <>
                         <h2 className="text-lg sm:text-xl font-black text-[#303654]">
-                          {primarySpaceCourse.title}
+                          {primarySpaceCourse.title} ·{" "}
+                          {primarySpaceCourse.deliveryMode === "VIRTUAL_ZOOM"
+                            ? "Virtual, live online"
+                            : "Physical, BEMS lab, Umuahia"}
                         </h2>
                         <p className="text-xs sm:text-sm text-[#645F80]">
-                          Your space opens when admissions confirms your registration.
+                          {mySpace.firstName}, your{" "}
+                          {primarySpaceCourse.cohort ? `${primarySpaceCourse.cohort.name} ` : ""}
+                          seat is awaiting admissions confirmation. Reviews typically complete within 24 hours, and your space will open as soon as it&apos;s approved.
                         </p>
                       </>
                     ) : primarySpaceCourse.nextLesson ? (

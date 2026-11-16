@@ -404,10 +404,10 @@ export default function LoginPage() {
             🙌
           </span>
           <h1 className="font-display text-[30px] sm:text-[36px] font-extrabold text-[#1D2026] tracking-tight leading-[1.15] mb-2">
-            Sign up for your account!
+            Create your BEMS student account
           </h1>
           <p className="text-[#64748B] text-[15px] mb-6">
-            Nice to see you! Please Sign up with your account.
+            Next, you&apos;ll choose your tech track and Physical or Virtual class type.
           </p>
 
           {error && (

@@ -84,7 +84,8 @@ export default function LessonViewPage({
     toggleLessonComplete,
     isLessonCompleted,
     getCourseProgress,
-    learningProfile
+    learningProfile,
+    mySpace
   } = useLMS();
 
   const [theaterMode, setTheaterMode] = useState(false);
@@ -681,18 +682,33 @@ export default function LessonViewPage({
                 )}
 
                 {/* Tab 3: AI Tutor Companion */}
-                {activeTab === "ai" && (
+                {activeTab === "ai" && (() => {
+                  const firstName = mySpace?.firstName || user?.name?.trim().split(/\s+/)[0] || "";
+                  const myGoal = mySpace?.profile?.goal;
+                  const myLevel = mySpace?.profile?.experienceLevel?.toLowerCase();
+                  const contextPrompt = [
+                    `I'm studying "${currentLesson.title}" in ${course.title} (${progress.percent}% complete).`,
+                    myLevel ? `My level is ${myLevel}.` : "",
+                    myGoal ? `My goal is: ${myGoal}.` : ""
+                  ]
+                    .filter(Boolean)
+                    .join(" ");
+                  return (
                   <div className="pt-5 space-y-4">
                     <div className="p-5 rounded-2xl bg-gradient-to-r from-[#AE54C6]/10 to-[#303654]/10 border border-[#AE54C6]/20">
                       <div className="flex items-center gap-2 text-[#AE54C6] font-bold text-xs mb-1">
                         <Sparkles className="w-4 h-4" /> 24/7 AI Tutor Guidance
                       </div>
-                      <h4 className="text-base font-black text-[#303654]">Have a question about {currentLesson.title}?</h4>
+                      <h4 className="text-base font-black text-[#303654]">
+                        {firstName ? `${firstName}, have a question about ${currentLesson.title}?` : `Have a question about ${currentLesson.title}?`}
+                      </h4>
                       <p className="text-xs text-[#645F80] mt-1 mb-4">
-                        Our specialized BEMS AI Tutor can explain tricky bugs, provide code snippets, or break down concepts in simple terms tailored to your pace.
+                        {myGoal
+                          ? `Tailored to your goal (${myGoal}) and ${myLevel || "current"} pace at ${progress.percent}% through ${course.title}.`
+                          : `Get code explanations, debugging help, and examples matched to your ${myLevel || "current"} level (${progress.percent}% through ${course.title}).`}
                       </p>
                       <Link
-                        href={`/ai?tab=tutor&courseId=${encodeURIComponent(course.id)}&lessonTitle=${encodeURIComponent(currentLesson.title)}`}
+                        href={`/ai?tab=tutor&courseId=${encodeURIComponent(course.id)}&lessonTitle=${encodeURIComponent(currentLesson.title)}&prompt=${encodeURIComponent(contextPrompt)}`}
                       >
                         <Button variant="purple" size="sm" className="text-xs font-bold">
                           Ask AI Tutor about this Lesson &rarr;
@@ -718,7 +734,8 @@ export default function LessonViewPage({
                       ))}
                     </div>
                   </div>
-                )}
+                  );
+                })()}
 
                 {/* Tab 4: Resources */}
                 {activeTab === "resources" && (

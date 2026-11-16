@@ -121,7 +121,8 @@ export default function CourseDetailPage({
           setReviews(data.reviews || []);
           setReviewAverage(data.average || 0);
         }
-        setReviewMsg("Thanks for your review!");
+        const firstName = mySpace?.firstName || user?.name?.trim().split(/\s+/)[0] || "";
+        setReviewMsg(`Thanks for reviewing ${course.title}${firstName ? `, ${firstName}` : ""}!`);
       } else {
         const data = await res.json().catch(() => ({}));
         setReviewMsg(data.error || "Could not submit review.");
@@ -556,7 +557,7 @@ export default function CourseDetailPage({
                     <Star className="w-7 h-7 fill-amber-400/30 text-amber-500" />
                   </div>
                   <h4 className="text-base font-black text-[#303654] mb-1.5">
-                    No Reviews Yet — Be the First Graduate!
+                    No reviews yet
                   </h4>
                   <p className="text-xs sm:text-sm text-[#645F80] max-w-md mx-auto leading-relaxed mb-4">
                     Reviews on BEMS are reserved exclusively for students who complete all video lessons and submit their verified capstone project.
@@ -692,13 +693,19 @@ export default function CourseDetailPage({
                   </span>
                   <div>
                     <h3 className="text-xl font-black text-[#303654]">
-                      Tuition Verified!
+                      {mySpace?.firstName ? `${mySpace.firstName}, your payment is verified` : "Tuition Verified!"}
                     </h3>
                     <p className="text-xs text-[#645F80] mt-1.5 leading-relaxed">
-                      We have received your payment of <strong className="text-[#303654]">₦{courseEnrollment?.amountPaid?.toLocaleString()}</strong>. Admissions is reviewing your cohort placement and verifying your registration.
+                      We have received your payment of <strong className="text-[#303654]">₦{courseEnrollment?.amountPaid?.toLocaleString()}</strong> for{" "}
+                      <strong className="text-[#303654]">
+                        {courseEnrollment?.deliveryMode === "VIRTUAL_ZOOM"
+                          ? "Virtual, live online"
+                          : "Physical, BEMS lab, Umuahia"}
+                      </strong>
+                      . Admissions is reviewing your cohort placement.
                     </p>
                     <div className="mt-3 p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 leading-relaxed">
-                      You will receive an official email confirmation and full classroom unlock as soon as admissions approves your seat.
+                      Reviews typically complete within 24 hours. You&apos;ll receive an email confirmation as soon as your classroom unlocks.
                     </div>
                   </div>
 

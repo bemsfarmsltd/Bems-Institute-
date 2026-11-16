@@ -62,7 +62,7 @@ function SubscriptionsContent() {
   // param on THIS page load, fall back to what was persisted there instead
   // of losing the attribution.
   const sourceParam = readAttributionParam(searchParams);
-  const { user, courses, enrollInCourse, isEnrolled, refreshEnrollments, userEnrollments } = useLMS();
+  const { user, courses, enrollInCourse, isEnrolled, refreshEnrollments, userEnrollments, mySpace } = useLMS();
   const awaitingFor = (courseId: string) =>
     userEnrollments.find((e) => e.courseId === courseId && e.awaitingApproval);
   const [effectiveSource, setEffectiveSource] = useState<string | null>(null);
@@ -99,6 +99,7 @@ function SubscriptionsContent() {
     firstLessonId: string;
     awaitingApproval: boolean;
     paymentReference?: string;
+    deliveryMode?: "PHYSICAL_LAB" | "VIRTUAL_ZOOM";
     // Bank transfers aren't verified yet when this banner shows — staff
     // still have to match them against the bank statement.
     bankTransfer?: boolean;
@@ -173,6 +174,7 @@ function SubscriptionsContent() {
       firstLessonId,
       awaitingApproval: options?.awaitingApproval ?? true,
       paymentReference: options?.paymentReference,
+      deliveryMode: deliveryMode ?? undefined,
       bankTransfer: options?.bankTransfer
     });
     setShowPaymentModal(false);
@@ -307,14 +309,18 @@ function SubscriptionsContent() {
       <div className="bg-[#303654] text-white py-14 border-b border-white/10 text-center">
         <div className="max-w-4xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-center gap-2 mb-3">
-            <Badge variant="purple">OCTOBER 2026 COHORT</Badge>
+            <Badge variant="purple">CURRENT COHORT</Badge>
             <Badge variant="gold">FLEXIBLE TUITION</Badge>
           </div>
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight mb-4">
-            Invest in High-Income Tech Skills
+            {courseQuery && selectedCourse
+              ? `Enroll in ${selectedCourse.title}`
+              : "Choose Your Tech Track & Class Type"}
           </h1>
           <p className="text-sm sm:text-base text-[#C6BDD3] max-w-2xl mx-auto leading-relaxed">
-            Choose your track, then pay in full for 12% off or spread it across 3 parts — no one has to find it all at once.
+            {courseQuery && selectedCourse
+              ? "Pay in full for 12% off or spread tuition across 3 parts — then pick Physical (BEMS lab, Umuahia) or Virtual (live online)."
+              : "Pick the track you want to join below, then pay in full for 12% off or spread it across 3 parts."}
           </p>
         </div>
       </div>
@@ -322,8 +328,17 @@ function SubscriptionsContent() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-1 w-full space-y-10">
         {/* Inline Confirmation Banner */}
-        {confirmedEnrollment && (
-          confirmedEnrollment.awaitingApproval ? (
+        {confirmedEnrollment && (() => {
+          const studentFirstName =
+            mySpace?.firstName || user?.name?.trim().split(/\s+/)[0] || "";
+          const deliveryLabel =
+            confirmedEnrollment.deliveryMode === "VIRTUAL_ZOOM"
+              ? "Virtual, live online"
+              : confirmedEnrollment.deliveryMode === "PHYSICAL_LAB"
+              ? "Physical, BEMS lab, Umuahia"
+              : null;
+
+          return confirmedEnrollment.awaitingApproval ? (
             <div className="rounded-3xl border-2 border-[#AE54C6] bg-gradient-to-br from-[#FAF8FF] via-white to-[#F6ECF9] p-6 sm:p-8 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 animate-in fade-in duration-300">
               <div className="space-y-2">
                 <div className="inline-flex flex-wrap items-center gap-2 text-xs font-black uppercase tracking-wider text-[#7928CA]">
@@ -332,19 +347,24 @@ function SubscriptionsContent() {
                     {confirmedEnrollment.bankTransfer ? "Transfer Details Received" : "Payment Verified"} · ₦
                     {confirmedEnrollment.amount.toLocaleString()} ({confirmedEnrollment.planLabel})
                   </span>
+                  {deliveryLabel && (
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#F7EDF9] text-[#AE54C6] text-[10px] font-bold">
+                      {deliveryLabel}
+                    </span>
+                  )}
                   <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold inline-flex items-center gap-1">
                     <Clock className="w-3 h-3" />
                     Awaiting Admissions Confirmation
                   </span>
                 </div>
                 <h2 className="text-xl sm:text-2xl font-black text-[#303654]">
-                  {confirmedEnrollment.bankTransfer ? "Registration Received for" : "Payment Received for"}{" "}
-                  {confirmedEnrollment.courseTitle}!
+                  {studentFirstName ? `${studentFirstName}, your ` : "Your "}
+                  {confirmedEnrollment.courseTitle} registration is with Admissions
                 </h2>
                 <p className="text-xs sm:text-sm text-[#4A4568] max-w-2xl leading-relaxed">
                   {confirmedEnrollment.bankTransfer
-                    ? "Thank you! Our admissions team will match your transfer against the bank statement, then confirm your registration. You'll get an email as soon as your learning content is unlocked."
-                    : "Thank you! We've verified your payment and emailed you a receipt. BEMS Admissions will confirm your registration shortly, and you'll get another email as soon as your learning content is unlocked."}
+                    ? `Thank you${studentFirstName ? `, ${studentFirstName}` : ""}! Our admissions team is matching your transfer against our bank statement for your ${deliveryLabel || "chosen"} seat. Reviews typically complete within 24 hours, and we'll email you as soon as your space unlocks.`
+                    : `Thank you${studentFirstName ? `, ${studentFirstName}` : ""}! Your payment is verified and your receipt is on the way. Admissions reviews and confirms ${deliveryLabel || "cohort"} placements within 24 hours — you'll get an email as soon as your space opens.`}
                 </p>
                 {confirmedEnrollment.paymentReference && (
                   <p className="text-[11.5px] text-[#645F80] flex items-center gap-1.5 pt-1">
@@ -387,10 +407,12 @@ function SubscriptionsContent() {
                   <span>Enrollment Confirmed · ₦{confirmedEnrollment.amount.toLocaleString()} ({confirmedEnrollment.planLabel})</span>
                 </div>
                 <h2 className="text-xl sm:text-2xl font-black text-[#303654]">
-                  You&apos;re enrolled in {confirmedEnrollment.courseTitle}!
+                  {studentFirstName ? `${studentFirstName}, your ` : "Your "}
+                  {confirmedEnrollment.courseTitle}
+                  {deliveryLabel ? ` (${deliveryLabel})` : ""} place is confirmed!
                 </h2>
                 <p className="text-xs sm:text-sm text-[#4A4568]">
-                  Your classroom modules, interactive assessments, and AI Tutor context are now unlocked.
+                  Your lessons, assessments, and AI Tutor are now unlocked — jump straight into your first lesson.
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3 shrink-0">
@@ -408,8 +430,8 @@ function SubscriptionsContent() {
                 </Link>
               </div>
             </div>
-          )
-        )}
+          );
+        })()}
 
         {/* Guest Registration Callout */}
         {!user && (

@@ -149,10 +149,10 @@ export function EduportStudentFeedback() {
           {/* Right 5 Columns: Heading, Description & CTA */}
           <div data-reveal="right" className="lg:col-span-5 lg:pl-6">
             <h2 className="text-3xl sm:text-4xl font-extrabold text-[#24292D] tracking-tight leading-tight mb-4">
-              Some valuable feedback from our students
+              What BEMS learners are building
             </h2>
             <p className="text-sm sm:text-base text-[#747579] leading-relaxed mb-7">
-              We train students until they are work-ready, guide every learner through an employer-audited capstone project, and open direct hiring introductions with BEMS Group and partner companies.
+              Real reviews and capstone projects shared by students who completed their tracks at BEMS Institute of Technology.
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <Link
