@@ -465,3 +465,14 @@ Local production builds, 375px phone and 1366px desktop, onboarding tours marked
 | Subscriptions | 51, 48 | 47, 52, 57 |
 
 Motion costs about 3 to 4 points on home/courses. The baseline is already slow (about 2s total blocking time, LCP 4 to 5s on main): follow-up task.
+
+### My Space Phase 3 review (Codex, 2026-11-16)
+
+Reviewed `claude/my-space-phase3` (`dc04dce`) and `antigravity/my-space-phase3-ui` (`bbc230a`).
+
+- **Backend review:** The 12 badge rules derive from lesson/module/course completion, streak/goal history, submitted/graded projects, quiz attempts, and certificates. `getMySpace` returns `[]` for staff and scopes badge reads/seen updates to the authenticated session ID; a `userId` query parameter does not select another user's data. Appearance writes accept only the preset IDs or `null` reset. No backend issue found in these checks.
+- **Concurrency:** Existing Vitest coverage races two award calls and confirms one `UserBadge` row and one notification. The unique `(userId, badgeId)` constraint plus P2002 handling enforces once-only award/notification.
+- **Added test:** `backend/src/__tests__/my-space-phase3.test.ts` now checks that a student cannot read another student's badges by supplying their ID, and cannot mark those badges seen. Focused suite: 8/8 passed; `npx tsc --noEmit` passed.
+- **UI issue for Antigravity:** `src/components/BadgeShelf.tsx:46-53` uses one lifetime `seenCalledRef`. Once the first unseen batch is handled, later newly earned badges arriving while the shelf remains mounted will not be celebrated. Track seen/announced badge IDs so each new badge can celebrate once.
+- **Static visual checks:** The seven configured accents match the API palette whose white-text contrast is specified at 4.5:1 or higher. `src/app/motion.css` keeps the `m-pop` transition to colour/shadow under reduced motion, so the celebration does not depend on movement to remain visible.
+- **Browser QA blocked:** Could not verify at 375px or desktop, inspect actual text readability, or observe repeat behavior in Chrome. The browser access host reports unavailable, and Computer Use cannot determine the open Chrome URL; therefore no local browser interaction was performed. Re-run those checks when browser access is available.
