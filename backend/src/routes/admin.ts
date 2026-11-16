@@ -15,6 +15,7 @@ import type { QrCampaign } from "@prisma/client";
 import { getSiteSettings, integrationStatus, ACCOUNT_NUMBER_PATTERN } from "@/lib/site-settings";
 import { createStaffInvite, emailStaffInvite, inviteStatus, inviteUrl, STAFF_ROLES } from "@/lib/staff-invites";
 import { COMMUNITY_URL_PATTERN, getCommunityUrl, sendCommunityInviteIfReady } from "@/lib/community";
+import { sendWeeklyRecaps } from "@/lib/weekly-recap";
 import { DEMO_ACCOUNT_EMAILS } from "@/lib/demo-accounts";
 import { isValidEmail } from "@/lib/validation";
 
@@ -1641,6 +1642,16 @@ router.get("/settings/general", async (req, res) => {
     },
     integrations: integrationStatus()
   });
+});
+
+// Manual fallback for the Sunday job: sends the weekly recap to every
+// confirmed student who hasn't had this week's yet (never twice).
+router.post("/recaps/send", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isAdmin(session)) {
+    return res.status(403).json({ error: "Admin access required." });
+  }
+  return res.json(await sendWeeklyRecaps());
 });
 
 router.patch("/settings/general", async (req, res) => {

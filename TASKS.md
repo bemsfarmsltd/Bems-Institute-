@@ -8,6 +8,9 @@ section.
 
 | Task | Agent | Branch | Files / areas | Started |
 |---|---|---|---|---|
+| **My Space Phase 2 API** (done, awaiting review): roadmap per course (modules → projects → capstone → certificate), Lagos-day study streak + this week's 7-day strip + weeks-in-a-row on target, AI tutor told the student's name / goal / level / current lesson, weekly recap (Sunday 18:00 Lagos: in-app + email, opt-out) via GitHub Actions + `POST /api/jobs/weekly-recap` and an admin fallback. API below. | Claude Code | `claude/my-space-phase2` | `backend/` (schema + migration, `lib/my-space.ts`, `lib/weekly-recap.ts`, `routes/jobs.ts`, `routes/ai.ts`, `routes/admin.ts`), `.github/workflows/weekly-recap.yml` | 2026-11-16 |
+| **My Space Phase 2 UI**: roadmap, streak strip, weekly-email toggle, admin "Send weekly recaps now" button, per the API below | Antigravity | `antigravity/my-space-phase2-ui`, off `claude/my-space-phase2` (after Phase 1b is pushed) | `src/app/dashboard/page.tsx`, `src/app/courses/[slug]/page.tsx`, `src/app/admin/page.tsx`, `src/types/lms.ts`, `src/app/welcome/page.tsx` (one line) | 2026-11-16 |
+| **Review `claude/my-space-phase2`**: recap job auth (secret compare, no secret = 503), once-per-week claim under concurrent runs, week choice around Sunday/Monday midnight Lagos, what goes to the AI provider (no motivation, email, phone, payment), streak edge cases; add tests | Codex | `codex/my-space-phase2-review` | Read all; write `backend/src/__tests__/` + notes here | 2026-11-16 |
 | **My Space Phase 1b, Codex audit copy fixes**: the items in Codex's journey audit below (signup heading, track choice on direct checkout visits, personal pending/confirmation copy with name + class type, no "Student" fallback while loading, personal AI-tutor intro from `mySpace.profile`, neutral empty states instead of "Be the First Graduate!", stale October 2026 labels: read the cohort from data, Hero static counts). Use `mySpace` from LMSContext. | Antigravity | `antigravity/my-space-copy`, off main after the Phase 1 merge | `src/app/login`, `src/app/subscriptions`, `src/app/dashboard`, `src/app/courses/[slug]`, `src/app/learn`, `src/components/Hero.tsx`, `src/components/EduportStudentFeedback.tsx` | 2026-11-16 |
 | **My Space API, Phase 1** (done; Codex findings fixed in fee8b17; browser-tested with the UI, awaiting merge): welcome-setup answers saved privately; one `GET /api/lms/my-space` with first name + Lagos-time greeting, per course tutor / class type / cohort countdown / progress / next lesson / next live class / latest feedback, this week's study time vs the student's own weekly hours, streak. Also: the student live-classes list no longer gives meeting links to unpaid registrations. API below. | Claude Code | `claude/my-space` | `backend/` (schema + migration, `lib/my-space.ts`, `routes/lms.ts`, `routes/attendance.ts`) | 2026-11-16 |
 | **My Space UI, Phase 1** (done, browser-tested end to end at 375px + desktop, awaiting merge): welcome setup, personal dashboard header, Continue-where-you-left-off, personal home for signed-in students, fix the 375px dashboard header overlap. Per the API below. | Antigravity | `antigravity/my-space-ui`, off `claude/my-space` | `src/app/dashboard/page.tsx`, new `src/app/welcome/page.tsx`, `src/app/page.tsx` / `src/components/Hero.tsx`, `src/context/LMSContext.tsx` | 2026-11-16 |
@@ -109,6 +112,28 @@ Errors are always `{ error }` with a message to show as is. `429` = too many tri
 - `GET /api/staff-invites/:token` → `{ invite: { email, role, expiresAt, accountExists } }`, or `410` (expired/used: show the message).
 - `POST /api/staff-invites/:token/accept`: new person `{ name, password }` (8+ chars); `accountExists` → just `{ password }` of that account. → `{ user }` (signed in: go to `/admin` or `/instructor` by role) or `{ ok, signInRequired: true }` (send to `/login`).
 - `AdminGate`'s "register with staff code" now returns `403` once any admin exists: replace that tab with "Staff accounts are invite-only. Ask an admin for an invite link."
+
+### My Space Phase 2 API (Claude Code → Antigravity)
+All additive on `GET /api/lms/my-space` (Phase 1 fields unchanged).
+
+**Roadmap**: each `courses[i].roadmap`:
+```
+{ modules:  [{ title, completed, total, status: "DONE" | "CURRENT" | "UPCOMING" }],
+  projects: [{ id, title, type: "MILESTONE" | "CAPSTONE", status: "NOT_SUBMITTED" | "SUBMITTED" | "GRADED" | "RESUBMISSION_REQUESTED", score, href }],
+  certificate: null | { certNumber, gradeTitle, issuedAt, href } }
+```
+Show it as one vertical journey on the dashboard (and the course page): modules, then milestone projects, then the capstone, then the certificate at the end. Done steps lit in the course colour with a check, CURRENT pulsing gently (motion system, respects reduced motion), upcoming muted. Certificate step: locked "Your certificate" until `certificate` is set, then a link to `href`. `href` on projects is null until confirmed.
+
+**Streaks**:
+- `week.days`: 7 items Monday → Sunday (Lagos) `{ date, active, minutes, isToday, isFuture }`. Show a small M T W T F S S strip under the weekly ring: filled = studied, outlined = missed, faded = future, today ringed.
+- `streaks: { days, studiedToday, weeksOnTarget }`. `streak` (number) still = `streaks.days`. Copy: "🔥 4-day streak"; if `!studiedToday && days > 0`: "Study today to keep your 4-day streak". `weeksOnTarget > 1`: "3 weeks in a row on target".
+- "Studied" = finished a lesson, a quiz, practice question, submitted a project, or used the AI tutor that day.
+
+**Weekly recap email**: `profile.weeklyRecapEmail` (default true). Toggle on the dashboard (a small "Weekly progress email" switch in a Preferences card, with the welcome answers editable there too) → `PATCH /api/lms/my-space/profile { weeklyRecapEmail: false }`. Sundays 18:00 every confirmed student gets an in-app notification "Your week at BEMS"; the email only if the switch is on.
+
+**Admin**: in Settings → General (under the community link), button "Send weekly recaps now" → `POST /api/admin/recaps/send` → `{ sent, emailed }` ("Sent to 12 students, 9 by email"). Note under it: "Sent automatically every Sunday at 6 pm. Each student gets each week's recap once."
+
+**AI tutor**: nothing to change in the UI; the tutor now knows the student's first name, goal, level and current lesson. Add to the welcome setup's "Only you see this" line: "Only you (and your AI tutor) see this".
 
 ### My Space API, Phase 1 (Claude Code → Antigravity)
 Goal (from the owner): the student should feel they are in their own space. Use their name, their goal, their tutor, their class type and their progress everywhere it fits; never placeholder people or numbers.

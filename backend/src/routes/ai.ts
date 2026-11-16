@@ -9,6 +9,7 @@ import {
 import { retrieveCourseKnowledge } from "@/lib/course-rag";
 import { getSessionUser } from "@/lib/api-auth";
 import { getLearningProfile } from "@/lib/learning-engine";
+import { tutorContextFor } from "@/lib/my-space";
 import { prisma } from "@/lib/prisma";
 import { checkUsageQuota, recordAttempt, rateLimitMessage } from "@/lib/rate-limit";
 
@@ -51,8 +52,11 @@ router.post("/", async (req, res) => {
 
         let weakConceptNames: string[] = [];
         let strongConceptNames: string[] = [];
+        // My Space: name, goal, level and where they are in the course.
+        let personalContext: string | null = null;
 
         if (session) {
+          personalContext = await tutorContextFor(session.id, courseTrack).catch(() => null);
           const profile = await getLearningProfile(session.id).catch(() => null);
           if (profile) {
             weakConceptNames = profile.weaknesses
@@ -76,6 +80,7 @@ router.post("/", async (req, res) => {
         }
 
         const contextBlocks: string[] = [];
+        if (personalContext) contextBlocks.push(personalContext);
         if (weakConceptNames.length > 0) {
           contextBlocks.push(`Student's current weak concepts from quiz history: ${weakConceptNames.join(", ")}.`);
         }

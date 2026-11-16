@@ -848,6 +848,10 @@ model LearningProfile {
   weeklyHours     Int?
   motivation      String?
   onboardedAt     DateTime?
+  // Weekly recap (lib/weekly-recap.ts): the student can turn the email off;
+  // lastRecapWeekStart makes sure each week's recap goes out only once.
+  weeklyRecapEmail   Boolean   @default(true)
+  lastRecapWeekStart DateTime?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 }

@@ -16,6 +16,7 @@ import aiRoutes from "@/routes/ai";
 import instructorRoutes from "@/routes/instructor";
 import learningRoutes from "@/routes/learning";
 import lmsRoutes from "@/routes/lms";
+import jobsRoutes from "@/routes/jobs";
 import referralsRoutes from "@/routes/referrals";
 import graduatesRoutes from "@/routes/graduates";
 import attendanceRoutes from "@/routes/attendance";
@@ -98,6 +99,7 @@ app.use("/api/qr", qrRoutes);
 app.use("/api/settings", settingsRoutes);
 app.use("/api/account", accountRoutes);
 app.use("/api/staff-invites", staffInviteRoutes);
+app.use("/api/jobs", jobsRoutes);
 
 app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   void _next;

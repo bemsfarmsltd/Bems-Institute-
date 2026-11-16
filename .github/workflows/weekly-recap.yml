@@ -1,0 +1,27 @@
+name: Weekly recap
+
+# Every Sunday 18:00 Lagos time (17:00 UTC), ask the backend to send each
+# confirmed student their weekly recap (backend/src/lib/weekly-recap.ts).
+# Render's free plan sleeps, so this call is also what wakes it. Safe to run
+# more than once: each student gets each week's recap only once. If GitHub
+# delays the run past midnight, the backend still recaps the week that just
+# ended.
+on:
+  schedule:
+    - cron: "0 17 * * 0"
+  workflow_dispatch:
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send weekly recaps
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then echo "CRON_SECRET repo secret is not set"; exit 1; fi
+          # Generous timeout and retries: a sleeping free Render service takes ~1 min to wake.
+          curl --fail-with-body --silent --show-error --max-time 300 \
+            --retry 3 --retry-delay 30 --retry-all-errors \
+            -X POST -H "Authorization: Bearer $CRON_SECRET" \
+            https://bems-backend.onrender.com/api/jobs/weekly-recap

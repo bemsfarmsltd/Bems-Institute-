@@ -52,11 +52,11 @@ function cleanText(value: unknown, max: number): string | null | undefined {
   if (value === undefined) return undefined;
   if (value === null) return null;
   if (typeof value !== "string") throw new ProfileError("Text fields must be text.");
-  // eslint-disable-next-line no-control-regex
   const cleaned = value.replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim();
   if (cleaned.length > max) throw new ProfileError(`Please keep it under ${max} characters.`);
   return cleaned || null;
 }
+
 
 export class ProfileError extends Error {}
 
@@ -66,6 +66,7 @@ export interface ProfileInput {
   experienceLevel?: unknown;
   weeklyHours?: unknown;
   motivation?: unknown;
+  weeklyRecapEmail?: unknown;
 }
 
 /** Validates and saves the welcome answers. Any field may be omitted (partial update). */
@@ -76,6 +77,7 @@ export async function saveSpaceProfile(userId: string, input: ProfileInput) {
     experienceLevel?: string;
     weeklyHours?: number;
     motivation?: string | null;
+    weeklyRecapEmail?: boolean;
   } = {};
 
   if (input.goalType !== undefined) {
@@ -96,6 +98,10 @@ export async function saveSpaceProfile(userId: string, input: ProfileInput) {
       throw new ProfileError(`Weekly study time must be between ${LIMITS.minHours} and ${LIMITS.maxHours} hours.`);
     }
     data.weeklyHours = hours;
+  }
+  if (input.weeklyRecapEmail !== undefined) {
+    if (typeof input.weeklyRecapEmail !== "boolean") throw new ProfileError("Choose on or off for the weekly email.");
+    data.weeklyRecapEmail = input.weeklyRecapEmail;
   }
   const goal = cleanText(input.goal, LIMITS.goal);
   if (goal !== undefined) data.learningGoal = goal;
@@ -123,6 +129,7 @@ function mapProfile(p: {
   weeklyHours: number | null;
   motivation: string | null;
   onboardedAt: Date | null;
+  weeklyRecapEmail: boolean;
 } | null) {
   if (!p) return null;
   return {
@@ -131,7 +138,8 @@ function mapProfile(p: {
     experienceLevel: p.experienceLevel,
     weeklyHours: p.weeklyHours,
     motivation: p.motivation,
-    onboardedAt: p.onboardedAt
+    onboardedAt: p.onboardedAt,
+    weeklyRecapEmail: p.weeklyRecapEmail
   };
 }
 
@@ -149,12 +157,53 @@ function cohortPhase(cohort: { name: string; startDate: Date; endDate: Date } | 
   };
 }
 
+// ---- Activity and streaks (Lagos days) ------------------------------------
+
+/** "2026-11-16": the Lagos calendar day of an instant. */
+export function lagosDateKey(d: Date): string {
+  return new Date(d.getTime() + LAGOS_OFFSET_MS).toISOString().slice(0, 10);
+}
+
+// What counts as "studied that day".
+const ACTIVE_EVENTS = ["LESSON_COMPLETED", "QUIZ_COMPLETED", "QUESTION_ANSWERED", "ASSIGNMENT_SUBMITTED", "AI_TUTOR_USED"] as const;
+
+/** Consecutive active Lagos days ending today; today not active yet keeps yesterday's streak alive. */
+export function dayStreak(activeDays: Set<string>, now: Date): number {
+  let cursor = now.getTime();
+  if (!activeDays.has(lagosDateKey(new Date(cursor)))) cursor -= DAY_MS;
+  let n = 0;
+  while (activeDays.has(lagosDateKey(new Date(cursor)))) {
+    n++;
+    cursor -= DAY_MS;
+  }
+  return n;
+}
+
+type Completion = { completedAt: Date; lesson: { duration: string } };
+
+export function lessonMinutesBetween(completed: Completion[], start: Date, end: Date): number {
+  return completed
+    .filter((c) => c.completedAt >= start && c.completedAt < end)
+    .reduce((sum, c) => sum + durationMinutes(c.lesson.duration), 0);
+}
+
+/** Weeks in a row (ending this week if already met, else last week) the student hit their own weekly target. */
+export function weeksOnTarget(completed: Completion[], goalMinutes: number | null, now: Date): number {
+  if (!goalMinutes) return 0;
+  const thisWeek = lagosWeekStart(now).getTime();
+  const met = (start: number) => lessonMinutesBetween(completed, new Date(start), new Date(start + 7 * DAY_MS)) >= goalMinutes;
+  let n = met(thisWeek) ? 1 : 0;
+  for (let w = 1; w <= 52 && met(thisWeek - w * 7 * DAY_MS); w++) n++;
+  return n;
+}
+
 export async function getMySpace(user: { id: string; role: string }, now: Date = new Date()) {
   const weekStart = lagosWeekStart(now);
   const isStaff = user.role === "INSTRUCTOR" || user.role === "ADMIN";
+  const activitySince = new Date(now.getTime() - 400 * DAY_MS);
 
   // The name from the database, not the session cookie (stale after a rename).
-  const [account, profile, enrollments, completed, latestGraded] = await Promise.all([
+  const [account, profile, enrollments, completed, submissions, certificates, events] = await Promise.all([
     prisma.user.findUniqueOrThrow({ where: { id: user.id }, select: { name: true } }),
     prisma.learningProfile.findUnique({ where: { userId: user.id } }),
     prisma.enrollment.findMany({
@@ -169,7 +218,8 @@ export async function getMySpace(user: { id: string; role: string }, now: Date =
             modules: {
               orderBy: { order: "asc" },
               select: { title: true, lessons: { orderBy: { order: "asc" }, select: { id: true, title: true, duration: true } } }
-            }
+            },
+            assignments: { orderBy: { order: "asc" }, select: { id: true, title: true, type: true } }
           }
         }
       }
@@ -179,9 +229,14 @@ export async function getMySpace(user: { id: string; role: string }, now: Date =
       select: { lessonId: true, completedAt: true, lesson: { select: { duration: true } } }
     }),
     prisma.submission.findMany({
-      where: { userId: user.id, status: "GRADED" },
+      where: { userId: user.id },
       orderBy: { gradedAt: "desc" },
-      select: { score: true, feedback: true, gradedBy: true, gradedAt: true, assignment: { select: { title: true, courseId: true } } }
+      select: { assignmentId: true, status: true, score: true, feedback: true, gradedBy: true, gradedAt: true, assignment: { select: { title: true, courseId: true } } }
+    }),
+    prisma.certificate.findMany({ where: { userId: user.id }, select: { courseId: true, certNumber: true, gradeTitle: true, issuedAt: true } }),
+    prisma.learningEvent.findMany({
+      where: { userId: user.id, createdAt: { gte: activitySince }, eventType: { in: [...ACTIVE_EVENTS] } },
+      select: { createdAt: true }
     })
   ]);
 
@@ -202,7 +257,8 @@ export async function getMySpace(user: { id: string; role: string }, now: Date =
     const done = lessons.filter((l) => doneIds.has(l.id)).length;
     const next = lessons.find((l) => !doneIds.has(l.id)) ?? null;
     const session = sessions.find((s) => s.courseId === e.courseId) ?? null;
-    const feedback = latestGraded.find((s) => s.assignment.courseId === e.courseId) ?? null;
+    const feedback = submissions.find((s) => s.status === "GRADED" && s.assignment.courseId === e.courseId) ?? null;
+    const cert = certificates.find((c) => c.courseId === e.courseId) ?? null;
     return {
       enrollmentId: e.id,
       courseId: e.courseId,
@@ -225,13 +281,50 @@ export async function getMySpace(user: { id: string; role: string }, now: Date =
         : null,
       latestFeedback: feedback
         ? { assignmentTitle: feedback.assignment.title, score: feedback.score, feedback: feedback.feedback, gradedBy: feedback.gradedBy, gradedAt: feedback.gradedAt }
-        : null
+        : null,
+      // The journey: modules → projects → capstone → certificate.
+      roadmap: {
+        modules: e.course.modules.map((m) => {
+          const total = m.lessons.length;
+          const completedHere = m.lessons.filter((l) => doneIds.has(l.id)).length;
+          const status = total > 0 && completedHere === total ? "DONE" : next && m.lessons.some((l) => l.id === next.id) ? "CURRENT" : "UPCOMING";
+          return { title: m.title, completed: completedHere, total, status };
+        }),
+        projects: e.course.assignments.map((a) => {
+          const sub = submissions.find((s) => s.assignmentId === a.id);
+          return {
+            id: a.id,
+            title: a.title,
+            type: a.type, // MILESTONE | CAPSTONE
+            status: sub ? sub.status : "NOT_SUBMITTED", // NOT_SUBMITTED | SUBMITTED | GRADED | RESUBMISSION_REQUESTED
+            score: sub?.status === "GRADED" ? sub.score : null,
+            href: access ? `/learn/${e.course.slug}/assignment` : null
+          };
+        }),
+        certificate: cert
+          ? { certNumber: cert.certNumber, gradeTitle: cert.gradeTitle, issuedAt: cert.issuedAt, href: `/certificate/${cert.certNumber}` }
+          : null
+      }
     };
   });
 
   const thisWeek = completed.filter((c) => c.completedAt >= weekStart);
-  const minutesStudied = thisWeek.reduce((sum, c) => sum + durationMinutes(c.lesson.duration), 0);
+  const minutesStudied = lessonMinutesBetween(completed, weekStart, new Date(weekStart.getTime() + 7 * DAY_MS));
   const goalMinutes = profile?.weeklyHours ? profile.weeklyHours * 60 : null;
+
+  const activeDays = new Set<string>([...events.map((e) => lagosDateKey(e.createdAt)), ...completed.map((c) => lagosDateKey(c.completedAt))]);
+  const todayKey = lagosDateKey(now);
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const start = new Date(weekStart.getTime() + i * DAY_MS);
+    const date = lagosDateKey(start);
+    return {
+      date,
+      active: activeDays.has(date),
+      minutes: lessonMinutesBetween(completed, start, new Date(start.getTime() + DAY_MS)),
+      isToday: date === todayKey,
+      isFuture: date > todayKey
+    };
+  });
 
   return {
     firstName: account.name.trim().split(/\s+/)[0] || account.name,
@@ -245,9 +338,66 @@ export async function getMySpace(user: { id: string; role: string }, now: Date =
       lessonsCompleted: thisWeek.length,
       minutesStudied,
       goalMinutes,
-      percentOfGoal: goalMinutes ? Math.min(100, Math.round((minutesStudied / goalMinutes) * 100)) : null
+      percentOfGoal: goalMinutes ? Math.min(100, Math.round((minutesStudied / goalMinutes) * 100)) : null,
+      days // Monday → Sunday, Lagos time
     },
-    streak: profile?.learningStreak ?? 0,
+    // Consecutive days studied (Lagos time). Kept as a number for Phase 1 UI.
+    streak: dayStreak(activeDays, now),
+    streaks: {
+      days: dayStreak(activeDays, now),
+      studiedToday: activeDays.has(todayKey),
+      weeksOnTarget: weeksOnTarget(completed, goalMinutes, now)
+    },
     communityUrl: isStaff || accessCourseIds.length ? await getCommunityUrl() : null
   };
+}
+
+// ---- AI tutor context -------------------------------------------------------
+
+const GOAL_LABELS: Record<string, string> = {
+  JOB: "get a tech job",
+  FREELANCE: "freelance / earn on their own",
+  OWN_PRODUCT: "build their own product or business",
+  UPSKILL: "grow in their current job",
+  OTHER: "learn at their own pace"
+};
+
+/**
+ * A few lines about the student for the AI tutor's prompt, so it can speak to
+ * them personally. Deliberately leaves out "why I joined" (motivation),
+ * email, phone and payment details: only what helps teaching goes to the
+ * AI provider.
+ */
+export async function tutorContextFor(userId: string, courseTrack: string | undefined): Promise<string | null> {
+  const [user, profile, enrollment] = await Promise.all([
+    prisma.user.findUnique({ where: { id: userId }, select: { name: true, role: true } }),
+    prisma.learningProfile.findUnique({ where: { userId } }),
+    courseTrack
+      ? prisma.enrollment.findFirst({
+          where: { userId, course: { OR: [{ id: courseTrack }, { slug: courseTrack }] } },
+          select: {
+            status: true, paymentStatus: true,
+            course: { select: { title: true, modules: { orderBy: { order: "asc" }, select: { title: true, lessons: { orderBy: { order: "asc" }, select: { id: true, title: true } } } } } }
+          }
+        })
+      : null
+  ]);
+  if (!user || user.role !== "STUDENT") return null;
+
+  const lines: string[] = [];
+  lines.push(`Student's first name: ${user.name.trim().split(/\s+/)[0]}. Address them by name occasionally, not in every message.`);
+  if (profile?.goalType) lines.push(`Their goal at BEMS: ${GOAL_LABELS[profile.goalType] ?? profile.goalType}${profile.learningGoal ? ` ("${profile.learningGoal}")` : ""}. Relate examples to this goal where natural.`);
+  if (profile?.experienceLevel) lines.push(`Experience level: ${profile.experienceLevel.toLowerCase()}. Pitch explanations accordingly.`);
+  if (profile?.weeklyHours) lines.push(`They study about ${profile.weeklyHours} hours a week.`);
+
+  if (enrollment && hasCourseAccess(enrollment)) {
+    const lessons = enrollment.course.modules.flatMap((m) => m.lessons.map((l) => ({ ...l, moduleTitle: m.title })));
+    const done = new Set(
+      (await prisma.userProgress.findMany({ where: { userId, isCompleted: true, lessonId: { in: lessons.map((l) => l.id) } }, select: { lessonId: true } })).map((p) => p.lessonId)
+    );
+    const next = lessons.find((l) => !done.has(l.id));
+    lines.push(`Course: ${enrollment.course.title}, ${done.size} of ${lessons.length} lessons done.`);
+    if (next) lines.push(`They are currently on: ${next.moduleTitle} → "${next.title}". Don't jump far ahead of this.`);
+  }
+  return lines.join("\n");
 }
