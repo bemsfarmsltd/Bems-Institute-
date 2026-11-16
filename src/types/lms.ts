@@ -255,11 +255,12 @@ export interface AnalyticsSummary {
 export type MySpaceGoalType = "JOB" | "FREELANCE" | "OWN_PRODUCT" | "UPSKILL" | "OTHER";
 export type MySpaceExperienceLevel = "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
 
+// Fields are null until the student answers them (partial saves are allowed).
 export interface MySpaceProfile {
-  goalType: MySpaceGoalType;
+  goalType: MySpaceGoalType | null;
   goal: string | null;
-  experienceLevel: MySpaceExperienceLevel;
-  weeklyHours: number;
+  experienceLevel: MySpaceExperienceLevel | null;
+  weeklyHours: number | null;
   motivation: string | null;
   onboardedAt: string | null;
 }
