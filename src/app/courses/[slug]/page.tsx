@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { apiFetch } from "@/lib/api-client";
 import { buildWhatsAppLink, BEMS_WHATSAPP_NUMBER } from "@/lib/whatsapp";
 import { CourseDetailTour } from "@/components/tours/CourseDetailTour";
+import { CourseRoadmap } from "@/components/CourseRoadmap";
 import {
   PlayCircle,
   Lock,
@@ -51,7 +52,8 @@ export default function CourseDetailPage({
     getAssignmentForCourse,
     getCertificate,
     user,
-    communityUrl
+    communityUrl,
+    mySpace
   } = useLMS();
 
   const [showInterestModal, setShowInterestModal] = useState(false);
@@ -422,6 +424,21 @@ export default function CourseDetailPage({
                 </div>
               </div>
             )}
+
+            {/* Personal Course Roadmap */}
+            {(() => {
+              const spaceCourse = mySpace?.courses?.find(
+                (c) => c.courseId === course.id || c.slug === course.slug
+              );
+              if (!spaceCourse?.roadmap) return null;
+              return (
+                <CourseRoadmap
+                  roadmap={spaceCourse.roadmap}
+                  courseTitle={spaceCourse.title}
+                  color={spaceCourse.color}
+                />
+              );
+            })()}
 
             {/* Reviews Section — Verified Student Feedback */}
             <div data-reveal className="bg-white rounded-3xl border border-[#F1E2F5] p-6 sm:p-8 shadow-xs w-full" data-tour="reviews">

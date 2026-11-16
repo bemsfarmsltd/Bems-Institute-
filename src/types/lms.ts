@@ -262,7 +262,35 @@ export interface MySpaceProfile {
   experienceLevel: MySpaceExperienceLevel | null;
   weeklyHours: number | null;
   motivation: string | null;
+  weeklyRecapEmail?: boolean;
   onboardedAt: string | null;
+}
+
+export interface MySpaceRoadmapModule {
+  title: string;
+  completed: number;
+  total: number;
+  status: "DONE" | "CURRENT" | "UPCOMING";
+}
+
+export interface MySpaceRoadmapProject {
+  id: string;
+  title: string;
+  type: "MILESTONE" | "CAPSTONE";
+  status: "NOT_SUBMITTED" | "SUBMITTED" | "GRADED" | "RESUBMISSION_REQUESTED";
+  score: number | null;
+  href: string | null;
+}
+
+export interface MySpaceRoadmap {
+  modules: MySpaceRoadmapModule[];
+  projects: MySpaceRoadmapProject[];
+  certificate: {
+    certNumber: string;
+    gradeTitle: string;
+    issuedAt: string;
+    href: string;
+  } | null;
 }
 
 export interface MySpaceCourse {
@@ -307,6 +335,15 @@ export interface MySpaceCourse {
     gradedBy: string | null;
     gradedAt: string | null;
   } | null;
+  roadmap?: MySpaceRoadmap;
+}
+
+export interface MySpaceWeekDay {
+  date: string;
+  active: boolean;
+  minutes: number;
+  isToday: boolean;
+  isFuture: boolean;
 }
 
 export interface MySpaceData {
@@ -321,8 +358,14 @@ export interface MySpaceData {
     minutesStudied: number;
     goalMinutes: number | null;
     percentOfGoal: number | null;
+    days?: MySpaceWeekDay[];
   };
   streak: number;
+  streaks?: {
+    days: number;
+    studiedToday: boolean;
+    weeksOnTarget: number;
+  };
   communityUrl: string | null;
 }
 
