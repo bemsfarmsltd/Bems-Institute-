@@ -2,7 +2,7 @@ import { describe, it, expect, afterAll } from "vitest";
 import request from "supertest";
 import { app } from "@/app";
 import { prisma } from "@/lib/prisma";
-import { createTestStudent, createTestAdmin, cleanupTestData } from "./helpers";
+import { createTestStudent, createTestAdmin, cleanupTestData, SessionAgent, TEST_PASSWORD } from "./helpers";
 import { lagosWeekStart, lagosGreeting, durationMinutes } from "@/lib/my-space";
 
 const liveSessionIds: string[] = [];
@@ -30,11 +30,18 @@ describe("Lagos time helpers", () => {
     expect(lagosWeekStart(new Date("2026-11-15T23:30:00Z")).toISOString()).toBe("2026-11-15T23:00:00.000Z");
     // Sunday 22:30 UTC is still Sunday in Lagos: the week began the Monday before.
     expect(lagosWeekStart(new Date("2026-11-15T22:30:00Z")).toISOString()).toBe("2026-11-08T23:00:00.000Z");
+    // The boundary itself belongs to the new week, including a month/year rollover.
+    expect(lagosWeekStart(new Date("2026-11-15T22:59:59.999Z")).toISOString()).toBe("2026-11-08T23:00:00.000Z");
+    expect(lagosWeekStart(new Date("2026-11-15T23:00:00.000Z")).toISOString()).toBe("2026-11-15T23:00:00.000Z");
   });
   it("greets by Lagos hour", () => {
     expect(lagosGreeting(new Date("2026-11-16T07:00:00Z"))).toBe("Good morning");
     expect(lagosGreeting(new Date("2026-11-16T12:00:00Z"))).toBe("Good afternoon");
     expect(lagosGreeting(new Date("2026-11-16T17:30:00Z"))).toBe("Good evening");
+    expect(lagosGreeting(new Date("2026-11-16T10:59:59.999Z"))).toBe("Good morning");
+    expect(lagosGreeting(new Date("2026-11-16T11:00:00Z"))).toBe("Good afternoon");
+    expect(lagosGreeting(new Date("2026-11-16T15:59:59.999Z"))).toBe("Good afternoon");
+    expect(lagosGreeting(new Date("2026-11-16T16:00:00Z"))).toBe("Good evening");
   });
   it("parses lesson durations", () => {
     expect(durationMinutes("15:00")).toBe(15);
@@ -62,6 +69,16 @@ describe("GET /api/lms/my-space", () => {
   it("doesn't ask staff for the welcome setup", async () => {
     const { agent } = await createTestAdmin("space-staff");
     expect((await agent.get("/api/lms/my-space")).body.onboarded).toBe(true);
+  });
+
+  it("doesn't ask instructors for the student welcome setup", async () => {
+    const { userId, email } = await createTestStudent("space-instructor");
+    await prisma.user.update({ where: { id: userId }, data: { role: "INSTRUCTOR", tokenVersion: { increment: 1 } } });
+    const instructor = new SessionAgent();
+    expect((await instructor.post("/api/auth/login", { email, password: TEST_PASSWORD })).status).toBe(200);
+    const space = (await instructor.get("/api/lms/my-space")).body;
+    expect(space.onboarded).toBe(true);
+    expect(space.courses).toEqual([]);
   });
 
   it("shows an unpaid registration without lesson or class links", async () => {
@@ -110,6 +127,7 @@ describe("PATCH /api/lms/my-space/profile", () => {
     expect((await agent.patch("/api/lms/my-space/profile", { goalType: "ASTRONAUT" })).status).toBe(400);
     expect((await agent.patch("/api/lms/my-space/profile", { weeklyHours: 0 })).status).toBe(400);
     expect((await agent.patch("/api/lms/my-space/profile", { weeklyHours: 2.5 })).status).toBe(400);
+    expect((await agent.patch("/api/lms/my-space/profile", { weeklyHours: true })).status).toBe(400);
     expect((await agent.patch("/api/lms/my-space/profile", { experienceLevel: "GURU" })).status).toBe(400);
     expect((await agent.patch("/api/lms/my-space/profile", { motivation: "x".repeat(281) })).status).toBe(400);
     expect((await agent.patch("/api/lms/my-space/profile", { goal: { $ne: 1 } })).status).toBe(400);
@@ -128,11 +146,23 @@ describe("PATCH /api/lms/my-space/profile", () => {
     expect(space.profile).toMatchObject({ goalType: "FREELANCE", experienceLevel: "INTERMEDIATE", weeklyHours: 10, goal: "Build sites for shops in Umuahia" });
   });
 
+  it("doesn't treat the schema's default BEGINNER as an answer the student gave", async () => {
+    const { agent } = await createTestStudent("space-default-experience");
+    expect((await agent.patch("/api/lms/my-space/profile", { goalType: "JOB", weeklyHours: 5 })).status).toBe(200);
+    expect((await agent.get("/api/lms/my-space")).body.onboarded).toBe(false);
+
+    // Any later partial edit currently sees the DB default and marks setup complete.
+    await agent.patch("/api/lms/my-space/profile", { motivation: "I want to build useful apps." });
+    expect((await agent.get("/api/lms/my-space")).body.onboarded).toBe(false);
+  });
+
   it("keeps each student's answers to themselves", async () => {
     const a = await createTestStudent("space-private-a");
     const b = await createTestStudent("space-private-b");
     await a.agent.patch("/api/lms/my-space/profile", { motivation: "A's private reason" });
-    expect((await b.agent.get("/api/lms/my-space")).body.profile).toBeNull();
+    expect((await b.agent.get(`/api/lms/my-space?userId=${a.userId}`)).body.profile).toBeNull();
+    await b.agent.patch("/api/lms/my-space/profile", { userId: a.userId, motivation: "B tried to edit A's answer" });
+    expect((await a.agent.get("/api/lms/my-space")).body.profile.motivation).toBe("A's private reason");
     expect(JSON.stringify((await b.agent.get("/api/lms/class-goals")).body)).not.toContain("A's private reason");
   });
 });
