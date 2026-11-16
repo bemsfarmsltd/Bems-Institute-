@@ -1663,7 +1663,8 @@ router.patch("/settings/general", async (req, res) => {
   if (bankAccountNumber && !ACCOUNT_NUMBER_PATTERN.test(bankAccountNumber)) {
     return res.status(400).json({ error: "Account number must be exactly 10 digits." });
   }
-  const whatsappCommunityUrl = typeof body.whatsappCommunityUrl === "string" ? body.whatsappCommunityUrl.trim() : undefined;
+  // WhatsApp's "share link" adds tracking (?s=cl&p=i&iam=2); keep the bare invite.
+  const whatsappCommunityUrl = typeof body.whatsappCommunityUrl === "string" ? body.whatsappCommunityUrl.trim().replace(/[?#].*$/, "") : undefined;
   if (whatsappCommunityUrl && !COMMUNITY_URL_PATTERN.test(whatsappCommunityUrl)) {
     return res.status(400).json({ error: "Paste a WhatsApp invite link like https://chat.whatsapp.com/AbC123..." });
   }

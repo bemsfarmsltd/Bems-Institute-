@@ -23,7 +23,8 @@ describe("WhatsApp community link", () => {
     expect((await student.patch("/api/admin/settings/general", { whatsappCommunityUrl: LINK })).status).toBe(403);
     const { agent: admin } = await createTestAdmin("community-admin");
     expect((await admin.patch("/api/admin/settings/general", { whatsappCommunityUrl: "https://evil.example/join" })).status).toBe(400);
-    const ok = await admin.patch("/api/admin/settings/general", { whatsappCommunityUrl: LINK });
+    // Pasted straight from WhatsApp's share sheet: the tracking part is dropped.
+    const ok = await admin.patch("/api/admin/settings/general", { whatsappCommunityUrl: `${LINK}?s=cl&p=i&iam=2` });
     expect(ok.status).toBe(200);
     expect(ok.body.general.whatsappCommunityUrl).toBe(LINK);
   });

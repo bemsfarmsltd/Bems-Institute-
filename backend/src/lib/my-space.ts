@@ -89,7 +89,9 @@ export async function saveSpaceProfile(userId: string, input: ProfileInput) {
     data.experienceLevel = input.experienceLevel as ExperienceLevel;
   }
   if (input.weeklyHours !== undefined) {
-    const hours = Number(input.weeklyHours);
+    // Numbers only (or a numeric string from a form): Number(true) is 1.
+    const raw = input.weeklyHours;
+    const hours = typeof raw === "number" ? raw : typeof raw === "string" && /^\d+$/.test(raw.trim()) ? Number(raw) : NaN;
     if (!Number.isInteger(hours) || hours < LIMITS.minHours || hours > LIMITS.maxHours) {
       throw new ProfileError(`Weekly study time must be between ${LIMITS.minHours} and ${LIMITS.maxHours} hours.`);
     }
@@ -117,7 +119,7 @@ export async function saveSpaceProfile(userId: string, input: ProfileInput) {
 function mapProfile(p: {
   goalType: string | null;
   learningGoal: string | null;
-  experienceLevel: string;
+  experienceLevel: string | null;
   weeklyHours: number | null;
   motivation: string | null;
   onboardedAt: Date | null;

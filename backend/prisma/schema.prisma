@@ -836,7 +836,9 @@ model LearningProfile {
   userId          String    @unique
   user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   learningGoal    String?
-  experienceLevel String    @default("BEGINNER")
+  // Null until the student answers it in the welcome setup (a default here
+  // made the setup look answered when it wasn't).
+  experienceLevel String?
   learningStreak  Int       @default(0)
   lastActiveAt    DateTime?
   // "My Space" welcome answers (GET/PATCH /api/lms/my-space). Private to
