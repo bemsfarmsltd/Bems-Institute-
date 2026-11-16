@@ -18,7 +18,8 @@ import type { QuizResult } from "@/types/lms";
 import type { NotificationCategory } from "@prisma/client";
 import { getBankTransferDetails } from "@/lib/site-settings";
 import { getCommunityUrl } from "@/lib/community";
-import { getMySpace, saveSpaceProfile, ProfileError } from "@/lib/my-space";
+import { getMySpace, saveSpaceProfile, ProfileError, syncBadges } from "@/lib/my-space";
+import { markBadgesSeen } from "@/lib/badges";
 
 const router = Router();
 
@@ -159,6 +160,13 @@ router.patch("/my-space/profile", async (req, res) => {
     if (err instanceof ProfileError) return res.status(400).json({ error: err.message });
     throw err;
   }
+});
+
+// The dashboard has shown (celebrated) the student's new badges.
+router.post("/my-space/badges/seen", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!session) return res.status(401).json({ error: "Not authenticated." });
+  return res.json({ seen: await markBadgesSeen(session.id) });
 });
 
 router.post("/enroll", async (req, res) => {
@@ -322,6 +330,7 @@ router.post("/progress", async (req, res) => {
     await touchLearningStreak(session.id);
   }
 
+  await syncBadges(session.id);
   const progress = await prisma.userProgress.findMany({ where: { userId: session.id, isCompleted: true }, select: { lessonId: true } });
   return res.json({ completedLessonIds: progress.map((p) => p.lessonId) });
 });
@@ -389,6 +398,7 @@ router.post("/quiz-attempts", async (req, res) => {
     attemptedAt: attempt.createdAt.toISOString()
   };
 
+  await syncBadges(session.id);
   return res.json({ result });
 });
 
@@ -451,6 +461,7 @@ router.post("/submissions", async (req, res) => {
     linkUrl: "/instructor/grading"
   });
 
+  await syncBadges(session.id);
   return res.json({ submission: mapSubmission(submission) });
 });
 
@@ -541,6 +552,7 @@ router.post("/submissions/:id/grade", async (req, res) => {
     });
   }
 
+  await syncBadges(existing.userId);
   return res.json({ submission: mapSubmission(updated), certificate });
 });
 

@@ -8,6 +8,9 @@ section.
 
 | Task | Agent | Branch | Files / areas | Started |
 |---|---|---|---|---|
+| **My Space Phase 3 API** (done, awaiting review): accent colour + banner presets; 12 milestone badges from real activity, each recorded and announced once, with an unseen flag for celebrating. API below. | Claude Code | `claude/my-space-phase3` | `backend/` (schema + migration, `lib/appearance.ts`, `lib/badges.ts`, `lib/my-space.ts`, `routes/lms.ts`) | 2026-11-17 |
+| **My Space Phase 3 UI**: "Make it yours" picker (accent + banner), apply the look on the dashboard + signed-in home, badge shelf, new-badge celebration, per the API below | Antigravity | `antigravity/my-space-phase3-ui`, off `claude/my-space-phase3` | `src/app/dashboard/page.tsx`, `src/components/Hero.tsx`, new `src/components/BadgeShelf.tsx`, `src/types/lms.ts`, `src/context/LMSContext.tsx` | 2026-11-17 |
+| **Review `claude/my-space-phase3`** + browser-check the Phase 3 UI when pushed: badge rules match real activity (no badge without the activity, none for staff), once-only awards under concurrent requests, preset validation (no arbitrary colours/URLs), privacy (badges private to the student), the accent colours readable with white text, reduced-motion respected in the celebration; add tests | Codex | `codex/my-space-phase3-review` | Read all; write `backend/src/__tests__/` + notes here | 2026-11-17 |
 | **My Space Phase 2 API** (done; Codex review found no defects; browser-tested with the UI; awaiting merge): roadmap per course (modules → projects → capstone → certificate), Lagos-day study streak + this week's 7-day strip + weeks-in-a-row on target, AI tutor told the student's name / goal / level / current lesson, weekly recap (Sunday 18:00 Lagos: in-app + email, opt-out) via GitHub Actions + `POST /api/jobs/weekly-recap` and an admin fallback. API below. | Claude Code | `claude/my-space-phase2` | `backend/` (schema + migration, `lib/my-space.ts`, `lib/weekly-recap.ts`, `routes/jobs.ts`, `routes/ai.ts`, `routes/admin.ts`), `.github/workflows/weekly-recap.yml` | 2026-11-16 |
 | **My Space Phase 2 UI** (done, browser-tested at 375px + desktop, awaiting merge): roadmap, streak strip, weekly-email toggle, admin "Send weekly recaps now" button, per the API below | Antigravity | `antigravity/my-space-phase2-ui`, off `claude/my-space-phase2` (after Phase 1b is pushed) | `src/app/dashboard/page.tsx`, `src/app/courses/[slug]/page.tsx`, `src/app/admin/page.tsx`, `src/types/lms.ts`, `src/app/welcome/page.tsx` (one line) | 2026-11-16 |
 | **Review `antigravity/my-space-copy`** (done; remaining issues listed below) | Codex | `codex/my-space-copy-review` | `TASKS.md` + review of `src/` | 2026-11-16 |
@@ -161,6 +164,22 @@ Errors are always `{ error }` with a message to show as is. `429` = too many tri
 - `GET /api/staff-invites/:token` → `{ invite: { email, role, expiresAt, accountExists } }`, or `410` (expired/used: show the message).
 - `POST /api/staff-invites/:token/accept`: new person `{ name, password }` (8+ chars); `accountExists` → just `{ password }` of that account. → `{ user }` (signed in: go to `/admin` or `/instructor` by role) or `{ ok, signInRequired: true }` (send to `/login`).
 - `AdminGate`'s "register with staff code" now returns `403` once any admin exists: replace that tab with "Staff accounts are invite-only. Ask an admin for an invite link."
+
+### My Space Phase 3 API (Claude Code → Antigravity)
+All additive on `GET /api/lms/my-space`.
+
+**Appearance** (`appearance: { accentColor, accentHex, banner }`, defaults filled in: purple / aurora):
+- Accents: `purple #9C3FB5` (default), `indigo #4F46E5`, `blue #2563EB`, `teal #0B7F75`, `green #23803F`, `amber #A85F00`, `rose #C2185B`. All have 4.5:1+ contrast with white text, so buttons/chips with white text are fine.
+- Banners: `aurora`, `circuit`, `sunrise`, `midnight`, `lagoon`, `plain`. You design them (CSS gradients/patterns, no images needed); keep the name text readable on each.
+- Save: `PATCH /api/lms/my-space/profile { accentColor: "teal", banner: "lagoon" }`; `null` resets to default; anything else → 400.
+- Apply `accentHex` (e.g. a CSS variable `--space-accent` on the dashboard and the signed-in home panel) to the header, progress ring, roadmap "done" steps, streak strip and primary buttons. Banner = the dashboard header background. Brand chrome (navbar, footer) stays BEMS purple.
+- "Make it yours" picker on the dashboard (Preferences card or a button on the banner): colour swatches with names (not colour alone, for colour-blind users) and banner thumbnails, live preview, Save.
+
+**Badges** (`badges: [{ id, title, description, icon, earned, earnedAt, isNew }]`, always all 12, staff get `[]`):
+- First Step, Module Master, Halfway There, All Lessons Done, On a Roll (3-day streak), Week Warrior (7-day), Goal Getter (weekly goal once), Consistency Champ (3 weeks in a row), Shipped It (first project), Top Marks (85+ project), Quiz Ace (100% quiz), Certified. `icon` is a lucide icon name hint.
+- Badge shelf on the dashboard: earned ones in the accent colour with the date; locked ones greyed with `description` as "how to earn it". Show "4 of 12 badges".
+- Celebration: when any badge has `isNew`, show a short, dismissible celebration (badge pops in; motion system, nothing for reduced motion beyond a fade), then call `POST /api/lms/my-space/badges/seen` so it doesn't repeat. Each badge also arrives as a notification "Badge earned: …".
+- Badges are private to the student for now (no leaderboard/public profile).
 
 ### My Space Phase 2 API (Claude Code → Antigravity)
 All additive on `GET /api/lms/my-space` (Phase 1 fields unchanged).

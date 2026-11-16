@@ -11,6 +11,8 @@
 import { prisma } from "@/lib/prisma";
 import { hasCourseAccess } from "@/lib/api-auth";
 import { getCommunityUrl } from "@/lib/community";
+import { isAccentColor, isBanner, resolveAppearance, ACCENT_COLORS, BANNERS } from "@/lib/appearance";
+import { awardBadges, listBadges, type BadgeStats } from "@/lib/badges";
 
 export const GOAL_TYPES = ["JOB", "FREELANCE", "OWN_PRODUCT", "UPSKILL", "OTHER"] as const;
 export const EXPERIENCE_LEVELS = ["BEGINNER", "INTERMEDIATE", "ADVANCED"] as const;
@@ -67,6 +69,8 @@ export interface ProfileInput {
   weeklyHours?: unknown;
   motivation?: unknown;
   weeklyRecapEmail?: unknown;
+  accentColor?: unknown;
+  banner?: unknown;
 }
 
 /** Validates and saves the welcome answers. Any field may be omitted (partial update). */
@@ -78,6 +82,8 @@ export async function saveSpaceProfile(userId: string, input: ProfileInput) {
     weeklyHours?: number;
     motivation?: string | null;
     weeklyRecapEmail?: boolean;
+    accentColor?: string | null;
+    banner?: string | null;
   } = {};
 
   if (input.goalType !== undefined) {
@@ -102,6 +108,15 @@ export async function saveSpaceProfile(userId: string, input: ProfileInput) {
   if (input.weeklyRecapEmail !== undefined) {
     if (typeof input.weeklyRecapEmail !== "boolean") throw new ProfileError("Choose on or off for the weekly email.");
     data.weeklyRecapEmail = input.weeklyRecapEmail;
+  }
+  // null resets to the default look.
+  if (input.accentColor !== undefined) {
+    if (input.accentColor !== null && !isAccentColor(input.accentColor)) throw new ProfileError(`Choose one of: ${Object.keys(ACCENT_COLORS).join(", ")}.`);
+    data.accentColor = input.accentColor as string | null;
+  }
+  if (input.banner !== undefined) {
+    if (input.banner !== null && !isBanner(input.banner)) throw new ProfileError(`Choose one of: ${BANNERS.join(", ")}.`);
+    data.banner = input.banner as string | null;
   }
   const goal = cleanText(input.goal, LIMITS.goal);
   if (goal !== undefined) data.learningGoal = goal;
@@ -130,6 +145,8 @@ function mapProfile(p: {
   motivation: string | null;
   onboardedAt: Date | null;
   weeklyRecapEmail: boolean;
+  accentColor: string | null;
+  banner: string | null;
 } | null) {
   if (!p) return null;
   return {
@@ -139,7 +156,9 @@ function mapProfile(p: {
     weeklyHours: p.weeklyHours,
     motivation: p.motivation,
     onboardedAt: p.onboardedAt,
-    weeklyRecapEmail: p.weeklyRecapEmail
+    weeklyRecapEmail: p.weeklyRecapEmail,
+    accentColor: p.accentColor,
+    banner: p.banner
   };
 }
 
@@ -197,13 +216,50 @@ export function weeksOnTarget(completed: Completion[], goalMinutes: number | nul
   return n;
 }
 
+/** Checks for newly earned badges after an activity (lesson, quiz, project, grade). Never throws. */
+export async function syncBadges(userId: string): Promise<void> {
+  try {
+    const u = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
+    if (u?.role === "STUDENT") await getMySpace({ id: userId, role: "STUDENT" });
+  } catch (err) {
+    console.error("syncBadges failed:", err);
+  }
+}
+
+/** Longest run of consecutive active Lagos days (keys "YYYY-MM-DD"). */
+export function longestDayStreak(activeDays: Set<string>): number {
+  const sorted = [...activeDays].sort();
+  let best = 0, run = 0, prev = 0;
+  for (const key of sorted) {
+    const day = Date.parse(key + "T00:00:00Z") / DAY_MS;
+    run = day === prev + 1 ? run + 1 : 1;
+    prev = day;
+    best = Math.max(best, run);
+  }
+  return best;
+}
+
+/** Weeks (Lagos) at or above the goal, ever, and the best run of consecutive ones. */
+export function goalWeekHistory(completed: Completion[], goalMinutes: number | null): { weeksOnGoal: number; bestRun: number } {
+  if (!goalMinutes) return { weeksOnGoal: 0, bestRun: 0 };
+  const byWeek = new Map<number, number>();
+  for (const c of completed) {
+    const w = lagosWeekStart(c.completedAt).getTime();
+    byWeek.set(w, (byWeek.get(w) ?? 0) + durationMinutes(c.lesson.duration));
+  }
+  const met = [...byWeek.entries()].filter(([, m]) => m >= goalMinutes).map(([w]) => w).sort((a, b) => a - b);
+  let bestRun = 0, run = 0;
+  met.forEach((w, i) => { run = i > 0 && w - met[i - 1] === 7 * DAY_MS ? run + 1 : 1; bestRun = Math.max(bestRun, run); });
+  return { weeksOnGoal: met.length, bestRun };
+}
+
 export async function getMySpace(user: { id: string; role: string }, now: Date = new Date()) {
   const weekStart = lagosWeekStart(now);
   const isStaff = user.role === "INSTRUCTOR" || user.role === "ADMIN";
   const activitySince = new Date(now.getTime() - 400 * DAY_MS);
 
   // The name from the database, not the session cookie (stale after a rename).
-  const [account, profile, enrollments, completed, submissions, certificates, events] = await Promise.all([
+  const [account, profile, enrollments, completed, submissions, certificates, events, quizBest] = await Promise.all([
     prisma.user.findUniqueOrThrow({ where: { id: user.id }, select: { name: true } }),
     prisma.learningProfile.findUnique({ where: { userId: user.id } }),
     prisma.enrollment.findMany({
@@ -237,7 +293,8 @@ export async function getMySpace(user: { id: string; role: string }, now: Date =
     prisma.learningEvent.findMany({
       where: { userId: user.id, createdAt: { gte: activitySince }, eventType: { in: [...ACTIVE_EVENTS] } },
       select: { createdAt: true }
-    })
+    }),
+    prisma.quizAttempt.aggregate({ where: { userId: user.id }, _max: { score: true } })
   ]);
 
   const doneIds = new Set(completed.map((c) => c.lessonId));
@@ -326,12 +383,36 @@ export async function getMySpace(user: { id: string; role: string }, now: Date =
     };
   });
 
+  // Badges: students only, from real activity; new ones are recorded and announced once.
+  let badges: Awaited<ReturnType<typeof listBadges>> = [];
+  if (!isStaff) {
+    const history = goalWeekHistory(completed, goalMinutes);
+    const stats: BadgeStats = {
+      lessonsCompleted: completed.length,
+      modulesCompleted: courses.reduce((n, c) => n + c.roadmap.modules.filter((m) => m.status === "DONE").length, 0),
+      bestCoursePercent: Math.max(0, ...courses.map((c) => c.progress.percent)),
+      coursesCompleted: courses.filter((c) => c.progress.total > 0 && c.progress.completed === c.progress.total).length,
+      longestDayStreak: longestDayStreak(activeDays),
+      weeksOnGoal: history.weeksOnGoal,
+      bestWeeklyRun: history.bestRun,
+      projectsSubmitted: submissions.length,
+      bestProjectScore: submissions.reduce<number | null>((best, s) => (s.status === "GRADED" && s.score !== null && (best === null || s.score > best) ? s.score : best), null),
+      bestQuizScore: quizBest._max.score,
+      certificates: certificates.length
+    };
+    await awardBadges(user.id, stats);
+    badges = await listBadges(user.id);
+  }
+
   return {
     firstName: account.name.trim().split(/\s+/)[0] || account.name,
     greeting: lagosGreeting(now),
     // Show the welcome setup until this is true. Staff aren't asked.
     onboarded: isStaff || Boolean(profile?.onboardedAt),
     profile: mapProfile(profile),
+    // The resolved look (defaults filled in) for the UI to apply.
+    appearance: resolveAppearance(profile),
+    badges,
     courses,
     week: {
       startsAt: weekStart,

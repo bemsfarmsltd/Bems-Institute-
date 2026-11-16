@@ -113,6 +113,7 @@ model User {
   learningEvents   LearningEvent[]
   conceptMasteries ConceptMastery[]
   learningProfile  LearningProfile?
+  badges           UserBadge[]
   passwordResetTokens PasswordResetToken[]
   notifications    Notification[]
   // Bring-a-friend (PRD §5.3): every user gets a permanent shareable code;
@@ -852,6 +853,9 @@ model LearningProfile {
   // lastRecapWeekStart makes sure each week's recap goes out only once.
   weeklyRecapEmail   Boolean   @default(true)
   lastRecapWeekStart DateTime?
+  // How the student's space looks (lib/appearance.ts preset ids; null = default).
+  accentColor        String?
+  banner             String?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 }
@@ -942,4 +946,18 @@ model LoginEvent {
   createdAt DateTime @default(now())
 
   @@index([userId, createdAt])
+}
+
+// Milestone badges (lib/badges.ts). One row per badge a student has earned,
+// awarded once from real activity; seenAt lets the dashboard celebrate new ones.
+model UserBadge {
+  id       String    @id @default(cuid())
+  userId   String
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badgeId  String
+  earnedAt DateTime  @default(now())
+  seenAt   DateTime?
+
+  @@unique([userId, badgeId])
+  @@index([userId])
 }
