@@ -115,7 +115,10 @@ interface LMSContextType {
   refreshMySpace: () => Promise<MySpaceData | null>;
   updateMySpaceProfile: (
     payload: Partial<
-      Pick<MySpaceProfile, "goalType" | "goal" | "experienceLevel" | "weeklyHours" | "motivation">
+      Pick<
+        MySpaceProfile,
+        "goalType" | "goal" | "experienceLevel" | "weeklyHours" | "motivation" | "weeklyRecapEmail"
+      >
     >
   ) => Promise<{ ok: boolean; error?: string; profile?: MySpaceProfile }>;
   enrollInCourse: (courseId: string, options?: EnrollOptions) => Promise<void>;
@@ -330,7 +333,10 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
   const updateMySpaceProfile = useCallback(
     async (
       payload: Partial<
-        Pick<MySpaceProfile, "goalType" | "goal" | "experienceLevel" | "weeklyHours" | "motivation">
+        Pick<
+          MySpaceProfile,
+          "goalType" | "goal" | "experienceLevel" | "weeklyHours" | "motivation" | "weeklyRecapEmail"
+        >
       >
     ): Promise<{ ok: boolean; error?: string; profile?: MySpaceProfile }> => {
       try {

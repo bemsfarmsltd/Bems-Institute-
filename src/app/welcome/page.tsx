@@ -168,7 +168,7 @@ export default function WelcomeSetupPage() {
                     What&apos;s your main goal at BEMS?
                   </h1>
                   <p className="text-xs sm:text-sm text-[#645F80] mt-1">
-                    Only you see this — it helps us tailor your space.
+                    Only you (and your AI tutor) see this — it helps us tailor your space.
                   </p>
                 </div>
 

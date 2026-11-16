@@ -486,6 +486,11 @@ function AdminDashboardContent() {
     type: "success" | "error";
     text: string;
   } | null>(null);
+  const [sendingWeeklyRecaps, setSendingWeeklyRecaps] = useState(false);
+  const [weeklyRecapNotice, setWeeklyRecapNotice] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
   const [integrationsStatus, setIntegrationsStatus] = useState<{
     paystack: { secretKeySet: boolean; publicKeySet: boolean; mode: "live" | "test" | null };
     email: { configured: boolean; usingTestSender: boolean };
@@ -1515,6 +1520,37 @@ function AdminDashboardContent() {
       });
     } finally {
       setSendingPendingCommunity(false);
+    }
+  };
+
+  const handleSendWeeklyRecaps = async () => {
+    setWeeklyRecapNotice(null);
+    setSendingWeeklyRecaps(true);
+    try {
+      const res = await apiFetch("/api/admin/recaps/send", {
+        method: "POST"
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setWeeklyRecapNotice({
+          type: "error",
+          text: data?.error || "Could not send weekly recaps."
+        });
+        return;
+      }
+      const sent = typeof data?.sent === "number" ? data.sent : 0;
+      const emailed = typeof data?.emailed === "number" ? data.emailed : 0;
+      setWeeklyRecapNotice({
+        type: "success",
+        text: `Sent to ${sent} ${sent === 1 ? "student" : "students"}, ${emailed} by email.`
+      });
+    } catch {
+      setWeeklyRecapNotice({
+        type: "error",
+        text: "Network error while sending weekly recaps."
+      });
+    } finally {
+      setSendingWeeklyRecaps(false);
     }
   };
 
@@ -4935,6 +4971,34 @@ function AdminDashboardContent() {
                                   {communitySendNotice.text}
                                 </span>
                               )}
+                            </div>
+
+                            {/* Weekly Recaps Fallback */}
+                            <div className="pt-4 border-t border-slate-100 space-y-2">
+                              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                                <button
+                                  type="button"
+                                  disabled={sendingWeeklyRecaps}
+                                  onClick={() => void handleSendWeeklyRecaps()}
+                                  className="m-press self-start inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-purple-200 bg-purple-50 hover:bg-purple-100/70 text-[#AE54C6] text-[13px] font-bold transition-colors cursor-pointer disabled:opacity-60"
+                                >
+                                  {sendingWeeklyRecaps ? "Sending…" : "Send weekly recaps now"}
+                                </button>
+                                {weeklyRecapNotice && (
+                                  <span
+                                    className={`text-[12.5px] font-semibold ${
+                                      weeklyRecapNotice.type === "error"
+                                        ? "text-rose-600"
+                                        : "text-emerald-700"
+                                    }`}
+                                  >
+                                    {weeklyRecapNotice.text}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[12px] text-[#747579]">
+                                Sent automatically every Sunday at 6 pm. Each student gets each week&apos;s recap once.
+                              </p>
                             </div>
                           </div>
 

@@ -17,6 +17,8 @@ import { getCourseVisual } from "@/lib/course-visuals";
 import { buildWhatsAppLink, BEMS_WHATSAPP_NUMBER } from "@/lib/whatsapp";
 import { UserAvatar } from "@/components/UserAvatar";
 import { CountUp } from "@/components/CountUp";
+import { CourseRoadmap } from "@/components/CourseRoadmap";
+import type { MySpaceExperienceLevel, MySpaceGoalType } from "@/types/lms";
 import type { LeaderboardStudent } from "@/types/advanced";
 import {
   Award,
@@ -93,6 +95,7 @@ function StudentDashboardContent() {
     userEnrollments,
     communityUrl,
     mySpace,
+    updateMySpaceProfile,
     getCourseProgress,
     getQuizForCourse,
     getAssignmentForCourse,
@@ -204,6 +207,57 @@ function StudentDashboardContent() {
   }, [user?.role, mySpace, router]);
 
   const primarySpaceCourse = mySpace?.courses?.[0] ?? null;
+  const [prefGoalType, setPrefGoalType] = useState<MySpaceGoalType>("JOB");
+  const [prefGoal, setPrefGoal] = useState("");
+  const [prefExpLevel, setPrefExpLevel] = useState<MySpaceExperienceLevel>("BEGINNER");
+  const [prefWeeklyHours, setPrefWeeklyHours] = useState<number>(6);
+  const [prefMotivation, setPrefMotivation] = useState("");
+  const [prefWeeklyRecap, setPrefWeeklyRecap] = useState<boolean>(true);
+  const [savingPrefs, setSavingPrefs] = useState(false);
+  const [prefsMsg, setPrefsMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+
+  useEffect(() => {
+    if (!mySpace?.profile) return;
+    if (mySpace.profile.goalType) setPrefGoalType(mySpace.profile.goalType);
+    setPrefGoal(mySpace.profile.goal || "");
+    if (mySpace.profile.experienceLevel) setPrefExpLevel(mySpace.profile.experienceLevel);
+    if (typeof mySpace.profile.weeklyHours === "number") {
+      setPrefWeeklyHours(mySpace.profile.weeklyHours);
+    }
+    setPrefMotivation(mySpace.profile.motivation || "");
+    setPrefWeeklyRecap(mySpace.profile.weeklyRecapEmail ?? true);
+  }, [mySpace?.profile]);
+
+  const handleToggleWeeklyRecap = async () => {
+    const next = !prefWeeklyRecap;
+    setPrefWeeklyRecap(next);
+    setPrefsMsg(null);
+    const res = await updateMySpaceProfile({ weeklyRecapEmail: next });
+    if (!res.ok) {
+      setPrefWeeklyRecap(!next);
+      setPrefsMsg({ type: "err", text: res.error || "Could not update weekly email setting." });
+    }
+  };
+
+  const handleSavePreferences = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingPrefs(true);
+    setPrefsMsg(null);
+    const res = await updateMySpaceProfile({
+      goalType: prefGoalType,
+      goal: prefGoal.trim() || undefined,
+      experienceLevel: prefExpLevel,
+      weeklyHours: prefWeeklyHours,
+      motivation: prefMotivation.trim() || undefined,
+      weeklyRecapEmail: prefWeeklyRecap
+    });
+    setSavingPrefs(false);
+    if (!res.ok) {
+      setPrefsMsg({ type: "err", text: res.error || "Could not save preferences." });
+      return;
+    }
+    setPrefsMsg({ type: "ok", text: "Preferences saved." });
+  };
   const cohortCountdownText = useMemo(() => {
     const cohort = primarySpaceCourse?.cohort;
     if (!cohort) return null;
@@ -556,11 +610,30 @@ function StudentDashboardContent() {
                       <span className="px-2.5 py-1 rounded-full bg-[#F7EDF9] text-[#AE54C6] text-[11px] font-extrabold uppercase tracking-wider">
                         Continue where you left off
                       </span>
-                      {mySpace.streak > 0 && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-[11px] font-extrabold">
-                          <Flame className="w-3.5 h-3.5" /> {mySpace.streak} day streak
-                        </span>
-                      )}
+                      {(() => {
+                        const days = mySpace.streaks?.days ?? mySpace.streak;
+                        const studiedToday = mySpace.streaks?.studiedToday ?? true;
+                        const weeksOnTarget = mySpace.streaks?.weeksOnTarget ?? 0;
+                        return (
+                          <>
+                            {days > 0 && (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 text-[11px] font-extrabold">
+                                <Flame className="w-3.5 h-3.5" /> {days}-day streak
+                              </span>
+                            )}
+                            {!studiedToday && days > 0 && (
+                              <span className="text-[11px] font-bold text-amber-700">
+                                Study today to keep your {days}-day streak
+                              </span>
+                            )}
+                            {weeksOnTarget > 1 && (
+                              <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-extrabold">
+                                {weeksOnTarget} weeks in a row on target
+                              </span>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
 
                     {!primarySpaceCourse ? (
@@ -632,62 +705,87 @@ function StudentDashboardContent() {
                     )}
                   </div>
 
-                  {/* Weekly Goal Ring */}
-                  <div className="flex items-center gap-4 bg-[#FAF8FF] border border-[#F1E2F5] rounded-2xl p-4 shrink-0">
-                    {(() => {
-                      const pct = Math.min(100, Math.max(0, mySpace.week.percentOfGoal ?? 0));
-                      const radius = 28;
-                      const circumference = 2 * Math.PI * radius;
-                      const dashOffset = circumference - (pct / 100) * circumference;
-                      return (
-                        <div className="relative w-16 h-16 shrink-0 flex items-center justify-center">
-                          <svg className="w-16 h-16 -rotate-90" viewBox="0 0 68 68">
-                            <circle
-                              cx="34"
-                              cy="34"
-                              r={radius}
-                              fill="none"
-                              stroke="#E5C8ED"
-                              strokeWidth="6"
-                            />
-                            <circle
-                              cx="34"
-                              cy="34"
-                              r={radius}
-                              fill="none"
-                              stroke="#AE54C6"
-                              strokeWidth="6"
-                              strokeLinecap="round"
-                              strokeDasharray={circumference}
-                              strokeDashoffset={dashOffset}
-                            />
-                          </svg>
-                          <span className="absolute text-xs font-black text-[#303654]">
-                            {mySpace.week.goalMinutes ? `${pct}%` : `${mySpace.week.lessonsCompleted}`}
-                          </span>
-                        </div>
-                      );
-                    })()}
-                    <div className="min-w-0">
-                      <div className="text-xs font-extrabold text-[#303654]">This week</div>
-                      {mySpace.week.goalMinutes ? (
-                        <p className="text-xs text-[#645F80] font-semibold mt-0.5">
-                          {mySpace.week.minutesStudied} of {mySpace.week.goalMinutes} min this week
-                        </p>
-                      ) : (
-                        <div className="mt-0.5 space-y-1">
-                          <p className="text-xs text-[#645F80] font-semibold">
-                            {mySpace.week.minutesStudied} min this week
+                  {/* Weekly Goal Ring + M-S Streak Strip */}
+                  <div className="bg-[#FAF8FF] border border-[#F1E2F5] rounded-2xl p-4 shrink-0 space-y-3">
+                    <div className="flex items-center gap-4">
+                      {(() => {
+                        const pct = Math.min(100, Math.max(0, mySpace.week.percentOfGoal ?? 0));
+                        const radius = 28;
+                        const circumference = 2 * Math.PI * radius;
+                        const dashOffset = circumference - (pct / 100) * circumference;
+                        return (
+                          <div className="relative w-16 h-16 shrink-0 flex items-center justify-center">
+                            <svg className="w-16 h-16 -rotate-90" viewBox="0 0 68 68">
+                              <circle
+                                cx="34"
+                                cy="34"
+                                r={radius}
+                                fill="none"
+                                stroke="#E5C8ED"
+                                strokeWidth="6"
+                              />
+                              <circle
+                                cx="34"
+                                cy="34"
+                                r={radius}
+                                fill="none"
+                                stroke="#AE54C6"
+                                strokeWidth="6"
+                                strokeLinecap="round"
+                                strokeDasharray={circumference}
+                                strokeDashoffset={dashOffset}
+                              />
+                            </svg>
+                            <span className="absolute text-xs font-black text-[#303654]">
+                              {mySpace.week.goalMinutes ? `${pct}%` : `${mySpace.week.lessonsCompleted}`}
+                            </span>
+                          </div>
+                        );
+                      })()}
+                      <div className="min-w-0">
+                        <div className="text-xs font-extrabold text-[#303654]">This week</div>
+                        {mySpace.week.goalMinutes ? (
+                          <p className="text-xs text-[#645F80] font-semibold mt-0.5">
+                            {mySpace.week.minutesStudied} of {mySpace.week.goalMinutes} min this week
                           </p>
-                          <Link
-                            href="/welcome"
-                            className="text-[11px] font-bold text-[#AE54C6] hover:underline inline-block"
-                          >
-                            Set weekly goal
-                          </Link>
-                        </div>
-                      )}
+                        ) : (
+                          <div className="mt-0.5 space-y-1">
+                            <p className="text-xs text-[#645F80] font-semibold">
+                              {mySpace.week.minutesStudied} min this week
+                            </p>
+                            <Link
+                              href="/welcome"
+                              className="text-[11px] font-bold text-[#AE54C6] hover:underline inline-block"
+                            >
+                              Set weekly goal
+                            </Link>
+                          </div>
+                        )}
+                      </div>
                     </div>
+
+                    {mySpace.week.days && mySpace.week.days.length === 7 && (
+                      <div className="flex items-center justify-between gap-1.5 pt-1 border-t border-[#F1E2F5]">
+                        {["M", "T", "W", "T", "F", "S", "S"].map((label, idx) => {
+                          const day = mySpace.week.days![idx];
+                          return (
+                            <div
+                              key={day.date || idx}
+                              title={`${day.date}: ${day.minutes} min`}
+                              className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-extrabold transition-colors ${
+                                day.active
+                                  ? "bg-[#AE54C6] text-white"
+                                  : day.isFuture
+                                  ? "bg-slate-50 border border-slate-200/60 text-slate-300"
+                                  : "bg-white border border-slate-300 text-[#645F80]"
+                              } ${day.isToday ? "ring-2 ring-[#AE54C6] ring-offset-1" : ""}`}
+                            >
+                              {label}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -764,6 +862,15 @@ function StudentDashboardContent() {
                       )}
                     </div>
                   </div>
+                )}
+
+                {/* Vertical Learning Roadmap */}
+                {primarySpaceCourse?.roadmap && (
+                  <CourseRoadmap
+                    roadmap={primarySpaceCourse.roadmap}
+                    courseTitle={primarySpaceCourse.title}
+                    color={primarySpaceCourse.color}
+                  />
                 )}
               </div>
             )}
@@ -1322,6 +1429,138 @@ function StudentDashboardContent() {
                   </table>
                 </div>
               </div>
+            )}
+
+            {/* My Space Preferences Card */}
+            {mySpace && user?.role === "STUDENT" && (
+              <form
+                onSubmit={handleSavePreferences}
+                className="m-lift bg-white rounded-2xl border border-[#F1E2F5] p-6 sm:p-8 shadow-xs space-y-5"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#F7EDF9]">
+                  <div>
+                    <h2 className="text-base font-extrabold text-[#303654]">My Space Preferences</h2>
+                    <p className="text-xs text-[#645F80] mt-0.5">
+                      Only you (and your AI tutor) see your goals and weekly pace.
+                    </p>
+                  </div>
+                  <label className="inline-flex items-center gap-2.5 cursor-pointer select-none">
+                    <span className="text-xs font-bold text-[#303654]">Weekly progress email</span>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={prefWeeklyRecap}
+                      onClick={() => void handleToggleWeeklyRecap()}
+                      className={`m-press relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
+                        prefWeeklyRecap ? "bg-[#AE54C6]" : "bg-slate-300"
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                          prefWeeklyRecap ? "translate-x-6" : "translate-x-1"
+                        }`}
+                      />
+                    </button>
+                  </label>
+                </div>
+
+                {prefsMsg && (
+                  <div
+                    className={`p-3 rounded-xl text-xs font-semibold ${
+                      prefsMsg.type === "ok"
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                        : "bg-rose-50 text-rose-700 border border-rose-200"
+                    }`}
+                  >
+                    {prefsMsg.text}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[#645F80] mb-1.5">
+                      Main Goal
+                    </label>
+                    <select
+                      value={prefGoalType}
+                      onChange={(e) => setPrefGoalType(e.target.value as MySpaceGoalType)}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#F1E2F5] bg-white text-sm text-[#303654]"
+                    >
+                      <option value="JOB">Get a tech job</option>
+                      <option value="FREELANCE">Freelance / earn on my own</option>
+                      <option value="OWN_PRODUCT">Build my own product or business</option>
+                      <option value="UPSKILL">Grow in my current job</option>
+                      <option value="OTHER">Something else</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#645F80] mb-1.5">
+                      Experience Level
+                    </label>
+                    <select
+                      value={prefExpLevel}
+                      onChange={(e) => setPrefExpLevel(e.target.value as MySpaceExperienceLevel)}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#F1E2F5] bg-white text-sm text-[#303654]"
+                    >
+                      <option value="BEGINNER">Beginner</option>
+                      <option value="INTERMEDIATE">Intermediate</option>
+                      <option value="ADVANCED">Advanced</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#645F80] mb-1.5">
+                      Weekly Hours (1–60)
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={60}
+                      value={prefWeeklyHours}
+                      onChange={(e) => {
+                        const v = Number(e.target.value);
+                        if (!Number.isNaN(v)) setPrefWeeklyHours(v);
+                      }}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#F1E2F5] bg-white text-sm text-[#303654]"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[#645F80] mb-1.5">
+                      Goal in your own words
+                    </label>
+                    <input
+                      type="text"
+                      maxLength={160}
+                      value={prefGoal}
+                      onChange={(e) => setPrefGoal(e.target.value)}
+                      placeholder="e.g. Build websites for shops in Umuahia"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#F1E2F5] bg-white text-sm text-[#303654]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#645F80] mb-1.5">
+                      Why you joined BEMS
+                    </label>
+                    <input
+                      type="text"
+                      maxLength={280}
+                      value={prefMotivation}
+                      onChange={(e) => setPrefMotivation(e.target.value)}
+                      placeholder="Your personal reminder"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-[#F1E2F5] bg-white text-sm text-[#303654]"
+                    />
+                  </div>
+                </div>
+
+                <Button type="submit" variant="purple" size="sm" disabled={savingPrefs}>
+                  {savingPrefs ? "Saving…" : "Save Preferences"}
+                </Button>
+              </form>
             )}
 
             {/* Account Settings */}
