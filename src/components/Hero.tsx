@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useLMS } from "@/context/LMSContext";
 import { CountUp } from "@/components/CountUp";
+import { getAccentHex, getBannerConfig } from "@/lib/my-space-appearance";
 import {
   CheckCircle2,
   Play,
@@ -28,14 +29,25 @@ export function Hero() {
 
   if (user?.role === "STUDENT" && mySpace) {
     const primaryCourse = mySpace.courses[0] ?? null;
+    const accentHex =
+      mySpace.appearance?.accentHex || getAccentHex(mySpace.appearance?.accentColor);
+    const bannerConfig = getBannerConfig(mySpace.appearance?.banner);
     return (
-      <section className="relative overflow-hidden bg-gradient-to-b from-[#FAF8FF] to-white pt-8 pb-12 md:pt-12 md:pb-16">
+      <section
+        className="relative overflow-hidden bg-gradient-to-b from-[#FAF8FF] to-white pt-8 pb-12 md:pt-12 md:pb-16"
+        style={{ "--space-accent": accentHex } as React.CSSProperties}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-          <div className="m-lift bg-white rounded-3xl border border-[#F1E2F5] p-6 sm:p-8 shadow-sm">
+          <div className="m-lift bg-white rounded-3xl border border-[#F1E2F5] overflow-hidden shadow-sm">
+            <div className="h-3 sm:h-4 w-full" style={bannerConfig.style} />
+            <div className="p-6 sm:p-8">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
               <div className="space-y-2.5 max-w-2xl">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="px-3 py-1 rounded-full bg-[#F7EDF9] text-[#AE54C6] text-xs font-extrabold">
+                  <span
+                    className="px-3 py-1 rounded-full text-white text-xs font-extrabold"
+                    style={{ backgroundColor: accentHex }}
+                  >
                     {mySpace.greeting}
                   </span>
                   {mySpace.streak > 0 && (
@@ -50,14 +62,14 @@ export function Hero() {
                 {mySpace.profile?.goal && (
                   <p className="text-sm sm:text-base text-[#475569] font-medium">
                     You&apos;re here to:{" "}
-                    <strong className="text-[#AE54C6]">{mySpace.profile.goal}</strong>
+                    <strong style={{ color: accentHex }}>{mySpace.profile.goal}</strong>
                   </p>
                 )}
                 {primaryCourse && (
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm text-[#645F80] font-semibold pt-1">
                     <span className="text-[#1D2026] font-bold">{primaryCourse.title}</span>
                     <span>Your tutor: {primaryCourse.tutor}</span>
-                    <span className="inline-flex items-center gap-1 text-[#AE54C6]">
+                    <span className="inline-flex items-center gap-1 font-bold" style={{ color: accentHex }}>
                       {primaryCourse.deliveryMode === "VIRTUAL_ZOOM" ? (
                         <>
                           <Video className="w-3.5 h-3.5" /> Virtual, live online
@@ -75,7 +87,8 @@ export function Hero() {
               <div className="flex flex-wrap gap-3 shrink-0">
                 <Link
                   href="/dashboard"
-                  className="m-press inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#AE54C6] hover:bg-[#9B42B3] text-white text-sm font-bold shadow-sm transition-colors"
+                  className="m-press inline-flex items-center gap-2 px-5 py-3 rounded-xl text-white text-sm font-bold shadow-sm hover:opacity-95 transition-opacity"
+                  style={{ backgroundColor: accentHex }}
                 >
                   Open My Dashboard <ArrowRight className="w-4 h-4" />
                 </Link>
@@ -94,7 +107,10 @@ export function Hero() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 pt-6 border-t border-[#F7EDF9]">
                 <div className="m-lift rounded-2xl bg-[#FAF8FF] border border-[#F1E2F5] p-4 sm:p-5 flex flex-col justify-between gap-3">
                   <div>
-                    <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#AE54C6]">
+                    <span
+                      className="text-[11px] font-extrabold uppercase tracking-wider"
+                      style={{ color: accentHex }}
+                    >
                       Continue Lesson
                     </span>
                     {!primaryCourse.hasAccess ? (
@@ -120,7 +136,8 @@ export function Hero() {
                   {primaryCourse.hasAccess && primaryCourse.nextLesson && (
                     <Link
                       href={primaryCourse.nextLesson.href}
-                      className="m-press self-start inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#303654] text-white text-xs font-bold hover:opacity-95"
+                      className="m-press self-start inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-white text-xs font-bold hover:opacity-95"
+                      style={{ backgroundColor: accentHex }}
                     >
                       <Play className="w-3.5 h-3.5 fill-current" /> Resume Lesson
                     </Link>
@@ -160,6 +177,7 @@ export function Hero() {
                 </div>
               </div>
             )}
+            </div>
           </div>
         </div>
       </section>

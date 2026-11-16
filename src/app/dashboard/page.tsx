@@ -18,7 +18,19 @@ import { buildWhatsAppLink, BEMS_WHATSAPP_NUMBER } from "@/lib/whatsapp";
 import { UserAvatar } from "@/components/UserAvatar";
 import { CountUp } from "@/components/CountUp";
 import { CourseRoadmap } from "@/components/CourseRoadmap";
-import type { MySpaceExperienceLevel, MySpaceGoalType } from "@/types/lms";
+import { BadgeShelf } from "@/components/BadgeShelf";
+import {
+  MY_SPACE_ACCENTS,
+  MY_SPACE_BANNERS,
+  getAccentHex,
+  getBannerConfig
+} from "@/lib/my-space-appearance";
+import type {
+  MySpaceAccentColor,
+  MySpaceBanner,
+  MySpaceExperienceLevel,
+  MySpaceGoalType
+} from "@/types/lms";
 import type { LeaderboardStudent } from "@/types/advanced";
 import {
   Award,
@@ -47,7 +59,8 @@ import {
   PlayCircle,
   Calendar,
   MapPin,
-  Video
+  Video,
+  Palette
 } from "lucide-react";
 
 type NotifyCategory = "CLASS" | "GRADING" | "PAYMENT" | "GAMIFICATION" | "ATTENDANCE";
@@ -96,6 +109,7 @@ function StudentDashboardContent() {
     userEnrollments,
     communityUrl,
     mySpace,
+    markBadgesSeen,
     updateMySpaceProfile,
     getCourseProgress,
     getQuizForCourse,
@@ -216,6 +230,47 @@ function StudentDashboardContent() {
   const [prefWeeklyRecap, setPrefWeeklyRecap] = useState<boolean>(true);
   const [savingPrefs, setSavingPrefs] = useState(false);
   const [prefsMsg, setPrefsMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const [showAppearancePicker, setShowAppearancePicker] = useState(false);
+  const [draftAccent, setDraftAccent] = useState<MySpaceAccentColor>("purple");
+  const [draftBanner, setDraftBanner] = useState<MySpaceBanner>("aurora");
+  const [savingAppearance, setSavingAppearance] = useState(false);
+  const [appearanceMsg, setAppearanceMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+
+  useEffect(() => {
+    if (!mySpace?.appearance) return;
+    setDraftAccent(mySpace.appearance.accentColor);
+    setDraftBanner(mySpace.appearance.banner);
+  }, [mySpace?.appearance]);
+
+  const activeAccentColor: MySpaceAccentColor = showAppearancePicker
+    ? draftAccent
+    : mySpace?.appearance?.accentColor || "purple";
+  const activeBanner: MySpaceBanner = showAppearancePicker
+    ? draftBanner
+    : mySpace?.appearance?.banner || "aurora";
+  const activeAccentHex = showAppearancePicker
+    ? getAccentHex(draftAccent)
+    : mySpace?.appearance?.accentHex || getAccentHex(activeAccentColor);
+
+  const handleSaveAppearance = async (reset = false) => {
+    setSavingAppearance(true);
+    setAppearanceMsg(null);
+    const res = await updateMySpaceProfile(
+      reset
+        ? { accentColor: null, banner: null }
+        : { accentColor: draftAccent, banner: draftBanner }
+    );
+    setSavingAppearance(false);
+    if (!res.ok) {
+      setAppearanceMsg({ type: "err", text: res.error || "Could not save your look." });
+      return;
+    }
+    if (reset) {
+      setDraftAccent("purple");
+      setDraftBanner("aurora");
+    }
+    setAppearanceMsg({ type: "ok", text: reset ? "Reset to default look." : "Look saved!" });
+  };
 
   useEffect(() => {
     if (!mySpace?.profile) return;
@@ -439,20 +494,33 @@ function StudentDashboardContent() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAF8FF]">
+    <div
+      className="min-h-screen flex flex-col bg-[#FAF8FF]"
+      style={{ "--space-accent": activeAccentHex } as React.CSSProperties}
+    >
       <DashboardTour />
       <Navbar />
 
       {/* Profile Banner */}
-      <div className="relative bg-gradient-to-r from-[#303654] via-[#3E4569] to-[#303654] h-44 overflow-hidden">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 opacity-20"
-          style={{
-            backgroundImage: "radial-gradient(#ffffff 1.5px, transparent 1.5px)",
-            backgroundSize: "18px 18px"
-          }}
-        />
+      <div
+        className="relative h-44 overflow-hidden transition-all duration-300"
+        style={getBannerConfig(activeBanner).style}
+      >
+        {user?.role === "STUDENT" && (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 flex justify-end">
+            <button
+              type="button"
+              onClick={() => {
+                setAppearanceMsg(null);
+                setShowAppearancePicker((prev) => !prev);
+              }}
+              className="m-press inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-black/25 hover:bg-black/35 backdrop-blur-sm border border-white/25 text-white text-xs font-bold cursor-pointer transition-colors"
+            >
+              <Palette className="w-3.5 h-3.5" />
+              {showAppearancePicker ? "Close picker" : "Make it yours"}
+            </button>
+          </div>
+        )}
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-1 w-full">
@@ -492,7 +560,10 @@ function StudentDashboardContent() {
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs sm:text-sm text-[#645F80] font-semibold">
                   <span className="text-[#303654] font-bold">{primarySpaceCourse.title}</span>
                   <span>Your tutor: {primarySpaceCourse.tutor}</span>
-                  <span className="inline-flex items-center gap-1 text-[#AE54C6]">
+                  <span
+                    className="inline-flex items-center gap-1 font-bold"
+                    style={{ color: activeAccentHex }}
+                  >
                     {primarySpaceCourse.deliveryMode === "VIRTUAL_ZOOM" ? (
                       <>
                         <Video className="w-3.5 h-3.5" /> Virtual, live online
@@ -504,7 +575,10 @@ function StudentDashboardContent() {
                     )}
                   </span>
                   {cohortCountdownText && (
-                    <span className="px-2.5 py-0.5 rounded-full bg-[#F7EDF9] text-[#AE54C6] text-[11px] font-bold">
+                    <span
+                      className="px-2.5 py-0.5 rounded-full text-[11px] font-bold text-white"
+                      style={{ backgroundColor: activeAccentHex }}
+                    >
                       {cohortCountdownText}
                     </span>
                   )}
@@ -520,7 +594,9 @@ function StudentDashboardContent() {
               {mySpace?.profile?.goal && (
                 <p className="text-xs sm:text-sm text-[#303654] font-medium">
                   You&apos;re here to:{" "}
-                  <span className="font-bold text-[#AE54C6]">{mySpace.profile.goal}</span>
+                  <span className="font-bold" style={{ color: activeAccentHex }}>
+                    {mySpace.profile.goal}
+                  </span>
                 </p>
               )}
             </div>
@@ -532,6 +608,130 @@ function StudentDashboardContent() {
             </Button>
           </a>
         </div>
+
+        {/* Make It Yours Picker */}
+        {showAppearancePicker && user?.role === "STUDENT" && (
+          <div className="mb-8 bg-white rounded-2xl border border-[#F1E2F5] p-5 sm:p-6 shadow-sm space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#F7EDF9]">
+              <div>
+                <h2 className="text-base sm:text-lg font-black text-[#303654]">
+                  Make it yours
+                </h2>
+                <p className="text-xs text-[#645F80]">
+                  Pick your accent colour and banner — changes preview live above and on your home page.
+                </p>
+              </div>
+              {appearanceMsg && (
+                <span
+                  className={`text-xs font-bold ${
+                    appearanceMsg.type === "err" ? "text-rose-600" : "text-emerald-700"
+                  }`}
+                >
+                  {appearanceMsg.text}
+                </span>
+              )}
+            </div>
+
+            {/* Colour Swatches (with names) */}
+            <div className="space-y-2">
+              <div className="text-xs font-extrabold text-[#303654]">Accent Colour</div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
+                {MY_SPACE_ACCENTS.map((swatch) => {
+                  const selected = draftAccent === swatch.id;
+                  return (
+                    <button
+                      key={swatch.id}
+                      type="button"
+                      onClick={() => setDraftAccent(swatch.id)}
+                      className={`m-press flex items-center gap-2 px-3 py-2 rounded-xl border text-left text-xs font-bold cursor-pointer transition-all ${
+                        selected
+                          ? "bg-[#FAF8FF] text-[#303654] shadow-xs"
+                          : "border-slate-200 bg-white text-[#475569] hover:border-slate-300"
+                      }`}
+                      style={selected ? { borderColor: swatch.hex, boxShadow: `0 0 0 1px ${swatch.hex}` } : undefined}
+                    >
+                      <span
+                        className="w-4 h-4 rounded-full shrink-0 border border-black/10"
+                        style={{ backgroundColor: swatch.hex }}
+                      />
+                      <span className="truncate">{swatch.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Banner Thumbnails */}
+            <div className="space-y-2">
+              <div className="text-xs font-extrabold text-[#303654]">Header Banner</div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                {MY_SPACE_BANNERS.map((b) => {
+                  const selected = draftBanner === b.id;
+                  return (
+                    <button
+                      key={b.id}
+                      type="button"
+                      onClick={() => setDraftBanner(b.id)}
+                      className={`m-press rounded-xl border p-1.5 text-left cursor-pointer transition-all ${
+                        selected ? "bg-[#FAF8FF]" : "border-slate-200 bg-white hover:border-slate-300"
+                      }`}
+                      style={selected ? { borderColor: activeAccentHex, boxShadow: `0 0 0 1px ${activeAccentHex}` } : undefined}
+                    >
+                      <div className="h-12 w-full rounded-lg mb-1.5" style={b.style} />
+                      <div className="text-[11px] font-bold text-[#303654] px-1 truncate">
+                        {b.name}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Live Mini Preview */}
+            <div className="rounded-xl border border-slate-200 overflow-hidden">
+              <div className="h-10 px-4 flex items-center justify-between text-white text-xs font-bold" style={getBannerConfig(draftBanner).style}>
+                <span>Live preview</span>
+                <span
+                  className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold text-white"
+                  style={{ backgroundColor: activeAccentHex }}
+                >
+                  {MY_SPACE_ACCENTS.find((a) => a.id === draftAccent)?.name}
+                </span>
+              </div>
+              <div className="p-3 bg-[#FAF8FF] flex flex-wrap items-center justify-between gap-2 text-xs">
+                <span className="font-bold text-[#303654]">
+                  {mySpace ? `${mySpace.greeting}, ${mySpace.firstName}` : "Your Space"}
+                </span>
+                <span
+                  className="px-3 py-1 rounded-lg text-white font-bold text-[11px]"
+                  style={{ backgroundColor: activeAccentHex }}
+                >
+                  Resume Lesson
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+              <button
+                type="button"
+                disabled={savingAppearance}
+                onClick={() => void handleSaveAppearance(true)}
+                className="m-press px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-[#645F80] hover:text-[#303654] cursor-pointer disabled:opacity-60"
+              >
+                Reset to default
+              </button>
+              <button
+                type="button"
+                disabled={savingAppearance}
+                onClick={() => void handleSaveAppearance(false)}
+                className="m-press px-5 py-2.5 rounded-xl text-white text-xs font-bold shadow-xs cursor-pointer disabled:opacity-60"
+                style={{ backgroundColor: activeAccentHex }}
+              >
+                {savingAppearance ? "Saving…" : "Save look"}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Mobile Dashboard Quick Navigation Bar */}
         <div className="lg:hidden flex items-center gap-2 overflow-x-auto no-scrollbar pb-3 mb-6">
@@ -684,20 +884,27 @@ function StudentDashboardContent() {
                         <div className="space-y-1.5 max-w-md">
                           <div className="flex items-center justify-between text-xs font-bold text-[#645F80]">
                             <span>{primarySpaceCourse.title}</span>
-                            <span className="text-[#AE54C6]">
+                            <span style={{ color: activeAccentHex }}>
                               {primarySpaceCourse.progress.percent}% ({primarySpaceCourse.progress.completed}/{primarySpaceCourse.progress.total})
                             </span>
                           </div>
                           <div className="w-full bg-[#F7EDF9] rounded-full h-2 overflow-hidden">
                             <div
-                              className="h-full bg-[#AE54C6] rounded-full transition-all"
-                              style={{ width: `${primarySpaceCourse.progress.percent}%` }}
+                              className="h-full rounded-full transition-all"
+                              style={{
+                                width: `${primarySpaceCourse.progress.percent}%`,
+                                backgroundColor: activeAccentHex
+                              }}
                             />
                           </div>
                         </div>
                         <div className="pt-1">
                           <Link href={primarySpaceCourse.nextLesson.href}>
-                            <Button variant="purple" size="sm" className="gap-2">
+                            <Button
+                              size="sm"
+                              className="gap-2 text-white border-0"
+                              style={{ backgroundColor: activeAccentHex }}
+                            >
                               <PlayCircle className="w-4 h-4" /> Resume Lesson
                             </Button>
                           </Link>
@@ -746,7 +953,7 @@ function StudentDashboardContent() {
                                 cy="34"
                                 r={radius}
                                 fill="none"
-                                stroke="#AE54C6"
+                                stroke={activeAccentHex}
                                 strokeWidth="6"
                                 strokeLinecap="round"
                                 strokeDasharray={circumference}
@@ -791,11 +998,15 @@ function StudentDashboardContent() {
                               title={`${day.date}: ${day.minutes} min`}
                               className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-extrabold transition-colors ${
                                 day.active
-                                  ? "bg-[#AE54C6] text-white"
+                                  ? "text-white"
                                   : day.isFuture
                                   ? "bg-slate-50 border border-slate-200/60 text-slate-300"
                                   : "bg-white border border-slate-300 text-[#645F80]"
-                              } ${day.isToday ? "ring-2 ring-[#AE54C6] ring-offset-1" : ""}`}
+                              } ${day.isToday ? "ring-2 ring-offset-1" : ""}`}
+                              style={{
+                                backgroundColor: day.active ? activeAccentHex : undefined,
+                                ...(day.isToday ? { ["--tw-ring-color" as string]: activeAccentHex } : {})
+                              }}
                             >
                               {label}
                             </div>
@@ -886,7 +1097,16 @@ function StudentDashboardContent() {
                   <CourseRoadmap
                     roadmap={primarySpaceCourse.roadmap}
                     courseTitle={primarySpaceCourse.title}
-                    color={primarySpaceCourse.color}
+                    color={activeAccentHex}
+                  />
+                )}
+
+                {/* Milestone Badges & Celebration */}
+                {Array.isArray(mySpace.badges) && mySpace.badges.length > 0 && (
+                  <BadgeShelf
+                    badges={mySpace.badges}
+                    accentHex={activeAccentHex}
+                    onMarkSeen={markBadgesSeen}
                   />
                 )}
               </div>

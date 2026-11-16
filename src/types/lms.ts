@@ -346,11 +346,46 @@ export interface MySpaceWeekDay {
   isFuture: boolean;
 }
 
+export type MySpaceAccentColor =
+  | "purple"
+  | "indigo"
+  | "blue"
+  | "teal"
+  | "green"
+  | "amber"
+  | "rose";
+
+export type MySpaceBanner =
+  | "aurora"
+  | "circuit"
+  | "sunrise"
+  | "midnight"
+  | "lagoon"
+  | "plain";
+
+export interface MySpaceAppearance {
+  accentColor: MySpaceAccentColor;
+  accentHex: string;
+  banner: MySpaceBanner;
+}
+
+export interface MySpaceBadge {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  earned: boolean;
+  earnedAt: string | null;
+  isNew: boolean;
+}
+
 export interface MySpaceData {
   firstName: string;
   greeting: string;
   onboarded: boolean;
   profile: MySpaceProfile | null;
+  appearance?: MySpaceAppearance;
+  badges?: MySpaceBadge[];
   courses: MySpaceCourse[];
   week: {
     startsAt: string;

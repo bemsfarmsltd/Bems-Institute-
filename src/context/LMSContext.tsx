@@ -14,7 +14,9 @@ import {
   AnalyticsSummary,
   UserEnrollmentRecord,
   MySpaceData,
-  MySpaceProfile
+  MySpaceProfile,
+  MySpaceAccentColor,
+  MySpaceBanner
 } from "@/types/lms";
 import type { LearningProfileSummary } from "@/lib/learning-engine";
 import type { AppNotification } from "@/types/advanced";
@@ -113,13 +115,17 @@ interface LMSContextType {
   communityUrl: string | null;
   mySpace: MySpaceData | null;
   refreshMySpace: () => Promise<MySpaceData | null>;
+  markBadgesSeen: () => Promise<void>;
   updateMySpaceProfile: (
     payload: Partial<
       Pick<
         MySpaceProfile,
         "goalType" | "goal" | "experienceLevel" | "weeklyHours" | "motivation" | "weeklyRecapEmail"
       >
-    >
+    > & {
+      accentColor?: MySpaceAccentColor | null;
+      banner?: MySpaceBanner | null;
+    }
   ) => Promise<{ ok: boolean; error?: string; profile?: MySpaceProfile }>;
   enrollInCourse: (courseId: string, options?: EnrollOptions) => Promise<void>;
   // Re-fetches enrollment/progress/quiz/submission state from the server —
@@ -330,6 +336,23 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const markBadgesSeen = useCallback(async () => {
+    try {
+      const res = await apiFetch("/api/lms/my-space/badges/seen", {
+        method: "POST"
+      });
+      if (res.ok) {
+        setMySpace((prev) =>
+          prev && Array.isArray(prev.badges)
+            ? { ...prev, badges: prev.badges.map((b) => ({ ...b, isNew: false })) }
+            : prev
+        );
+      }
+    } catch {
+      // non-fatal
+    }
+  }, []);
+
   const updateMySpaceProfile = useCallback(
     async (
       payload: Partial<
@@ -337,7 +360,10 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
           MySpaceProfile,
           "goalType" | "goal" | "experienceLevel" | "weeklyHours" | "motivation" | "weeklyRecapEmail"
         >
-      >
+      > & {
+        accentColor?: MySpaceAccentColor | null;
+        banner?: MySpaceBanner | null;
+      }
     ): Promise<{ ok: boolean; error?: string; profile?: MySpaceProfile }> => {
       try {
         const res = await apiFetch("/api/lms/my-space/profile", {
@@ -908,6 +934,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
         communityUrl,
         mySpace,
         refreshMySpace,
+        markBadgesSeen,
         updateMySpaceProfile,
         refreshEnrollments,
         enrollInCourse,
