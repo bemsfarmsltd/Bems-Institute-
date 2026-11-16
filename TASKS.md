@@ -8,9 +8,6 @@ section.
 
 | Task | Agent | Branch | Files / areas | Started |
 |---|---|---|---|---|
-| **My Space Phase 3 API** (done, awaiting review): accent colour + banner presets; 12 milestone badges from real activity, each recorded and announced once, with an unseen flag for celebrating. API below. | Claude Code | `claude/my-space-phase3` | `backend/` (schema + migration, `lib/appearance.ts`, `lib/badges.ts`, `lib/my-space.ts`, `routes/lms.ts`) | 2026-11-17 |
-| **My Space Phase 3 UI**: "Make it yours" picker (accent + banner), apply the look on the dashboard + signed-in home, badge shelf, new-badge celebration, per the API below | Antigravity | `antigravity/my-space-phase3-ui`, off `claude/my-space-phase3` | `src/app/dashboard/page.tsx`, `src/components/Hero.tsx`, new `src/components/BadgeShelf.tsx`, `src/types/lms.ts`, `src/context/LMSContext.tsx` | 2026-11-17 |
-| **Review `claude/my-space-phase3`** + browser-check the Phase 3 UI when pushed: badge rules match real activity (no badge without the activity, none for staff), once-only awards under concurrent requests, preset validation (no arbitrary colours/URLs), privacy (badges private to the student), the accent colours readable with white text, reduced-motion respected in the celebration; add tests | Codex | `codex/my-space-phase3-review` | Read all; write `backend/src/__tests__/` + notes here | 2026-11-17 |
 | **My Space Phase 2 API** (done; Codex review found no defects; browser-tested with the UI; awaiting merge): roadmap per course (modules → projects → capstone → certificate), Lagos-day study streak + this week's 7-day strip + weeks-in-a-row on target, AI tutor told the student's name / goal / level / current lesson, weekly recap (Sunday 18:00 Lagos: in-app + email, opt-out) via GitHub Actions + `POST /api/jobs/weekly-recap` and an admin fallback. API below. | Claude Code | `claude/my-space-phase2` | `backend/` (schema + migration, `lib/my-space.ts`, `lib/weekly-recap.ts`, `routes/jobs.ts`, `routes/ai.ts`, `routes/admin.ts`), `.github/workflows/weekly-recap.yml` | 2026-11-16 |
 | **My Space Phase 2 UI** (done, browser-tested at 375px + desktop, awaiting merge): roadmap, streak strip, weekly-email toggle, admin "Send weekly recaps now" button, per the API below | Antigravity | `antigravity/my-space-phase2-ui`, off `claude/my-space-phase2` (after Phase 1b is pushed) | `src/app/dashboard/page.tsx`, `src/app/courses/[slug]/page.tsx`, `src/app/admin/page.tsx`, `src/types/lms.ts`, `src/app/welcome/page.tsx` (one line) | 2026-11-16 |
 | **Review `antigravity/my-space-copy`** (done; remaining issues listed below) | Codex | `codex/my-space-copy-review` | `TASKS.md` + review of `src/` | 2026-11-16 |
@@ -180,6 +177,15 @@ All additive on `GET /api/lms/my-space`.
 - Badge shelf on the dashboard: earned ones in the accent colour with the date; locked ones greyed with `description` as "how to earn it". Show "4 of 12 badges".
 - Celebration: when any badge has `isNew`, show a short, dismissible celebration (badge pops in; motion system, nothing for reduced motion beyond a fade), then call `POST /api/lms/my-space/badges/seen` so it doesn't repeat. Each badge also arrives as a notification "Badge earned: …".
 - Badges are private to the student for now (no leaderboard/public profile).
+
+#### Phase 3 QA (Claude Code, 2026-11-16)
+
+Merged `antigravity/my-space-phase3-ui` (bbc230a) and Codex's test (00e053a). Backend 108/108; build OK. Browser-checked at 375px and 1366px with reduced motion on: the picker saves and resets (named swatches, `aria-pressed`, live preview), the teal look reaches the dashboard and signed-in home, the shelf shows "3 of 12", no page errors, no horizontal scroll.
+
+Fixes in QA:
+- The celebration moved to the top of the dashboard. It sat below the roadmap on mobile, but badges are marked seen on load, so students missed it.
+- With several new badges, the line under the titles no longer shows only the first badge's description.
+- Picker drafts are seeded when it opens instead of in an effect (lint).
 
 ### My Space Phase 2 API (Claude Code → Antigravity)
 All additive on `GET /api/lms/my-space` (Phase 1 fields unchanged).

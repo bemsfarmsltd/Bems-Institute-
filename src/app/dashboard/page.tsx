@@ -18,7 +18,7 @@ import { buildWhatsAppLink, BEMS_WHATSAPP_NUMBER } from "@/lib/whatsapp";
 import { UserAvatar } from "@/components/UserAvatar";
 import { CountUp } from "@/components/CountUp";
 import { CourseRoadmap } from "@/components/CourseRoadmap";
-import { BadgeShelf } from "@/components/BadgeShelf";
+import { BadgeCelebration, BadgeShelf } from "@/components/BadgeShelf";
 import {
   MY_SPACE_ACCENTS,
   MY_SPACE_BANNERS,
@@ -236,11 +236,15 @@ function StudentDashboardContent() {
   const [savingAppearance, setSavingAppearance] = useState(false);
   const [appearanceMsg, setAppearanceMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
 
-  useEffect(() => {
-    if (!mySpace?.appearance) return;
-    setDraftAccent(mySpace.appearance.accentColor);
-    setDraftBanner(mySpace.appearance.banner);
-  }, [mySpace?.appearance]);
+  // Drafts start from the saved look each time the picker opens.
+  const toggleAppearancePicker = () => {
+    setAppearanceMsg(null);
+    if (!showAppearancePicker) {
+      setDraftAccent(mySpace?.appearance?.accentColor || "purple");
+      setDraftBanner(mySpace?.appearance?.banner || "aurora");
+    }
+    setShowAppearancePicker((prev) => !prev);
+  };
 
   const activeAccentColor: MySpaceAccentColor = showAppearancePicker
     ? draftAccent
@@ -510,10 +514,8 @@ function StudentDashboardContent() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 flex justify-end">
             <button
               type="button"
-              onClick={() => {
-                setAppearanceMsg(null);
-                setShowAppearancePicker((prev) => !prev);
-              }}
+              onClick={toggleAppearancePicker}
+              aria-expanded={showAppearancePicker}
               className="m-press inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-black/25 hover:bg-black/35 backdrop-blur-sm border border-white/25 text-white text-xs font-bold cursor-pointer transition-colors"
             >
               <Palette className="w-3.5 h-3.5" />
@@ -609,6 +611,17 @@ function StudentDashboardContent() {
           </a>
         </div>
 
+        {/* New badge celebration: up top, where the student looks first */}
+        {user?.role === "STUDENT" && Array.isArray(mySpace?.badges) && mySpace.badges.length > 0 && (
+          <div className="mb-6">
+            <BadgeCelebration
+              badges={mySpace.badges}
+              accentHex={activeAccentHex}
+              onMarkSeen={markBadgesSeen}
+            />
+          </div>
+        )}
+
         {/* Make It Yours Picker */}
         {showAppearancePicker && user?.role === "STUDENT" && (
           <div className="mb-8 bg-white rounded-2xl border border-[#F1E2F5] p-5 sm:p-6 shadow-sm space-y-5">
@@ -643,6 +656,7 @@ function StudentDashboardContent() {
                       key={swatch.id}
                       type="button"
                       onClick={() => setDraftAccent(swatch.id)}
+                      aria-pressed={selected}
                       className={`m-press flex items-center gap-2 px-3 py-2 rounded-xl border text-left text-xs font-bold cursor-pointer transition-all ${
                         selected
                           ? "bg-[#FAF8FF] text-[#303654] shadow-xs"
@@ -672,6 +686,7 @@ function StudentDashboardContent() {
                       key={b.id}
                       type="button"
                       onClick={() => setDraftBanner(b.id)}
+                      aria-pressed={selected}
                       className={`m-press rounded-xl border p-1.5 text-left cursor-pointer transition-all ${
                         selected ? "bg-[#FAF8FF]" : "border-slate-200 bg-white hover:border-slate-300"
                       }`}
@@ -1101,13 +1116,9 @@ function StudentDashboardContent() {
                   />
                 )}
 
-                {/* Milestone Badges & Celebration */}
+                {/* Milestone Badges */}
                 {Array.isArray(mySpace.badges) && mySpace.badges.length > 0 && (
-                  <BadgeShelf
-                    badges={mySpace.badges}
-                    accentHex={activeAccentHex}
-                    onMarkSeen={markBadgesSeen}
-                  />
+                  <BadgeShelf badges={mySpace.badges} accentHex={activeAccentHex} />
                 )}
               </div>
             )}
