@@ -691,12 +691,12 @@ function generateClientFallbackFeedback(
   const hasDemo = contentLower.includes("vercel.app") || contentLower.includes("netlify.app") || contentLower.includes("figma.com") || contentLower.includes("http://") || contentLower.includes("https://");
 
   const mentorMap: Record<string, string> = {
-    "web-dev": "Mr. Victor Okeke (Lead Web Instructor)",
-    "ai-automation": "Dr. Amaka (Lead AI Solutions Engineer)",
-    "graphic-design": "Mr. Tunde (Lead Product Designer)",
+    "web-dev": "Mr. Victor (Lead Web Instructor)",
+    "ai-automation": "Timi (Lead AI Solutions Engineer)",
+    "graphic-design": "Temi (Lead Product Designer)",
     "cybersecurity": "Specialist Faculty (Security Lead)"
   };
-  const leadMentorName = mentorMap[track] || "Mr. Victor Okeke (Lead Web Instructor)";
+  const leadMentorName = mentorMap[track] || "Mr. Victor (Lead Web Instructor)";
 
   const trackKey = track.toLowerCase();
   const score1 = 23;
@@ -797,7 +797,7 @@ function generateClientFallbackFeedback(
       actionItems: [
         "Audit touch targets on mobile frames to guarantee minimum 44x44px interactive areas.",
         "Export vector SVGs with clean path outlines to optimize web asset loading.",
-        "Submit your Figma prototype and Behance URL to Mr. Tunde for final Capstone certification!"
+        "Submit your Figma prototype and Behance URL to Temi for final Capstone certification!"
       ]
     };
   }
@@ -866,16 +866,16 @@ interface FacultyPersona {
 const FACULTY_PERSONAS: FacultyPersona[] = [
   {
     id: "mr-victor",
-    name: "Mr. Victor Okeke",
+    name: "Mr. Victor",
     title: "Lead Web Dev & Next.js Instructor",
     role: "Full-Stack Web Engineering",
     trackId: "web-dev",
-    avatar: "VO",
+    avatar: "MV",
     accentGradient: "from-[#303654] to-[#4A2060]",
     badgeBg: "bg-purple-100 text-[#AE54C6] border-purple-200",
     avatarBg: "bg-[#303654] text-white ring-2 ring-[#AE54C6]/30",
     welcomeMessage:
-      "Hello! I'm Mr. Victor Okeke, Lead Web Development Instructor at BEMS Institute of Technology. Whether you are debugging Flexbox/Grid on mobile viewports, writing asynchronous Paystack checkout handlers, or configuring Next.js Server Components for your Capstone — what are you building or debugging today?",
+      "Hello! I'm Mr. Victor, Lead Web Development Instructor at BEMS Institute of Technology. Whether you are debugging Flexbox/Grid on mobile viewports, writing asynchronous Paystack checkout handlers, or configuring Next.js Server Components for your Capstone — what are you building or debugging today?",
     suggestedQuestions: [
       "How do I center a div using CSS Flexbox vs modern CSS Grid?",
       "Explain async/await with a real Paystack API fetch example",
@@ -885,16 +885,16 @@ const FACULTY_PERSONAS: FacultyPersona[] = [
   },
   {
     id: "timi",
-    name: "Timi Adeleke",
+    name: "Timi",
     title: "Lead AI Solutions & Automation Engineer",
     role: "Generative AI & Autonomous Workflows",
     trackId: "ai-automation",
-    avatar: "TA",
+    avatar: "TI",
     accentGradient: "from-[#134E4A] to-[#065F46]",
     badgeBg: "bg-emerald-100 text-emerald-800 border-emerald-200",
     avatarBg: "bg-emerald-700 text-white ring-2 ring-emerald-500/30",
     welcomeMessage:
-      "Hello! I'm Timi Adeleke, Lead AI Solutions & Automation Engineer at BEMS Institute. Ready to build autonomous AI agents, integrate Gemini 2.5 Flash with structured schemas, or automate multi-step workflows with Make/Zapier webhooks? Ask me anything!",
+      "Hello! I'm Timi, Lead AI Solutions & Automation Engineer at BEMS Institute. Ready to build autonomous AI agents, integrate Gemini 2.5 Flash with structured schemas, or automate multi-step workflows with Make/Zapier webhooks? Ask me anything!",
     suggestedQuestions: [
       "How do I eliminate hallucinations using grounded few-shot prompts?",
       "Explain webhooks vs REST API polling in simple everyday terms",
@@ -904,16 +904,16 @@ const FACULTY_PERSONAS: FacultyPersona[] = [
   },
   {
     id: "temi",
-    name: "Temi Johnson",
+    name: "Temi",
     title: "Lead UI/UX Product Designer",
     role: "Design Systems & User Experience",
     trackId: "graphic-design",
-    avatar: "TJ",
+    avatar: "TE",
     accentGradient: "from-[#78350F] to-[#92400E]",
     badgeBg: "bg-amber-100 text-amber-900 border-amber-200",
     avatarBg: "bg-amber-700 text-white ring-2 ring-amber-500/30",
     welcomeMessage:
-      "Hello! I'm Temi Johnson, Lead Product Designer & UX Researcher at BEMS Institute. Working on wireframes, Figma Auto-Layout, typography scales, or interactive mobile prototypes? Let's make your product look high-class, accessible, and user-friendly!",
+      "Hello! I'm Temi, Lead Product Designer & UX Researcher at BEMS Institute. Working on wireframes, Figma Auto-Layout, typography scales, or interactive mobile prototypes? Let's make your product look high-class, accessible, and user-friendly!",
     suggestedQuestions: [
       "How do nested Auto-Layout frames work in Figma without breaking constraints?",
       "What are the WCAG AAA contrast requirements for mobile button states?",
@@ -923,16 +923,16 @@ const FACULTY_PERSONAS: FacultyPersona[] = [
   },
   {
     id: "engr-david",
-    name: "Engr. David Kalu",
+    name: "Specialist Faculty",
     title: "Lead Cybersecurity & Infrastructure Auditor",
     role: "Security Defense & Ethical Hacking",
     trackId: "cybersecurity",
-    avatar: "DK",
+    avatar: "SF",
     accentGradient: "from-[#1E3A8A] to-[#1E293B]",
     badgeBg: "bg-blue-100 text-blue-900 border-blue-200",
     avatarBg: "bg-blue-800 text-white ring-2 ring-blue-500/30",
     welcomeMessage:
-      "Hello! I'm Engr. David Kalu, Lead Cybersecurity & Infrastructure Auditor at BEMS Institute. Let's harden your codebase against real-world vulnerabilities. Ask me about Linux permissions, SQL injection defense, JWT session security, or network port audits!",
+      "Hello! I'm your BEMS Cybersecurity tutor. Let's harden your codebase against real-world vulnerabilities. Ask me about Linux permissions, SQL injection defense, JWT session security, or network port audits!",
     suggestedQuestions: [
       "How do I protect my Next.js API endpoints from SQL injection and XSS?",
       "What are the essential Linux file permissions for a production Ubuntu server?",
@@ -945,7 +945,7 @@ const FACULTY_PERSONAS: FacultyPersona[] = [
 function generateClientFallbackTutorResponse(
   prompt: string,
   courseTrack: string = "web-dev",
-  tutorName: string = "Mr. Victor Okeke",
+  tutorName: string = "Mr. Victor",
   mode: "eli12" | "practical" | "academic" = "practical"
 ): { text: string; suggestedPrompts: string[] } {
   const p = prompt.toLowerCase();
@@ -1436,8 +1436,8 @@ Could you please explain the concept in simple terms, why the correct answer is 
   const handleAskTutorAboutWeek = (week: StudyPlanWeek) => {
     const mentorMap: Record<string, string> = {
       "web-dev": "Mr. Victor",
-      "ai-automation": "Dr. Amaka",
-      "graphic-design": "Mr. Tunde",
+      "ai-automation": "Timi",
+      "graphic-design": "Temi",
       "cybersecurity": "Specialist Faculty"
     };
     const targetMentor = mentorMap[studyTrack] || tutorName;
@@ -1551,8 +1551,8 @@ ${codeSubmission}`;
     if (!feedbackResult) return;
     const mentorMap: Record<string, string> = {
       "web-dev": "Mr. Victor",
-      "ai-automation": "Dr. Amaka",
-      "graphic-design": "Mr. Tunde",
+      "ai-automation": "Timi",
+      "graphic-design": "Temi",
       "cybersecurity": "Specialist Faculty"
     };
     const targetMentor = mentorMap[feedbackTrack] || tutorName;
@@ -2887,7 +2887,7 @@ app.use('/api/v1/transfer', limiter);`);
                       {
                         id: "ai-automation",
                         title: "AI & Automation",
-                        mentor: "Dr. Amaka",
+                        mentor: "Timi",
                         skills: "LLMs, Prompt Eng, Agents, Make",
                         icon: BrainCircuit,
                         activeBorder: "border-emerald-500 bg-emerald-50/60 ring-2 ring-emerald-500/20",
@@ -2896,7 +2896,7 @@ app.use('/api/v1/transfer', limiter);`);
                       {
                         id: "graphic-design",
                         title: "UI/UX Design",
-                        mentor: "Mr. Tunde",
+                        mentor: "Temi",
                         skills: "Figma, Wireframing, Systems, Apps",
                         icon: Layers,
                         activeBorder: "border-amber-500 bg-amber-50/60 ring-2 ring-amber-500/20",
@@ -3144,7 +3144,7 @@ app.use('/api/v1/transfer', limiter);`);
                   </div>
                   <h4 className="font-bold text-[#303654] text-base">1-Click Tutor & Quiz Loops</h4>
                   <p className="text-xs text-gray-600 leading-relaxed">
-                    Stuck on a week's milestone? Click one button to jump into chat with Mr. Victor or Dr. Amaka, or launch an instant checkpoint practice quiz.
+                    Stuck on a week's milestone? Click one button to jump into chat with Mr. Victor or Timi, or launch an instant checkpoint practice quiz.
                   </p>
                 </div>
               </div>
@@ -3566,7 +3566,7 @@ app.use('/api/v1/transfer', limiter);`);
                       {
                         id: "web-dev",
                         title: "Web Development",
-                        mentor: "Mr. Victor Okeke",
+                        mentor: "Mr. Victor",
                         skills: "Next.js, Paystack, Responsive, Vercel",
                         icon: Code2,
                         activeBorder: "border-[#AE54C6] bg-purple-50/60 ring-2 ring-[#AE54C6]/20",
@@ -3575,7 +3575,7 @@ app.use('/api/v1/transfer', limiter);`);
                       {
                         id: "ai-automation",
                         title: "AI & Automation",
-                        mentor: "Dr. Amaka",
+                        mentor: "Timi",
                         skills: "LLMs, Webhooks, Prompts, Make/Zapier",
                         icon: BrainCircuit,
                         activeBorder: "border-emerald-500 bg-emerald-50/60 ring-2 ring-emerald-500/20",
@@ -3584,7 +3584,7 @@ app.use('/api/v1/transfer', limiter);`);
                       {
                         id: "graphic-design",
                         title: "UI/UX Design",
-                        mentor: "Mr. Tunde",
+                        mentor: "Temi",
                         skills: "Figma Tokens, WCAG Contrast, Prototype",
                         icon: Layers,
                         activeBorder: "border-amber-500 bg-amber-50/60 ring-2 ring-amber-500/20",

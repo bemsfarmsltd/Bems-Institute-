@@ -10,6 +10,7 @@ import { retrieveCourseKnowledge } from "@/lib/course-rag";
 import { getSessionUser } from "@/lib/api-auth";
 import { getLearningProfile } from "@/lib/learning-engine";
 import { tutorContextFor } from "@/lib/my-space";
+import { resolveTrackId, tutorForTrack } from "@/lib/tutors";
 import { prisma } from "@/lib/prisma";
 import { checkUsageQuota, recordAttempt, rateLimitMessage } from "@/lib/rate-limit";
 
@@ -43,10 +44,15 @@ router.post("/", async (req, res) => {
 
     switch (action) {
       case "tutor": {
-        const { prompt, courseTrack, tutorName, history } = body;
+        const { prompt, history } = body;
         if (!prompt) {
           return res.status(400).json({ error: "Prompt is required" });
         }
+        // A real course id whatever the page sends (e.g. the AI page's old
+        // "graphic-design" means product-design). The tutor follows from it;
+        // any tutorName in the request is ignored.
+        const courseTrack = resolveTrackId(body.courseTrack);
+        const tutorName = tutorForTrack(courseTrack).name;
 
         const ragSnippets = retrieveCourseKnowledge(prompt, courseTrack, 3);
 
@@ -71,7 +77,7 @@ router.post("/", async (req, res) => {
             .create({
               data: {
                 userId: session.id,
-                courseId: courseTrack || "web-dev",
+                courseId: courseTrack,
                 eventType: "AI_TUTOR_USED",
                 metadata: { prompt: String(prompt).slice(0, 200), tutorName }
               }
@@ -98,7 +104,7 @@ router.post("/", async (req, res) => {
             ? `${prompt}\n\n[LEARNIQ CONTEXT — DO NOT REPEAT VERBATIM, USE TO PERSONALIZE ANSWER:\n${contextBlocks.join("\n")}]`
             : prompt;
 
-        const result = await generateAITutorResponse(enrichedPrompt, courseTrack, tutorName, history);
+        const result = await generateAITutorResponse(enrichedPrompt, courseTrack, history);
 
         let finalReply = result.text;
         if (ragSnippets.length > 0 && !process.env.GEMINI_API_KEY) {
@@ -164,7 +170,8 @@ router.post("/", async (req, res) => {
     }
   } catch (err: unknown) {
     console.error("AI API Route Error:", err);
-    return res.status(500).json({ error: "Failed to process AI request", details: err instanceof Error ? err.message : String(err) });
+    // Details stay in the server log; the browser gets a plain message.
+    return res.status(500).json({ error: "The AI couldn't finish that just now. Please try again in a moment." });
   }
 });
 

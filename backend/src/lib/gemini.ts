@@ -7,6 +7,7 @@ import {
   AIFeedbackResult,
   PersonalizedRecommendation
 } from "@/types/ai";
+import { tutorForTrack } from "@/lib/tutors";
 
 const apiKey = process.env.GEMINI_API_KEY;
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
@@ -18,27 +19,14 @@ const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 export async function generateAITutorResponse(
   prompt: string,
   courseTrack: string = "web-dev",
-  tutorName: string = "Mr. Victor",
   history: AIChatMessage[] = []
 ): Promise<{ text: string; suggestedPrompts: string[] }> {
-  const tutorRoles: Record<string, string> = {
-    "Mr. Victor": "Senior Full-Stack Engineer and Lead Web Development Instructor at BEMS Institute of Technology (Umuahia). Expert in Semantic HTML5, CSS Grid/Flexbox, JavaScript ES6+, Next.js, and API engineering.",
-    "Mr. Victor Okeke": "Senior Full-Stack Engineer and Lead Web Development Instructor at BEMS Institute of Technology (Umuahia). Expert in Semantic HTML5, CSS Grid/Flexbox, JavaScript ES6+, Next.js, and API engineering.",
-    "Timi": "AI Solutions Engineer and Automation Lead at BEMS Institute. Expert in LLMs, Prompt Engineering, Make/Zapier webhooks, and Autonomous Agent architecture.",
-    "Timi Adeleke": "AI Solutions Engineer and Automation Lead at BEMS Institute. Expert in LLMs, Prompt Engineering, Make/Zapier webhooks, and Autonomous Agent architecture.",
-    "Dr. Amaka": "AI Solutions Engineer and Automation Lead at BEMS Institute. Expert in LLMs, Prompt Engineering, Make/Zapier webhooks, and Autonomous Agent architecture.",
-    "Temi": "Lead Product Designer & UX Researcher at BEMS Institute. Expert in Design Thinking, Figma Auto-Layout, design systems, and developer handoff.",
-    "Temi Johnson": "Lead Product Designer & UX Researcher at BEMS Institute. Expert in Design Thinking, Figma Auto-Layout, design systems, and developer handoff.",
-    "Mr. Tunde": "Lead Product Designer & UX Researcher at BEMS Institute. Expert in Design Thinking, Figma Auto-Layout, design systems, and developer handoff.",
-    "Specialist Faculty": "Lead Information Security and Infrastructure Auditor at BEMS Institute. Expert in network security, vulnerability scanning, and defensive systems.",
-    "Engr. David Kalu": "Lead Information Security and Infrastructure Auditor at BEMS Institute. Expert in network security, vulnerability scanning, and defensive systems.",
-    "Engr. David": "Lead Information Security and Infrastructure Auditor at BEMS Institute. Expert in network security, vulnerability scanning, and defensive systems."
-  };
+  // The tutor comes from the course catalogue, never from the client.
+  const tutor = tutorForTrack(courseTrack);
+  const tutorName = tutor.name === "Specialist Faculty" ? `your BEMS ${tutor.trackTitle} tutor` : tutor.name;
 
-  const roleDescription = tutorRoles[tutorName] || tutorRoles["Mr. Victor"];
-
-  const systemInstruction = `You are ${tutorName}, ${roleDescription}.
-You are tutoring a student enrolled in the BEMS FutureSkills Accelerator (${courseTrack} track, October 2026 Cohort).
+  const systemInstruction = `You are ${tutor.promptIdentity}
+You are tutoring a student enrolled in the BEMS ${tutor.trackTitle} course.
 Always be encouraging, highly technical, practical, and clear.
 When providing code, write clean, modern, well-commented code snippets with markdown formatting.
 Refer where relevant to practical lab exercises in Umuahia, real-world deployment on Vercel/Netlify, and best practices.`;
@@ -1066,17 +1054,10 @@ export async function evaluateCodeSubmission(
   const hasGithub = contentLower.includes("github.com") || contentLower.includes("gitlab.com");
   const hasDemo = contentLower.includes("vercel.app") || contentLower.includes("netlify.app") || contentLower.includes("figma.com") || contentLower.includes("http://") || contentLower.includes("https://");
 
-  const mentorMap: Record<string, string> = {
-    "Web Development": "Mr. Victor Okeke (Lead Web Instructor)",
-    "Full-Stack Web Development": "Mr. Victor Okeke (Lead Web Instructor)",
-    "AI & Automation": "Dr. Amaka (Lead AI Solutions Engineer)",
-    "Generative AI & Automation": "Dr. Amaka (Lead AI Solutions Engineer)",
-    "UI/UX Design": "Mr. Tunde (Lead Product Designer)",
-    "UI/UX & Product Design": "Mr. Tunde (Lead Product Designer)",
-    "Cyber Defense": "Specialist Faculty (Security Lead)",
-    "Cybersecurity Defense": "Specialist Faculty (Security Lead)"
-  };
-  const leadMentorName = mentorMap[track] || "Mr. Victor Okeke (Lead Instructor)";
+  // From the course catalogue (one tutor per track), never hard-coded names.
+  const mentor = tutorForTrack(track);
+  const leadMentorName =
+    mentor.name === "Specialist Faculty" ? `the BEMS ${mentor.trackTitle} tutor (${mentor.role})` : `${mentor.name} (${mentor.role})`;
 
   if (ai) {
     try {
@@ -1286,7 +1267,7 @@ Respond ONLY with valid JSON in this exact structure:
       actionItems: [
         "Audit touch targets on mobile frames to guarantee minimum 44x44px interactive areas.",
         "Export vector SVGs with clean path outlines to optimize web asset loading.",
-        "Submit your Figma prototype and Behance URL to Mr. Tunde for final Capstone certification!"
+        "Submit your Figma prototype and Behance URL to Temi for final Capstone certification!"
       ]
     };
   }
