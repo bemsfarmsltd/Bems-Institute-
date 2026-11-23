@@ -8,13 +8,13 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-# Working on this repo (Claude Code + Antigravity + Codex)
+# Working on this repo (Claude Code + Antigravity + Codex / Copilot)
 
 This is the live company website for BEMS Institute of Technology
-(https://bems-institute.vercel.app). Real students, payments (Paystack) and
-admissions run through it. Three AI agents (Claude Code, Antigravity and
-Codex) work on it, directed by the owner. Treat every change as production
-work.
+(https://www.bemsinstitute.com). Real students, payments (Paystack) and
+admissions run through it. AI agents (Claude Code, Antigravity, and Codex or
+GitHub Copilot as reviewer) work on it, directed by the owner. Treat every
+change as production work.
 
 ## Lanes and workspaces
 
@@ -23,12 +23,13 @@ tagged to it in [`TASKS.md`](TASKS.md).
 
 | Agent | Lane | Folder | Branch prefix |
 |---|---|---|---|
-| Claude Code | Backend, security, deployment (holds Render access), reviews | `C:\dev\bems-*` worktrees | `claude/` |
+| Claude Code | Backend, security, deployment (holds Render access), reviews | `C:\dev\bems-admin` | `claude/` |
 | Antigravity | Frontend, UI/UX, LMS flows, admin screens | `C:\dev\bems` | `antigravity/` |
 | Codex | Review and testing: audits branches before merge, writes tests, docs | `C:\dev\bems-codex` | `codex/` |
+| GitHub Copilot | Stands in for Codex while Codex is away (from 2026-11-23): same lane, same rules | `C:\dev\bems-copilot` | `copilot/` |
 
 - Never edit files in another agent's folder, even to "fix" something.
-- Codex's job is to find problems and add tests. A behaviour change in code
+- The reviewer's job (Codex, or Copilot in its place) is to find problems and add tests. A behaviour change in code
   another agent owns gets flagged in `TASKS.md` for that agent, not made
   directly.
 - Only Claude Code changes Render settings. No agent reads, edits or commits
@@ -41,7 +42,7 @@ tagged to it in [`TASKS.md`](TASKS.md).
   commit, revert, reformat or "clean up" them. Ask the owner.
 - **One task, one branch.** Never commit straight to `main`, which deploys to
   production. Branch as `claude/<topic>`, `antigravity/<topic>` or
-  `codex/<topic>`, and open a PR so CI (`.github/workflows/ci.yml`) runs. The
+  `codex/<topic>` (Copilot: `copilot/<topic>`), and open a PR so CI (`.github/workflows/ci.yml`) runs. The
   owner merges.
 - **Claim work in [`TASKS.md`](TASKS.md)** before starting: add your name and
   the files or areas you'll touch. Don't edit files another agent has claimed;
