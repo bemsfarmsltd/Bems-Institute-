@@ -55,6 +55,7 @@ export default function WelcomeSetupPage() {
   const [experienceLevel, setExperienceLevel] = useState<MySpaceExperienceLevel | null>(null);
   const [weeklyHours, setWeeklyHours] = useState<number>(6);
   const [motivation, setMotivation] = useState("");
+  const [shareWithTutor, setShareWithTutor] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -96,7 +97,8 @@ export default function WelcomeSetupPage() {
       goal: goalText.trim() || undefined,
       experienceLevel,
       weeklyHours,
-      motivation: motivation.trim() || undefined
+      motivation: motivation.trim() || undefined,
+      shareWithTutor
     });
     setSaving(false);
     if (!result.ok) {
@@ -168,8 +170,26 @@ export default function WelcomeSetupPage() {
                     What&apos;s your main goal at BEMS?
                   </h1>
                   <p className="text-xs sm:text-sm text-[#645F80] mt-1">
-                    Only you (and your AI tutor) see this — it helps us tailor your space.
+                    Your tutor and your AI tutor see your goal, level and weekly time, to help you. Your reason for joining stays private.
                   </p>
+                  <label className="mt-3 inline-flex items-center gap-2.5 cursor-pointer select-none">
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={shareWithTutor}
+                      onClick={() => setShareWithTutor((v) => !v)}
+                      className={`m-press relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer ${
+                        shareWithTutor ? "bg-[#AE54C6]" : "bg-slate-300"
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                          shareWithTutor ? "translate-x-4.5" : "translate-x-1"
+                        }`}
+                      />
+                    </button>
+                    <span className="text-xs font-bold text-[#303654]">Share with my tutor</span>
+                  </label>
                 </div>
 
                 <div className="grid grid-cols-1 gap-2.5">

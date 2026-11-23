@@ -20,6 +20,11 @@ import { CountUp } from "@/components/CountUp";
 import { CourseRoadmap } from "@/components/CourseRoadmap";
 import { BadgeCelebration, BadgeShelf } from "@/components/BadgeShelf";
 import {
+  PublicPortfolioCard,
+  NotesAndSavedCard,
+  RemindersCard
+} from "@/components/MySpacePhase4Cards";
+import {
   MY_SPACE_ACCENTS,
   MY_SPACE_BANNERS,
   getAccentHex,
@@ -228,6 +233,7 @@ function StudentDashboardContent() {
   const [prefWeeklyHours, setPrefWeeklyHours] = useState<number>(6);
   const [prefMotivation, setPrefMotivation] = useState("");
   const [prefWeeklyRecap, setPrefWeeklyRecap] = useState<boolean>(true);
+  const [prefShareWithTutor, setPrefShareWithTutor] = useState<boolean>(true);
   const [savingPrefs, setSavingPrefs] = useState(false);
   const [prefsMsg, setPrefsMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
   const [showAppearancePicker, setShowAppearancePicker] = useState(false);
@@ -286,7 +292,19 @@ function StudentDashboardContent() {
     }
     setPrefMotivation(mySpace.profile.motivation || "");
     setPrefWeeklyRecap(mySpace.profile.weeklyRecapEmail ?? true);
+    setPrefShareWithTutor(mySpace.profile.shareWithTutor ?? true);
   }, [mySpace?.profile]);
+
+  const handleToggleShareWithTutor = async () => {
+    const next = !prefShareWithTutor;
+    setPrefShareWithTutor(next);
+    setPrefsMsg(null);
+    const res = await updateMySpaceProfile({ shareWithTutor: next });
+    if (!res.ok) {
+      setPrefShareWithTutor(!next);
+      setPrefsMsg({ type: "err", text: res.error || "Could not update tutor sharing setting." });
+    }
+  };
 
   const handleToggleWeeklyRecap = async () => {
     const next = !prefWeeklyRecap;
@@ -309,7 +327,8 @@ function StudentDashboardContent() {
       experienceLevel: prefExpLevel,
       weeklyHours: prefWeeklyHours,
       motivation: prefMotivation.trim() || undefined,
-      weeklyRecapEmail: prefWeeklyRecap
+      weeklyRecapEmail: prefWeeklyRecap,
+      shareWithTutor: prefShareWithTutor
     });
     setSavingPrefs(false);
     if (!res.ok) {
@@ -1598,11 +1617,18 @@ function StudentDashboardContent() {
                 </Button>
               </Link>
               {(user?.role === "INSTRUCTOR" || user?.role === "ADMIN") && (
-                <Link href="/instructor/grading">
-                  <Button variant="outline">
-                    <Award className="w-4 h-4 mr-2" /> Grading Studio
-                  </Button>
-                </Link>
+                <>
+                  <Link href="/tutor">
+                    <Button variant="outline">
+                      <BookOpen className="w-4 h-4 mr-2" /> Tutor View
+                    </Button>
+                  </Link>
+                  <Link href="/instructor/grading">
+                    <Button variant="outline">
+                      <Award className="w-4 h-4 mr-2" /> Grading Studio
+                    </Button>
+                  </Link>
+                </>
               )}
               {communityUrl && (
               <a href={communityUrl} target="_blank" rel="noopener noreferrer">
@@ -1679,6 +1705,15 @@ function StudentDashboardContent() {
               </div>
             )}
 
+            {/* Phase 4 Student Cards: Public Portfolio, Notes & Bookmarks, Reminders */}
+            {user?.role === "STUDENT" && (
+              <>
+                <PublicPortfolioCard accentHex={activeAccentHex} />
+                <NotesAndSavedCard accentHex={activeAccentHex} />
+                <RemindersCard accentHex={activeAccentHex} />
+              </>
+            )}
+
             {/* My Space Preferences Card */}
             {mySpace && user?.role === "STUDENT" && (
               <form
@@ -1689,27 +1724,47 @@ function StudentDashboardContent() {
                   <div>
                     <h2 className="text-base font-extrabold text-[#303654]">My Space Preferences</h2>
                     <p className="text-xs text-[#645F80] mt-0.5">
-                      Only you (and your AI tutor) see your goals and weekly pace.
+                      Your tutor and your AI tutor see your goal, level and weekly time, to help you. Your reason for joining stays private.
                     </p>
                   </div>
-                  <label className="inline-flex items-center gap-2.5 cursor-pointer select-none">
-                    <span className="text-xs font-bold text-[#303654]">Weekly progress email</span>
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={prefWeeklyRecap}
-                      onClick={() => void handleToggleWeeklyRecap()}
-                      className={`m-press relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
-                        prefWeeklyRecap ? "bg-[#AE54C6]" : "bg-slate-300"
-                      }`}
-                    >
-                      <span
-                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                          prefWeeklyRecap ? "translate-x-6" : "translate-x-1"
+                  <div className="flex flex-wrap items-center gap-4 shrink-0">
+                    <label className="inline-flex items-center gap-2 cursor-pointer select-none">
+                      <span className="text-xs font-bold text-[#303654]">Share with my tutor</span>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={prefShareWithTutor}
+                        onClick={() => void handleToggleShareWithTutor()}
+                        className={`m-press relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
+                          prefShareWithTutor ? "bg-[#AE54C6]" : "bg-slate-300"
                         }`}
-                      />
-                    </button>
-                  </label>
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            prefShareWithTutor ? "translate-x-6" : "translate-x-1"
+                          }`}
+                        />
+                      </button>
+                    </label>
+                    <label className="inline-flex items-center gap-2 cursor-pointer select-none">
+                      <span className="text-xs font-bold text-[#303654]">Weekly progress email</span>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={prefWeeklyRecap}
+                        onClick={() => void handleToggleWeeklyRecap()}
+                        className={`m-press relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
+                          prefWeeklyRecap ? "bg-[#AE54C6]" : "bg-slate-300"
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            prefWeeklyRecap ? "translate-x-6" : "translate-x-1"
+                          }`}
+                        />
+                      </button>
+                    </label>
+                  </div>
                 </div>
 
                 {prefsMsg && (

@@ -60,3 +60,60 @@ self.addEventListener("fetch", (event) => {
       })
   );
 });
+
+self.addEventListener("push", (event) => {
+  let payload = {
+    title: "BEMS Institute",
+    body: "You have a new learning reminder.",
+    tag: "bems-reminder",
+    url: "/dashboard"
+  };
+
+  if (event.data) {
+    try {
+      const parsed = event.data.json();
+      payload = {
+        title: parsed.title || payload.title,
+        body: parsed.body || payload.body,
+        tag: parsed.tag || payload.tag,
+        url: parsed.url || (parsed.data && parsed.data.url) || "/dashboard"
+      };
+    } catch {
+      const text = event.data.text();
+      if (text) payload.body = text;
+    }
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(payload.title, {
+      body: payload.body,
+      tag: payload.tag,
+      icon: "/images/bems-logo.jpg",
+      badge: "/images/bems-logo.jpg",
+      data: { url: payload.url }
+    })
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const targetUrl =
+    (event.notification.data && event.notification.data.url) || "/dashboard";
+  const safePath =
+    typeof targetUrl === "string" && targetUrl.startsWith("/") ? targetUrl : "/dashboard";
+
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
+      for (const client of clients) {
+        if ("focus" in client) {
+          client.navigate(safePath);
+          return client.focus();
+        }
+      }
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(safePath);
+      }
+      return undefined;
+    })
+  );
+});
