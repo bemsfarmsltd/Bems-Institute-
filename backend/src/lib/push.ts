@@ -32,17 +32,32 @@ export interface SubscriptionInput {
   keys?: { p256dh?: unknown; auth?: unknown } | null;
 }
 
+// The browsers' own push services. The server sends a request to the
+// subscription's endpoint, so any other address is refused: otherwise a
+// signed-in user could make our server call a site of their choosing,
+// including internal addresses (SSRF; Copilot Phase 4 review).
+const PUSH_HOSTS = ["fcm.googleapis.com", "web.push.apple.com"]; // Chrome/Edge/Android, Safari/iPhone
+const PUSH_HOST_SUFFIXES = [".push.services.mozilla.com", ".notify.windows.com", ".push.apple.com"]; // Firefox, older Edge, Apple
+
+/** True only for https on the default port at a known browser push service. */
+export function isPushServiceEndpoint(endpoint: string): boolean {
+  let u: URL;
+  try {
+    u = new URL(endpoint);
+  } catch {
+    return false;
+  }
+  if (u.protocol !== "https:" || u.port !== "" || u.username || u.password) return false;
+  const host = u.hostname.toLowerCase();
+  return PUSH_HOSTS.includes(host) || PUSH_HOST_SUFFIXES.some((s) => host.endsWith(s));
+}
+
 /** Saves this browser for push. A browser re-subscribing under another account moves to that account. */
 export async function saveSubscription(userId: string, input: SubscriptionInput) {
   const endpoint = typeof input.endpoint === "string" ? input.endpoint.trim() : "";
   const p256dh = typeof input.keys?.p256dh === "string" ? input.keys.p256dh : "";
   const auth = typeof input.keys?.auth === "string" ? input.keys.auth : "";
-  let ok = false;
-  try {
-    ok = new URL(endpoint).protocol === "https:";
-  } catch {
-    ok = false;
-  }
+  const ok = isPushServiceEndpoint(endpoint);
   if (!ok || endpoint.length > 1000 || !/^[A-Za-z0-9_-]{20,200}$/.test(p256dh) || !/^[A-Za-z0-9_-]{8,100}$/.test(auth)) {
     throw new PushError("This browser's notification details weren't valid. Please try again.");
   }
@@ -78,6 +93,11 @@ export async function sendPush(userId: string, message: PushMessage): Promise<nu
   let delivered = 0;
   const payload = JSON.stringify({ title: message.title, body: message.body, url: message.url ?? "/dashboard", tag: message.tag });
   for (const s of subs) {
+    // Checked again at send time; web-push doesn't follow redirects.
+    if (!isPushServiceEndpoint(s.endpoint)) {
+      await prisma.pushSubscription.deleteMany({ where: { id: s.id } });
+      continue;
+    }
     try {
       await webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, payload, { TTL: 60 * 60 });
       delivered++;

@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { createTestStudent, createTestAdmin, cleanupTestData, SessionAgent, TEST_PASSWORD } from "./helpers";
 import { handleProblem, suggestHandle, safeLink } from "@/lib/portfolio";
 import { runReminders, inGoalWindow, inStreakWindow, lagosTime } from "@/lib/reminders";
-import { sendPush } from "@/lib/push";
+import { sendPush, isPushServiceEndpoint } from "@/lib/push";
 
 const ORIGINAL_SECRET = process.env.CRON_SECRET;
 afterEach(() => {
@@ -233,13 +233,20 @@ describe("reminders", () => {
     expect(lagosTime(new Date("2026-11-23T15:00:00Z"))).toBe("4:00 pm");
   });
 
-  it.fails("rejects push subscriptions to private HTTPS endpoints", async () => {
+  it("rejects push subscriptions to anything but a browser push service (SSRF)", async () => {
     const s = await createTestStudent("p4-push-private-endpoint");
     const res = await s.agent.post("/api/lms/push/subscribe", {
       endpoint: "https://127.0.0.1/internal",
       keys: { p256dh: "a".repeat(87), auth: "b".repeat(22) }
     });
     expect(res.status).toBe(400);
+    expect(isPushServiceEndpoint("https://fcm.googleapis.com/fcm/send/abc")).toBe(true);
+    expect(isPushServiceEndpoint("https://updates.push.services.mozilla.com/wpush/v2/abc")).toBe(true);
+    expect(isPushServiceEndpoint("https://web.push.apple.com/abc")).toBe(true);
+    expect(isPushServiceEndpoint("https://wns2-par02p.notify.windows.com/w/?token=abc")).toBe(true);
+    for (const bad of ["https://169.254.169.254/latest", "https://localhost/x", "https://fcm.googleapis.com.evil.com/x", "https://evilfcm.googleapis.com.attacker.io/x", "https://fcm.googleapis.com:8443/x", "https://user@fcm.googleapis.com/x", "http://fcm.googleapis.com/x", "https://push.example.com/x"]) {
+      expect(isPushServiceEndpoint(bad)).toBe(false);
+    }
   });
 
   it("reminds confirmed students once before class, unless they turned it off", async () => {
@@ -285,7 +292,7 @@ describe("reminders", () => {
     expect((await s.agent.patch("/api/lms/reminders", { whatsapp: true, streak: false })).body).toMatchObject({ whatsapp: true, streak: false });
 
     expect((await s.agent.post("/api/lms/push/subscribe", { endpoint: "http://insecure.example/x", keys: { p256dh: "a".repeat(30), auth: "b".repeat(12) } })).status).toBe(400);
-    const endpoint = `https://push.example.com/vitest-${Date.now()}`;
+    const endpoint = `https://fcm.googleapis.com/fcm/send/vitest-${Date.now()}`;
     expect((await s.agent.post("/api/lms/push/subscribe", { endpoint, keys: { p256dh: "a".repeat(87), auth: "b".repeat(22) } })).status).toBe(200);
     expect((await s.agent.get("/api/lms/reminders")).body.push.devices).toBe(1);
     // Without server keys push is off, quietly.
