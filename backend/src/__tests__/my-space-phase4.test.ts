@@ -233,6 +233,15 @@ describe("reminders", () => {
     expect(lagosTime(new Date("2026-11-23T15:00:00Z"))).toBe("4:00 pm");
   });
 
+  it.fails("rejects push subscriptions to private HTTPS endpoints", async () => {
+    const s = await createTestStudent("p4-push-private-endpoint");
+    const res = await s.agent.post("/api/lms/push/subscribe", {
+      endpoint: "https://127.0.0.1/internal",
+      keys: { p256dh: "a".repeat(87), auth: "b".repeat(22) }
+    });
+    expect(res.status).toBe(400);
+  });
+
   it("reminds confirmed students once before class, unless they turned it off", async () => {
     const s = await confirmedStudent("p4-class");
     const off = await confirmedStudent("p4-class-off");
