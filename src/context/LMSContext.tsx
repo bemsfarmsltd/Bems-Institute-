@@ -120,7 +120,13 @@ interface LMSContextType {
     payload: Partial<
       Pick<
         MySpaceProfile,
-        "goalType" | "goal" | "experienceLevel" | "weeklyHours" | "motivation" | "weeklyRecapEmail"
+        | "goalType"
+        | "goal"
+        | "experienceLevel"
+        | "weeklyHours"
+        | "motivation"
+        | "weeklyRecapEmail"
+        | "shareWithTutor"
       >
     > & {
       accentColor?: MySpaceAccentColor | null;
@@ -358,7 +364,13 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
       payload: Partial<
         Pick<
           MySpaceProfile,
-          "goalType" | "goal" | "experienceLevel" | "weeklyHours" | "motivation" | "weeklyRecapEmail"
+          | "goalType"
+          | "goal"
+          | "experienceLevel"
+          | "weeklyHours"
+          | "motivation"
+          | "weeklyRecapEmail"
+          | "shareWithTutor"
         >
       > & {
         accentColor?: MySpaceAccentColor | null;

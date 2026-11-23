@@ -263,6 +263,7 @@ export interface MySpaceProfile {
   weeklyHours: number | null;
   motivation: string | null;
   weeklyRecapEmail?: boolean;
+  shareWithTutor?: boolean;
   onboardedAt: string | null;
 }
 
@@ -402,5 +403,180 @@ export interface MySpaceData {
     weeksOnTarget: number;
   };
   communityUrl: string | null;
+}
+
+export interface PublicPortfolio {
+  handle: string;
+  headline: string | null;
+  name: string;
+  avatarUrl: string | null;
+  tracks: Array<{
+    title: string;
+    slug: string;
+    color: string | null;
+    status: "IN_PROGRESS" | "COMPLETED";
+  }>;
+  badges: Array<{
+    id: string;
+    title: string;
+    description: string;
+    icon: string;
+    earnedAt: string | null;
+  }>;
+  projects: Array<{
+    title: string;
+    type: "MILESTONE" | "CAPSTONE";
+    courseTitle: string;
+    githubUrl: string | null;
+    liveDemoUrl: string | null;
+    score: number | null;
+    gradedAt: string | null;
+  }>;
+  certificates: Array<{
+    certNumber: string;
+    courseTitle: string;
+    gradeTitle: string;
+    issuedAt: string;
+    href: string;
+  }>;
+}
+
+export interface PortfolioSettings {
+  enabled: boolean;
+  handle: string | null;
+  headline: string | null;
+  showScores: boolean;
+  suggestedHandle: string;
+  url: string | null;
+  canEnable: boolean;
+  preview: PublicPortfolio;
+}
+
+export interface StudyNoteItem {
+  lessonId: string;
+  lessonTitle: string;
+  moduleTitle: string;
+  courseTitle: string;
+  courseSlug: string;
+  href: string | null;
+  body: string;
+  updatedAt: string;
+}
+
+export interface BookmarkItem {
+  id: string;
+  kind: "LESSON" | "LINK";
+  title: string;
+  url: string | null;
+  lessonId: string | null;
+  lessonTitle: string | null;
+  courseTitle: string | null;
+  href: string | null;
+  createdAt: string;
+}
+
+export interface RemindersSettings {
+  classes: boolean;
+  goal: boolean;
+  streak: boolean;
+  whatsapp: boolean;
+  push: {
+    publicKey: string | null;
+    devices: number;
+  };
+  whatsappAvailable: boolean;
+  phoneOnFile: boolean;
+}
+
+export interface TutorCourseSummary {
+  id: string;
+  title: string;
+  slug: string;
+  color: string | null;
+}
+
+export interface TutorStudentFlag {
+  kind: "NOT_STARTED" | "INACTIVE" | "BEHIND_GOAL" | "LOW_QUIZ" | "RESUBMIT" | "WEAK_TOPICS";
+  label: string;
+}
+
+export interface TutorStudentRow {
+  userId: string;
+  name: string;
+  avatarUrl: string | null;
+  courseId: string;
+  courseTitle: string;
+  cohortName: string | null;
+  deliveryMode: "PHYSICAL_LAB" | "VIRTUAL_ZOOM";
+  status: string;
+  goal: {
+    goalType: MySpaceGoalType | null;
+    goalLabel: string | null;
+    goal: string | null;
+    experienceLevel: MySpaceExperienceLevel | null;
+    weeklyHours: number | null;
+  } | null;
+  progress: {
+    completed: number;
+    total: number;
+    percent: number;
+  };
+  currentLesson: {
+    title: string;
+    moduleTitle: string;
+  } | null;
+  lastActiveAt: string | null;
+  streakDays: number;
+  week: {
+    minutesStudied: number;
+    goalMinutes: number | null;
+  };
+  projects: {
+    submitted: number;
+    awaitingGrade: number;
+    latestScore: number | null;
+  };
+  quiz: {
+    attempts: number;
+    latestScore: number | null;
+  };
+  flags: TutorStudentFlag[];
+  needsAttention: boolean;
+}
+
+export interface TutorStudentDetail extends TutorStudentRow {
+  contact: {
+    email: string;
+    phone: string | null;
+  };
+  modules: Array<{
+    title: string;
+    completed: number;
+    total: number;
+    status: "DONE" | "CURRENT" | "UPCOMING";
+  }>;
+  recentActivity: Array<{
+    type: string;
+    label: string;
+    lessonTitle: string | null;
+    at: string;
+  }>;
+  quizAttempts: Array<{
+    quizTitle: string;
+    score: number;
+    passed: boolean;
+    at: string;
+  }>;
+  submissions: Array<{
+    id: string;
+    title: string;
+    type: "MILESTONE" | "CAPSTONE";
+    status: string;
+    score: number | null;
+    githubUrl: string | null;
+    liveDemoUrl: string | null;
+    submittedAt: string;
+    gradedAt: string | null;
+  }>;
 }
 

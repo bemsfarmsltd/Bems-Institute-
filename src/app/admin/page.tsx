@@ -437,8 +437,22 @@ function AdminDashboardContent() {
   // Admin Settings state — General Settings (/api/admin/settings/general)
   // and Notification Settings (/api/admin/settings/notifications) are live.
   const [settingsSubTab, setSettingsSubTab] = useState<
-    "general" | "staff" | "security" | "notification" | "account" | "email"
+    "general" | "staff" | "course-tutors" | "security" | "notification" | "account" | "email"
   >("general");
+  const [courseTutorsCourses, setCourseTutorsCourses] = useState<
+    Array<{
+      id: string;
+      title: string;
+      catalogueTutor: string;
+      tutors: Array<{ id: string; name: string; email: string }>;
+    }>
+  >([]);
+  const [courseTutorsStaff, setCourseTutorsStaff] = useState<
+    Array<{ id: string; name: string; email: string; role: string }>
+  >([]);
+  const [courseTutorDrafts, setCourseTutorDrafts] = useState<Record<string, string[]>>({});
+  const [courseTutorsLoading, setCourseTutorsLoading] = useState(false);
+  const [savingCourseTutorId, setSavingCourseTutorId] = useState<string | null>(null);
   const [securityData, setSecurityData] = useState<SecurityOverview | null>(null);
   const [securityLoading, setSecurityLoading] = useState(false);
   const [securityError, setSecurityError] = useState<string | null>(null);
@@ -1194,14 +1208,59 @@ function AdminDashboardContent() {
     }
   }, []);
 
+  const loadCourseTutors = useCallback(async () => {
+    setCourseTutorsLoading(true);
+    try {
+      const res = await apiFetch("/api/instructor/course-tutors");
+      const data = await res.json().catch(() => null);
+      if (res.ok && data) {
+        const list = Array.isArray(data.courses) ? data.courses : [];
+        setCourseTutorsCourses(list);
+        setCourseTutorsStaff(Array.isArray(data.staff) ? data.staff : []);
+        const drafts: Record<string, string[]> = {};
+        for (const c of list) {
+          drafts[c.id] = Array.isArray(c.tutors) ? c.tutors.map((t: { id: string }) => t.id) : [];
+        }
+        setCourseTutorDrafts(drafts);
+      }
+    } finally {
+      setCourseTutorsLoading(false);
+    }
+  }, []);
+
+  const handleSaveCourseTutors = async (courseId: string) => {
+    setSavingCourseTutorId(courseId);
+    try {
+      const userIds = courseTutorDrafts[courseId] || [];
+      const res = await apiFetch(`/api/instructor/course-tutors/${encodeURIComponent(courseId)}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userIds })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setAdminNotice(data?.error || "Could not update course tutors.");
+      } else {
+        setAdminNotice("Course tutors updated.");
+        await loadCourseTutors();
+      }
+    } catch {
+      setAdminNotice("Network error while updating course tutors.");
+    } finally {
+      setSavingCourseTutorId(null);
+    }
+  };
+
   useEffect(() => {
     if (activeTab !== "settings") return;
     if (settingsSubTab === "security") {
       void loadSecurityOverview();
     } else if (settingsSubTab === "staff") {
       void loadStaffAndInvites();
+    } else if (settingsSubTab === "course-tutors") {
+      void loadCourseTutors();
     }
-  }, [activeTab, settingsSubTab, loadSecurityOverview, loadStaffAndInvites]);
+  }, [activeTab, settingsSubTab, loadSecurityOverview, loadStaffAndInvites, loadCourseTutors]);
 
   const handleStart2faSetup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1725,6 +1784,14 @@ function AdminDashboardContent() {
             <Home className="w-4 h-4 shrink-0" />
             <span>Dashboard</span>
           </button>
+
+          <Link
+            href="/tutor"
+            className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-[14px] font-semibold text-white/90 hover:text-white hover:bg-white/5 transition-colors mt-1"
+          >
+            <GraduationCap className="w-4 h-4 shrink-0" />
+            <span>Tutor View</span>
+          </Link>
 
           {/* Section Label: Pages */}
           <div className="px-3.5 pt-5 pb-2 text-[12px] font-medium text-[#747579]">
@@ -4758,6 +4825,7 @@ function AdminDashboardContent() {
                   {[
                     { id: "general", label: "General Settings", icon: Settings },
                     { id: "staff", label: "Staff & Access", icon: Users },
+                    { id: "course-tutors", label: "Course tutors", icon: GraduationCap },
                     { id: "security", label: "Security", icon: Shield },
                     { id: "notification", label: "Notification Settings", icon: Bell },
                     { id: "account", label: "Account Settings", icon: UserIcon },
@@ -4774,6 +4842,7 @@ function AdminDashboardContent() {
                             item.id as
                               | "general"
                               | "staff"
+                              | "course-tutors"
                               | "security"
                               | "notification"
                               | "account"
@@ -5570,6 +5639,97 @@ function AdminDashboardContent() {
                             ))
                           )}
                         </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {settingsSubTab === "course-tutors" && (
+                    /* Sub-Tab: Course Tutors Assignment */
+                    <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
+                      <div className="px-5 sm:px-6 py-4 border-b border-slate-100">
+                        <h2 className="font-display text-[19px] sm:text-[20px] font-extrabold text-[#1D2026]">
+                          Course tutors
+                        </h2>
+                        <p className="text-[12.5px] text-[#747579] mt-0.5">
+                          Assign instructors or admins to courses so they can monitor student progress in Tutor View.
+                        </p>
+                      </div>
+
+                      <div className="divide-y divide-slate-100">
+                        {courseTutorsLoading && courseTutorsCourses.length === 0 ? (
+                          <div className="p-6 text-[13.5px] text-[#747579]">
+                            Loading course tutors…
+                          </div>
+                        ) : courseTutorsCourses.length === 0 ? (
+                          <div className="p-6 text-[13.5px] text-[#747579]">
+                            No courses found.
+                          </div>
+                        ) : (
+                          courseTutorsCourses.map((course) => {
+                            const selectedIds = courseTutorDrafts[course.id] || [];
+                            return (
+                              <div key={course.id} className="p-5 sm:px-6 space-y-3">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                  <div>
+                                    <h3 className="text-[15px] font-extrabold text-[#1D2026]">
+                                      {course.title}
+                                    </h3>
+                                    <p className="text-[12px] text-[#747579]">
+                                      Catalogue lead: {course.catalogueTutor}
+                                    </p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    disabled={savingCourseTutorId === course.id}
+                                    onClick={() => void handleSaveCourseTutors(course.id)}
+                                    className="m-press self-start sm:self-auto px-4 py-2 rounded-lg bg-[#AE54C6] hover:bg-[#9B42B3] text-white text-[12.5px] font-bold cursor-pointer disabled:opacity-60"
+                                  >
+                                    {savingCourseTutorId === course.id ? "Saving…" : "Save tutors"}
+                                  </button>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                                  {courseTutorsStaff.map((staff) => {
+                                    const checked = selectedIds.includes(staff.id);
+                                    return (
+                                      <label
+                                        key={staff.id}
+                                        className={`flex items-center gap-2.5 p-2.5 rounded-lg border text-xs cursor-pointer transition-colors ${
+                                          checked
+                                            ? "border-[#AE54C6] bg-[#FAF8FF]"
+                                            : "border-slate-200 bg-white hover:border-slate-300"
+                                        }`}
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          checked={checked}
+                                          onChange={() => {
+                                            setCourseTutorDrafts((prev) => {
+                                              const current = prev[course.id] || [];
+                                              const next = current.includes(staff.id)
+                                                ? current.filter((id) => id !== staff.id)
+                                                : [...current, staff.id];
+                                              return { ...prev, [course.id]: next };
+                                            });
+                                          }}
+                                          className="accent-[#AE54C6]"
+                                        />
+                                        <div className="min-w-0">
+                                          <div className="font-bold text-[#1D2026] truncate">
+                                            {staff.name}
+                                          </div>
+                                          <div className="text-[11px] text-[#747579] truncate">
+                                            {staff.role}
+                                          </div>
+                                        </div>
+                                      </label>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            );
+                          })
+                        )}
                       </div>
                     </div>
                   )}
