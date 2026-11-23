@@ -12,6 +12,7 @@ import { createPasswordResetToken, deliverPasswordResetLink, lookupResetToken, c
 import { recordReferralSignup } from "@/lib/referrals";
 import { isValidEmail } from "@/lib/validation";
 import { uploadAvatar } from "@/lib/cloudinary";
+import { frontendUrl } from "@/lib/email";
 
 const MAX_NAME_LENGTH = 100;
 
@@ -415,8 +416,8 @@ router.post("/request-reset", async (req, res) => {
   const user = await prisma.user.findUnique({ where: { email } });
   if (user) {
     const rawToken = await createPasswordResetToken(user.id);
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
-    const resetUrl = `${frontendUrl}/reset-password?token=${rawToken}`;
+    // FRONTEND_URL can list several sites (CORS); links use the first, main one.
+    const resetUrl = frontendUrl(`/reset-password?token=${rawToken}`);
     deliverPasswordResetLink(user.email, resetUrl);
   }
 
