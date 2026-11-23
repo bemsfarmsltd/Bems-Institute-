@@ -20,6 +20,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  // Absolute base for share links and canonical URLs (e.g. /u/<handle> previews).
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://www.bemsinstitute.com"),
   title: {
     default: "BEMS Institute of Technology & Vocational Studies | FutureSkills Accelerator",
     template: "%s | BEMS Institute of Technology"

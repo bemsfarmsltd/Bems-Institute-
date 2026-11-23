@@ -9,6 +9,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { hasCourseAccess } from "@/lib/api-auth";
+import { safeLink } from "@/lib/portfolio";
 import { ACTIVE_EVENTS, dayStreak, lagosDateKey, lagosWeekStart, lessonMinutesBetween } from "@/lib/my-space";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -253,7 +254,7 @@ export async function getTutorStudent(session: { id: string; role: string }, cou
     quizAttempts: attempts.map((a) => ({ quizTitle: a.quiz.title, score: a.score, passed: a.passed, at: a.createdAt })),
     submissions: submissions.map((s) => ({
       id: s.id, title: s.assignment.title, type: s.assignment.type, status: s.status, score: s.score,
-      githubUrl: s.githubUrl, liveDemoUrl: s.liveDemoUrl, submittedAt: s.createdAt, gradedAt: s.gradedAt
+      githubUrl: safeLink(s.githubUrl), liveDemoUrl: safeLink(s.liveDemoUrl), submittedAt: s.createdAt, gradedAt: s.gradedAt
     }))
   };
 }

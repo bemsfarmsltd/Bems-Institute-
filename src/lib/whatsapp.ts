@@ -9,6 +9,17 @@ export const BEMS_WHATSAPP_NUMBER = (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || 
 // from opening a real conversation on either side (visitor -> BEMS, or
 // staff -> a specific student using their own phone number).
 export function buildWhatsAppLink(phone: string, message: string): string {
+  return `https://wa.me/${toWhatsAppDigits(phone)}?text=${encodeURIComponent(message)}`;
+}
+
+// wa.me needs the international form without "+" or a leading 0: students
+// type "0803 000 0000" far more often than "+234 803 000 0000". Same rule as
+// the backend's normalizePhoneToE164.
+export function toWhatsAppDigits(phone: string, countryCode = "234"): string {
   const digits = phone.replace(/[^0-9]/g, "");
-  return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
+  if (!digits || phone.trim().startsWith("+")) return digits;
+  if (digits.startsWith("00")) return digits.slice(2);
+  if (digits.startsWith("0")) return countryCode + digits.slice(1);
+  if (digits.startsWith(countryCode)) return digits;
+  return countryCode + digits;
 }

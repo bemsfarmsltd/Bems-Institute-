@@ -194,6 +194,11 @@ describe("tutor view", () => {
     expect(detail.body.student.contact.email).toBe(s.email);
     expect(detail.body.student.modules.length).toBeGreaterThan(0);
     expect(JSON.stringify(detail.body)).not.toContain("very private");
+    // Unsafe project links never reach the tutor, and new ones are refused.
+    expect((await s.agent.post("/api/lms/submissions", { assignmentId: "assign-web-dev", githubUrl: "javascript:alert(1)" })).status).toBe(400);
+    await prisma.submission.create({ data: { assignmentId: "assign-web-dev", userId: s.userId, githubUrl: "https://github.com/x/y", liveDemoUrl: "javascript:alert(1)" } });
+    const again = (await tutor.agent.get(`/api/instructor/students/${s.userId}?courseId=web-dev`)).body.student;
+    expect(again.submissions[0]).toMatchObject({ githubUrl: "https://github.com/x/y", liveDemoUrl: null });
 
     // Unassigning removes access.
     await s.admin.put("/api/instructor/course-tutors/web-dev", { userIds: [] });

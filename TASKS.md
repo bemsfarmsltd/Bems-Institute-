@@ -206,6 +206,26 @@ Branch `claude/my-space-phase4`. All new endpoints; nothing existing changed sha
 - New `profile.shareWithTutor` (`PATCH /api/lms/my-space/profile { shareWithTutor }`). New students default to sharing; everyone who signed up before today was set to not sharing, because they were told "Only you (and your AI tutor) see this".
 - Welcome setup line → "Your tutor and your AI tutor see your goal, level and weekly time, to help you. Your reason for joining stays private." with a "Share with my tutor" switch (on). Same switch in the dashboard Preferences card, replacing "Only you (and your AI tutor) see your goals and weekly pace."
 
+#### Phase 4 QA (Claude Code, 2026-11-24)
+
+Merged `antigravity/my-space-phase4-ui` and Copilot's review into `claude/my-space-phase4` (PR #2). Backend 126/126; frontend `tsc` and `next build` OK. Browser-checked at 375px and 1366px against a local backend:
+- the public page saves, shows only public data and hides unsafe links;
+- notes autosave (a tab on desktop, a bottom sheet on mobile);
+- bookmarks and the reminder switches save;
+- the tutor list, flags, detail view and contact buttons work;
+- admin Course tutors works;
+- no page errors and no horizontal scroll.
+
+Fixes in QA:
+- Push sign-up only accepts the browsers' push services (Copilot's SSRF finding), and the address is checked again before each send.
+- Project links must be https web addresses when submitted, and the tutor view filters out old unsafe ones (a `javascript:` "Demo" link was showing in the tutor detail).
+- WhatsApp buttons turn local numbers (0803…) into 234… (`src/lib/whatsapp.ts`), because `wa.me/0803…` doesn't open a chat. This also fixes admin's existing student WhatsApp buttons.
+- `/u/[handle]`: share-preview (Open Graph) tags, no duplicate site name in the title, and not-found pages aren't indexed. The root layout has `metadataBase` (www.bemsinstitute.com, or `NEXT_PUBLIC_SITE_URL`).
+
+Left for Antigravity (not blocking):
+- The new files add a few "setState in an effect" lint errors, the same pattern as the existing pages.
+- The portfolio address box is narrow at 375px.
+
 ### My Space Phase 3 API (Claude Code → Antigravity)
 All additive on `GET /api/lms/my-space`.
 

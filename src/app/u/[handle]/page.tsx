@@ -57,15 +57,29 @@ export async function generateMetadata({
   const portfolio = await fetchPublicPortfolio(handle);
   if (!portfolio) {
     return {
-      title: "Portfolio Not Found · BEMS Institute",
-      description: "This portfolio page isn't available."
+      title: { absolute: "Portfolio not found · BEMS Institute" },
+      description: "This portfolio page isn't available.",
+      robots: { index: false, follow: false }
     };
   }
+  const title = `${portfolio.name} · BEMS Institute`;
+  const description =
+    portfolio.headline ||
+    `${portfolio.name}'s verified learning portfolio at BEMS Institute of Technology.`;
+  // Open Graph tags give the link a proper preview when shared on WhatsApp/LinkedIn.
   return {
-    title: `${portfolio.name} · BEMS Institute`,
-    description:
-      portfolio.headline ||
-      `${portfolio.name}'s verified learning portfolio at BEMS Institute of Technology.`
+    title: { absolute: title },
+    description,
+    alternates: { canonical: `/u/${portfolio.handle}` },
+    openGraph: {
+      type: "profile",
+      title,
+      description,
+      url: `/u/${portfolio.handle}`,
+      siteName: "BEMS Institute of Technology",
+      images: [{ url: "/images/bems-logo.jpg", alt: "BEMS Institute of Technology" }]
+    },
+    twitter: { card: "summary", title, description }
   };
 }
 

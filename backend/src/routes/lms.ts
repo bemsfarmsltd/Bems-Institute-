@@ -20,6 +20,7 @@ import { getBankTransferDetails } from "@/lib/site-settings";
 import { getCommunityUrl } from "@/lib/community";
 import { getMySpace, saveSpaceProfile, ProfileError, syncBadges } from "@/lib/my-space";
 import { markBadgesSeen } from "@/lib/badges";
+import { safeLink } from "@/lib/portfolio";
 
 const router = Router();
 
@@ -416,6 +417,10 @@ router.post("/submissions", async (req, res) => {
 
   if (!assignmentId || !githubUrl) {
     return res.status(400).json({ error: "assignmentId and githubUrl are required." });
+  }
+  // Links are shown to staff and on the public portfolio: web addresses only.
+  if (!safeLink(githubUrl) || (liveDemoUrl && !safeLink(liveDemoUrl))) {
+    return res.status(400).json({ error: "Project links must be full web addresses starting with https://." });
   }
 
   const assignment = await prisma.assignment.findUnique({ where: { id: assignmentId }, include: { course: { select: { slug: true, title: true } } } });
