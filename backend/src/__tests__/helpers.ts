@@ -40,6 +40,14 @@ export class SessionAgent {
     return res;
   }
 
+  async put(path: string, body?: Record<string, unknown>) {
+    const req = request(app).put(path);
+    if (this.cookie) req.set("Cookie", this.cookie);
+    const res = body !== undefined ? await req.send(body) : await req.send();
+    this.capture(res);
+    return res;
+  }
+
   async delete(path: string) {
     const req = request(app).delete(path);
     if (this.cookie) req.set("Cookie", this.cookie);

@@ -83,3 +83,39 @@ export async function sendWhatsAppMessage(toPhone: string, message: string): Pro
     return { ok: true };
   }
 }
+
+/**
+ * Sends an approved WhatsApp template (Twilio Content API). Business-started
+ * WhatsApp messages outside a 24-hour reply window must use a template Meta
+ * has approved, so reminders use this instead of sendWhatsAppMessage.
+ * `variables` fill {{1}}, {{2}}, … in the template. Best effort, never throws.
+ */
+export async function sendWhatsAppTemplate(toPhone: string, contentSid: string, variables: string[]): Promise<WhatsAppSendResult> {
+  const sid = process.env.TWILIO_ACCOUNT_SID;
+  const token = process.env.TWILIO_AUTH_TOKEN;
+  const from = process.env.TWILIO_WHATSAPP_FROM;
+  if (!sid || !token || !from) return { ok: false, error: "Twilio is not configured." };
+  const to = normalizePhoneToE164(toPhone);
+  if (!to) return { ok: false, error: "Could not parse a phone number to send to." };
+
+  const body = new URLSearchParams({
+    From: `whatsapp:${from}`,
+    To: `whatsapp:${to}`,
+    ContentSid: contentSid,
+    ContentVariables: JSON.stringify(Object.fromEntries(variables.map((v, i) => [String(i + 1), v])))
+  });
+  try {
+    const res = await fetch(`${TWILIO_API_BASE}/Accounts/${sid}/Messages.json`, {
+      method: "POST",
+      headers: { Authorization: `Basic ${Buffer.from(`${sid}:${token}`).toString("base64")}`, "Content-Type": "application/x-www-form-urlencoded" },
+      body
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      return { ok: false, error: data?.message || "Twilio rejected the message." };
+    }
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "Could not reach Twilio." };
+  }
+}

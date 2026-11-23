@@ -114,6 +114,12 @@ model User {
   conceptMasteries ConceptMastery[]
   learningProfile  LearningProfile?
   badges           UserBadge[]
+  // Phase 4: tutor ↔ course links, lesson notes, bookmarks, reminders.
+  coursesTaught    CourseInstructor[]
+  lessonNotes      LessonNote[]
+  bookmarks        Bookmark[]
+  pushSubscriptions PushSubscription[]
+  reminderLogs     ReminderLog[]
   passwordResetTokens PasswordResetToken[]
   notifications    Notification[]
   // Bring-a-friend (PRD §5.3): every user gets a permanent shareable code;
@@ -394,6 +400,7 @@ model Course {
   jobPlacements JobPlacement[]
   leads Lead[]
   reviews Review[]
+  instructors  CourseInstructor[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 }
@@ -424,6 +431,8 @@ model Lesson {
   module        Module         @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   userProgress  UserProgress[]
   concepts      LessonConcept[]
+  notes         LessonNote[]
+  bookmarks     Bookmark[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
@@ -856,6 +865,21 @@ model LearningProfile {
   // How the student's space looks (lib/appearance.ts preset ids; null = default).
   accentColor        String?
   banner             String?
+  // Public portfolio (lib/portfolio.ts): off until the student turns it on.
+  // The handle is the page address, /u/<handle>.
+  portfolioEnabled    Boolean @default(false)
+  portfolioHandle     String? @unique
+  portfolioHeadline   String?
+  portfolioShowScores Boolean @default(false)
+  // Whether the student's tutor sees their goal, level and weekly hours in
+  // the tutor view (never "why I joined"). Rows from before Phase 4 were set
+  // to false by the migration: those students were told only they would see it.
+  shareWithTutor      Boolean @default(true)
+  // Reminders (lib/reminders.ts). WhatsApp is opt-in.
+  remindClasses       Boolean @default(true)
+  remindGoal          Boolean @default(true)
+  remindStreak        Boolean @default(true)
+  whatsappReminders   Boolean @default(false)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 }
@@ -960,4 +984,74 @@ model UserBadge {
 
   @@unique([userId, badgeId])
   @@index([userId])
+}
+
+// Which tutors (INSTRUCTOR users) teach which course. Set by an admin; a
+// tutor only sees students of their own courses in the tutor view.
+model CourseInstructor {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, courseId])
+  @@index([courseId])
+}
+
+// A student's private note on a lesson (one per lesson).
+model LessonNote {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId  String
+  lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  body      String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, lessonId])
+}
+
+// A saved lesson (lessonId) or outside resource (url + title).
+model Bookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId  String?
+  lesson    Lesson?  @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  url       String?
+  title     String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, lessonId])
+  @@unique([userId, url])
+  @@index([userId, createdAt])
+}
+
+// A browser that agreed to push notifications (Web Push).
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// One row per reminder sent, so each goes out once (kind + key, e.g.
+// "CLASS" + the live session id, "STREAK" + the Lagos date).
+model ReminderLog {
+  id     String   @id @default(cuid())
+  userId String
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind   String
+  key    String
+  sentAt DateTime @default(now())
+
+  @@unique([userId, kind, key])
 }

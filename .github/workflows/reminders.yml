@@ -1,0 +1,26 @@
+name: Reminders
+
+# Every 15 minutes from 06:00 to 22:45 Lagos time (05:00–21:45 UTC), ask the
+# backend to send due reminders (backend/src/lib/reminders.ts): "class starts
+# in an hour", "1 lesson from your weekly goal", "keep your streak". Each
+# reminder is sent at most once however often this runs, and nothing runs at
+# night, which also keeps the free Render service asleep overnight.
+on:
+  schedule:
+    - cron: "*/15 5-21 * * *"
+  workflow_dispatch:
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send due reminders
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then echo "CRON_SECRET repo secret is not set"; exit 1; fi
+          # A sleeping free Render service takes ~1 min to wake.
+          curl --fail-with-body --silent --show-error --max-time 240 \
+            --retry 2 --retry-delay 30 --retry-all-errors \
+            -X POST -H "Authorization: Bearer $CRON_SECRET" \
+            https://api.bemsinstitute.com/api/jobs/reminders

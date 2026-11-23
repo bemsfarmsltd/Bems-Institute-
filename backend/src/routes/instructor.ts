@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { prisma } from "@/lib/prisma";
-import { getSessionUser, isStaff } from "@/lib/api-auth";
+import { getSessionUser, isStaff, isAdmin } from "@/lib/api-auth";
+import { listTutorStudents, getTutorStudent, listCourseTutors, setCourseTutors, TutorViewError } from "@/lib/tutor-view";
 
 const router = Router();
 
@@ -62,6 +63,51 @@ router.get("/concept-analytics", async (req, res) => {
   rows.sort((a, b) => b.strugglePercent - a.strugglePercent || b.totalStudents - a.totalStudents);
 
   return res.json({ rows });
+});
+
+// ---- Tutor view (Phase 4) ----
+// A tutor sees the students of the courses an admin assigned them; admins see all.
+router.get("/students", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!session || !isStaff(session)) return res.status(403).json({ error: "Staff access required." });
+  const courseId = typeof req.query.courseId === "string" && req.query.courseId ? req.query.courseId : undefined;
+  try {
+    return res.json(await listTutorStudents(session, courseId));
+  } catch (err) {
+    if (err instanceof TutorViewError) return res.status(err.status).json({ error: err.message });
+    throw err;
+  }
+});
+
+router.get("/students/:userId", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!session || !isStaff(session)) return res.status(403).json({ error: "Staff access required." });
+  const courseId = typeof req.query.courseId === "string" ? req.query.courseId : "";
+  if (!courseId) return res.status(400).json({ error: "Choose a course." });
+  try {
+    return res.json({ student: await getTutorStudent(session, courseId, req.params.userId) });
+  } catch (err) {
+    if (err instanceof TutorViewError) return res.status(err.status).json({ error: err.message });
+    throw err;
+  }
+});
+
+// Admin: who teaches which course.
+router.get("/course-tutors", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isAdmin(session)) return res.status(403).json({ error: "Admin access required." });
+  return res.json(await listCourseTutors());
+});
+
+router.put("/course-tutors/:courseId", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!isAdmin(session)) return res.status(403).json({ error: "Admin access required." });
+  try {
+    return res.json(await setCourseTutors(req.params.courseId, req.body?.userIds));
+  } catch (err) {
+    if (err instanceof TutorViewError) return res.status(err.status).json({ error: err.message });
+    throw err;
+  }
 });
 
 export default router;

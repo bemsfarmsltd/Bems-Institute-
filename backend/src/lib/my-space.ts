@@ -71,6 +71,7 @@ export interface ProfileInput {
   weeklyRecapEmail?: unknown;
   accentColor?: unknown;
   banner?: unknown;
+  shareWithTutor?: unknown;
 }
 
 /** Validates and saves the welcome answers. Any field may be omitted (partial update). */
@@ -84,6 +85,7 @@ export async function saveSpaceProfile(userId: string, input: ProfileInput) {
     weeklyRecapEmail?: boolean;
     accentColor?: string | null;
     banner?: string | null;
+    shareWithTutor?: boolean;
   } = {};
 
   if (input.goalType !== undefined) {
@@ -104,6 +106,10 @@ export async function saveSpaceProfile(userId: string, input: ProfileInput) {
       throw new ProfileError(`Weekly study time must be between ${LIMITS.minHours} and ${LIMITS.maxHours} hours.`);
     }
     data.weeklyHours = hours;
+  }
+  if (input.shareWithTutor !== undefined) {
+    if (typeof input.shareWithTutor !== "boolean") throw new ProfileError("Choose on or off for sharing with your tutor.");
+    data.shareWithTutor = input.shareWithTutor;
   }
   if (input.weeklyRecapEmail !== undefined) {
     if (typeof input.weeklyRecapEmail !== "boolean") throw new ProfileError("Choose on or off for the weekly email.");
@@ -147,6 +153,7 @@ function mapProfile(p: {
   weeklyRecapEmail: boolean;
   accentColor: string | null;
   banner: string | null;
+  shareWithTutor: boolean;
 } | null) {
   if (!p) return null;
   return {
@@ -158,7 +165,9 @@ function mapProfile(p: {
     onboardedAt: p.onboardedAt,
     weeklyRecapEmail: p.weeklyRecapEmail,
     accentColor: p.accentColor,
-    banner: p.banner
+    banner: p.banner,
+    // Tutor sees goal, level and weekly hours (never "why I joined").
+    shareWithTutor: p.shareWithTutor
   };
 }
 
@@ -184,7 +193,7 @@ export function lagosDateKey(d: Date): string {
 }
 
 // What counts as "studied that day".
-const ACTIVE_EVENTS = ["LESSON_COMPLETED", "QUIZ_COMPLETED", "QUESTION_ANSWERED", "ASSIGNMENT_SUBMITTED", "AI_TUTOR_USED"] as const;
+export const ACTIVE_EVENTS = ["LESSON_COMPLETED", "QUIZ_COMPLETED", "QUESTION_ANSWERED", "ASSIGNMENT_SUBMITTED", "AI_TUTOR_USED"] as const;
 
 /** Consecutive active Lagos days ending today; today not active yet keeps yesterday's streak alive. */
 export function dayStreak(activeDays: Set<string>, now: Date): number {
