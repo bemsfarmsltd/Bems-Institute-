@@ -32,11 +32,9 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: "default",
     title: "BEMS LMS"
-  },
-  icons: {
-    icon: "/images/bems-logo.jpg",
-    apple: "/images/bems-logo.jpg"
   }
+  // Tab and home-screen icons come from src/app/favicon.ico, icon.png and
+  // apple-icon.png (the logo's emblem; the full logo's text is unreadable at 16px).
 };
 
 export const viewport: Viewport = {
