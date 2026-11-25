@@ -215,8 +215,7 @@ export function EduportBecomeInstructorView() {
               What a BEMS tutor does
             </h2>
             <p className="text-sm text-[#645F80] mt-1.5">
-              You teach BEMS&apos;s structured 3-month cohorts — no course marketplace uploads or
-              solo marketing.
+              You teach one of BEMS&apos;s own 3-month courses to a small class of students.
             </p>
           </div>
 
