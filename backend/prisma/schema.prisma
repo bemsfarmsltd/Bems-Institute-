@@ -1055,3 +1055,31 @@ model ReminderLog {
 
   @@unique([userId, kind, key])
 }
+
+// Applications from the public "Become a Tutor" page (/become-instructor).
+// Staff review them in the admin console; nothing here creates an account.
+enum TutorApplicationStatus {
+  NEW
+  CONTACTED
+  INTERVIEW
+  HIRED
+  DECLINED
+}
+
+model TutorApplication {
+  id           String                 @id @default(cuid())
+  name         String
+  email        String
+  phone        String
+  track        String                 // a course id, or "other"
+  teachingMode String                 // IN_PERSON | ONLINE | EITHER
+  experience   String                 @db.Text
+  portfolioUrl String?
+  status       TutorApplicationStatus @default(NEW)
+  staffNotes   String?                @db.Text
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+
+  @@index([status, createdAt])
+  @@index([email])
+}

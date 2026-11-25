@@ -8,6 +8,8 @@ section.
 
 | Task | Agent | Branch | Files / areas | Started |
 |---|---|---|---|---|
+| **Tutor applications API** (done, 131/131 backend tests): the "Become a Tutor" form saved nothing (it only showed a success message). Now `POST /api/tutor-applications` saves it, emails the applicant a confirmation and alerts admins; admins list and update applications. API and page content below. | Claude Code | `claude/tutor-applications` | `backend/` (schema + migration, `routes/tutor-applications.ts`, `app.ts`) | 2026-11-25 |
+| **Become a Tutor page rewrite**: replace every line of template placeholder text on `/become-instructor` with the content below, connect the form to the API, and add an admin "Tutor applications" screen. | Antigravity | `antigravity/become-tutor-page`, off `claude/tutor-applications` | `src/components/EduportBecomeInstructorView.tsx`, `src/app/become-instructor/*`, `src/app/admin/page.tsx` | 2026-11-25 |
 | **My Space Phase 4 API** (done, 125/125 backend tests; awaiting Codex review): public portfolio, tutor view + admin tutor assignment, reminders (in-app + push + opt-in WhatsApp, `POST /api/jobs/reminders` every 15 min), lesson notes + bookmarks, "share with my tutor" setting. API below. | Claude Code | `claude/my-space-phase4` | `backend/` (schema + migration, `lib/portfolio.ts`, `lib/study-notes.ts`, `lib/tutor-view.ts`, `lib/reminders.ts`, `lib/push.ts`, `lib/twilio.ts`, `routes/space.ts`, `routes/portfolio.ts`, `routes/instructor.ts`, `routes/jobs.ts`), `.github/workflows/reminders.yml` | 2026-11-23 |
 | **My Space Phase 4 UI**: public page `/u/[handle]`, portfolio card, notes + bookmarks, reminders card + service worker, tutor view, admin "Course tutors", welcome/dashboard privacy copy. Per the API below. | Antigravity | `antigravity/my-space-phase4-ui`, off `claude/my-space-phase4` | new `src/app/u/[handle]/page.tsx`, new `src/app/tutor/page.tsx`, `public/sw.js` (add push handlers), `src/app/dashboard/page.tsx`, `src/app/learn/**` (lesson page), `src/app/admin/page.tsx`, `src/app/welcome/page.tsx`, `src/types/lms.ts`, `src/context/LMSContext.tsx` | 2026-11-23 |
 | **Review `claude/my-space-phase4`** (done; see Copilot Phase 4 review below): (1) public portfolio privacy and safe links; (2) tutor course/goal/motivation privacy; (3) note and bookmark ownership/access; (4) reminder deduplication, student eligibility, Lagos windows, and WhatsApp opt-in; (5) push subscription input. Add tests. | GitHub Copilot | `copilot/my-space-phase4-review` | `backend/src/__tests__/` + review notes | 2026-11-23 |
@@ -172,6 +174,40 @@ Errors are always `{ error }` with a message to show as is. `429` = too many tri
 - `GET /api/staff-invites/:token` → `{ invite: { email, role, expiresAt, accountExists } }`, or `410` (expired/used: show the message).
 - `POST /api/staff-invites/:token/accept`: new person `{ name, password }` (8+ chars); `accountExists` → just `{ password }` of that account. → `{ user }` (signed in: go to `/admin` or `/instructor` by role) or `{ ok, signInRequired: true }` (send to `/login`).
 - `AdminGate`'s "register with staff code" now returns `403` once any admin exists: replace that tab with "Staff accounts are invite-only. Ask an admin for an invite link."
+
+### Become a Tutor: API and page content (Claude Code → Antigravity)
+Branch `claude/tutor-applications`. Every line on `/become-instructor` today is template placeholder text ("Satisfied conveying a dependent contented he gentleman…"), and the steps describe a course marketplace ("Add your Course", "Start Earning Money"). BEMS doesn't work like that: it hires tutors to teach its own four courses. The content below uses only facts from the PRD (§7 Tracks, Tutors & Delivery; §5 graduates return as teaching assistants). Items marked **[owner to confirm]** need the owner's yes before they go live; until then use the safe wording given.
+
+**API**
+- `POST /api/tutor-applications` (no sign-in) `{ name, email, phone, track, teachingMode, experience, portfolioUrl?, website }` → 201 `{ ok, id }`.
+  - `track`: a course id from the catalogue (`ai-automation`, `web-dev`, `product-design`, `cybersecurity`) or `"other"`.
+  - `teachingMode`: `IN_PERSON` | `ONLINE` | `EITHER`.
+  - `experience`: 30 to 3,000 characters. `portfolioUrl`: optional, https only.
+  - `website` is a hidden honeypot: render it off-screen with `tabIndex={-1}` and `autoComplete="off"`, and leave it empty. Bots fill it in and are dropped silently.
+  - Errors return 400 `{ error }` with a sentence to show under the form, and 429 after 5 applications an hour from one connection.
+  - The applicant gets a confirmation email; admins get an in-app notification and an email.
+- Admin: `GET /api/tutor-applications?status=` → `{ applications: [{ id, name, email, phone, track, trackTitle, teachingMode, teachingModeLabel, experience, portfolioUrl, status, staffNotes, createdAt }], counts: { NEW, CONTACTED, INTERVIEW, HIRED, DECLINED } }`. `PATCH /api/tutor-applications/:id { status?, staffNotes? }`.
+
+**Page content** (mobile first; keep the existing illustrations if they fit, but remove anything that implies a marketplace or course uploads)
+- Page title (metadata): "Teach at BEMS". Description: "Teach a tech course at BEMS Institute of Technology in Umuahia or online. See what tutors do and apply."
+- Hero, heading: **Teach tech at BEMS**. Text: "BEMS FutureSkills Accelerator trains people in Umuahia and online until they're ready for work. We're looking for practitioners who can teach a small class, mark real projects and help students get hired." Button: "Apply to teach" (scrolls to the form).
+- **Now recruiting**: "Cybersecurity tutor: lead our 3-month Cybersecurity course, ending in a security check-up report each student can show employers." Under it: "Teach AI & Automation, Web Development or Product Design? We welcome applications for future cohorts and teaching support too." **[owner to confirm** that the Cybersecurity role is still open before launch; if it's filled, drop this block and keep the second line.**]**
+- **What a BEMS tutor does** (4 short cards):
+  1. *Teach live classes*: 2–3 classes a week, in person at our Umuahia lab and online.
+  2. *Mark small projects*: students build something every 2–3 weeks; you give feedback they can act on.
+  3. *Guide a final project*: every course ends with real work a student can show an employer.
+  4. *Step in early*: your tutor dashboard shows who's falling behind, so you can help before they drop out.
+- **The four courses** (a simple table or cards, 3 months each): AI & Automation, 2 classes a week, final project "a working AI or automation mini-tool"; Web Development, 3 a week, "a live website anyone can visit"; Product Design (UI/UX), 3 a week, "a full design case study"; Cybersecurity, schedule set with the tutor, "a security check-up report".
+- **Who we're looking for**: real working experience in the subject (a portfolio, past projects or a current role); able to explain things clearly to beginners; available for a full 3-month cohort; for in-person classes, able to be at our Umuahia lab on class days. **[owner to confirm** these requirements.**]**
+- **How to apply** (3 steps): 1. Fill in the form below. 2. We'll call you to talk about your experience and the course. 3. If it's a fit, we agree pay and schedule, and you start with the next cohort. **[owner to confirm** whether there's a teaching demo; if so add "2b. Give a short teaching demo".**]**
+- **Pay**: "This is a paid role. We'll talk through pay and schedule on the call." Don't show figures: the PRD still has "BEMS to confirm pay per tutor per month".
+- **BEMS graduates**: "Finished a BEMS course? Our best graduates can come back as paid teaching assistants." (PRD §5). Link "See our courses" → `/courses`.
+- **Form** heading "Apply to teach". Fields: Full name; Email; Phone (WhatsApp if possible); Course you'd like to teach (select: the four courses + "Something else"); How you'd like to teach (In person in Umuahia / Online / Either); Your experience (textarea, placeholder "What have you built or taught? Where do you work now?"); Portfolio or LinkedIn link (optional); the hidden `website` field. Button "Send application", disabled while sending.
+  - Success state: "Thanks, {first name}. Your application has arrived, and we've emailed you a copy. We'll be in touch if your experience matches what we need."
+  - Show the API's `error` text on failure; never show success unless the API returned 201.
+- Remove: the "Instructor Dashboard / You can be your guiding star" block, the "Create Account / Add your Course / Start Earning Money" steps, the "Instructor Role / Start with Course" tabs and every placeholder paragraph.
+
+**Admin**: Settings → "Tutor applications" sub-tab (next to Course tutors): status filter chips with counts, newest first. Each card shows name, course, teaching mode, date, experience (expandable), portfolio link, Email / WhatsApp buttons (`buildWhatsAppLink` from `src/lib/whatsapp.ts`), a status dropdown and a notes box that saves on blur. When someone is hired, a hint: "Invite them as an Instructor in Staff & Access, then assign their course in Course tutors."
 
 ### My Space Phase 4 API (Claude Code → Antigravity)
 Branch `claude/my-space-phase4`. All new endpoints; nothing existing changed shape (the one addition is `profile.shareWithTutor`).
