@@ -61,6 +61,8 @@ import {
   UserPlus,
   Share2,
   RefreshCw,
+  ExternalLink,
+  MessageCircle,
 } from "lucide-react";
 
 interface EduportStudentCard {
@@ -437,8 +439,38 @@ function AdminDashboardContent() {
   // Admin Settings state — General Settings (/api/admin/settings/general)
   // and Notification Settings (/api/admin/settings/notifications) are live.
   const [settingsSubTab, setSettingsSubTab] = useState<
-    "general" | "staff" | "course-tutors" | "security" | "notification" | "account" | "email"
+    | "general"
+    | "staff"
+    | "course-tutors"
+    | "tutor-applications"
+    | "security"
+    | "notification"
+    | "account"
+    | "email"
   >("general");
+  const [tutorApps, setTutorApps] = useState<
+    Array<{
+      id: string;
+      name: string;
+      email: string;
+      phone: string;
+      track: string;
+      trackTitle: string;
+      teachingMode: string;
+      teachingModeLabel: string;
+      experience: string;
+      portfolioUrl: string | null;
+      status: "NEW" | "CONTACTED" | "INTERVIEW" | "HIRED" | "DECLINED";
+      staffNotes: string | null;
+      createdAt: string;
+    }>
+  >([]);
+  const [tutorAppCounts, setTutorAppCounts] = useState<Record<string, number>>({});
+  const [tutorAppFilter, setTutorAppFilter] = useState<string>("");
+  const [tutorAppsLoading, setTutorAppsLoading] = useState(false);
+  const [expandedTutorAppIds, setExpandedTutorAppIds] = useState<Record<string, boolean>>({});
+  const [tutorAppNoteDrafts, setTutorAppNoteDrafts] = useState<Record<string, string>>({});
+  const [savingTutorAppId, setSavingTutorAppId] = useState<string | null>(null);
   const [courseTutorsCourses, setCourseTutorsCourses] = useState<
     Array<{
       id: string;
@@ -1251,6 +1283,52 @@ function AdminDashboardContent() {
     }
   };
 
+  const loadTutorApplications = useCallback(async (statusFilter = tutorAppFilter) => {
+    setTutorAppsLoading(true);
+    try {
+      const qs = statusFilter ? `?status=${encodeURIComponent(statusFilter)}` : "";
+      const res = await apiFetch(`/api/tutor-applications${qs}`);
+      const data = await res.json().catch(() => null);
+      if (res.ok && data) {
+        const list = Array.isArray(data.applications) ? data.applications : [];
+        setTutorApps(list);
+        setTutorAppCounts(data.counts || {});
+        const noteDrafts: Record<string, string> = {};
+        for (const app of list) {
+          noteDrafts[app.id] = app.staffNotes || "";
+        }
+        setTutorAppNoteDrafts(noteDrafts);
+      }
+    } finally {
+      setTutorAppsLoading(false);
+    }
+  }, [tutorAppFilter]);
+
+  const handleUpdateTutorApplication = async (
+    id: string,
+    patch: { status?: string; staffNotes?: string }
+  ) => {
+    setSavingTutorAppId(id);
+    try {
+      const res = await apiFetch(`/api/tutor-applications/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch)
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setAdminNotice(data?.error || "Could not update tutor application.");
+      } else {
+        setAdminNotice("Tutor application updated.");
+        await loadTutorApplications(tutorAppFilter);
+      }
+    } catch {
+      setAdminNotice("Network error while updating tutor application.");
+    } finally {
+      setSavingTutorAppId(null);
+    }
+  };
+
   useEffect(() => {
     if (activeTab !== "settings") return;
     if (settingsSubTab === "security") {
@@ -1259,8 +1337,18 @@ function AdminDashboardContent() {
       void loadStaffAndInvites();
     } else if (settingsSubTab === "course-tutors") {
       void loadCourseTutors();
+    } else if (settingsSubTab === "tutor-applications") {
+      void loadTutorApplications(tutorAppFilter);
     }
-  }, [activeTab, settingsSubTab, loadSecurityOverview, loadStaffAndInvites, loadCourseTutors]);
+  }, [
+    activeTab,
+    settingsSubTab,
+    tutorAppFilter,
+    loadSecurityOverview,
+    loadStaffAndInvites,
+    loadCourseTutors,
+    loadTutorApplications
+  ]);
 
   const handleStart2faSetup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -4826,6 +4914,7 @@ function AdminDashboardContent() {
                     { id: "general", label: "General Settings", icon: Settings },
                     { id: "staff", label: "Staff & Access", icon: Users },
                     { id: "course-tutors", label: "Course tutors", icon: GraduationCap },
+                    { id: "tutor-applications", label: "Tutor applications", icon: ClipboardList },
                     { id: "security", label: "Security", icon: Shield },
                     { id: "notification", label: "Notification Settings", icon: Bell },
                     { id: "account", label: "Account Settings", icon: UserIcon },
@@ -4843,6 +4932,7 @@ function AdminDashboardContent() {
                               | "general"
                               | "staff"
                               | "course-tutors"
+                              | "tutor-applications"
                               | "security"
                               | "notification"
                               | "account"
@@ -5725,6 +5815,204 @@ function AdminDashboardContent() {
                                       </label>
                                     );
                                   })}
+                                </div>
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {settingsSubTab === "tutor-applications" && (
+                    /* Sub-Tab: Tutor Applications */
+                    <div className="bg-white rounded-xl border border-slate-200/80 shadow-[0_2px_18px_rgba(0,0,0,0.04)] overflow-hidden">
+                      <div className="px-5 sm:px-6 py-4 border-b border-slate-100 space-y-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div>
+                            <h2 className="font-display text-[19px] sm:text-[20px] font-extrabold text-[#1D2026]">
+                              Tutor applications
+                            </h2>
+                            <p className="text-[12.5px] text-[#747579] mt-0.5">
+                              Review incoming applications from /become-instructor, update status, and contact applicants.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => void loadTutorApplications(tutorAppFilter)}
+                            className="m-press self-start sm:self-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-[12.5px] font-semibold text-[#1D2026] hover:bg-slate-50 cursor-pointer"
+                          >
+                            <RefreshCw className="w-3.5 h-3.5" /> Refresh
+                          </button>
+                        </div>
+
+                        {/* Status Filter Chips */}
+                        <div className="flex flex-wrap gap-2">
+                          {[
+                            { id: "", label: "All" },
+                            { id: "NEW", label: "New" },
+                            { id: "CONTACTED", label: "Contacted" },
+                            { id: "INTERVIEW", label: "Interview" },
+                            { id: "HIRED", label: "Hired" },
+                            { id: "DECLINED", label: "Declined" }
+                          ].map((chip) => {
+                            const count =
+                              chip.id === ""
+                                ? Object.values(tutorAppCounts).reduce((a, b) => a + b, 0)
+                                : tutorAppCounts[chip.id] || 0;
+                            const active = tutorAppFilter === chip.id;
+                            return (
+                              <button
+                                key={chip.id || "ALL"}
+                                type="button"
+                                onClick={() => setTutorAppFilter(chip.id)}
+                                className={`m-press px-3 py-1.5 rounded-full text-[12px] font-bold cursor-pointer transition-colors ${
+                                  active
+                                    ? "bg-[#AE54C6] text-white"
+                                    : "bg-slate-100 text-[#475569] hover:bg-slate-200/70"
+                                }`}
+                              >
+                                {chip.label} ({count})
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div className="divide-y divide-slate-100">
+                        {tutorAppsLoading && tutorApps.length === 0 ? (
+                          <div className="p-6 text-[13.5px] text-[#747579]">
+                            Loading applications…
+                          </div>
+                        ) : tutorApps.length === 0 ? (
+                          <div className="p-6 text-[13.5px] text-[#747579]">
+                            No tutor applications in this view yet.
+                          </div>
+                        ) : (
+                          tutorApps.map((app) => {
+                            const expanded = Boolean(expandedTutorAppIds[app.id]);
+                            const noteDraft = tutorAppNoteDrafts[app.id] ?? "";
+                            return (
+                              <div key={app.id} className="p-5 sm:px-6 space-y-3">
+                                <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-3">
+                                  <div className="min-w-0 space-y-1">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      <h3 className="text-[15px] font-extrabold text-[#1D2026]">
+                                        {app.name}
+                                      </h3>
+                                      <span className="px-2 py-0.5 rounded-full bg-[#F7EDF9] text-[#AE54C6] text-[11px] font-bold">
+                                        {app.trackTitle}
+                                      </span>
+                                      <span className="px-2 py-0.5 rounded-full bg-slate-100 text-[#475569] text-[11px] font-bold">
+                                        {app.teachingModeLabel}
+                                      </span>
+                                    </div>
+                                    <p className="text-[12px] text-[#747579]">
+                                      Applied {new Date(app.createdAt).toLocaleDateString()} ·{" "}
+                                      {app.email} · {app.phone}
+                                    </p>
+                                  </div>
+
+                                  <div className="flex flex-wrap items-center gap-2 shrink-0">
+                                    <a
+                                      href={`mailto:${encodeURIComponent(app.email)}?subject=${encodeURIComponent(
+                                        `Your BEMS Tutor Application (${app.trackTitle})`
+                                      )}`}
+                                      className="m-press inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-[12px] font-bold text-[#1D2026] hover:bg-slate-50"
+                                    >
+                                      <Mail className="w-3.5 h-3.5" /> Email
+                                    </a>
+                                    <a
+                                      href={buildWhatsAppLink(
+                                        app.phone,
+                                        `Hi ${app.name.split(" ")[0]}, thanks for applying to teach ${app.trackTitle} at BEMS Institute.`
+                                      )}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="m-press inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#25D366] text-white text-[12px] font-bold"
+                                    >
+                                      <MessageCircle className="w-3.5 h-3.5" /> WhatsApp
+                                    </a>
+                                    <select
+                                      aria-label={`Status for ${app.name}`}
+                                      value={app.status}
+                                      disabled={savingTutorAppId === app.id}
+                                      onChange={(e) =>
+                                        void handleUpdateTutorApplication(app.id, {
+                                          status: e.target.value
+                                        })
+                                      }
+                                      className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-[12px] font-bold text-[#1D2026]"
+                                    >
+                                      <option value="NEW">NEW</option>
+                                      <option value="CONTACTED">CONTACTED</option>
+                                      <option value="INTERVIEW">INTERVIEW</option>
+                                      <option value="HIRED">HIRED</option>
+                                      <option value="DECLINED">DECLINED</option>
+                                    </select>
+                                  </div>
+                                </div>
+
+                                <div className="text-[13px] text-[#475569] bg-[#F8F9FA] rounded-lg p-3 border border-slate-200/70">
+                                  <p className={expanded ? "whitespace-pre-line" : "line-clamp-2"}>
+                                    {app.experience}
+                                  </p>
+                                  <div className="flex flex-wrap items-center gap-3 mt-1.5">
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setExpandedTutorAppIds((prev) => ({
+                                          ...prev,
+                                          [app.id]: !prev[app.id]
+                                        }))
+                                      }
+                                      className="text-[11.5px] font-bold text-[#AE54C6] hover:underline cursor-pointer"
+                                    >
+                                      {expanded ? "Show less" : "Read full experience"}
+                                    </button>
+                                    {app.portfolioUrl && (
+                                      <a
+                                        href={app.portfolioUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-1 text-[11.5px] font-bold text-[#1D2026] hover:underline"
+                                      >
+                                        Portfolio / LinkedIn <ExternalLink className="w-3 h-3" />
+                                      </a>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {app.status === "HIRED" && (
+                                  <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-[12.5px] font-semibold text-emerald-900">
+                                    Invite them as an Instructor in Staff &amp; Access, then assign
+                                    their course in Course tutors.
+                                  </div>
+                                )}
+
+                                <div>
+                                  <label className="block text-[11.5px] font-bold text-[#475569] mb-1">
+                                    Staff notes (saves on blur)
+                                  </label>
+                                  <textarea
+                                    rows={2}
+                                    value={noteDraft}
+                                    onChange={(e) =>
+                                      setTutorAppNoteDrafts((prev) => ({
+                                        ...prev,
+                                        [app.id]: e.target.value
+                                      }))
+                                    }
+                                    onBlur={() => {
+                                      if (noteDraft !== (app.staffNotes || "")) {
+                                        void handleUpdateTutorApplication(app.id, {
+                                          staffNotes: noteDraft
+                                        });
+                                      }
+                                    }}
+                                    placeholder="Interview notes, availability, or follow-up details…"
+                                    className="w-full px-3 py-2 rounded-lg border border-slate-200 text-[12.5px] text-[#1D2026] focus:outline-none focus:border-[#AE54C6]"
+                                  />
                                 </div>
                               </div>
                             );
