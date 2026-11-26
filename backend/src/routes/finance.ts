@@ -69,8 +69,8 @@ router.get("/installments", async (req, res) => {
   const session = await getSessionUser(req);
   if (!session || !can(session, "payments.view")) return res.status(403).json(DENIED);
   const status = typeof req.query.status === "string" ? req.query.status : undefined;
-  const cohortId = typeof req.query.cohortId === "string" && req.query.cohortId ? req.query.cohortId : undefined;
-  return res.json(await listInstallments({ status, cohortId }));
+  const courseId = typeof req.query.courseId === "string" && req.query.courseId ? req.query.courseId : undefined;
+  return res.json(await listInstallments({ status, courseId }));
 });
 
 router.patch("/installments/:id", async (req, res) => {
@@ -81,6 +81,7 @@ router.patch("/installments/:id", async (req, res) => {
   if (!dueDate) return res.status(400).json({ error: "dueDate must be a date (YYYY-MM-DD)." });
   const updated = await changeDueDate(req.params.id, dueDate, session);
   if (!updated) return res.status(404).json({ error: "Instalment not found." });
+  if ("error" in updated) return res.status(409).json({ error: updated.error });
   return res.json({ installment: { id: updated.id, seq: updated.seq, amount: updated.amount, dueDate: updated.dueDate.toISOString() } });
 });
 

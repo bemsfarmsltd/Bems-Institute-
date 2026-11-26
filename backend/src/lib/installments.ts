@@ -1,6 +1,7 @@
 // Pay-in-parts schedules: 3 parts (the deposit, then the rest split in two,
-// due 30 and 60 days after the cohort starts, or after registration if that's
-// later). A schedule is created once the deposit is paid. Whether a part is
+// due 30 and 60 days after the deposit was paid: courses are self-paced, so
+// there is no class start date to count from). A schedule is created once the
+// deposit is paid. Whether a part is
 // paid is worked out from Enrollment.amountPaid, oldest part first, so every
 // way money arrives (Paystack, bank transfer, waiver) or leaves (refund)
 // counts the same, and a fully paid registration has every part paid.
@@ -43,22 +44,21 @@ export function parseDueDate(input: unknown): Date | null {
 }
 
 interface PlanInput {
-  createdAt: Date;
+  /** When the deposit was paid. */
+  startedAt: Date;
   totalDue: number;
   deposit: number;
-  cohortStart: Date | null;
 }
 
 /** The 3 parts for a registration (amounts and due dates). */
-export function planParts({ createdAt, totalDue, deposit, cohortStart }: PlanInput): { seq: number; amount: number; dueDate: Date }[] {
+export function planParts({ startedAt, totalDue, deposit }: PlanInput): { seq: number; amount: number; dueDate: Date }[] {
   const first = Math.min(Math.max(deposit, 0), totalDue);
   const rest = totalDue - first;
   const second = Math.ceil(rest / 2);
   const third = rest - second;
-  const base = cohortStart && cohortStart > createdAt ? cohortStart : createdAt;
-  const due = (days: number) => endOfLagosDay(lagosDate(new Date(base.getTime() + days * DAY)));
+  const due = (days: number) => endOfLagosDay(lagosDate(new Date(startedAt.getTime() + days * DAY)));
   return [
-    { seq: 1, amount: first, dueDate: endOfLagosDay(lagosDate(createdAt)) },
+    { seq: 1, amount: first, dueDate: due(0) },
     { seq: 2, amount: second, dueDate: due(30) },
     { seq: 3, amount: third, dueDate: due(60) }
   ].filter((p) => p.amount > 0);
@@ -77,10 +77,17 @@ const scheduleEnrollmentWhere: Prisma.EnrollmentWhereInput = {
 export async function ensureSchedules(where: Prisma.EnrollmentWhereInput = {}): Promise<number> {
   const missing = await prisma.enrollment.findMany({
     where: { ...scheduleEnrollmentWhere, ...where },
-    select: { id: true, createdAt: true, totalDue: true, course: { select: { deposit: true } }, cohort: { select: { startDate: true } } }
+    select: { id: true, userId: true, courseId: true, createdAt: true, totalDue: true, course: { select: { deposit: true } } }
   });
   for (const e of missing) {
-    const parts = planParts({ createdAt: e.createdAt, totalDue: e.totalDue, deposit: e.course.deposit, cohortStart: e.cohort?.startDate ?? null });
+    // The first money in for this course (payment or waiver) starts the clock.
+    const first = await prisma.paymentTransaction.findFirst({
+      where: { userId: e.userId, courseId: e.courseId, status: "SUCCESS" },
+      orderBy: [{ paidAt: "asc" }, { createdAt: "asc" }],
+      select: { paidAt: true, createdAt: true }
+    });
+    const startedAt = first ? (first.paidAt ?? first.createdAt) : e.createdAt;
+    const parts = planParts({ startedAt, totalDue: e.totalDue, deposit: e.course.deposit });
     await prisma.installment.createMany({ data: parts.map((p) => ({ ...p, enrollmentId: e.id })), skipDuplicates: true });
   }
   return missing.length;
@@ -139,10 +146,10 @@ export async function nextInstallmentAmount(enrollmentId: string): Promise<numbe
 const STATUS_ORDER: Record<InstallmentStatus, number> = { OVERDUE: 0, DUE_SOON: 1, UPCOMING: 2, PAID: 3, CANCELLED: 4 };
 
 /** The Finance list. `status` filters; "all" includes paid and cancelled parts. */
-export async function listInstallments(filter: { status?: string; cohortId?: string }, now: Date = new Date()) {
+export async function listInstallments(filter: { status?: string; courseId?: string }, now: Date = new Date()) {
   await ensureSchedules();
   const enrollments = await prisma.enrollment.findMany({
-    where: { installments: { some: {} }, ...(filter.cohortId ? { cohortId: filter.cohortId } : {}) },
+    where: { installments: { some: {} }, ...(filter.courseId ? { courseId: filter.courseId } : {}) },
     select: {
       id: true, amountPaid: true, paymentStatus: true, status: true, installments: true,
       user: { select: { id: true, name: true, email: true, phone: true } },
@@ -167,10 +174,24 @@ export async function listInstallments(filter: { status?: string; cohortId?: str
   return { installments, totals };
 }
 
-/** Finance moves a due date. Resets the reminders for that part so the new date gets its own. */
+/**
+ * Finance moves a due date. Resets the reminders for that part so the new date
+ * gets its own. Parts stay in order (part 2 can't fall due after part 3), since
+ * money pays the oldest part first.
+ */
 export async function changeDueDate(id: string, dueDate: Date, actor: { id: string; name: string }) {
   const row = await prisma.installment.findUnique({ where: { id }, include: { enrollment: { select: { id: true, user: { select: { name: true } }, course: { select: { title: true } } } } } });
   if (!row) return null;
+  const siblings = await prisma.installment.findMany({ where: { enrollmentId: row.enrollmentId, seq: { in: [row.seq - 1, row.seq + 1] } } });
+  const before = siblings.find((s) => s.seq === row.seq - 1);
+  const after = siblings.find((s) => s.seq === row.seq + 1);
+  const day = lagosDate(dueDate);
+  if (before && day < lagosDate(before.dueDate)) {
+    return { error: `Part ${row.seq} can't be due before part ${before.seq} (${lagosDate(before.dueDate)}).` };
+  }
+  if (after && day > lagosDate(after.dueDate)) {
+    return { error: `Part ${row.seq} can't be due after part ${after.seq} (${lagosDate(after.dueDate)}). Move part ${after.seq} first.` };
+  }
   const updated = await prisma.installment.update({
     where: { id },
     data: { dueDate, remindedBeforeAt: null, remindedDueAt: null, remindedOverdueAt: null }

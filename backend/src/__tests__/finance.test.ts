@@ -31,15 +31,15 @@ async function pay(agent: SessionAgent, body: Record<string, unknown>) {
 }
 
 describe("instalment plan rules", () => {
-  it("splits into deposit + two halves, due 30 and 60 days after the cohort starts", () => {
-    const createdAt = new Date("2026-11-01T10:00:00Z");
-    const parts = planParts({ createdAt, totalDue: 90000, deposit: 35000, cohortStart: new Date("2026-11-10T08:00:00Z") });
+  it("splits into deposit + two halves, due 30 and 60 days after the deposit", () => {
+    const parts = planParts({ startedAt: new Date("2026-11-01T10:00:00Z"), totalDue: 90000, deposit: 35000 });
     expect(parts.map((p) => p.amount)).toEqual([35000, 27500, 27500]);
-    expect(parts.map((p) => lagosDate(p.dueDate))).toEqual(["2026-11-01", "2026-12-10", "2027-01-09"]);
-    // A late joiner counts from their own registration.
-    const late = planParts({ createdAt, totalDue: 90001, deposit: 35000, cohortStart: new Date("2026-10-01T08:00:00Z") });
+    expect(parts.map((p) => lagosDate(p.dueDate))).toEqual(["2026-11-01", "2026-12-01", "2026-12-31"]);
+    // Odd naira go to part 2; a deposit paid late in the Lagos evening counts as the next day.
+    const late = planParts({ startedAt: new Date("2026-11-01T23:30:00Z"), totalDue: 90001, deposit: 35000 });
     expect(late.map((p) => p.amount)).toEqual([35000, 27501, 27500]);
-    expect(lagosDate(late[1].dueDate)).toBe("2026-12-01");
+    expect(lagosDate(late[0].dueDate)).toBe("2026-11-02");
+    expect(lagosDate(late[1].dueDate)).toBe("2026-12-02");
   });
 
   it("works out paid parts oldest first, and due soon / overdue in Lagos days", () => {
@@ -137,10 +137,16 @@ describe("instalment plans", () => {
     expect((await adm.agent.get("/api/finance/installments")).status).toBe(403);
     expect((await adm.agent.patch(`/api/finance/installments/${part2.id}`, { dueDate: "2030-01-15" })).status).toBe(403);
     expect((await fin.agent.patch(`/api/finance/installments/${part2.id}`, { dueDate: "not a date" })).status).toBe(400);
+    // Parts stay in order: part 2 can't move past part 3 until part 3 moves.
+    const outOfOrder = await fin.agent.patch(`/api/finance/installments/${part2.id}`, { dueDate: "2030-01-15" });
+    expect(outOfOrder.status).toBe(409);
+    expect(outOfOrder.body.error).toMatch(/Move part 3 first/);
+    const part3 = await prisma.installment.findUniqueOrThrow({ where: { enrollmentId_seq: { enrollmentId: enr.id, seq: 3 } } });
+    expect((await fin.agent.patch(`/api/finance/installments/${part3.id}`, { dueDate: "2030-02-15" })).status).toBe(200);
     const moved = await fin.agent.patch(`/api/finance/installments/${part2.id}`, { dueDate: "2030-01-15" });
     expect(moved.status).toBe(200);
     expect(lagosDate(new Date(moved.body.installment.dueDate))).toBe("2030-01-15");
-    expect(await prisma.auditEvent.count({ where: { action: "installment.due_date_changed", targetId: enr.id } })).toBe(1);
+    expect(await prisma.auditEvent.count({ where: { action: "installment.due_date_changed", targetId: enr.id } })).toBe(2);
   });
 
   it("reminders go out 3 days before, on the day and 3 days late, once each, only in the daytime", async () => {
