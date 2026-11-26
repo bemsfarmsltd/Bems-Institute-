@@ -13,7 +13,7 @@ import { sendEmail, frontendUrl, naira } from "@/lib/email";
 import { toCsv } from "@/lib/csv";
 import { generateCampaignCode, campaignSource, normalizeTarget } from "@/lib/qr-campaigns";
 import type { AnalyticsSummary } from "@/types/lms";
-import type { QrCampaign } from "@prisma/client";
+import type { QrCampaign, Prisma } from "@prisma/client";
 import { getSiteSettings, integrationStatus, ACCOUNT_NUMBER_PATTERN } from "@/lib/site-settings";
 import { createStaffInvite, emailStaffInvite, inviteStatus, inviteUrl, STAFF_ROLES } from "@/lib/staff-invites";
 import { COMMUNITY_URL_PATTERN, getCommunityUrl, sendCommunityInviteIfReady } from "@/lib/community";
@@ -22,6 +22,16 @@ import { DEMO_ACCOUNT_EMAILS } from "@/lib/demo-accounts";
 import { isValidEmail } from "@/lib/validation";
 
 const router = Router();
+
+// Runs a change that could remove an admin under one database-wide lock, so
+// two admins demoting each other at the same moment can't both pass the
+// "last active admin" check.
+function withAdminLock<T>(fn: (tx: Prisma.TransactionClient) => Promise<T>): Promise<T> {
+  return prisma.$transaction(async (tx) => {
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(724001)`;
+    return fn(tx);
+  });
+}
 
 // Ledger channel for a second-chance balance waiver: recorded so the
 // enrollment's PAID_FULL has an explanation, but no money moved, so it must
@@ -1181,7 +1191,7 @@ router.post("/enrollments/:id/second-chance", async (req, res) => {
     linkUrl: "/dashboard"
   });
 
-  await audit({ actor: session, action: "enrollment.second_chance", targetType: "enrollment", targetId: req.params.id ?? null, summary: `Second chance used for registration ${req.params.id}`, details: { body: req.body ?? null } });
+  await audit({ actor: session, action: "enrollment.second_chance", targetType: "enrollment", targetId: req.params.id ?? null, summary: `Second chance used for registration ${req.params.id}`, details: { targetCohortId: typeof req.body?.targetCohortId === "string" ? req.body.targetCohortId : null } });
   return res.json({ enrollment: updated, waivedAmount });
 });
 
@@ -1275,7 +1285,7 @@ router.post("/enrollments/:id/refund", async (req, res) => {
     linkUrl: "/dashboard"
   });
 
-  await audit({ actor: session, action: "payment.refunded", targetType: "enrollment", targetId: req.params.id ?? null, summary: `Refund on registration ${req.params.id}`, details: { body: req.body ?? null } });
+  await audit({ actor: session, action: "payment.refunded", targetType: "enrollment", targetId: req.params.id ?? null, summary: `Refund on registration ${req.params.id}`, details: { amount: Number(req.body?.amount) || null, reason: typeof req.body?.reason === "string" ? req.body.reason.trim().slice(0, 300) || null : null } });
   return res.json({ enrollment: updated });
 });
 
@@ -1340,7 +1350,7 @@ router.post("/enrollments/:id/refund-excess", async (req, res) => {
     category: "PAYMENT",
     linkUrl: "/dashboard"
   });
-  await audit({ actor: session, action: "payment.refunded_excess", targetType: "enrollment", targetId: req.params.id ?? null, summary: `Overpayment refunded on registration ${req.params.id}`, details: { body: req.body ?? null } });
+  await audit({ actor: session, action: "payment.refunded_excess", targetType: "enrollment", targetId: req.params.id ?? null, summary: `Overpayment refunded on registration ${req.params.id}` });
   return res.json({ refunded: result.refunded });
 });
 
@@ -1399,17 +1409,12 @@ router.post("/staff/:id/deactivate", async (req, res) => {
   if (target.deactivatedAt) {
     return res.json({ ok: true, alreadyInactive: true });
   }
-  if (target.role === "ADMIN") {
-    const activeAdmins = await prisma.user.count({ where: { role: "ADMIN", deactivatedAt: null } });
-    if (activeAdmins <= 1) {
-      return res.status(400).json({ error: "That's the last active admin. Add another admin first." });
-    }
-  }
-
-  await prisma.user.update({
-    where: { id: target.id },
-    data: { deactivatedAt: new Date(), tokenVersion: { increment: 1 } }
+  const ok = await withAdminLock(async (tx) => {
+    if (target.role === "ADMIN" && (await tx.user.count({ where: { role: "ADMIN", deactivatedAt: null } })) <= 1) return false;
+    await tx.user.update({ where: { id: target.id }, data: { deactivatedAt: new Date(), tokenVersion: { increment: 1 } } });
+    return true;
   });
+  if (!ok) return res.status(400).json({ error: "That's the last active admin. Add another admin first." });
   await audit({ actor: session, action: "staff.deactivated", targetType: "user", targetId: target.id, summary: `Deactivated ${target.name} (${target.email})` });
   return res.json({ ok: true });
 });
@@ -1495,6 +1500,8 @@ router.post("/staff/invites/:id/revoke", async (req, res) => {
     data: { revokedAt: new Date() }
   });
   if (done.count === 0) return res.status(404).json({ error: "No pending invite with that id." });
+  const revoked = await prisma.staffInvite.findUnique({ where: { id: req.params.id }, select: { email: true, role: true } });
+  await audit({ actor: session, action: "staff.invite_revoked", targetType: "invite", targetId: req.params.id, summary: `Invite revoked: ${revoked?.email ?? "unknown"} as ${revoked ? ROLE_LABELS[revoked.role] : "?"}` });
   return res.json({ ok: true });
 });
 
@@ -1526,11 +1533,13 @@ router.post("/staff/:id/role", async (req, res) => {
   const before = rolesOf({ role: target.role, roles: target.extraRoles });
   const after = rolesOf({ role, roles: extraRoles });
   if (before.length === after.length && before.every((r, i) => r === after.at(i))) return res.json({ ok: true, unchanged: true });
-  if (before.includes("ADMIN") && !after.includes("ADMIN") && !target.deactivatedAt) {
-    const activeAdmins = await prisma.user.count({ where: { role: "ADMIN", deactivatedAt: null } });
-    if (activeAdmins <= 1) return res.status(400).json({ error: "That's the last active admin. Add another admin first." });
-  }
-  await prisma.user.update({ where: { id: target.id }, data: { role, extraRoles, tokenVersion: { increment: 1 } } });
+  const removesAdmin = before.includes("ADMIN") && !after.includes("ADMIN") && !target.deactivatedAt;
+  const ok = await withAdminLock(async (tx) => {
+    if (removesAdmin && (await tx.user.count({ where: { role: "ADMIN", deactivatedAt: null } })) <= 1) return false;
+    await tx.user.update({ where: { id: target.id }, data: { role, extraRoles, tokenVersion: { increment: 1 } } });
+    return true;
+  });
+  if (!ok) return res.status(400).json({ error: "That's the last active admin. Add another admin first." });
   await audit({
     actor: session, action: "staff.roles_changed", targetType: "user", targetId: target.id,
     summary: `${target.name}: ${before.map((r) => ROLE_LABELS[r]).join(" + ")} → ${after.map((r) => ROLE_LABELS[r]).join(" + ")}`,

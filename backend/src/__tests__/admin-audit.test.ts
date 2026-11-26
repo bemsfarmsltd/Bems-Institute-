@@ -258,7 +258,7 @@ describe("CSV export", () => {
 describe("audit data is restricted to non-secret fields", () => {
   afterAll(cleanupTestData);
 
-  it.fails("does not persist arbitrary request properties in refund audit events", async () => {
+  it("does not persist arbitrary request properties in refund audit events", async () => {
     const { agent: admin } = await createTestAdmin("audit-secret-admin");
     const { agent: student } = await createTestStudent("audit-secret-student");
     const enrollment = await payFull(student);

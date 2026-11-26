@@ -27,7 +27,9 @@ export async function audit(input: AuditInput): Promise<void> {
       }
     });
   } catch (err) {
-    console.error("audit log write failed:", err);
+    // Never undo the action (a refund or payment has already happened), but
+    // make the gap loud: this tag is what to search the Render logs for.
+    console.error("AUDIT_WRITE_FAILED", JSON.stringify({ action: input.action, targetType: input.targetType, targetId: input.targetId ?? null, actorId: input.actor?.id ?? null }), err);
   }
 }
 
@@ -40,6 +42,7 @@ export async function listAudit(filter: { targetType?: string; targetId?: string
       ...(filter.action ? { action: { startsWith: filter.action } } : {}),
       ...(filter.before ? { createdAt: { lt: filter.before } } : {})
     },
+    select: { id: true, actorName: true, action: true, targetType: true, targetId: true, summary: true, details: true, createdAt: true },
     orderBy: { createdAt: "desc" },
     take: limit + 1
   });

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { prisma } from "@/lib/prisma";
-import { getSessionUser, isStaff, isAdmin, hasCourseAccess } from "@/lib/api-auth";
+import { getSessionUser, isStaff, isAdmin, isLearner, hasCourseAccess } from "@/lib/api-auth";
 import { checkAndNotifyMissedClasses, notifyWelcomeSessionNoShow } from "@/lib/attendance";
 
 const router = Router();
@@ -86,6 +86,11 @@ router.get("/live", async (req, res) => {
   const session = await getSessionUser(req);
   if (!session) {
     return res.status(401).json({ error: "Not authenticated." });
+  }
+
+  // Office-only accounts (finance, admissions, management) don't attend classes.
+  if (!isStaff(session) && !isLearner(session)) {
+    return res.status(403).json({ error: "Class links are for students and tutors." });
   }
 
   let courseIds: string[] | undefined;

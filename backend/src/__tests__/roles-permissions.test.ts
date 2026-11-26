@@ -127,7 +127,7 @@ describe("the student list", () => {
     }
   });
 
-  it.fails("office roles cannot use the student live-attendance endpoint to see meeting links", async () => {
+  it("office roles cannot use the student live-attendance endpoint to see meeting links", async () => {
     const officeStaff = [
       await staff("live-finance", "FINANCE"),
       await staff("live-admissions", "ADMISSIONS"),
@@ -165,7 +165,7 @@ describe("the student list", () => {
     }
   });
 
-  it.fails("office roles cannot write progress, quiz attempts or submissions without enrollment", async () => {
+  it("office roles cannot write progress, quiz attempts or submissions without enrollment", async () => {
     const finance = await staff("office-learning-write", "FINANCE");
     const quiz = await prisma.quiz.findFirstOrThrow({ where: { courseId: "web-dev" } });
     const progress = await finance.agent.post("/api/lms/progress", { lessonId: "les-1" });
@@ -176,6 +176,15 @@ describe("the student list", () => {
     });
 
     expect([progress.status, attempt.status, submission.status]).toEqual([403, 403, 403]);
+  });
+});
+
+describe("office staff who also tutor", () => {
+  it("a Finance account with Tutor as an extra role can grade and see class links", async () => {
+    const both = await staff("fin-tutor", "FINANCE", ["INSTRUCTOR"]);
+    expect((await both.agent.post("/api/lms/submissions/nope/grade", { score: 90 })).status).toBe(404);
+    expect((await both.agent.get("/api/attendance/live")).status).toBe(200);
+    expect((await both.agent.get("/api/admin/payment-ledger")).status).toBe(200);
   });
 });
 
@@ -214,7 +223,7 @@ describe("changing roles", () => {
     expect(await prisma.user.findUnique({ where: { id: fin.userId }, select: { role: true, extraRoles: true } })).toEqual({ role: "ADMIN", extraRoles: ["FINANCE", "ADMISSIONS"] });
   });
 
-  it.fails("an invite role change invalidates existing sessions and is audited", async () => {
+  it("an invite role change invalidates existing sessions and is audited", async () => {
     const { userId: adminId } = await createTestAdmin("invite-role-audit-admin");
     const finance = await staff("invite-role-audit-target", "FINANCE");
     const { rawToken } = await createStaffInvite(finance.email, "ADMISSIONS", adminId);
@@ -235,7 +244,7 @@ describe("changing roles", () => {
     });
   });
 
-  it.fails("revoking a staff invite is audited without storing its raw token", async () => {
+  it("revoking a staff invite is audited without storing its raw token", async () => {
     const { agent: admin } = await createTestAdmin("invite-revoke-audit-admin");
     const invited = await admin.post("/api/admin/staff/invites", {
       email: testEmail("invite-revoke-audit-target"),

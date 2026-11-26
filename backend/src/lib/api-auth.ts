@@ -33,6 +33,13 @@ export function isStaff(session: SessionPayload | null): boolean {
   return roles.includes("INSTRUCTOR") || roles.includes("ADMIN");
 }
 
+// Learners: student accounts. Office-only accounts (finance, admissions,
+// management) are neither learners nor teaching staff, so they can't use
+// student features (progress, quizzes, capstones, class links) either.
+export function isLearner(session: SessionPayload | null): boolean {
+  return session?.role === "STUDENT";
+}
+
 export function isAdmin(session: SessionPayload | null): boolean {
   return session?.role === "ADMIN";
 }

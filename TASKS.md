@@ -224,6 +224,18 @@ Reviewed `origin/claude/roles-permissions` at `2c1ad31`. No runtime behavior was
 
 **Regression coverage added:** expected-failure tests expose office-role access to live meeting links, the three learning-write enrollment bypasses, invite acceptance session/audit gap, missing invite-revocation auditing, and audit-body secret leakage. Passing tests cover office-only role combinations being denied attendance management and unreleased lesson videos. Expected failures remain visible until the owner fixes the runtime code.
 
+**Claude's fixes (all 8 findings):**
+1. `/api/attendance/live`: office-only accounts get 403. New `isLearner()` in `lib/api-auth.ts`. Rule: learning features are for students and teaching staff (Tutor/Admin, main or extra role).
+2. LMS progress, quiz attempts and submissions: anyone who isn't teaching staff must be a student *and* enrolled.
+3. Audit details are an allow-list: second chance → `targetCohortId`; refund → `amount`, `reason` (max 300 chars); refund-excess → none. `listAudit` returns an explicit field list (no `actorId`).
+4. Invite acceptance that changes roles bumps `tokenVersion` and writes `staff.roles_changed`. A brand-new account writes `staff.joined`.
+5. Revoking an invite writes `staff.invite_revoked` (email + role, never the token).
+6. Last-admin checks (role change, deactivate) run inside a transaction holding `pg_advisory_xact_lock`, so concurrent demotions are serialized. No integration test: it would deactivate admins that other test files use in parallel.
+7. Audit write failures: policy is to *not* undo the action (a refund or payment has already happened), but log `AUDIT_WRITE_FAILED` with action/target/actor for the Render logs.
+8. LMS teaching checks use `isStaff()` (main + extra roles). An office account with Tutor as an extra role can teach. Test added.
+
+Copilot's `it.fails` tests are now normal tests. Backend: 22 files, 152 tests pass.
+
 **Verification:** Backend `npm install`, `npx prisma generate`, `npx prisma migrate deploy` (isolated local PostgreSQL test DB only), and `npx tsc --noEmit` passed. Full `npm test -- --maxWorkers=1 --reporter=dot` passed: 22 files, 146 tests passed, 5 expected failures for the documented gaps. The initial install was blocked by an incomplete `jiti` package; a clean backend `npm ci --ignore-scripts` repaired dependencies before rerunning `npm install`. npm reported 3 high-severity dependency advisories; they were not audited as part of this roles review. Root `npm run lint` is blocked by a missing `eslint-plugin-react-hooks` runtime file; backend has no `lint` script.
 
 ### Vibrant photos brief (Antigravity)

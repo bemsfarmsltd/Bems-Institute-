@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { prisma } from "@/lib/prisma";
+import { rolesOf, ROLE_LABELS } from "@/lib/permissions";
+import { audit } from "@/lib/audit";
 import { hashPassword, isPasswordStrongEnough, verifyPassword } from "@/lib/password";
 import { createSessionToken, SESSION_COOKIE, SESSION_COOKIE_OPTIONS } from "@/lib/session";
 import { checkRateLimit, rateLimitMessage } from "@/lib/rate-limit";
@@ -73,7 +75,18 @@ router.post("/:token/accept", async (req, res) => {
         : invite.role === "ADMIN"
           ? // Admin is always the main role; the old main role is kept as an extra.
             await prisma.user.update({ where: { id: existing.id }, data: { role: "ADMIN", extraRoles: [...new Set([existing.role, ...existing.extraRoles])].filter((r) => r !== "ADMIN"), tokenVersion: { increment: 1 } }, select })
-          : await prisma.user.update({ where: { id: existing.id }, data: { extraRoles: { push: invite.role } }, select });
+          : await prisma.user.update({ where: { id: existing.id }, data: { extraRoles: { push: invite.role }, tokenVersion: { increment: 1 } }, select });
+
+  // Record what changed (a new account, or roles added to an existing one).
+  const after = await prisma.user.findUniqueOrThrow({ where: { id: user.id }, select: { role: true, extraRoles: true } });
+  const beforeRoles = existing ? rolesOf({ role: existing.role, roles: existing.extraRoles }) : [];
+  const afterRoles = rolesOf({ role: after.role, roles: after.extraRoles });
+  const label = (rs: typeof afterRoles) => rs.map((r) => ROLE_LABELS[r]).join(" + ");
+  if (!existing) {
+    await audit({ actor: { id: user.id, name: user.name }, action: "staff.joined", targetType: "user", targetId: user.id, summary: `${user.name} accepted an invite as ${label(afterRoles)}`, details: { inviteId: invite.id } });
+  } else if (beforeRoles.join() !== afterRoles.join()) {
+    await audit({ actor: { id: user.id, name: user.name }, action: "staff.roles_changed", targetType: "user", targetId: user.id, summary: `${user.name} accepted an invite: ${label(beforeRoles)} → ${label(afterRoles)}`, details: { before: beforeRoles, after: afterRoles, inviteId: invite.id } });
+  }
 
   if (user.totpEnabledAt) return res.json({ ok: true, signInRequired: true });
 

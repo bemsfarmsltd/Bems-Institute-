@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { prisma } from "@/lib/prisma";
-import { getSessionUser, isEnrolled, hasCourseAccess } from "@/lib/api-auth";
+import { getSessionUser, isEnrolled, hasCourseAccess, isStaff as isTeachingStaff, isLearner } from "@/lib/api-auth";
 import { mapCourse, mapQuiz, mapAssignment, mapCertificate, mapSubmission } from "@/lib/lms-mappers";
 import {
   recordLessonCompleted,
@@ -32,7 +32,7 @@ const router = Router();
 // computed from the caller's own session (optional here, not required).
 router.get("/catalog", async (req, res) => {
   const session = await getSessionUser(req).catch(() => null);
-  const isStaff = session?.role === "INSTRUCTOR" || session?.role === "ADMIN";
+  const isStaff = isTeachingStaff(session);
 
   let enrolledCourseIds = new Set<string>();
   if (session && !isStaff) {
@@ -84,7 +84,7 @@ router.get("/me", async (req, res) => {
     return res.status(401).json({ error: "Not authenticated." });
   }
 
-  const isStaff = session.role === "INSTRUCTOR" || session.role === "ADMIN";
+  const isStaff = isTeachingStaff(session);
 
   const [enrollments, progress, quizAttempts, submissions] = await Promise.all([
     prisma.enrollment.findMany({
@@ -115,7 +115,7 @@ router.get("/me", async (req, res) => {
 
   // The WhatsApp community link, only for staff and students with a
   // confirmed registration (see lib/community.ts).
-  const isStaffUser = session.role === "INSTRUCTOR" || session.role === "ADMIN";
+  const isStaffUser = isTeachingStaff(session);
   const communityUrl = isStaffUser || enrollments.some(hasCourseAccess) ? await getCommunityUrl() : null;
 
   return res.json({
@@ -220,7 +220,7 @@ router.post("/enroll", async (req, res) => {
   // course page. Students pay through /payments/init (card) or the bank
   // path here; letting them in without either only produced a registration
   // with nothing paid and a notification wrongly saying it was unlocked.
-  const isStaffSession = session.role === "ADMIN" || session.role === "INSTRUCTOR";
+  const isStaffSession = isTeachingStaff(session);
   if (!paymentMethod && !isStaffSession) {
     return res.status(400).json({ error: "Choose a payment method to register for this course." });
   }
@@ -317,7 +317,7 @@ router.post("/progress", async (req, res) => {
     return res.status(404).json({ error: "Lesson not found." });
   }
 
-  if (session.role === "STUDENT" && !(await isEnrolled(session.id, lesson.module.courseId))) {
+  if (!isTeachingStaff(session) && (!isLearner(session) || !(await isEnrolled(session.id, lesson.module.courseId)))) {
     return res.status(403).json({ error: "You must be enrolled in this course to track lesson progress." });
   }
 
@@ -356,7 +356,7 @@ router.post("/quiz-attempts", async (req, res) => {
     return res.status(404).json({ error: "Quiz not found." });
   }
 
-  if (session.role === "STUDENT" && !(await isEnrolled(session.id, quiz.courseId))) {
+  if (!isTeachingStaff(session) && (!isLearner(session) || !(await isEnrolled(session.id, quiz.courseId)))) {
     return res.status(403).json({ error: "You must be enrolled in this course to take its quiz." });
   }
 
@@ -428,7 +428,7 @@ router.post("/submissions", async (req, res) => {
     return res.status(404).json({ error: "Assignment not found." });
   }
 
-  if (session.role === "STUDENT" && !(await isEnrolled(session.id, assignment.courseId))) {
+  if (!isTeachingStaff(session) && (!isLearner(session) || !(await isEnrolled(session.id, assignment.courseId)))) {
     return res.status(403).json({ error: "You must be enrolled in this course to submit its capstone." });
   }
 
@@ -485,7 +485,7 @@ function gradeTitleFor(score: number): string {
 
 router.post("/submissions/:id/grade", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!session || (session.role !== "INSTRUCTOR" && session.role !== "ADMIN")) {
+  if (!session || !isTeachingStaff(session)) {
     return res.status(403).json({ error: "Instructor access required." });
   }
 
