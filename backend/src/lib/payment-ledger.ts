@@ -4,6 +4,7 @@ import { sendEmail, adminEmailAddresses, frontendUrl, naira } from "@/lib/email"
 import { creditReferralIfEligible } from "@/lib/referrals";
 import type { PaystackVerifyData } from "@/lib/paystack";
 import { sendCommunityInviteIfReady } from "@/lib/community";
+import { ensureReceiptNumber, receiptUrl } from "@/lib/receipts";
 
 export type ConfirmResult =
   | { ok: true; alreadyProcessed?: true }
@@ -147,6 +148,7 @@ export async function confirmPaymentTransaction(
   });
 
   if (student) {
+    const receiptNumber = await ensureReceiptNumber(txn.id);
     await sendEmail({
       to: student.email,
       subject: `Payment received — ${courseTitle}`,
@@ -156,9 +158,10 @@ export async function confirmPaymentTransaction(
         awaitingApproval
           ? "What happens next: our admissions team will confirm your registration. You'll get another email as soon as it's confirmed and your classroom and lesson videos are unlocked."
           : `Thank you — your payment has been added to your account.`,
+        receiptNumber ? `Your receipt (${receiptNumber}): ${receiptUrl(txn.id)}` : "",
         `Your dashboard: ${frontendUrl("/dashboard")}`,
         "BEMS Admissions"
-      ].join("\n\n")
+      ].filter(Boolean).join("\n\n")
     });
   }
 

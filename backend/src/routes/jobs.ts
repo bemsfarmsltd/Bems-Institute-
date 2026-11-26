@@ -2,6 +2,7 @@ import { Router } from "express";
 import { timingSafeEqual, createHash } from "crypto";
 import { sendWeeklyRecaps } from "@/lib/weekly-recap";
 import { runReminders } from "@/lib/reminders";
+import { runInstallmentReminders } from "@/lib/installments";
 
 // Scheduled jobs, called by GitHub Actions (.github/workflows/weekly-recap.yml)
 // with "Authorization: Bearer <CRON_SECRET>". Render's free plan sleeps, so
@@ -28,7 +29,8 @@ router.post("/weekly-recap", async (req, res) => {
 router.post("/reminders", async (req, res) => {
   if (!process.env.CRON_SECRET) return res.status(503).json({ error: "Scheduled jobs are not configured." });
   if (!authorized(req.headers.authorization)) return res.status(401).json({ error: "Not authorized." });
-  return res.json(await runReminders());
+  const reminders = await runReminders();
+  return res.json({ ...reminders, installments: await runInstallmentReminders() });
 });
 
 export default router;

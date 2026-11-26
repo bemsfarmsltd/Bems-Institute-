@@ -44,3 +44,34 @@ export function verifyWebhookSignature(rawBody: Buffer, signature: string | unde
   // signature was correct. timingSafeEqual throws on unequal lengths.
   return expected.length === received.length && crypto.timingSafeEqual(expected, received);
 }
+
+export interface PaystackListedTransaction {
+  reference: string;
+  amount: number; // kobo
+  status: string; // "success" | "failed" | "abandoned" | ...
+  paid_at: string | null;
+  created_at?: string;
+  channel: string | null;
+  customer?: { email?: string };
+}
+
+export function paystackConfigured(): boolean {
+  return Boolean(process.env.PAYSTACK_SECRET_KEY);
+}
+
+// Every transaction Paystack has between two instants (inclusive), for the
+// Finance daily check. Paged at 100; stops after 20 pages (2,000 a day is far
+// above what BEMS takes).
+export async function listPaystackTransactions(from: Date, to: Date): Promise<PaystackListedTransaction[]> {
+  const out: PaystackListedTransaction[] = [];
+  for (let page = 1; page <= 20; page++) {
+    const qs = new URLSearchParams({ perPage: "100", page: String(page), from: from.toISOString(), to: to.toISOString() });
+    const res = await fetch(`${PAYSTACK_BASE_URL}/transaction?${qs}`, { headers: { Authorization: `Bearer ${secretKey()}` } });
+    const json = await res.json();
+    if (!res.ok || !json?.status) throw new Error(json?.message || "Paystack transaction list request failed.");
+    out.push(...(json.data as PaystackListedTransaction[]));
+    const pageCount = Number(json.meta?.pageCount ?? 1);
+    if (page >= pageCount || (json.data as unknown[]).length === 0) break;
+  }
+  return out;
+}

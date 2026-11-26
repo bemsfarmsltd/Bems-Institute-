@@ -3,6 +3,7 @@ import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/api-auth";
 import { verifyPaystackTransaction, verifyWebhookSignature } from "@/lib/paystack";
+import { nextInstallmentAmount } from "@/lib/installments";
 import { confirmPaymentTransaction } from "@/lib/payment-ledger";
 
 const router = Router();
@@ -85,10 +86,18 @@ router.post("/init", async (req, res) => {
   // after the full remaining amount.
   // The registration's own plan, not the request's: for a settled
   // registration the request can't change it.
-  const amount =
-    enrollment.paymentPlan === "installment" && enrollment.amountPaid === 0
-      ? Math.min(course.deposit, remaining)
-      : remaining;
+  // After the deposit, "balance" (the default) pays everything left;
+  // "next" pays what's left of the next instalment (lib/installments.ts).
+  const payWhat = body.payWhat === "next" ? "next" : "balance";
+  let amount: number;
+  if (enrollment.paymentPlan === "installment" && enrollment.amountPaid === 0) {
+    amount = Math.min(course.deposit, remaining);
+  } else if (enrollment.paymentPlan === "installment" && payWhat === "next") {
+    const next = await nextInstallmentAmount(enrollment.id);
+    amount = next && next > 0 ? Math.min(next, remaining) : remaining;
+  } else {
+    amount = remaining;
+  }
 
   const reference = `bems_${crypto.randomUUID().replace(/-/g, "")}`;
 
