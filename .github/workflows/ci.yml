@@ -92,3 +92,111 @@ jobs:
         # note in the PR/commit that introduced CI.
         run: npm run lint
         continue-on-error: true
+
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: bems_e2e
+          POSTGRES_PASSWORD: bems_e2e_ci_only
+          POSTGRES_DB: bems_e2e_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U bems_e2e -d bems_e2e_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://bems_e2e:bems_e2e_ci_only@localhost:5432/bems_e2e_test
+      SESSION_SECRET: e2e-session-secret-for-isolated-ci-tests
+      FRONTEND_URL: http://localhost:3020
+      PORT: 4020
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Apply migrations to throwaway database
+        working-directory: backend
+        run: npx prisma migrate deploy
+
+      - name: Seed browser-test accounts and registration
+        working-directory: backend
+        env:
+          E2E_TEST_DATABASE: "1"
+        run: npx tsx prisma/e2e-seed.ts
+
+      - name: Start backend on port 4020
+        run: |
+          npm start > ../backend-e2e.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl --silent --fail --output /dev/null http://localhost:4020/health; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat ../backend-e2e.log
+          exit 1
+        working-directory: backend
+
+      - name: Build frontend for browser tests
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:4020
+        run: npm run build
+
+      - name: Start frontend on port 3020
+        run: |
+          npx next start -p 3020 > frontend-e2e.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl --silent --fail --output /dev/null http://localhost:3020/login; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat frontend-e2e.log
+          exit 1
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run browser tests
+        env:
+          CI: "true"
+          PLAYWRIGHT_API_URL: http://localhost:4020
+          E2E_TEST_DATABASE: "1"
+        run: npm run test:e2e
+
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-html-report
+          path: playwright-report/
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Upload screenshots and traces on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-failure-artifacts
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7
