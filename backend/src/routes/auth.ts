@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { verifyPassword, hashPassword, isPasswordStrongEnough } from "@/lib/password";
 import { createSessionToken, SESSION_COOKIE, SESSION_COOKIE_OPTIONS } from "@/lib/session";
 import { getSessionUser } from "@/lib/api-auth";
-import { rolesOf, permissionsOf, portalsOf } from "@/lib/permissions";
+import { signedInUser } from "@/lib/signed-in-user";
 import { isBlockedDemoAccount } from "@/lib/demo-accounts";
 import { signPayload, verifyPayload } from "@/lib/signed-token";
 import { consumeSecondFactor, recordLogin, twoFactorSelect } from "@/lib/account-security";
@@ -72,7 +72,7 @@ router.post("/login", async (req, res) => {
   const token = await createSessionToken({ id: user.id, name: user.name, email: user.email, role: user.role, tokenVersion: user.tokenVersion });
   res.cookie(SESSION_COOKIE, token, SESSION_COOKIE_OPTIONS);
   await recordLogin(req, user.id, "password");
-  return res.json({ user: { id: user.id, name: user.name, email: user.email, role: user.role, avatarUrl: user.avatarUrl } });
+  return res.json({ user: await signedInUser(user.id) });
 });
 
 const TWO_FACTOR_PURPOSE = "2fa-login";
@@ -113,7 +113,7 @@ router.post("/login/2fa", async (req, res) => {
   res.cookie(SESSION_COOKIE, token, SESSION_COOKIE_OPTIONS);
   await recordLogin(req, user.id, used === "recovery" ? "password+recovery-code" : "password+2fa");
   return res.json({
-    user: { id: user.id, name: user.name, email: user.email, role: user.role, avatarUrl: user.avatarUrl },
+    user: await signedInUser(user.id),
     ...(used === "recovery" ? { recoveryCodesLeft: user.totpRecoveryCodes.length - 1 } : {})
   });
 });
@@ -129,15 +129,7 @@ router.post("/logout", async (_req, res) => {
 router.get("/me", async (req, res) => {
   const session = await getSessionUser(req);
   if (!session) return res.json({ user: null });
-  const user = await prisma.user.findUnique({
-    where: { id: session.id },
-    select: { id: true, name: true, email: true, role: true, avatarUrl: true }
-  });
-  if (!user) return res.json({ user: null });
-  // roles: every role held (main first); portals: where this person may go,
-  // home first, so the site can send them to the right portal after sign-in.
-  const portals = portalsOf(session);
-  return res.json({ user: { ...user, roles: rolesOf(session), permissions: permissionsOf(session), portals, homePath: portals[0]?.path ?? "/dashboard" } });
+  return res.json({ user: await signedInUser(session.id) });
 });
 
 // Authenticated users upload/replace their own avatar — never someone
@@ -163,12 +155,8 @@ router.post("/avatar", (req, res, next) => {
 
   try {
     const avatarUrl = await uploadAvatar(req.file.buffer, session.id);
-    const user = await prisma.user.update({
-      where: { id: session.id },
-      data: { avatarUrl },
-      select: { id: true, name: true, email: true, role: true, avatarUrl: true }
-    });
-    return res.json({ user });
+    await prisma.user.update({ where: { id: session.id }, data: { avatarUrl } });
+    return res.json({ user: await signedInUser(session.id) });
   } catch {
     return res.status(502).json({ error: "Could not upload the image. Please try again." });
   }
@@ -214,12 +202,8 @@ router.patch("/profile", async (req, res) => {
     return res.status(400).json({ error: "Phone number must be 30 characters or fewer." });
   }
 
-  const user = await prisma.user.update({
-    where: { id: session.id },
-    data: { name, phone: phone || null },
-    select: { id: true, name: true, email: true, role: true, avatarUrl: true }
-  });
-  return res.json({ user });
+  await prisma.user.update({ where: { id: session.id }, data: { name, phone: phone || null } });
+  return res.json({ user: await signedInUser(session.id) });
 });
 
 // Which categories of staff-broadcast notifications the caller wants —
@@ -393,7 +377,7 @@ router.post("/signup", async (req, res) => {
 
   const token = await createSessionToken({ id: user.id, name: user.name, email: user.email, role: user.role, tokenVersion: user.tokenVersion });
   res.cookie(SESSION_COOKIE, token, SESSION_COOKIE_OPTIONS);
-  return res.json({ user: { id: user.id, name: user.name, email: user.email, role: user.role, avatarUrl: user.avatarUrl } });
+  return res.json({ user: await signedInUser(user.id) });
 });
 
 const GENERIC_RESET_MESSAGE = "If an account exists for that email, a reset link has been sent.";
@@ -466,7 +450,7 @@ router.post("/reset-password", async (req, res) => {
 
   const sessionToken = await createSessionToken({ id: user.id, name: user.name, email: user.email, role: user.role, tokenVersion: user.tokenVersion });
   res.cookie(SESSION_COOKIE, sessionToken, SESSION_COOKIE_OPTIONS);
-  return res.json({ user: { id: user.id, name: user.name, email: user.email, role: user.role, avatarUrl: user.avatarUrl } });
+  return res.json({ user: await signedInUser(user.id) });
 });
 
 export default router;

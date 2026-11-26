@@ -7,6 +7,7 @@ import { createSessionToken, SESSION_COOKIE, SESSION_COOKIE_OPTIONS } from "@/li
 import { checkRateLimit, rateLimitMessage } from "@/lib/rate-limit";
 import { recordLogin } from "@/lib/account-security";
 import { findUsableInvite } from "@/lib/staff-invites";
+import { signedInUser } from "@/lib/signed-in-user";
 
 // Public side of staff invites: the invite link opens /staff-invite/<token>
 // on the site, which uses these two endpoints.
@@ -93,7 +94,7 @@ router.post("/:token/accept", async (req, res) => {
   const token = await createSessionToken({ id: user.id, name: user.name, email: user.email, role: user.role, tokenVersion: user.tokenVersion });
   res.cookie(SESSION_COOKIE, token, SESSION_COOKIE_OPTIONS);
   await recordLogin(req, user.id, "invite");
-  return res.json({ user: { id: user.id, name: user.name, email: user.email, role: user.role, avatarUrl: user.avatarUrl } });
+  return res.json({ user: await signedInUser(user.id) });
 });
 
 export default router;

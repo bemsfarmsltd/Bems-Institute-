@@ -180,11 +180,6 @@ test("Admin changes extra roles, audits it, and signs out the old session", asyn
   page,
   browser
 }) => {
-  test.fail(
-    true,
-    "The API rejects the old session, but LMSContext retains cached office roles."
-  );
-
   const managementPage = page;
   await signIn(
     managementPage,
