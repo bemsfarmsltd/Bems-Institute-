@@ -516,6 +516,28 @@ export function Navbar() {
               </button>
             </form>
 
+            {isHydrated && user?.portals && user.portals.length > 1 && (
+              <div className="space-y-1.5">
+                <p className="text-[10.5px] font-bold uppercase tracking-wider text-[#645F80]">My portals</p>
+                <div className="flex flex-wrap gap-2">
+                  {user.portals.map((portal) => (
+                    <Link
+                      key={portal.path}
+                      href={portal.path}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`px-3 py-1.5 rounded-full border text-xs font-bold ${
+                        pathname.startsWith(portal.path)
+                          ? "bg-[#AE54C6] border-[#AE54C6] text-white"
+                          : "bg-[#F7EDF9] border-[#E5C8ED] text-[#303654]"
+                      }`}
+                    >
+                      {portal.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {isHydrated && user && (
               <div className="flex items-center justify-between px-3.5 py-3 rounded-2xl bg-[#F7EDF9]/60 border border-[#F1E2F5]">
                 <div className="flex items-center gap-2.5 min-w-0">

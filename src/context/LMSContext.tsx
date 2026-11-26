@@ -266,16 +266,17 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
   const [adminCourses, setAdminCourses] = useState<AdminCourse[]>([]);
   const [analytics, setAnalytics] = useState<AnalyticsSummary>(EMPTY_ANALYTICS);
 
-  const loadAdminData = useCallback(async () => {
+  const loadAdminData = useCallback(async (role?: User["role"]) => {
     try {
+      // Analytics (revenue) is admin-only; tutors get the roster and courses.
       const [rosterRes, coursesRes, analyticsRes] = await Promise.all([
         apiFetch("/api/admin/roster"),
         apiFetch("/api/admin/courses"),
-        apiFetch("/api/admin/analytics")
+        role === "ADMIN" ? apiFetch("/api/admin/analytics") : Promise.resolve(null)
       ]);
       if (rosterRes.ok) setAdminStudents((await rosterRes.json()).roster || []);
       if (coursesRes.ok) setAdminCourses((await coursesRes.json()).courses || []);
-      if (analyticsRes.ok) setAnalytics(await analyticsRes.json());
+      if (analyticsRes?.ok) setAnalytics(await analyticsRes.json());
     } catch {
       // admin data unavailable — non-staff users never call this anyway
     } finally {
@@ -425,7 +426,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
       }
       await Promise.all([refreshLearningProfile(), refreshNotifications()]);
       if (role === "INSTRUCTOR" || role === "ADMIN") {
-        await loadAdminData();
+        await loadAdminData(role);
       }
     },
     [loadAdminData, refreshLearningProfile, refreshNotifications]
@@ -972,7 +973,7 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
         adminStudents,
         adminCourses,
         analytics,
-        refreshAdminData: loadAdminData,
+        refreshAdminData: () => loadAdminData(user?.role),
         addCourse,
         updateCourseStatus,
         updateStudentPayment
