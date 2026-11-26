@@ -2,7 +2,9 @@
 
 import React, { use, useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { getTrackPhoto } from "@/lib/track-photos";
 import { useLMS } from "@/context/LMSContext";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -218,8 +220,27 @@ export default function CourseDetailPage({
       <CourseDetailTour />
       <Navbar />
 
-      <div className="bg-gradient-to-r from-[#303654] via-[#3E4569] to-[#303654] text-white py-14 border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative overflow-hidden bg-[#303654] text-white py-14 border-b border-white/10">
+        {(() => {
+          const trackPhoto = getTrackPhoto(course.slug);
+          return (
+            <>
+              <Image
+                src={trackPhoto.src}
+                alt={trackPhoto.alt}
+                fill
+                priority
+                sizes="100vw"
+                className="object-cover object-center opacity-35"
+              />
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 bg-gradient-to-r from-[#303654]/95 via-[#303654]/85 to-[#303654]/70"
+              />
+            </>
+          );
+        })()}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <Link href="/courses" className="m-press inline-flex items-center gap-2 text-xs text-[#F4E0FA] hover:text-white mb-6">
             <ArrowLeft className="w-4 h-4" /> Back to Course Catalog
           </Link>

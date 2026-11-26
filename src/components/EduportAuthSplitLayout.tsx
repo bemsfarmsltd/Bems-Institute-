@@ -271,7 +271,16 @@ export default function EduportAuthSplitLayout({
             Learn with mentors, practice in labs, and earn recognized credentials.
           </p>
 
-          <EduportCommunityIllustration />
+          <div className="relative w-full aspect-[16/10] rounded-2xl overflow-hidden shadow-md border border-white">
+            <Image
+              src="/images/track-web-dev.webp"
+              alt="Developer writing HTML and CSS in a code editor on a laptop with classmates nearby"
+              fill
+              priority
+              sizes="(min-width: 1024px) 520px, 100vw"
+              className="object-cover object-center"
+            />
+          </div>
         </div>
 
         {/* Verified facts only (owner-confirmed): Umuahia lab or online, 80 seats a cohort. */}

@@ -388,12 +388,12 @@ export function Hero() {
               {/* Organic Eduport Navy Shape Container */}
               <div className="relative mx-auto w-[270px] h-[310px] sm:w-[410px] sm:h-[440px] rounded-[46%_54%_48%_52%/54%_46%_54%_46%] bg-[#334E5B] overflow-hidden shadow-xl">
                 <Image
-                  src="/images/eduport-hero-student.jpg"
-                  alt="Student learning on a laptop"
+                  src="/images/hero-coding-lagos.webp"
+                  alt="Two young developers collaborating over code on a laptop and monitor"
                   fill
                   priority
                   sizes="(min-width: 640px) 410px, 270px"
-                  className="object-cover object-top scale-105"
+                  className="object-cover object-center scale-105"
                 />
 
                 {/* Hand-Drawn Yellow Lightbulb Doodle (Top-Left inside circle) */}
