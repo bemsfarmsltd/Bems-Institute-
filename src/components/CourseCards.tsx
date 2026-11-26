@@ -2,10 +2,12 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Heart, Clock, Table2, ArrowRight } from "lucide-react";
 import { useLMS } from "@/context/LMSContext";
 import { useLocalStorageRecord } from "@/hooks/useLocalStorageRecord";
 import { getCourseVisual } from "@/lib/course-visuals";
+import { getTrackPhoto } from "@/lib/track-photos";
 
 type CategoryKey = "all" | string;
 
@@ -75,6 +77,7 @@ export function CourseCards() {
               const isLiked = !!likedIds[course.id];
               const lectureCount = course.modules.reduce((sum, m) => sum + m.lessons.length, 0);
               const banner = getCourseVisual(course.slug);
+              const photo = getTrackPhoto(course.slug);
 
               return (
                 <div
@@ -82,36 +85,23 @@ export function CourseCards() {
                   className="m-lift group bg-white rounded-2xl border border-slate-100 shadow-[0_4px_24px_rgba(24,20,61,0.06)] overflow-hidden flex flex-col justify-between"
                 >
                   <div>
-                    {/* Top Illustrated Gradient Banner */}
+                    {/* Track Photo Banner */}
                     <Link
                       href={`/courses/${course.slug}`}
                       className={`relative h-48 w-full bg-gradient-to-br ${banner.gradient} flex items-center justify-center overflow-hidden block`}
                     >
-                      <svg
+                      <Image
+                        src={photo.src}
+                        alt={photo.alt}
+                        fill
+                        sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+                        className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
+                      />
+                      <div
                         aria-hidden="true"
-                        className="absolute -top-3 -left-3 w-36 h-24 opacity-35 pointer-events-none"
-                        viewBox="0 0 160 100"
-                        fill="none"
-                      >
-                        <path
-                          d="M0 10 Q40 45 90 15 T160 0 M0 25 Q45 55 95 25 T160 10 M0 40 Q50 65 100 35 T160 20 M0 55 Q55 75 105 45 T160 30 M15 0 L0 65 M40 0 L20 65 M65 0 L45 60 M90 0 L70 50 M115 0 L95 40"
-                          stroke={banner.waveStroke}
-                          strokeWidth="0.9"
-                        />
-                      </svg>
-                      <svg
-                        aria-hidden="true"
-                        className="absolute -bottom-2 -right-2 w-44 h-28 opacity-45 pointer-events-none"
-                        viewBox="0 0 180 110"
-                        fill="none"
-                      >
-                        <path
-                          d="M10 110 L55 55 L95 85 L140 35 L180 75 M25 110 L65 65 L105 90 L150 45 L180 85 M40 110 L75 75 L115 95 L160 55 L180 95 M55 55 L45 110 M95 85 L90 110 M140 35 L125 110 M150 45 L155 110"
-                          stroke={banner.waveStroke}
-                          strokeWidth="0.95"
-                        />
-                      </svg>
-                      <div className="m-icon relative z-10">
+                        className="absolute inset-0 bg-gradient-to-t from-[#1D2026]/55 via-[#1D2026]/15 to-transparent"
+                      />
+                      <div className="m-icon relative z-10 drop-shadow-md">
                         {banner.icon}
                       </div>
                     </Link>

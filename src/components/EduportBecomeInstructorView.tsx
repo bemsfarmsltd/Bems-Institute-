@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { apiFetch } from "@/lib/api-client";
@@ -187,8 +188,18 @@ export function EduportBecomeInstructorView() {
               </div>
             </div>
 
-            {/* Now Recruiting Highlight Card */}
-            <div className="lg:col-span-5">
+            {/* Now Recruiting Highlight Card + Illustrative Photo */}
+            <div className="lg:col-span-5 space-y-4">
+              <div className="relative h-48 sm:h-52 rounded-3xl overflow-hidden shadow-md border border-[#F1E2F5]">
+                <Image
+                  src="/images/tutor-mentoring.webp"
+                  alt="Developer testing an app alongside a laptop in a bright workspace"
+                  fill
+                  priority
+                  sizes="(min-width: 1024px) 420px, 100vw"
+                  className="object-cover object-center"
+                />
+              </div>
               <div className="m-lift rounded-3xl bg-[#303654] text-white p-6 sm:p-7 shadow-lg space-y-4">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#AE54C6] text-white text-[11px] font-extrabold uppercase tracking-wider">
                   <Shield className="w-3.5 h-3.5" /> Now Recruiting
