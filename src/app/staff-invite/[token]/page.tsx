@@ -99,7 +99,10 @@ export default function StaffInvitePage() {
       }
       if (data.user) {
         setVerifiedUser(data.user);
-        router.push(data.user.role === "ADMIN" ? "/admin" : "/instructor");
+        router.push(
+          data.user.homePath ||
+            (data.user.role === "ADMIN" ? "/admin" : "/tutor")
+        );
         return;
       }
       router.push("/login");
