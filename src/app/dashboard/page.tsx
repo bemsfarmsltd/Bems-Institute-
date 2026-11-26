@@ -24,6 +24,7 @@ import {
   NotesAndSavedCard,
   RemindersCard
 } from "@/components/MySpacePhase4Cards";
+import { StudentMyPaymentsCard } from "@/components/StudentMyPaymentsCard";
 import {
   MY_SPACE_ACCENTS,
   MY_SPACE_BANNERS,
@@ -1209,6 +1210,9 @@ function StudentDashboardContent() {
                 </a>
               </div>
             )}
+
+            {/* Student My Payments (instalment schedule & receipts) */}
+            <StudentMyPaymentsCard accentHex={activeAccentHex} />
 
             {/* My Courses List */}
             <div data-reveal id="my-courses-list" className="bg-white rounded-2xl border border-[#F1E2F5] p-6 shadow-xs">

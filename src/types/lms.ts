@@ -606,3 +606,115 @@ export interface TutorStudentDetail extends TutorStudentRow {
   }>;
 }
 
+// -------------------------------------------------------------
+// PHASE 5.2 — FINANCE (RECEIPTS, INSTALMENTS, DAILY CHECK)
+// -------------------------------------------------------------
+
+export type InstallmentPartStatus =
+  | "PAID"
+  | "UPCOMING"
+  | "DUE_SOON"
+  | "OVERDUE"
+  | "CANCELLED";
+
+export interface FinanceReceipt {
+  transactionId: string;
+  receiptNumber: string;
+  kind: "PAYMENT" | "REFUND";
+  issuedAt: string;
+  student: { name: string; email: string };
+  course: { title: string };
+  plan: string;
+  amount: number;
+  method: string;
+  reference: string;
+  totalDue: number;
+  paidToDate: number;
+  balance: number;
+}
+
+export interface MyPaymentInstallment {
+  id: string;
+  seq: number;
+  amount: number;
+  dueDate: string;
+  paid: boolean;
+  outstanding: number;
+  status: InstallmentPartStatus;
+}
+
+export interface MyPaymentTransaction {
+  id: string;
+  kind: "PAYMENT" | "REFUND";
+  amount: number;
+  paidAt: string;
+  method: string;
+  receiptNumber: string | null;
+}
+
+export interface MyPaymentEnrollment {
+  enrollmentId: string;
+  course: { id: string; title: string; slug: string };
+  plan: "full" | "installment" | string;
+  totalDue: number;
+  amountPaid: number;
+  balance: number;
+  paymentStatus: string;
+  installments: MyPaymentInstallment[];
+  payments: MyPaymentTransaction[];
+}
+
+export interface FinanceInstallmentRow {
+  id: string;
+  enrollmentId: string;
+  student: { id: string; name: string; email: string; phone: string | null };
+  course: { id: string; title: string };
+  seq: number;
+  amount: number;
+  outstanding: number;
+  dueDate: string;
+  status: InstallmentPartStatus;
+  daysOverdue: number;
+  lastReminderAt: string | null;
+}
+
+export interface FinanceInstallmentsResponse {
+  installments: FinanceInstallmentRow[];
+  totals: {
+    overdueCount: number;
+    overdueAmount: number;
+    dueSoonCount: number;
+    dueSoonAmount: number;
+  };
+}
+
+export interface ReconciliationRow {
+  reference: string;
+  transactionId: string | null;
+  amount: number;
+  paystackAmount: number | null;
+  status: string;
+  paystackStatus: string | null;
+  paidAt: string | null;
+  studentName: string | null;
+  email: string | null;
+  courseTitle: string | null;
+}
+
+export interface ReconciliationResponse {
+  date: string;
+  paystackConfigured: boolean;
+  totals: {
+    paystack: number;
+    ledgerPaystack: number;
+    bank: number;
+    refunds: number;
+  };
+  matched: ReconciliationRow[];
+  paystackOnly: ReconciliationRow[];
+  ledgerOnly: ReconciliationRow[];
+  amountMismatch: ReconciliationRow[];
+  bankTransfers: ReconciliationRow[];
+}
+
+

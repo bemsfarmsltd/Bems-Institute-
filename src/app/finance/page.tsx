@@ -1,9 +1,12 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { PortalGuard } from "@/components/PortalGuard";
+import { FinanceInstallmentsTab } from "@/components/finance/FinanceInstallmentsTab";
+import { FinanceDailyCheckTab } from "@/components/finance/FinanceDailyCheckTab";
 import { API_BASE_URL, apiFetch } from "@/lib/api-client";
 import { CountUp } from "@/components/CountUp";
 import type { AnalyticsSummary } from "@/types/lms";
@@ -11,6 +14,7 @@ import {
   CreditCard,
   DollarSign,
   Download,
+  FileText,
   RefreshCw,
   RotateCcw,
   CheckCircle2,
@@ -19,13 +23,16 @@ import {
 
 interface LedgerItem {
   id: string;
+  transactionId?: string;
+  receiptNumber?: string | null;
+  hasReceipt?: boolean;
   reference: string;
   studentName: string;
   studentEmail: string;
   courseTitle: string;
   paymentPlan: string;
   amount: number;
-  status: "PENDING" | "SUCCESS" | "FAILED" | "ABANDONED";
+  status: "PENDING" | "SUCCESS" | "FAILED" | "ABANDONED" | "REFUNDED";
   channel: string;
   paidAt: string | null;
   createdAt: string;
@@ -43,8 +50,10 @@ interface RosterStudent {
   status: string;
 }
 
+type FinanceTab = "ledger" | "installments" | "daily" | "balances" | "revenue";
+
 function FinancePortalContent() {
-  const [tab, setTab] = useState<"ledger" | "balances" | "revenue">("ledger");
+  const [tab, setTab] = useState<FinanceTab>("ledger");
   const [analytics, setAnalytics] = useState<AnalyticsSummary | null>(null);
   const [ledger, setLedger] = useState<LedgerItem[]>([]);
   const [roster, setRoster] = useState<RosterStudent[]>([]);
@@ -66,7 +75,15 @@ function FinancePortalContent() {
       }
       if (ledRes.ok) {
         const d = await ledRes.json();
-        setLedger(Array.isArray(d.entries) ? d.entries : Array.isArray(d.ledger) ? d.ledger : []);
+        setLedger(
+          Array.isArray(d.transactions)
+            ? d.transactions
+            : Array.isArray(d.entries)
+              ? d.entries
+              : Array.isArray(d.ledger)
+                ? d.ledger
+                : []
+        );
       }
       if (rosRes.ok) {
         const d = await rosRes.json();
@@ -193,13 +210,15 @@ function FinancePortalContent() {
         <div className="flex flex-wrap gap-2">
           {[
             { id: "ledger", label: `Payment Ledger (${ledger.length})` },
+            { id: "installments", label: "Instalments" },
+            { id: "daily", label: "Daily check" },
             { id: "balances", label: `Student Balances & Refunds (${roster.length})` },
             { id: "revenue", label: "Monthly Revenue" }
           ].map((item) => (
             <button
               key={item.id}
               type="button"
-              onClick={() => setTab(item.id as "ledger" | "balances" | "revenue")}
+              onClick={() => setTab(item.id as FinanceTab)}
               className={`m-press px-4 py-2 rounded-xl text-xs font-bold cursor-pointer ${
                 tab === item.id
                   ? "bg-[#303654] text-white"
@@ -211,14 +230,18 @@ function FinancePortalContent() {
           ))}
         </div>
 
-        {loading ? (
+        {tab === "installments" ? (
+          <FinanceInstallmentsTab onNotice={setNotice} />
+        ) : tab === "daily" ? (
+          <FinanceDailyCheckTab onNotice={setNotice} onAfterRecheck={loadFinanceData} />
+        ) : loading ? (
           <div className="bg-white rounded-2xl border border-[#F1E2F5] p-6 text-sm text-[#645F80]">
             Loading finance records…
           </div>
         ) : tab === "ledger" ? (
           <div className="bg-white rounded-2xl border border-[#F1E2F5] overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs min-w-[680px]">
+              <table className="w-full text-left text-xs min-w-[760px]">
                 <thead className="bg-[#303654] text-white">
                   <tr>
                     <th className="px-4 py-3 font-bold">Student</th>
@@ -227,37 +250,55 @@ function FinancePortalContent() {
                     <th className="px-4 py-3 font-bold">Channel</th>
                     <th className="px-4 py-3 font-bold">Status</th>
                     <th className="px-4 py-3 font-bold">Reference</th>
+                    <th className="px-4 py-3 font-bold">Receipt</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#F7EDF9]">
                   {ledger.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-4 py-6 text-center text-[#645F80]">
+                      <td colSpan={7} className="px-4 py-6 text-center text-[#645F80]">
                         No ledger entries yet.
                       </td>
                     </tr>
                   ) : (
-                    ledger.map((item) => (
-                      <tr key={item.id}>
-                        <td className="px-4 py-3">
-                          <div className="font-bold text-[#303654]">{item.studentName}</div>
-                          <div className="text-[11px] text-[#645F80]">{item.studentEmail}</div>
-                        </td>
-                        <td className="px-4 py-3 text-[#4A4568]">{item.courseTitle}</td>
-                        <td className="px-4 py-3 font-bold text-[#303654]">
-                          ₦{item.amount.toLocaleString()}
-                        </td>
-                        <td className="px-4 py-3 text-[#645F80]">{item.channel}</td>
-                        <td className="px-4 py-3">
-                          <span className="px-2 py-0.5 rounded-full bg-[#F7EDF9] text-[#AE54C6] text-[10.5px] font-bold">
-                            {item.status}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 font-mono text-[11px] text-[#645F80]">
-                          {item.reference}
-                        </td>
-                      </tr>
-                    ))
+                    ledger.map((item) => {
+                      const receiptHrefId = item.transactionId || item.id;
+                      const showReceipt = Boolean(item.receiptNumber || item.hasReceipt);
+                      return (
+                        <tr key={item.id}>
+                          <td className="px-4 py-3">
+                            <div className="font-bold text-[#303654]">{item.studentName}</div>
+                            <div className="text-[11px] text-[#645F80]">{item.studentEmail}</div>
+                          </td>
+                          <td className="px-4 py-3 text-[#4A4568]">{item.courseTitle}</td>
+                          <td className="px-4 py-3 font-bold text-[#303654]">
+                            ₦{item.amount.toLocaleString()}
+                          </td>
+                          <td className="px-4 py-3 text-[#645F80]">{item.channel}</td>
+                          <td className="px-4 py-3">
+                            <span className="px-2 py-0.5 rounded-full bg-[#F7EDF9] text-[#AE54C6] text-[10.5px] font-bold">
+                              {item.status}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 font-mono text-[11px] text-[#645F80]">
+                            {item.reference}
+                          </td>
+                          <td className="px-4 py-3">
+                            {showReceipt ? (
+                              <Link
+                                href={`/receipts/${encodeURIComponent(receiptHrefId)}`}
+                                className="m-press inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#F7EDF9] text-[#AE54C6] hover:bg-[#E5C8ED] text-[11px] font-bold"
+                              >
+                                <FileText className="w-3 h-3" />
+                                {item.receiptNumber || "Receipt"}
+                              </Link>
+                            ) : (
+                              <span className="text-[11px] text-[#645F80]">—</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
