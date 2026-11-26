@@ -255,6 +255,35 @@ describe("CSV export", () => {
   });
 });
 
+describe("audit data is restricted to non-secret fields", () => {
+  afterAll(cleanupTestData);
+
+  it.fails("does not persist arbitrary request properties in refund audit events", async () => {
+    const { agent: admin } = await createTestAdmin("audit-secret-admin");
+    const { agent: student } = await createTestStudent("audit-secret-student");
+    const enrollment = await payFull(student);
+    const canary = "review-only-secret-canary";
+
+    try {
+      const refund = await admin.post(`/api/admin/enrollments/${enrollment.id}/refund`, {
+        amount: enrollment.amountPaid,
+        privateToken: canary
+      });
+      expect(refund.status).toBe(200);
+
+      const stored = await prisma.auditEvent.findFirstOrThrow({
+        where: { action: "payment.refunded", targetId: enrollment.id }
+      });
+      const response = await admin.get(
+        `/api/admin/audit?targetType=enrollment&targetId=${enrollment.id}`
+      );
+      expect(JSON.stringify({ stored: stored.details, returned: response.body.events })).not.toContain(canary);
+    } finally {
+      await prisma.auditEvent.deleteMany({ where: { targetId: enrollment.id } });
+    }
+  });
+});
+
 describe("instructors can't see money or contact details (B9)", () => {
   const liveSessionIds: string[] = [];
   afterAll(async () => {
