@@ -87,7 +87,22 @@ function FinancePortalContent() {
       }
       if (rosRes.ok) {
         const d = await rosRes.json();
-        setRoster(Array.isArray(d.roster) ? d.roster : Array.isArray(d.students) ? d.students : []);
+        // GET /admin/roster: { roster: [{ id, name, email, courseTitle, paymentPlan, paymentStatus, amountPaid, totalDue, enrollmentStatus, ... }] }
+        const rows: Array<{ id: string; name?: string; email?: string; courseTitle?: string; paymentPlan?: string; paymentStatus?: string; amountPaid?: number; totalDue?: number; enrollmentStatus?: string }> =
+          Array.isArray(d.roster) ? d.roster : [];
+        setRoster(
+          rows.map((e) => ({
+            id: e.id,
+            studentName: e.name ?? "",
+            studentEmail: e.email ?? "",
+            courseTitle: e.courseTitle ?? "",
+            paymentPlan: e.paymentPlan ?? "",
+            paymentStatus: e.paymentStatus ?? "",
+            amountPaid: e.amountPaid ?? 0,
+            totalDue: e.totalDue ?? 0,
+            status: e.enrollmentStatus ?? ""
+          }))
+        );
       }
     } finally {
       setLoading(false);
