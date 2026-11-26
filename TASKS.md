@@ -8,7 +8,10 @@ section.
 
 | Task | Agent | Branch | Files / areas | Started |
 |---|---|---|---|---|
-| **Tutor applications API** (done, 131/131 backend tests): the "Become a Tutor" form saved nothing (it only showed a success message). Now `POST /api/tutor-applications` saves it, emails the applicant a confirmation and alerts admins; admins list and update applications. API and page content below. | Claude Code | `claude/tutor-applications` | `backend/` (schema + migration, `routes/tutor-applications.ts`, `app.ts`) | 2026-11-25 |
+| **Phase 5.1 Roles & permissions API** (done, 145/145 backend tests; awaiting Copilot review): three new staff roles (Finance, Admissions, Management), extra roles on one account, a permission per admin endpoint, roles read from the database on every request, portal list in `/api/auth/me`, audit log of money/registration/staff/settings changes. API below. Plan: [Upgrade plan doc](https://claude.ai/artifact/QYyPxeXD463wgUARDs7XJv). | Claude Code | `claude/roles-permissions` | `backend/` (schema + migration, `lib/permissions.ts`, `lib/audit.ts`, `lib/api-auth.ts`, `lib/session.ts`, `lib/staff-invites.ts`, `lib/tutor-view.ts`, `routes/admin.ts`, `routes/auth.ts`, `routes/staff-invites.ts`, `routes/graduates.ts`, `routes/tutor-applications.ts`, `routes/instructor.ts`) | 2026-11-26 |
+| **Phase 5.1 UI: portal shells, Staff & Access roles, audit screen** per the API below | Antigravity | `antigravity/portals-shell`, off `claude/roles-permissions` | new `src/app/finance/`, `src/app/admissions/`, `src/app/management/`, `src/app/admin/page.tsx` (Staff & Access, audit), `src/context/LMSContext.tsx`, `src/app/login`, `src/components/Navbar.tsx` | 2026-11-26 |
+| **Vibrant photos** (can start now, independent of the roles work): replace template graphics with licensed photos; brief below | Antigravity | `antigravity/vibrant-photos`, off `main` | `public/images/`, `src/components/Hero.tsx`, home page sections, `src/app/courses/**`, `src/app/become-instructor`, new `public/images/CREDITS.md` | 2026-11-26 |
+| **Review `claude/roles-permissions`**: (1) every admin endpoint has the right permission and no office role reaches teaching features (grading, lesson videos, attendance); (2) roles come from the database, not the cookie; a removed role stops access at once; (3) role changes: last-admin protection, Admin never an extra role, invites add roles to existing staff correctly; (4) audit entries are written for money, registration, staff and settings changes and hold no secrets; add tests | GitHub Copilot | `copilot/roles-permissions-review` | Read all; write `backend/src/__tests__/` + notes here | 2026-11-26 |
 | **Become a Tutor page rewrite**: replace every line of template placeholder text on `/become-instructor` with the content below, connect the form to the API, and add an admin "Tutor applications" screen. | Antigravity | `antigravity/become-tutor-page`, off `claude/tutor-applications` | `src/components/EduportBecomeInstructorView.tsx`, `src/app/become-instructor/*`, `src/app/admin/page.tsx` | 2026-11-25 |
 | **My Space Phase 4 API** (done, 125/125 backend tests; awaiting Codex review): public portfolio, tutor view + admin tutor assignment, reminders (in-app + push + opt-in WhatsApp, `POST /api/jobs/reminders` every 15 min), lesson notes + bookmarks, "share with my tutor" setting. API below. | Claude Code | `claude/my-space-phase4` | `backend/` (schema + migration, `lib/portfolio.ts`, `lib/study-notes.ts`, `lib/tutor-view.ts`, `lib/reminders.ts`, `lib/push.ts`, `lib/twilio.ts`, `routes/space.ts`, `routes/portfolio.ts`, `routes/instructor.ts`, `routes/jobs.ts`), `.github/workflows/reminders.yml` | 2026-11-23 |
 | **My Space Phase 4 UI**: public page `/u/[handle]`, portfolio card, notes + bookmarks, reminders card + service worker, tutor view, admin "Course tutors", welcome/dashboard privacy copy. Per the API below. | Antigravity | `antigravity/my-space-phase4-ui`, off `claude/my-space-phase4` | new `src/app/u/[handle]/page.tsx`, new `src/app/tutor/page.tsx`, `public/sw.js` (add push handlers), `src/app/dashboard/page.tsx`, `src/app/learn/**` (lesson page), `src/app/admin/page.tsx`, `src/app/welcome/page.tsx`, `src/types/lms.ts`, `src/context/LMSContext.tsx` | 2026-11-23 |
@@ -174,6 +177,40 @@ Errors are always `{ error }` with a message to show as is. `429` = too many tri
 - `GET /api/staff-invites/:token` → `{ invite: { email, role, expiresAt, accountExists } }`, or `410` (expired/used: show the message).
 - `POST /api/staff-invites/:token/accept`: new person `{ name, password }` (8+ chars); `accountExists` → just `{ password }` of that account. → `{ user }` (signed in: go to `/admin` or `/instructor` by role) or `{ ok, signInRequired: true }` (send to `/login`).
 - `AdminGate`'s "register with staff code" now returns `403` once any admin exists: replace that tab with "Staff accounts are invite-only. Ask an admin for an invite link."
+
+### Phase 5.1 Roles & permissions API (Claude Code → Antigravity)
+Branch `claude/roles-permissions`. Part of the [School Management System & LMS upgrade plan](https://claude.ai/artifact/QYyPxeXD463wgUARDs7XJv) (Phase 1 of 4).
+
+**Roles**: `STUDENT`, `INSTRUCTOR` (shown as "Tutor"), `ADMIN`, and new `FINANCE`, `ADMISSIONS`, `MANAGEMENT`. An account has one main role plus optional extra roles (e.g. Management + Admissions). Admin is only ever a main role.
+
+**What each office role may open** (everything else returns 403 "You don't have access to this."):
+| Role | Endpoints |
+|---|---|
+| Finance | `GET /api/admin/analytics`, `/cohorts`, `/roster` (full), `/roster/export`, `/payment-ledger` (+ export), `POST /enrollments/:id/payment`, `/refund`, `/refund-excess` |
+| Admissions | `/cohorts`, `/roster` (full), `/roster/export`, `POST /enrollments/:id/payment`, `/leads`, `/welcome-calls`, `/enrollments/pending-approval`, `/approve`, `/status`, `/second-chance`, `/qr-campaigns`, `/api/tutor-applications` |
+| Management | `/analytics`, `/cohorts`, `/placements` (read), `/reviews` (read), `GET /api/admin/audit` |
+| Tutor | unchanged: tutor view, grading, attendance, the limited roster |
+
+**Where to send people**: `GET /api/auth/me` now returns `user.roles` (main first), `user.permissions` (list of strings, e.g. `"payments.refund"`), `user.portals` (`[{ role, label, path }]`, home first) and `user.homePath`. After sign-in, redirect to `homePath`. Paths: `/admin`, `/management`, `/finance`, `/admissions`, `/tutor`, `/dashboard`. If `portals.length > 1`, show a portal switcher in the navbar ("Finance · Admissions"). Hide any menu item whose permission the user lacks rather than letting it 403.
+
+**Portal shells (this task)**: one page per office role, reusing the admin console's existing components, showing only what that role may open:
+- `/finance`: payment ledger with export, record payment, refunds, revenue chart (from `/analytics`).
+- `/admissions`: pending approvals, leads, welcome calls, QR campaigns, tutor applications, student list.
+- `/management`: the analytics dashboard, placements and reviews (read-only), and the audit log.
+- A signed-in person without that portal's role gets "You don't have access to this portal" with a link to their `homePath`. The full Phase 2 versions (fee plans, debtors, receipts, targets, weekly report) come next; this is the shell.
+
+**Staff & Access (admin)**: `GET /api/admin/staff` now includes office staff and returns `roles` and `roleLabels`. Invite form roles: Tutor, Admin, Finance, Admissions, Management (`POST /api/admin/staff/invites { email, role }`; inviting existing staff adds the role). Role editor: main-role select + extra-role checkboxes (Tutor, Finance, Admissions, Management) → `POST /api/admin/staff/:id/role { role, extraRoles }`. Errors come back in `error`. Changing someone's roles signs them out once.
+
+**Audit log**: `GET /api/admin/audit?targetType=&targetId=&action=&before=<ISO>&limit=50` → `{ events: [{ id, actorName, action, targetType, targetId, summary, createdAt }], hasMore }` (newest first; load more with `before` = the last `createdAt`). Show it in the management portal and in admin Settings → "Audit log", as a list: time, who, summary. Actions so far: `payment.recorded`, `payment.refunded`, `payment.refunded_excess`, `enrollment.approved`, `enrollment.status_changed`, `enrollment.second_chance`, `course.created`, `course.status_changed`, `settings.changed`, `staff.invited`, `staff.roles_changed`, `staff.deactivated`, `staff.reactivated`, `staff.2fa_reset`.
+
+### Vibrant photos brief (Antigravity)
+The site has two photos. Replace template graphics with bright, real-looking photos of young Africans learning tech, without misleading anyone.
+- Source only from **Unsplash** or **Pexels** (free for commercial use, no attribution required). Record each photo's page URL and photographer in `public/images/CREDITS.md`.
+- What to show: students at laptops coding or designing, small groups working together, a tutor helping at a desk, a bright classroom or lab, a graduation or certificate moment. Prefer Nigerian/West African settings; avoid obviously foreign signage, uniforms or snow.
+- Never caption or imply they are BEMS students or BEMS premises ("our students", "our lab"). Describe the scene ("Students working on a web project"). Real BEMS photos replace these after the photo shoot.
+- Where: home hero and the sections below it, course cards and course pages (one per track that matches the subject), Become a Tutor hero, login/welcome side panels, empty states.
+- Performance: `next/image` with `sizes`, WebP, hero ≤ 200 KB and others ≤ 120 KB at 1600 px wide, `alt` text that describes the scene, no layout shift. Keep text readable over photos (an overlay where text sits on an image).
+- Check at 375 px and desktop; run the Vercel-style build (`npx next build`, Turbopack) before handing over.
 
 ### Become a Tutor: API and page content (Claude Code → Antigravity)
 Branch `claude/tutor-applications`. Every line on `/become-instructor` today is template placeholder text ("Satisfied conveying a dependent contented he gentleman…"), and the steps describe a course marketplace ("Add your Course", "Start Earning Money"). BEMS doesn't work like that: it hires tutors to teach its own four courses. The content below uses only facts from the PRD (§7 Tracks, Tutors & Delivery; §5 graduates return as teaching assistants). Items marked **[owner to confirm]** need the owner's yes before they go live; until then use the safe wording given.

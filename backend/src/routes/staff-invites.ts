@@ -60,13 +60,20 @@ router.post("/:token/accept", async (req, res) => {
   if (claimed.count !== 1) return res.status(410).json({ error: GONE });
 
   const select = { id: true, name: true, email: true, role: true, avatarUrl: true, tokenVersion: true, totpEnabledAt: true } as const;
-  const user = existing
-    ? existing.role === "ADMIN" || existing.role === invite.role
-      ? await prisma.user.findUniqueOrThrow({ where: { id: existing.id }, select })
-      : // Role lives in the session cookie, so bump tokenVersion: old cookies
-        // with the old role stop working.
+  // A student becomes staff with the invited role; existing staff keep their
+  // role and gain the invited one as an extra role (one person can be, say,
+  // Management and Admissions). Admins already have every permission.
+  const user = !existing
+    ? await prisma.user.create({ data: { name, email: invite.email, passwordHash: await hashPassword(password), role: invite.role }, select })
+    : existing.role === "STUDENT"
+      ? // Bump tokenVersion: sessions issued with the old role stop working.
         await prisma.user.update({ where: { id: existing.id }, data: { role: invite.role, tokenVersion: { increment: 1 } }, select })
-    : await prisma.user.create({ data: { name, email: invite.email, passwordHash: await hashPassword(password), role: invite.role }, select });
+      : existing.role === "ADMIN" || existing.role === invite.role || existing.extraRoles.includes(invite.role)
+        ? await prisma.user.findUniqueOrThrow({ where: { id: existing.id }, select })
+        : invite.role === "ADMIN"
+          ? // Admin is always the main role; the old main role is kept as an extra.
+            await prisma.user.update({ where: { id: existing.id }, data: { role: "ADMIN", extraRoles: [...new Set([existing.role, ...existing.extraRoles])].filter((r) => r !== "ADMIN"), tokenVersion: { increment: 1 } }, select })
+          : await prisma.user.update({ where: { id: existing.id }, data: { extraRoles: { push: invite.role } }, select });
 
   if (user.totpEnabledAt) return res.json({ ok: true, signInRequired: true });
 

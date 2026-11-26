@@ -14,6 +14,9 @@ export interface SessionPayload {
   name: string;
   email: string;
   role: UserRole;
+  // Filled in by getSessionUser from the database (role + extraRoles), never
+  // trusted from the cookie.
+  roles?: UserRole[];
   tokenVersion: number;
   iat: number;
 }

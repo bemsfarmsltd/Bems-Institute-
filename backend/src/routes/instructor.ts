@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { prisma } from "@/lib/prisma";
-import { getSessionUser, isStaff, isAdmin } from "@/lib/api-auth";
+import { getSessionUser, isStaff } from "@/lib/api-auth";
+import { can } from "@/lib/permissions";
 import { listTutorStudents, getTutorStudent, listCourseTutors, setCourseTutors, TutorViewError } from "@/lib/tutor-view";
 
 const router = Router();
@@ -95,13 +96,13 @@ router.get("/students/:userId", async (req, res) => {
 // Admin: who teaches which course.
 router.get("/course-tutors", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) return res.status(403).json({ error: "Admin access required." });
+  if (!can(session, "settings.manage")) return res.status(403).json({ error: "You don't have access to this." });
   return res.json(await listCourseTutors());
 });
 
 router.put("/course-tutors/:courseId", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) return res.status(403).json({ error: "Admin access required." });
+  if (!can(session, "settings.manage")) return res.status(403).json({ error: "You don't have access to this." });
   try {
     return res.json(await setCourseTutors(req.params.courseId, req.body?.userIds));
   } catch (err) {

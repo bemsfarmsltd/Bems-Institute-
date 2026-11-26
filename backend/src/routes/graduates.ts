@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { prisma } from "@/lib/prisma";
-import { getSessionUser, isAdmin } from "@/lib/api-auth";
+import { getSessionUser } from "@/lib/api-auth";
+import { can } from "@/lib/permissions";
 
 const router = Router();
 
@@ -42,8 +43,8 @@ router.get("/", async (_req, res) => {
 // Admin: full list including unpublished drafts, for curation.
 router.get("/admin", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "graduates.manage")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
 
   const outcomes = await prisma.graduateOutcome.findMany({
@@ -58,8 +59,8 @@ router.get("/admin", async (req, res) => {
 // doesn't require typing a raw userId).
 router.get("/eligible", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "graduates.manage")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
 
   const certificates = await prisma.certificate.findMany({
@@ -81,8 +82,8 @@ router.get("/eligible", async (req, res) => {
 
 router.post("/", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "graduates.manage")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
 
   const body = req.body ?? {};
@@ -110,8 +111,8 @@ router.post("/", async (req, res) => {
 
 router.patch("/:id", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "graduates.manage")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
 
   const { id } = req.params;
@@ -140,8 +141,8 @@ router.patch("/:id", async (req, res) => {
 
 router.delete("/:id", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "graduates.manage")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
 
   await prisma.graduateOutcome.delete({ where: { id: req.params.id } });

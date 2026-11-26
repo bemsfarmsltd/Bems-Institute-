@@ -13,6 +13,10 @@ enum UserRole {
   STUDENT
   INSTRUCTOR
   ADMIN
+  // Phase 5 staff roles (lib/permissions.ts says what each may do).
+  FINANCE
+  ADMISSIONS
+  MANAGEMENT
 }
 
 enum EnrollmentStatus {
@@ -88,6 +92,10 @@ model User {
   phone        String?
   avatarUrl    String?
   role         UserRole       @default(STUDENT)
+  // More staff roles on the same account (e.g. the Institute Manager is
+  // MANAGEMENT + ADMISSIONS). Permissions are the union of role + extraRoles.
+  extraRoles   UserRole[]     @default([])
+  auditEvents  AuditEvent[]
   // Set by the user's own "Delete Profile" action — a soft delete, not a
   // real row deletion, so staff can still restore an account on request.
   // Blocks login and getSessionUser while set.
@@ -1082,4 +1090,23 @@ model TutorApplication {
 
   @@index([status, createdAt])
   @@index([email])
+}
+
+// Who did what to money, grades, accounts and settings (lib/audit.ts).
+// Append-only: nothing updates or deletes these rows.
+model AuditEvent {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actor      User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  actorName  String
+  action     String   // e.g. "payment.recorded", "staff.roles_changed"
+  targetType String   // "enrollment", "user", "settings", ...
+  targetId   String?
+  summary    String
+  details    Json?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([targetType, targetId])
+  @@index([actorId])
 }

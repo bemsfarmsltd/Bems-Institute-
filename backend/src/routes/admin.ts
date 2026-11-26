@@ -1,7 +1,9 @@
 import { Router } from "express";
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
-import { getSessionUser, isStaff, isAdmin, hasCourseAccess } from "@/lib/api-auth";
+import { getSessionUser, isStaff, hasCourseAccess } from "@/lib/api-auth";
+import { can, permissionsOf, rolesOf, isStaffRole, ROLE_LABELS } from "@/lib/permissions";
+import { audit, listAudit } from "@/lib/audit";
 import { computeAdminRoster } from "@/lib/admin-roster";
 import { DELIVERY_MODE_LABEL, mapAdminCourse } from "@/lib/lms-mappers";
 import { createNotification } from "@/lib/notifications";
@@ -28,8 +30,8 @@ const WAIVER_CHANNEL = "second_chance_waiver";
 
 router.get("/analytics", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "analytics.view")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
 
   const [roster, courses, cohort, certificatesIssued, scans, homePageViews, signupPageViews, ledger, lessonsCompleted] =
@@ -194,8 +196,8 @@ router.get("/analytics", async (req, res) => {
 // not something a non-admin instructor should be adjusting.
 router.patch("/cohort", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "courses.manage")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
 
   const cohort = await prisma.cohort.findFirst({ orderBy: { createdAt: "desc" } });
@@ -225,8 +227,8 @@ router.patch("/cohort", async (req, res) => {
 // starts the next intake round.
 router.get("/cohorts", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "cohorts.view")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
 
   const cohorts = await prisma.cohort.findMany({
@@ -251,8 +253,8 @@ router.get("/cohorts", async (req, res) => {
 
 router.post("/cohorts", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "courses.manage")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
 
   const body = req.body ?? {};
@@ -278,11 +280,11 @@ router.post("/cohorts", async (req, res) => {
 
 router.get("/roster", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isStaff(session)) {
+  if (!session || (!isStaff(session) && !can(session, "roster.view"))) {
     return res.status(403).json({ error: "Staff access required." });
   }
   const roster = await computeAdminRoster();
-  if (isAdmin(session)) {
+  if (can(session, "roster.view")) {
     return res.json({ roster });
   }
 
@@ -307,8 +309,8 @@ router.get("/roster", async (req, res) => {
 // every student's payment status and contact info in one file.
 router.get("/roster/export", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "roster.export")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
   const roster = await computeAdminRoster();
   const csv = toCsv(roster as unknown as Record<string, unknown>[], [
@@ -364,8 +366,8 @@ async function loadPaymentLedger() {
 // This is the ledger the Earnings tab reads from instead of placeholder data.
 router.get("/payment-ledger", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "payments.view")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
 
   return res.json({ transactions: await loadPaymentLedger() });
@@ -373,8 +375,8 @@ router.get("/payment-ledger", async (req, res) => {
 
 router.get("/payment-ledger/export", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "payments.view")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
 
   const transactions = await loadPaymentLedger();
@@ -401,8 +403,8 @@ router.get("/payment-ledger/export", async (req, res) => {
 // Certificate (see ensurePlacementSeeking in POST /submissions/:id/grade).
 router.get("/placements", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "placements.view")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
 
   const placements = await prisma.jobPlacement.findMany({
@@ -436,8 +438,8 @@ router.get("/placements", async (req, res) => {
 // (a partner's placement fee) in addition to pipeline status.
 router.patch("/placements/:id", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "placements.manage")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
 
   const { id } = req.params;
@@ -509,8 +511,8 @@ router.patch("/placements/:id", async (req, res) => {
 // edit modal before this button is used.
 router.post("/placements/:id/promote-to-instructor", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "staff.manage")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
 
   const { id } = req.params;
@@ -548,8 +550,8 @@ router.post("/placements/:id/promote-to-instructor", async (req, res) => {
 // phone numbers (owner decision, docs/admin-audit.md B9).
 router.get("/leads", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "admissions.manage")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
 
   const leads = await prisma.lead.findMany({
@@ -573,8 +575,8 @@ router.get("/leads", async (req, res) => {
 
 router.patch("/leads/:id", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "admissions.manage")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
 
   const { id } = req.params;
@@ -604,8 +606,8 @@ router.patch("/leads/:id", async (req, res) => {
 // there's no WhatsApp Business API wired up to send it automatically).
 router.get("/welcome-calls", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "admissions.manage")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
 
   const enrollments = await prisma.enrollment.findMany({
@@ -636,8 +638,8 @@ router.get("/welcome-calls", async (req, res) => {
 
 router.patch("/enrollments/:id/welcome-call", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "admissions.manage")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
 
   const { id } = req.params;
@@ -706,8 +708,8 @@ router.get("/courses", async (req, res) => {
 // assignment content is added separately — this just registers the course.
 router.post("/courses", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "courses.manage")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
 
   const body = req.body ?? {};
@@ -757,13 +759,14 @@ router.post("/courses", async (req, res) => {
     }
   });
 
+  await audit({ actor: session, action: "course.created", targetType: "course", summary: `Course created: ${req.body?.title ?? ""}` });
   return res.json({ course: mapAdminCourse(course) });
 });
 
 router.post("/courses/:id/status", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "courses.manage")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
 
   const { id } = req.params;
@@ -781,13 +784,14 @@ router.post("/courses/:id/status", async (req, res) => {
     }
   });
 
+  await audit({ actor: session, action: "course.status_changed", targetType: "course", targetId: req.params.id ?? null, summary: `Course ${req.params.id} status set to ${req.body?.status}`, details: { status: req.body?.status ?? null } });
   return res.json({ course: mapAdminCourse(course) });
 });
 
 router.post("/enrollments/:id/payment", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "payments.record")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
 
   const { id } = req.params;
@@ -922,6 +926,7 @@ router.post("/enrollments/:id/payment", async (req, res) => {
   // If this payment completed a confirmed registration, send the community link.
   await sendCommunityInviteIfReady(id);
 
+  await audit({ actor: session, action: "payment.recorded", targetType: "enrollment", targetId: req.params.id ?? null, summary: `Payment updated on registration ${req.params.id}`, details: { status: req.body?.status ?? null, amountPaid: req.body?.amountPaid ?? null, reference: req.body?.reference ?? null } });
   return res.json({ enrollment });
 });
 
@@ -930,8 +935,8 @@ router.post("/enrollments/:id/payment", async (req, res) => {
 // so nobody who paid early gets stuck behind newer sign-ups.
 router.get("/enrollments/pending-approval", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "admissions.approve")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
 
   const pending = await prisma.enrollment.findMany({
@@ -981,8 +986,8 @@ router.get("/enrollments/pending-approval", async (req, res) => {
 // record — approving an unpaid registration would hand out the course free.
 router.post("/enrollments/:id/approve", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "admissions.approve")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
 
   const existing = await prisma.enrollment.findUnique({
@@ -1048,6 +1053,7 @@ router.post("/enrollments/:id/approve", async (req, res) => {
   await sendCommunityInviteIfReady(existing.id);
 
   const enrollment = await prisma.enrollment.findUnique({ where: { id: existing.id } });
+  await audit({ actor: session, action: "enrollment.approved", targetType: "enrollment", targetId: req.params.id ?? null, summary: `Registration ${req.params.id} approved` });
   return res.json({ enrollment, alreadyApproved: false });
 });
 
@@ -1061,8 +1067,8 @@ router.post("/enrollments/:id/approve", async (req, res) => {
 // mis-click without it counting as a real drop.
 router.patch("/enrollments/:id/status", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "admissions.manage")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
 
   const { id } = req.params;
@@ -1082,13 +1088,14 @@ router.patch("/enrollments/:id/status", async (req, res) => {
   }
 
   const enrollment = await prisma.enrollment.update({ where: { id }, data: { status } });
+  await audit({ actor: session, action: "enrollment.status_changed", targetType: "enrollment", targetId: req.params.id ?? null, summary: `Registration ${req.params.id} status set to ${req.body?.status}`, details: { status: req.body?.status ?? null } });
   return res.json({ enrollment });
 });
 
 router.post("/enrollments/:id/second-chance", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "admissions.manage")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
 
   const { id } = req.params;
@@ -1174,6 +1181,7 @@ router.post("/enrollments/:id/second-chance", async (req, res) => {
     linkUrl: "/dashboard"
   });
 
+  await audit({ actor: session, action: "enrollment.second_chance", targetType: "enrollment", targetId: req.params.id ?? null, summary: `Second chance used for registration ${req.params.id}`, details: { body: req.body ?? null } });
   return res.json({ enrollment: updated, waivedAmount });
 });
 
@@ -1185,8 +1193,8 @@ router.post("/enrollments/:id/second-chance", async (req, res) => {
 // with no second confirmation step.
 router.post("/enrollments/:id/refund", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "payments.refund")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
 
   const { id } = req.params;
@@ -1267,6 +1275,7 @@ router.post("/enrollments/:id/refund", async (req, res) => {
     linkUrl: "/dashboard"
   });
 
+  await audit({ actor: session, action: "payment.refunded", targetType: "enrollment", targetId: req.params.id ?? null, summary: `Refund on registration ${req.params.id}`, details: { body: req.body ?? null } });
   return res.json({ enrollment: updated });
 });
 
@@ -1277,8 +1286,8 @@ router.post("/enrollments/:id/refund", async (req, res) => {
 // the Paystack dashboard first; this writes it to the ledger.
 router.post("/enrollments/:id/refund-excess", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "payments.refund")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
   const { id } = req.params;
 
@@ -1331,6 +1340,7 @@ router.post("/enrollments/:id/refund-excess", async (req, res) => {
     category: "PAYMENT",
     linkUrl: "/dashboard"
   });
+  await audit({ actor: session, action: "payment.refunded_excess", targetType: "enrollment", targetId: req.params.id ?? null, summary: `Overpayment refunded on registration ${req.params.id}`, details: { body: req.body ?? null } });
   return res.json({ refunded: result.refunded });
 });
 
@@ -1339,15 +1349,15 @@ router.post("/enrollments/:id/refund-excess", async (req, res) => {
 // who left: their account kept working for good.
 router.get("/staff", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "staff.manage")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
 
   const staff = await prisma.user.findMany({
-    where: { role: { in: ["ADMIN", "INSTRUCTOR"] } },
+    where: { OR: [{ role: { not: "STUDENT" } }, { extraRoles: { isEmpty: false } }] },
     orderBy: [{ role: "asc" }, { name: "asc" }],
     select: {
-      id: true, name: true, email: true, role: true, avatarUrl: true, deactivatedAt: true, createdAt: true, totpEnabledAt: true,
+      id: true, name: true, email: true, role: true, extraRoles: true, avatarUrl: true, deactivatedAt: true, createdAt: true, totpEnabledAt: true,
       loginEvents: { orderBy: { createdAt: "desc" }, take: 1, select: { createdAt: true } }
     }
   });
@@ -1358,6 +1368,9 @@ router.get("/staff", async (req, res) => {
       name: s.name,
       email: s.email,
       role: s.role,
+      // Every role this person holds, main role first, with display names.
+      roles: rolesOf({ role: s.role, roles: s.extraRoles }),
+      roleLabels: rolesOf({ role: s.role, roles: s.extraRoles }).map((r) => ROLE_LABELS[r]),
       avatarUrl: s.avatarUrl,
       active: !s.deactivatedAt,
       createdAt: s.createdAt.toISOString(),
@@ -1372,15 +1385,15 @@ router.get("/staff", async (req, res) => {
 // invalidates the cookies they already have).
 router.post("/staff/:id/deactivate", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session) || !session) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "staff.manage")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
   if (req.params.id === session.id) {
     return res.status(400).json({ error: "You can't deactivate your own account." });
   }
 
   const target = await prisma.user.findUnique({ where: { id: req.params.id } });
-  if (!target || (target.role !== "ADMIN" && target.role !== "INSTRUCTOR")) {
+  if (!target || (target.role === "STUDENT" && target.extraRoles.length === 0)) {
     return res.status(404).json({ error: "Staff member not found." });
   }
   if (target.deactivatedAt) {
@@ -1397,29 +1410,31 @@ router.post("/staff/:id/deactivate", async (req, res) => {
     where: { id: target.id },
     data: { deactivatedAt: new Date(), tokenVersion: { increment: 1 } }
   });
+  await audit({ actor: session, action: "staff.deactivated", targetType: "user", targetId: target.id, summary: `Deactivated ${target.name} (${target.email})` });
   return res.json({ ok: true });
 });
 
 router.post("/staff/:id/reactivate", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "staff.manage")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
 
   const target = await prisma.user.findUnique({ where: { id: req.params.id } });
-  if (!target || (target.role !== "ADMIN" && target.role !== "INSTRUCTOR")) {
+  if (!target || (target.role === "STUDENT" && target.extraRoles.length === 0)) {
     return res.status(404).json({ error: "Staff member not found." });
   }
 
   await prisma.user.update({ where: { id: target.id }, data: { deactivatedAt: null } });
+  await audit({ actor: session, action: "staff.reactivated", targetType: "user", targetId: target.id, summary: `Reactivated ${target.name} (${target.email})` });
   return res.json({ ok: true });
 });
 
 // ---- Staff invites (replace the shared ADMIN_ACCESS_CODE) -----------------
 router.get("/staff/invites", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "staff.manage")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
   const invites = await prisma.staffInvite.findMany({
     orderBy: { createdAt: "desc" },
@@ -1445,21 +1460,23 @@ router.get("/staff/invites", async (req, res) => {
 // email isn't set up yet.
 router.post("/staff/invites", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session) || !session) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "staff.manage")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
   const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
   const role = req.body?.role;
   if (!isValidEmail(email)) return res.status(400).json({ error: "Enter a valid email address." });
-  if (!STAFF_ROLES.includes(role)) return res.status(400).json({ error: "Role must be INSTRUCTOR or ADMIN." });
+  if (!STAFF_ROLES.includes(role)) return res.status(400).json({ error: `Role must be one of: ${STAFF_ROLES.join(", ")}.` });
   if (DEMO_ACCOUNT_EMAILS.has(email)) return res.status(400).json({ error: "That's a demo account." });
 
-  const existing = await prisma.user.findUnique({ where: { email }, select: { role: true, deactivatedAt: true } });
-  if (existing && !existing.deactivatedAt && (existing.role === role || existing.role === "ADMIN")) {
-    return res.status(409).json({ error: `${email} already has ${existing.role === "ADMIN" ? "admin" : "instructor"} access.` });
+  const existing = await prisma.user.findUnique({ where: { email }, select: { role: true, extraRoles: true, deactivatedAt: true } });
+  if (existing && !existing.deactivatedAt && (existing.role === role || existing.extraRoles.includes(role) || existing.role === "ADMIN")) {
+    const has = existing.role === "ADMIN" ? "ADMIN" : role;
+    return res.status(409).json({ error: `${email} already has ${ROLE_LABELS[has as keyof typeof ROLE_LABELS].toLowerCase()} access.` });
   }
 
   const { invite, rawToken } = await createStaffInvite(email, role, session.id);
+  await audit({ actor: session, action: "staff.invited", targetType: "invite", targetId: invite.id, summary: `Invited ${email} as ${ROLE_LABELS[role as keyof typeof ROLE_LABELS]}` });
   const { sent } = await emailStaffInvite(email, role, session.name, rawToken);
   return res.status(201).json({
     invite: { id: invite.id, email, role, status: "pending", expiresAt: invite.expiresAt.toISOString() },
@@ -1470,8 +1487,8 @@ router.post("/staff/invites", async (req, res) => {
 
 router.post("/staff/invites/:id/revoke", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "staff.manage")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
   const done = await prisma.staffInvite.updateMany({
     where: { id: req.params.id, acceptedAt: null, revokedAt: null },
@@ -1486,33 +1503,48 @@ router.post("/staff/invites/:id/revoke", async (req, res) => {
 // role is carried in the session cookie.
 router.post("/staff/:id/role", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session) || !session) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "staff.manage")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
+  // { role, extraRoles? }: the main role (STUDENT or a staff role) and, for
+  // staff, any additional roles. Omitting extraRoles keeps the current ones.
   const role = req.body?.role;
-  if (!["STUDENT", "INSTRUCTOR", "ADMIN"].includes(role)) {
-    return res.status(400).json({ error: "Role must be STUDENT, INSTRUCTOR or ADMIN." });
+  if (role !== "STUDENT" && !isStaffRole(role)) {
+    return res.status(400).json({ error: "Role must be STUDENT, INSTRUCTOR, ADMIN, FINANCE, ADMISSIONS or MANAGEMENT." });
+  }
+  const rawExtras = req.body?.extraRoles;
+  if (rawExtras !== undefined && (!Array.isArray(rawExtras) || !rawExtras.every((r) => isStaffRole(r) && r !== "ADMIN"))) {
+    return res.status(400).json({ error: "Extra roles can be Tutor, Finance, Admissions or Management. To make someone an admin, make Admin their main role." });
   }
   if (req.params.id === session.id) {
     return res.status(400).json({ error: "You can't change your own role. Ask another admin." });
   }
   const target = await prisma.user.findUnique({ where: { id: req.params.id } });
   if (!target) return res.status(404).json({ error: "User not found." });
-  if (target.role === role) return res.json({ ok: true, unchanged: true });
-  if (target.role === "ADMIN" && !target.deactivatedAt) {
+  // A student has no extra roles; staff keep theirs unless new ones are sent.
+  const extraRoles = role === "STUDENT" ? [] : [...new Set((rawExtras ?? target.extraRoles) as typeof target.extraRoles)].filter((r) => r !== role);
+  const before = rolesOf({ role: target.role, roles: target.extraRoles });
+  const after = rolesOf({ role, roles: extraRoles });
+  if (before.length === after.length && before.every((r, i) => r === after.at(i))) return res.json({ ok: true, unchanged: true });
+  if (before.includes("ADMIN") && !after.includes("ADMIN") && !target.deactivatedAt) {
     const activeAdmins = await prisma.user.count({ where: { role: "ADMIN", deactivatedAt: null } });
     if (activeAdmins <= 1) return res.status(400).json({ error: "That's the last active admin. Add another admin first." });
   }
-  await prisma.user.update({ where: { id: target.id }, data: { role, tokenVersion: { increment: 1 } } });
-  return res.json({ ok: true });
+  await prisma.user.update({ where: { id: target.id }, data: { role, extraRoles, tokenVersion: { increment: 1 } } });
+  await audit({
+    actor: session, action: "staff.roles_changed", targetType: "user", targetId: target.id,
+    summary: `${target.name}: ${before.map((r) => ROLE_LABELS[r]).join(" + ")} → ${after.map((r) => ROLE_LABELS[r]).join(" + ")}`,
+    details: { before, after }
+  });
+  return res.json({ ok: true, roles: after });
 });
 
 // For someone who lost their phone and recovery codes. They sign in with
 // just their password afterwards and should set it up again.
 router.post("/staff/:id/reset-2fa", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session) || !session) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "staff.manage")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
   if (req.params.id === session.id) {
     return res.status(400).json({ error: "Use your own Security settings for your account." });
@@ -1530,6 +1562,7 @@ router.post("/staff/:id/reset-2fa", async (req, res) => {
       tokenVersion: { increment: 1 }
     }
   });
+  await audit({ actor: session, action: "staff.2fa_reset", targetType: "user", targetId: req.params.id ?? null, summary: `2-step verification reset for user ${req.params.id}` });
   return res.json({ ok: true });
 });
 
@@ -1538,8 +1571,8 @@ router.post("/staff/:id/reset-2fa", async (req, res) => {
 // in one place and be able to take down abusive or fake ones.
 router.get("/reviews", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "reviews.view")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
 
   const reviews = await prisma.review.findMany({
@@ -1564,8 +1597,8 @@ router.get("/reviews", async (req, res) => {
 
 router.delete("/reviews/:id", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "reviews.manage")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
 
   const { count } = await prisma.review.deleteMany({ where: { id: req.params.id } });
@@ -1583,8 +1616,8 @@ const NOTIFICATION_CATEGORIES = ["CLASS", "GRADING", "PAYMENT", "GAMIFICATION", 
 // to any real integration in this app, so it isn't backed by an endpoint.
 router.get("/settings", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!session || !isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "settings.manage")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
 
   const [settings, me] = await Promise.all([
@@ -1597,8 +1630,8 @@ router.get("/settings", async (req, res) => {
 
 router.patch("/settings", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "settings.manage")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
 
   const body = req.body ?? {};
@@ -1621,6 +1654,7 @@ router.patch("/settings", async (req, res) => {
     create: { id: "singleton" }
   });
 
+  await audit({ actor: session, action: "settings.changed", targetType: "settings", summary: `Site settings changed: ${Object.keys(req.body ?? {}).join(", ")}`, details: { fields: Object.keys(req.body ?? {}) } });
   return res.json({ settings });
 });
 
@@ -1628,8 +1662,8 @@ router.patch("/settings", async (req, res) => {
 // read-only view of which integrations are configured on the server.
 router.get("/settings/general", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "settings.manage")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
   const s = await getSiteSettings();
   return res.json({
@@ -1648,16 +1682,16 @@ router.get("/settings/general", async (req, res) => {
 // confirmed student who hasn't had this week's yet (never twice).
 router.post("/recaps/send", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "settings.manage")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
   return res.json(await sendWeeklyRecaps());
 });
 
 router.patch("/settings/general", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "settings.manage")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
   const body = req.body ?? {};
   const text = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : undefined);
@@ -1685,6 +1719,7 @@ router.patch("/settings/general", async (req, res) => {
     update: { allowRegistration, bankName, bankAccountName, bankAccountNumber, whatsappCommunityUrl },
     create: { id: "singleton", allowRegistration: allowRegistration ?? undefined, bankName, bankAccountName, bankAccountNumber, whatsappCommunityUrl }
   });
+  await audit({ actor: session, action: "settings.changed", targetType: "settings", summary: `General settings changed: ${Object.keys(req.body ?? {}).join(", ")}`, details: { fields: Object.keys(req.body ?? {}) } });
   return res.json({
     general: {
       allowRegistration: s.allowRegistration,
@@ -1701,8 +1736,8 @@ router.patch("/settings/general", async (req, res) => {
 // (e.g. those confirmed before the link was set). Each gets it once.
 router.post("/settings/community/send-pending", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "settings.manage")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
   if (!(await getCommunityUrl())) {
     return res.status(400).json({ error: "Save the WhatsApp community link first." });
@@ -1722,8 +1757,9 @@ router.post("/settings/community/send-pending", async (req, res) => {
 
 router.patch("/settings/notifications", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!session || !isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  // Any staff member sets their own alert preferences.
+  if (!session || (!isStaff(session) && permissionsOf(session).length === 0)) {
+    return res.status(403).json({ error: "Staff access required." });
   }
 
   const categories = Array.isArray(req.body?.categories)
@@ -1786,8 +1822,8 @@ async function statsFor(campaigns: QrCampaign[]) {
 
 router.get("/qr-campaigns", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "campaigns.manage")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
   const campaigns = await prisma.qrCampaign.findMany({ orderBy: { createdAt: "desc" } });
   return res.json({ campaigns: await statsFor(campaigns) });
@@ -1795,8 +1831,8 @@ router.get("/qr-campaigns", async (req, res) => {
 
 router.post("/qr-campaigns", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session) || !session) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "campaigns.manage")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
   const label = typeof req.body?.label === "string" ? req.body.label.trim() : "";
   if (!label || label.length > MAX_LABEL_LENGTH) {
@@ -1826,8 +1862,8 @@ router.post("/qr-campaigns", async (req, res) => {
 // switch off a campaign. Codes are never deleted, so old scans keep their name.
 router.patch("/qr-campaigns/:id", async (req, res) => {
   const session = await getSessionUser(req);
-  if (!isAdmin(session)) {
-    return res.status(403).json({ error: "Admin access required." });
+  if (!session || !can(session, "campaigns.manage")) {
+    return res.status(403).json({ error: "You don't have access to this." });
   }
   const data: { label?: string; targetUrl?: string; active?: boolean } = {};
   if (req.body?.label !== undefined) {
@@ -1854,6 +1890,19 @@ router.patch("/qr-campaigns/:id", async (req, res) => {
   const campaign = await prisma.qrCampaign.update({ where: { id: existing.id }, data });
   const [stats] = await statsFor([campaign]);
   return res.json({ campaign: stats });
+});
+
+// The audit log, newest first: ?targetType=enrollment&targetId=…&action=payment&before=<ISO>&limit=50.
+router.get("/audit", async (req, res) => {
+  const session = await getSessionUser(req);
+  if (!session || !can(session, "reports.view")) {
+    return res.status(403).json({ error: "You don't have access to this." });
+  }
+  const q = req.query;
+  const str = (v: unknown) => (typeof v === "string" && v ? v : undefined);
+  const before = str(q.before) ? new Date(str(q.before)!) : undefined;
+  if (before && Number.isNaN(before.getTime())) return res.status(400).json({ error: "before must be a date." });
+  return res.json(await listAudit({ targetType: str(q.targetType), targetId: str(q.targetId), action: str(q.action), before, limit: Number(q.limit) || 50 }));
 });
 
 export default router;

@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { frontendUrl, sendEmail } from "@/lib/email";
 
 export const INVITE_DAYS = 7;
-export const STAFF_ROLES = ["INSTRUCTOR", "ADMIN"] as const;
+export const STAFF_ROLES = ["INSTRUCTOR", "ADMIN", "FINANCE", "ADMISSIONS", "MANAGEMENT"] as const;
 export type StaffRole = (typeof STAFF_ROLES)[number];
 
 export function hashInviteToken(raw: string): string {
@@ -40,7 +40,7 @@ export async function createStaffInvite(email: string, role: StaffRole, invitedB
 }
 
 export async function emailStaffInvite(email: string, role: UserRole, inviterName: string, rawToken: string) {
-  const roleName = role === "ADMIN" ? "an admin" : "an instructor";
+  const roleName = ({ ADMIN: "an admin", INSTRUCTOR: "a tutor", FINANCE: "finance staff", ADMISSIONS: "admissions staff", MANAGEMENT: "management" } as Record<string, string>)[role] ?? "staff";
   return sendEmail({
     to: email,
     subject: `You're invited to join BEMS Institute as ${roleName}`,

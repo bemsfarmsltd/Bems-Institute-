@@ -15,17 +15,22 @@ export async function getSessionUser(req: Request): Promise<SessionPayload | nul
 
   const user = await prisma.user.findUnique({
     where: { id: payload.id },
-    select: { tokenVersion: true, deactivatedAt: true, email: true }
+    select: { tokenVersion: true, deactivatedAt: true, email: true, role: true, extraRoles: true }
   });
   if (!user || user.tokenVersion !== payload.tokenVersion || user.deactivatedAt) return null;
   // Ends sessions already open on a demo account (see demo-accounts.ts).
   if (isBlockedDemoAccount(user.email)) return null;
 
-  return payload;
+  // Roles always come from the database, so a change takes effect on the
+  // next request (role changes also bump tokenVersion, ending old sessions).
+  return { ...payload, role: user.role, roles: [user.role, ...user.extraRoles.filter((r) => r !== user.role)] };
 }
 
+// Teaching staff: tutors and admins (as a main or extra role). Office roles
+// (finance, admissions, management) are not teaching staff; see permissions.ts.
 export function isStaff(session: SessionPayload | null): boolean {
-  return session?.role === "INSTRUCTOR" || session?.role === "ADMIN";
+  const roles = session ? [session.role, ...(session.roles ?? [])] : [];
+  return roles.includes("INSTRUCTOR") || roles.includes("ADMIN");
 }
 
 export function isAdmin(session: SessionPayload | null): boolean {

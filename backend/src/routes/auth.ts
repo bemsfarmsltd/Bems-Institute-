@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { verifyPassword, hashPassword, isPasswordStrongEnough } from "@/lib/password";
 import { createSessionToken, SESSION_COOKIE, SESSION_COOKIE_OPTIONS } from "@/lib/session";
 import { getSessionUser } from "@/lib/api-auth";
+import { rolesOf, permissionsOf, portalsOf } from "@/lib/permissions";
 import { isBlockedDemoAccount } from "@/lib/demo-accounts";
 import { signPayload, verifyPayload } from "@/lib/signed-token";
 import { consumeSecondFactor, recordLogin, twoFactorSelect } from "@/lib/account-security";
@@ -133,7 +134,10 @@ router.get("/me", async (req, res) => {
     select: { id: true, name: true, email: true, role: true, avatarUrl: true }
   });
   if (!user) return res.json({ user: null });
-  return res.json({ user });
+  // roles: every role held (main first); portals: where this person may go,
+  // home first, so the site can send them to the right portal after sign-in.
+  const portals = portalsOf(session);
+  return res.json({ user: { ...user, roles: rolesOf(session), permissions: permissionsOf(session), portals, homePath: portals[0]?.path ?? "/dashboard" } });
 });
 
 // Authenticated users upload/replace their own avatar — never someone

@@ -37,7 +37,7 @@ export type FlagKind = "INACTIVE" | "NOT_STARTED" | "BEHIND_GOAL" | "LOW_QUIZ" |
 /** Course ids this staff member may see: every course for an admin, their assigned ones for a tutor. */
 export async function tutorCourseIds(session: { id: string; role: string }): Promise<string[]> {
   if (session.role === "ADMIN") return (await prisma.course.findMany({ select: { id: true } })).map((c) => c.id);
-  if (session.role !== "INSTRUCTOR") return [];
+  if (session.role !== "INSTRUCTOR" && !(session as { roles?: string[] }).roles?.includes("INSTRUCTOR")) return [];
   return (await prisma.courseInstructor.findMany({ where: { userId: session.id }, select: { courseId: true } })).map((c) => c.courseId);
 }
 

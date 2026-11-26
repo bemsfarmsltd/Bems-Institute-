@@ -1,7 +1,8 @@
 import { Router } from "express";
 import type { TutorApplicationStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { getSessionUser, isAdmin } from "@/lib/api-auth";
+import { getSessionUser } from "@/lib/api-auth";
+import { can } from "@/lib/permissions";
 import { checkUsageQuota, recordAttempt, rateLimitMessage } from "@/lib/rate-limit";
 import { createNotification } from "@/lib/notifications";
 import { sendEmail, adminEmailAddresses } from "@/lib/email";
@@ -77,7 +78,7 @@ router.post("/", async (req, res) => {
 
 // ---- Admin ----
 router.get("/", async (req, res) => {
-  if (!isAdmin(await getSessionUser(req))) return res.status(403).json({ error: "Admin access required." });
+  if (!can(await getSessionUser(req), "tutors.recruit")) return res.status(403).json({ error: "You don't have access to this." });
   const status = typeof req.query.status === "string" && STATUSES.includes(req.query.status as TutorApplicationStatus) ? (req.query.status as TutorApplicationStatus) : undefined;
   const [applications, courses, counts] = await Promise.all([
     prisma.tutorApplication.findMany({ where: status ? { status } : {}, orderBy: { createdAt: "desc" }, take: 200 }),
@@ -92,7 +93,7 @@ router.get("/", async (req, res) => {
 });
 
 router.patch("/:id", async (req, res) => {
-  if (!isAdmin(await getSessionUser(req))) return res.status(403).json({ error: "Admin access required." });
+  if (!can(await getSessionUser(req), "tutors.recruit")) return res.status(403).json({ error: "You don't have access to this." });
   const data: { status?: TutorApplicationStatus; staffNotes?: string | null } = {};
   if (req.body?.status !== undefined) {
     if (!STATUSES.includes(req.body.status)) return res.status(400).json({ error: `Status must be one of: ${STATUSES.join(", ")}.` });
