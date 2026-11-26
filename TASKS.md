@@ -25,6 +25,15 @@ section.
 | **My Space UI, Phase 1** (done, browser-tested end to end at 375px + desktop, awaiting merge): welcome setup, personal dashboard header, Continue-where-you-left-off, personal home for signed-in students, fix the 375px dashboard header overlap. Per the API below. | Antigravity | `antigravity/my-space-ui`, off `claude/my-space` | `src/app/dashboard/page.tsx`, new `src/app/welcome/page.tsx`, `src/app/page.tsx` / `src/components/Hero.tsx`, `src/context/LMSContext.tsx` | 2026-11-16 |
 | **Personalisation audit + My Space review** (done; 2 findings fixed): (1) walk the whole student journey (sign up → register → pay → confirmed → learn → feedback) at 375px and desktop, and list every spot that feels generic or impersonal (same for everyone, placeholder people/numbers, "Student" instead of their name, fake activity), with file:line and a one-line fix; (2) review `claude/my-space` for privacy (no other student's data, no meeting/lesson links before confirmation, staff behaviour) and the Lagos week/greeting edge cases; add tests in `backend/src/__tests__/` | Codex | `codex/my-space-review` | Read all; write `backend/src/__tests__/` + notes here | 2026-11-16 |
 
+### Design direction: Copilot
+
+- **Copilot, 2026-11-26 — docs-only:** recording risks for the planned home, catalogue and course-page redesign; no code changed.
+- **Accessibility:** keep form/control labels programmatic, ensure all menus and carousels work by keyboard with visible focus, and verify text/control contrast against the BEMS palette.
+- **Slow Nigerian mobile data:** compress and size images responsively, lazy-load below-fold media, and avoid heavy or auto-rotating carousels; test on throttled mobile connections and respect reduced-motion preferences.
+- **Existing browser checks:** once `copilot/e2e-tests` merges, revisit the six-role portal-access assertions and responsive portal-switcher selectors if shared navigation changes.
+- Add browser coverage for home → catalogue → course detail navigation, mobile layouts, key course CTAs, and keyboard-accessible controls; preserve the no-console-error/HTTP-5xx checks.
+- Keep registration approval/audit and role-change/session-invalidation scenarios unless the redesign changes those flows.
+
 ### Copilot Phase 4 review
 
 - **Finding — 🟡 MEDIUM, high confidence:** `backend/src/lib/push.ts:42` accepts any HTTPS endpoint. An authenticated student can subscribe an attacker-controlled or internal HTTPS URL, which `sendPush` later sends to directly (`backend/src/lib/push.ts:80-83`), creating an SSRF vector. Restrict subscriptions to supported push-service origins and validate the resolved destination at delivery time; redirects must not bypass validation.
