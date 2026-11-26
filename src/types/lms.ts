@@ -1,11 +1,37 @@
-export type UserRole = 'STUDENT' | 'INSTRUCTOR' | 'ADMIN';
+export type UserRole =
+  | "STUDENT"
+  | "INSTRUCTOR"
+  | "ADMIN"
+  | "FINANCE"
+  | "ADMISSIONS"
+  | "MANAGEMENT";
+
+export interface UserPortal {
+  role: UserRole;
+  label: string;
+  path: string;
+}
 
 export interface User {
   id: string;
   name: string;
   email: string;
   role: UserRole;
+  roles?: UserRole[];
+  permissions?: string[];
+  portals?: UserPortal[];
+  homePath?: string;
   avatarUrl?: string | null;
+}
+
+export interface AuditEvent {
+  id: string;
+  actorName: string;
+  action: string;
+  targetType: string;
+  targetId: string | null;
+  summary: string;
+  createdAt: string;
 }
 
 export interface Lesson {

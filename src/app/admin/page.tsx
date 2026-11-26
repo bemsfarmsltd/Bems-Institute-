@@ -10,6 +10,8 @@ import { buildWhatsAppLink } from "@/lib/whatsapp";
 import QRCode from "qrcode";
 import { UserAvatar } from "@/components/UserAvatar";
 import { CountUp } from "@/components/CountUp";
+import { AuditLogPanel } from "@/components/AuditLogPanel";
+import type { UserRole } from "@/types/lms";
 import {
   Home,
   ShoppingBasket,
@@ -63,6 +65,7 @@ import {
   RefreshCw,
   ExternalLink,
   MessageCircle,
+  History,
 } from "lucide-react";
 
 interface EduportStudentCard {
@@ -90,7 +93,9 @@ interface StaffMember {
   id: string;
   name: string;
   email: string;
-  role: "ADMIN" | "INSTRUCTOR";
+  role: UserRole;
+  roles?: UserRole[];
+  roleLabels?: string[];
   avatarUrl?: string | null;
   active: boolean;
   createdAt: string;
@@ -443,6 +448,7 @@ function AdminDashboardContent() {
     | "staff"
     | "course-tutors"
     | "tutor-applications"
+    | "audit"
     | "security"
     | "notification"
     | "account"
@@ -507,7 +513,12 @@ function AdminDashboardContent() {
   const [staffInvites, setStaffInvites] = useState<StaffInvite[]>([]);
   const [invitesLoading, setInvitesLoading] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState<"INSTRUCTOR" | "ADMIN">("INSTRUCTOR");
+  const [inviteRole, setInviteRole] = useState<
+    "INSTRUCTOR" | "ADMIN" | "FINANCE" | "ADMISSIONS" | "MANAGEMENT"
+  >("INSTRUCTOR");
+  const [staffRoleDrafts, setStaffRoleDrafts] = useState<
+    Record<string, { role: UserRole; extraRoles: UserRole[] }>
+  >({});
   const [invitingStaff, setInvitingStaff] = useState(false);
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [createdInviteResult, setCreatedInviteResult] = useState<{
@@ -1559,7 +1570,8 @@ function AdminDashboardContent() {
 
   const handleChangeStaffRole = async (
     member: StaffMember,
-    newRole: "STUDENT" | "INSTRUCTOR" | "ADMIN"
+    newRole: UserRole,
+    extraRoles: UserRole[]
   ) => {
     if (member.isYou || member.id === user?.id) return;
     setStaffRoleSavingId(member.id);
@@ -1567,13 +1579,13 @@ function AdminDashboardContent() {
       const res = await apiFetch(`/api/admin/staff/${member.id}/role`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role: newRole })
+        body: JSON.stringify({ role: newRole, extraRoles })
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setAdminNotice(data?.error || "Could not update staff role.");
       } else {
-        setAdminNotice(`Updated ${member.name}'s role to ${newRole}.`);
+        setAdminNotice(`Updated ${member.name}'s roles (they will need to sign in again).`);
         await loadStaffAndInvites();
       }
     } catch {
@@ -4915,6 +4927,7 @@ function AdminDashboardContent() {
                     { id: "staff", label: "Staff & Access", icon: Users },
                     { id: "course-tutors", label: "Course tutors", icon: GraduationCap },
                     { id: "tutor-applications", label: "Tutor applications", icon: ClipboardList },
+                    { id: "audit", label: "Audit log", icon: History },
                     { id: "security", label: "Security", icon: Shield },
                     { id: "notification", label: "Notification Settings", icon: Bell },
                     { id: "account", label: "Account Settings", icon: UserIcon },
@@ -4933,6 +4946,7 @@ function AdminDashboardContent() {
                               | "staff"
                               | "course-tutors"
                               | "tutor-applications"
+                              | "audit"
                               | "security"
                               | "notification"
                               | "account"
@@ -5440,11 +5454,21 @@ function AdminDashboardContent() {
                               <select
                                 value={inviteRole}
                                 onChange={(e) =>
-                                  setInviteRole(e.target.value as "INSTRUCTOR" | "ADMIN")
+                                  setInviteRole(
+                                    e.target.value as
+                                      | "INSTRUCTOR"
+                                      | "ADMIN"
+                                      | "FINANCE"
+                                      | "ADMISSIONS"
+                                      | "MANAGEMENT"
+                                  )
                                 }
                                 className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-[14px] text-[#1D2026] focus:outline-none focus:ring-2 focus:ring-[#AE54C6]/25 focus:border-[#AE54C6]"
                               >
-                                <option value="INSTRUCTOR">Instructor</option>
+                                <option value="INSTRUCTOR">Tutor</option>
+                                <option value="FINANCE">Finance</option>
+                                <option value="ADMISSIONS">Admissions</option>
+                                <option value="MANAGEMENT">Management</option>
                                 <option value="ADMIN">Admin</option>
                               </select>
                             </div>
@@ -5604,57 +5628,144 @@ function AdminDashboardContent() {
                                   <div className="flex flex-wrap items-center gap-2">
                                     {isSelf ? (
                                       <span className="px-3 py-1.5 rounded-lg bg-slate-100 text-[12px] font-bold text-[#475569]">
-                                        {member.role} (Own account)
+                                        {member.roleLabels?.join(" · ") || member.role} (Own account)
                                       </span>
                                     ) : (
-                                      <>
-                                        <select
-                                          aria-label={`Role for ${member.name}`}
-                                          value={member.role}
-                                          disabled={staffRoleSavingId === member.id}
-                                          onChange={(e) =>
-                                            void handleChangeStaffRole(
-                                              member,
-                                              e.target.value as "STUDENT" | "INSTRUCTOR" | "ADMIN"
-                                            )
-                                          }
-                                          className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-[12.5px] font-bold text-[#1D2026] disabled:opacity-60"
-                                        >
-                                          <option value="ADMIN">ADMIN</option>
-                                          <option value="INSTRUCTOR">INSTRUCTOR</option>
-                                          <option value="STUDENT">STUDENT</option>
-                                        </select>
+                                      <div className="flex flex-col items-start lg:items-end gap-2">
+                                        {(() => {
+                                          const currentExtra = (member.roles || []).filter(
+                                            (r) => r !== member.role
+                                          );
+                                          const draft = staffRoleDrafts[member.id] || {
+                                            role: member.role,
+                                            extraRoles: currentExtra
+                                          };
+                                          const EXTRA_ROLE_OPTIONS: Array<{
+                                            id: UserRole;
+                                            label: string;
+                                          }> = [
+                                            { id: "INSTRUCTOR", label: "Tutor" },
+                                            { id: "FINANCE", label: "Finance" },
+                                            { id: "ADMISSIONS", label: "Admissions" },
+                                            { id: "MANAGEMENT", label: "Management" }
+                                          ];
+                                          return (
+                                            <div className="flex flex-wrap items-center gap-2">
+                                              <select
+                                                aria-label={`Main role for ${member.name}`}
+                                                value={draft.role}
+                                                disabled={staffRoleSavingId === member.id}
+                                                onChange={(e) => {
+                                                  const nextMain = e.target.value as UserRole;
+                                                  setStaffRoleDrafts((prev) => ({
+                                                    ...prev,
+                                                    [member.id]: {
+                                                      role: nextMain,
+                                                      extraRoles:
+                                                        nextMain === "STUDENT"
+                                                          ? []
+                                                          : draft.extraRoles.filter(
+                                                              (r) => r !== nextMain
+                                                            )
+                                                    }
+                                                  }));
+                                                }}
+                                                className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-[12.5px] font-bold text-[#1D2026] disabled:opacity-60"
+                                              >
+                                                <option value="ADMIN">Admin</option>
+                                                <option value="INSTRUCTOR">Tutor</option>
+                                                <option value="FINANCE">Finance</option>
+                                                <option value="ADMISSIONS">Admissions</option>
+                                                <option value="MANAGEMENT">Management</option>
+                                                <option value="STUDENT">Student (remove staff)</option>
+                                              </select>
 
-                                        <button
-                                          type="button"
-                                          disabled={staffActionId === member.id}
-                                          onClick={() => void handleToggleStaffActive(member)}
-                                          className={`m-press px-3 py-1.5 rounded-lg text-[12.5px] font-bold border transition-colors cursor-pointer disabled:opacity-60 ${
-                                            member.active
-                                              ? "border-rose-200 text-rose-700 hover:bg-rose-50"
-                                              : "border-emerald-200 text-emerald-700 hover:bg-emerald-50"
-                                          }`}
-                                        >
-                                          {staffActionId === member.id
-                                            ? "Saving..."
-                                            : member.active
-                                            ? "Deactivate"
-                                            : "Reactivate"}
-                                        </button>
+                                              {draft.role !== "STUDENT" &&
+                                                EXTRA_ROLE_OPTIONS.filter(
+                                                  (opt) => opt.id !== draft.role
+                                                ).map((opt) => {
+                                                  const checked = draft.extraRoles.includes(opt.id);
+                                                  return (
+                                                    <label
+                                                      key={opt.id}
+                                                      className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-slate-200 bg-[#F8F9FA] text-[11.5px] font-semibold text-[#1D2026] cursor-pointer"
+                                                    >
+                                                      <input
+                                                        type="checkbox"
+                                                        checked={checked}
+                                                        onChange={() => {
+                                                          const nextExtra = checked
+                                                            ? draft.extraRoles.filter(
+                                                                (r) => r !== opt.id
+                                                              )
+                                                            : [...draft.extraRoles, opt.id];
+                                                          setStaffRoleDrafts((prev) => ({
+                                                            ...prev,
+                                                            [member.id]: {
+                                                              role: draft.role,
+                                                              extraRoles: nextExtra
+                                                            }
+                                                          }));
+                                                        }}
+                                                        className="accent-[#AE54C6]"
+                                                      />
+                                                      <span>{opt.label}</span>
+                                                    </label>
+                                                  );
+                                                })}
 
-                                        {member.twoFactorEnabled && (
+                                              <button
+                                                type="button"
+                                                disabled={staffRoleSavingId === member.id}
+                                                onClick={() =>
+                                                  void handleChangeStaffRole(
+                                                    member,
+                                                    draft.role,
+                                                    draft.extraRoles
+                                                  )
+                                                }
+                                                className="m-press px-3 py-1.5 rounded-lg bg-[#AE54C6] text-white text-[12px] font-bold cursor-pointer disabled:opacity-60"
+                                              >
+                                                {staffRoleSavingId === member.id
+                                                  ? "Saving..."
+                                                  : "Save roles"}
+                                              </button>
+                                            </div>
+                                          );
+                                        })()}
+
+                                        <div className="flex flex-wrap items-center gap-2">
                                           <button
                                             type="button"
-                                            disabled={staffResetting2faId === member.id}
-                                            onClick={() => void handleResetStaff2fa(member)}
-                                            className="m-press px-3 py-1.5 rounded-lg border border-amber-200 text-amber-800 hover:bg-amber-50 text-[12.5px] font-bold cursor-pointer disabled:opacity-60"
+                                            disabled={staffActionId === member.id}
+                                            onClick={() => void handleToggleStaffActive(member)}
+                                            className={`m-press px-3 py-1.5 rounded-lg text-[12.5px] font-bold border transition-colors cursor-pointer disabled:opacity-60 ${
+                                              member.active
+                                                ? "border-rose-200 text-rose-700 hover:bg-rose-50"
+                                                : "border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                                            }`}
                                           >
-                                            {staffResetting2faId === member.id
-                                              ? "Resetting..."
-                                              : "Reset 2-Step"}
+                                            {staffActionId === member.id
+                                              ? "Saving..."
+                                              : member.active
+                                              ? "Deactivate"
+                                              : "Reactivate"}
                                           </button>
-                                        )}
-                                      </>
+
+                                          {member.twoFactorEnabled && (
+                                            <button
+                                              type="button"
+                                              disabled={staffResetting2faId === member.id}
+                                              onClick={() => void handleResetStaff2fa(member)}
+                                              className="m-press px-3 py-1.5 rounded-lg border border-amber-200 text-amber-800 hover:bg-amber-50 text-[12.5px] font-bold cursor-pointer disabled:opacity-60"
+                                            >
+                                              {staffResetting2faId === member.id
+                                                ? "Resetting..."
+                                                : "Reset 2-Step"}
+                                            </button>
+                                          )}
+                                        </div>
+                                      </div>
                                     )}
                                   </div>
                                 </div>
@@ -6021,6 +6132,8 @@ function AdminDashboardContent() {
                       </div>
                     </div>
                   )}
+
+                  {settingsSubTab === "audit" && <AuditLogPanel />}
 
                   {settingsSubTab === "security" && (
                     /* Sub-Tab: Security (2FA + Recovery Codes + Sign-In History + Sign Out Everywhere) */

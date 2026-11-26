@@ -3,9 +3,10 @@
 import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useLMS } from "@/context/LMSContext";
+import type { UserRole } from "@/types/lms";
 import { ShieldAlert } from "lucide-react";
 
-type Role = "STUDENT" | "INSTRUCTOR" | "ADMIN";
+type Role = UserRole;
 
 function GateScreen({ label }: { label: string }) {
   return (
@@ -31,7 +32,10 @@ export function RequireRole({
 }) {
   const { user, isHydrated } = useLMS();
   const router = useRouter();
-  const authorized = !!user && allow.includes(user.role);
+  const authorized =
+    !!user &&
+    (allow.includes(user.role) ||
+      (Array.isArray(user.roles) && user.roles.some((r) => allow.includes(r))));
 
   useEffect(() => {
     if (isHydrated && !authorized) {

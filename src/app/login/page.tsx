@@ -89,15 +89,25 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const routeForRole = (userRole: UserRole) => {
+  const routeForRole = (userRole: UserRole, homePath?: string) => {
     if (redirectUrl) {
       router.push(redirectUrl);
       return;
     }
+    if (homePath) {
+      router.push(homePath);
+      return;
+    }
     if (userRole === "ADMIN") {
       router.push("/admin");
+    } else if (userRole === "FINANCE") {
+      router.push("/finance");
+    } else if (userRole === "ADMISSIONS") {
+      router.push("/admissions");
+    } else if (userRole === "MANAGEMENT") {
+      router.push("/management");
     } else if (userRole === "INSTRUCTOR") {
-      router.push("/instructor");
+      router.push("/tutor");
     } else {
       router.push("/dashboard");
     }
@@ -117,7 +127,7 @@ export default function LoginPage() {
       setError(result.error ?? "Unable to sign into demo account.");
       return;
     }
-    routeForRole(result.user.role);
+    routeForRole(result.user.role, result.user.homePath);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -158,7 +168,7 @@ export default function LoginPage() {
           setLowRecoveryNotice({ count: result.recoveryCodesLeft, role: result.user.role });
           return;
         }
-        routeForRole(result.user.role);
+        routeForRole(result.user.role, result.user.homePath);
         return;
       }
 
@@ -173,7 +183,7 @@ export default function LoginPage() {
         setError(result.error ?? "Invalid email or password.");
         return;
       }
-      routeForRole(result.user.role);
+      routeForRole(result.user.role, result.user.homePath);
       return;
     }
 
@@ -190,7 +200,7 @@ export default function LoginPage() {
       setError(result.error ?? "Could not create your account.");
       return;
     }
-    routeForRole(result.user.role);
+    routeForRole(result.user.role, result.user.homePath);
   };
 
   return (

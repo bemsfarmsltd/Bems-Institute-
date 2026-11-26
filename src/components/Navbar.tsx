@@ -46,7 +46,19 @@ export function Navbar() {
   const myCourse = courses.find((c) => enrolledCourseIds.includes(c.id));
   const myFirstLessonId = myCourse?.modules[0]?.lessons[0]?.id;
   const myQuiz = myCourse ? getQuizForCourse(myCourse.id) : undefined;
-  const dashboardHref = user?.role === "ADMIN" ? "/admin" : user?.role === "INSTRUCTOR" ? "/instructor" : "/dashboard";
+  const dashboardHref =
+    user?.homePath ||
+    (user?.role === "ADMIN"
+      ? "/admin"
+      : user?.role === "FINANCE"
+      ? "/finance"
+      : user?.role === "ADMISSIONS"
+      ? "/admissions"
+      : user?.role === "MANAGEMENT"
+      ? "/management"
+      : user?.role === "INSTRUCTOR"
+      ? "/tutor"
+      : "/dashboard");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [navSearch, setNavSearch] = useState("");
 
@@ -412,6 +424,23 @@ export function Navbar() {
 
             {isHydrated && user ? (
               <>
+                {user.portals && user.portals.length > 1 && (
+                  <div className="hidden lg:flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#F7EDF9] border border-[#E5C8ED] text-[11px] font-bold text-[#303654]">
+                    {user.portals.map((portal, idx) => (
+                      <React.Fragment key={portal.path}>
+                        {idx > 0 && <span className="text-[#AE54C6]/50">·</span>}
+                        <Link
+                          href={portal.path}
+                          className={`hover:text-[#AE54C6] transition-colors ${
+                            pathname.startsWith(portal.path) ? "text-[#AE54C6] font-extrabold" : ""
+                          }`}
+                        >
+                          {portal.label}
+                        </Link>
+                      </React.Fragment>
+                    ))}
+                  </div>
+                )}
                 <NotificationBell />
                 <div className="hidden sm:flex items-center gap-2 pl-1">
                   <Link
