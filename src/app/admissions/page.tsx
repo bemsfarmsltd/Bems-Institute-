@@ -78,7 +78,21 @@ function AdmissionsPortalContent() {
       ]);
       if (appRes.ok) {
         const d = await appRes.json();
-        setApprovals(Array.isArray(d.enrollments) ? d.enrollments : Array.isArray(d.pending) ? d.pending : []);
+        // GET /admin/enrollments/pending-approval: { enrollments: [{ id, student: { name, email }, course: { title }, ... }] }
+        const rows: Array<{ id: string; student?: { name?: string; email?: string }; course?: { title?: string }; amountPaid?: number; totalDue?: number; deliveryMode?: string; registeredAt?: string }> =
+          Array.isArray(d.enrollments) ? d.enrollments : [];
+        setApprovals(
+          rows.map((e) => ({
+            id: e.id,
+            studentName: e.student?.name ?? "",
+            studentEmail: e.student?.email ?? "",
+            courseTitle: e.course?.title ?? "",
+            amountPaid: e.amountPaid ?? 0,
+            totalDue: e.totalDue ?? 0,
+            deliveryMode: e.deliveryMode ?? "",
+            createdAt: e.registeredAt ?? ""
+          }))
+        );
       }
       if (leadRes.ok) {
         const d = await leadRes.json();
@@ -86,11 +100,26 @@ function AdmissionsPortalContent() {
       }
       if (wcRes.ok) {
         const d = await wcRes.json();
-        setWelcomeCalls(Array.isArray(d.calls) ? d.calls : Array.isArray(d.students) ? d.students : []);
+        // GET /admin/welcome-calls: { enrollments: [{ id, studentName, studentPhone, courseTitle, ... }] }
+        const rows: Array<{ id: string; studentName?: string; studentPhone?: string | null; courseTitle?: string }> =
+          Array.isArray(d.enrollments) ? d.enrollments : [];
+        setWelcomeCalls(rows.map((e) => ({ id: e.id, name: e.studentName ?? "", phone: e.studentPhone ?? "", courseTitle: e.courseTitle })));
       }
       if (rosRes.ok) {
         const d = await rosRes.json();
-        setRoster(Array.isArray(d.roster) ? d.roster : Array.isArray(d.students) ? d.students : []);
+        // GET /admin/roster: { roster: [{ id, name, email, courseTitle, enrollmentStatus, paymentStatus, ... }] }
+        const rows: Array<{ id: string; name?: string; email?: string; courseTitle?: string; enrollmentStatus?: string; paymentStatus?: string }> =
+          Array.isArray(d.roster) ? d.roster : [];
+        setRoster(
+          rows.map((e) => ({
+            id: e.id,
+            studentName: e.name ?? "",
+            studentEmail: e.email ?? "",
+            courseTitle: e.courseTitle ?? "",
+            status: e.enrollmentStatus ?? "",
+            paymentStatus: e.paymentStatus ?? ""
+          }))
+        );
       }
       if (tutRes.ok) {
         const d = await tutRes.json();
@@ -237,7 +266,7 @@ function AdmissionsPortalContent() {
                     <div>
                       <div className="font-bold text-[#303654]">{l.name}</div>
                       <div className="text-[#645F80]">
-                        {l.email} · {l.phone} {l.courseTitle ? `· ${l.courseTitle}` : ""}
+                        {[l.email, l.phone, l.courseTitle].filter(Boolean).join(" · ")}
                       </div>
                     </div>
                     {l.phone && (
