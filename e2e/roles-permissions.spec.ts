@@ -116,6 +116,8 @@ async function signIn(page: Page, email: string) {
   await page.getByPlaceholder("E-mail").fill(email);
   await page.getByPlaceholder("*********").fill(E2E_PASSWORD);
   await page.getByRole("button", { name: "Login" }).click();
+  // Wait until the session cookie is set and the site has moved on from /login.
+  await page.waitForURL((url) => url.pathname !== "/login");
 }
 
 async function waitForPortal(page: Page) {
