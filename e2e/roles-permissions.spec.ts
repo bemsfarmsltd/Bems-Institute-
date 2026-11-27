@@ -173,7 +173,8 @@ test("Admissions approves a paid registration and Management sees the audit even
     E2E_USERS.find((account) => account.key === "management")!.email
   );
   await managementPage.getByRole("button", { name: "Audit Log" }).click();
-  await expect(managementPage.getByText("enrollment.approved")).toBeVisible();
+  // The action also appears as an option in the audit filter, so match the list entry.
+  await expect(managementPage.locator("span").filter({ hasText: /^enrollment.approved$/ }).first()).toBeVisible();
 });
 
 test("Admin changes extra roles, audits it, and signs out the old session", async ({
@@ -187,7 +188,7 @@ test("Admin changes extra roles, audits it, and signs out the old session", asyn
   );
   await managementPage.goto("/admissions");
   await expect(
-    managementPage.getByRole("heading", { name: "Admissions Portal" })
+    managementPage.getByRole("heading", { name: "Registrations, Leads & Roster" })
   ).toBeVisible();
 
   const adminPage = await newTrackedPage(browser);
@@ -226,7 +227,7 @@ test("Admin changes extra roles, audits it, and signs out the old session", asyn
   expect(session).toEqual({ status: 200, body: { user: null } });
 
   await adminPage.getByRole("button", { name: "Audit log", exact: true }).click();
-  await expect(adminPage.getByText("staff.roles_changed")).toBeVisible();
+  await expect(adminPage.locator("span").filter({ hasText: /^staff.roles_changed$/ }).first()).toBeVisible();
 
   await adminPage.getByRole("button", { name: "Staff & Access" }).click();
   await admissionsRole.check();
