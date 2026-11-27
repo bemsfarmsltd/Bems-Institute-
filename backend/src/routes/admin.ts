@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUser, isStaff, hasCourseAccess } from "@/lib/api-auth";
 import { can, permissionsOf, rolesOf, isStaffRole, ROLE_LABELS } from "@/lib/permissions";
 import { audit, listAudit } from "@/lib/audit";
+import { ensureReceiptNumber, receiptUrl, receiptKind } from "@/lib/receipts";
 import { computeAdminRoster } from "@/lib/admin-roster";
 import { DELIVERY_MODE_LABEL, mapAdminCourse } from "@/lib/lms-mappers";
 import { createNotification } from "@/lib/notifications";
@@ -357,6 +358,9 @@ async function loadPaymentLedger() {
 
   return transactions.map((t) => ({
     id: t.id,
+    transactionId: t.id,
+    receiptNumber: t.receiptNumber,
+    hasReceipt: receiptKind(t) !== null,
     reference: t.reference,
     studentName: t.user.name,
     studentEmail: t.user.email,
@@ -866,6 +870,7 @@ router.post("/enrollments/:id/payment", async (req, res) => {
   // The amount check in the filter makes this a compare-and-set: if two
   // admins record the same transfer at once, only the first one writes, so
   // the ledger can't get the same payment twice.
+  let bankTxnId: string | null = null;
   const updated = await prisma.$transaction(async (tx) => {
     const { count } = await tx.enrollment.updateMany({
       where: { id, amountPaid: existing.amountPaid, paymentStatus: existing.paymentStatus },
@@ -876,7 +881,7 @@ router.post("/enrollments/:id/payment", async (req, res) => {
     // charges write to, so the ledger is the complete payment history
     // regardless of channel — not just a Paystack-only audit trail.
     if (delta > 0) {
-      await tx.paymentTransaction.create({
+      bankTxnId = (await tx.paymentTransaction.create({
         data: {
           reference: `bank_${crypto.randomUUID().replace(/-/g, "")}`,
           userId: existing.userId,
@@ -889,8 +894,9 @@ router.post("/enrollments/:id/payment", async (req, res) => {
             ? `Confirmed manually by staff. Student-provided reference: "${existing.paymentReference}".`
             : `Confirmed manually by staff (no reference was recorded at checkout).`,
           paidAt: new Date()
-        }
-      });
+        },
+        select: { id: true }
+      })).id;
     }
     return true;
   });
@@ -916,6 +922,7 @@ router.post("/enrollments/:id/payment", async (req, res) => {
   const student = await prisma.user.findUnique({ where: { id: enrollment.userId }, select: { name: true, email: true } });
   if (student && delta > 0) {
     const unlocked = enrollment.status !== "PENDING";
+    const receiptNumber = bankTxnId ? await ensureReceiptNumber(bankTxnId) : null;
     await sendEmail({
       to: student.email,
       subject: `Payment confirmed — ${enrollment.course.title}`,
@@ -925,8 +932,9 @@ router.post("/enrollments/:id/payment", async (req, res) => {
         unlocked
           ? `Your registration is confirmed and your classroom is unlocked:\n${frontendUrl(`/courses/${enrollment.course.slug}`)}`
           : "Admissions will confirm your registration shortly — you'll get another email when your classroom is unlocked.",
+        receiptNumber && bankTxnId ? `Your receipt (${receiptNumber}): ${receiptUrl(bankTxnId)}` : "",
         "BEMS Admissions"
-      ].join("\n\n")
+      ].filter(Boolean).join("\n\n")
     });
   }
 
