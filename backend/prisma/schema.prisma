@@ -476,6 +476,7 @@ model Enrollment {
   // the lightest version of a "class group" this app has, short of
   // building real per-cohort chat channels.
   goalStatement     String?
+  installments      Installment[]
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
@@ -521,6 +522,9 @@ model PaymentTransaction {
   gatewayResponse String?
   paidAt          DateTime?
   rawPayload      Json? // full Paystack verify/webhook payload, kept for dispute resolution
+  // "BEMS-2026-000123": given the first time a receipt or refund note is
+  // shown or emailed (see lib/receipts.ts), from the receipt_number_seq sequence.
+  receiptNumber   String?                  @unique
   createdAt       DateTime                 @default(now())
   updatedAt       DateTime                 @updatedAt
 
@@ -1109,4 +1113,25 @@ model AuditEvent {
   @@index([createdAt])
   @@index([targetType, targetId])
   @@index([actorId])
+}
+
+// One part of a pay-in-parts plan (lib/installments.ts). Created from the
+// registration; whether a part is paid is worked out from Enrollment.amountPaid
+// (oldest part first), so bank transfers, Paystack, waivers and refunds all
+// count the same way. The reminded* stamps make each reminder go out once.
+model Installment {
+  id                String     @id @default(cuid())
+  enrollmentId      String
+  enrollment        Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  seq               Int // 1 = deposit
+  amount            Int
+  dueDate           DateTime
+  remindedBeforeAt  DateTime?
+  remindedDueAt     DateTime?
+  remindedOverdueAt DateTime?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  @@unique([enrollmentId, seq])
+  @@index([dueDate])
 }
