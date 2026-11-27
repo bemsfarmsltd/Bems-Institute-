@@ -233,7 +233,14 @@ test("Admin changes extra roles, audits it, and signs out the old session", asyn
 
   await adminPage.getByRole("button", { name: "Staff & Access" }).click();
   await admissionsRole.check();
+  // Wait for the save itself before reading the roles back.
+  const saved = adminPage.waitForResponse(
+    (response) =>
+      /\/api\/admin\/staff\/[^/]+\/role$/.test(new URL(response.url()).pathname) &&
+      response.request().method() !== "GET"
+  );
   await saveRoles.click();
+  expect((await saved).ok()).toBe(true);
   const restoredRoles = await adminPage.evaluate(async (apiUrl) => {
     const response = await fetch(`${apiUrl}/api/admin/staff`, {
       credentials: "include"

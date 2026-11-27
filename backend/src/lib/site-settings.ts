@@ -1,7 +1,22 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
-export function getSiteSettings() {
-  return prisma.siteSettings.upsert({ where: { id: "singleton" }, update: {}, create: { id: "singleton" } });
+/**
+ * The one settings row, created on first use. On a fresh database two
+ * requests can both try to create it at once; the loser of that race reads
+ * the row the winner made instead of failing.
+ */
+export async function getSiteSettings() {
+  const existing = await prisma.siteSettings.findUnique({ where: { id: "singleton" } });
+  if (existing) return existing;
+  try {
+    return await prisma.siteSettings.create({ data: { id: "singleton" } });
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+      return prisma.siteSettings.findUniqueOrThrow({ where: { id: "singleton" } });
+    }
+    throw err;
+  }
 }
 
 export type BankTransferDetails = { bankName: string; accountName: string; accountNumber: string };
