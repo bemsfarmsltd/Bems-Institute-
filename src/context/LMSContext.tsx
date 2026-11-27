@@ -484,9 +484,11 @@ export function LMSProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem("bems_lms_user", JSON.stringify(sessionUser));
         await loadOwnLmsData(sessionUser.role);
       } else {
-        // No verified session — never trust a cached elevated role.
+        // No verified session — never trust a cached staff account (tutor,
+        // admin, finance, admissions, management, or a student with an extra
+        // staff role): their roles may have changed, which ends the session.
         setUser((prev) => {
-          if (prev && (prev.role === "INSTRUCTOR" || prev.role === "ADMIN")) {
+          if (prev && (prev.role !== "STUDENT" || (prev.roles ?? []).some((r) => r !== "STUDENT"))) {
             localStorage.removeItem("bems_lms_user");
             return null;
           }

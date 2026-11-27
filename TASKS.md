@@ -8,7 +8,10 @@ section.
 
 | Task | Agent | Branch | Files / areas | Started |
 |---|---|---|---|---|
-| **Phase 5.1 Roles & permissions API** (done, 145/145 backend tests; awaiting Copilot review): three new staff roles (Finance, Admissions, Management), extra roles on one account, a permission per admin endpoint, roles read from the database on every request, portal list in `/api/auth/me`, audit log of money/registration/staff/settings changes. API below. Plan: [Upgrade plan doc](https://claude.ai/artifact/QYyPxeXD463wgUARDs7XJv). | Claude Code | `claude/roles-permissions` | `backend/` (schema + migration, `lib/permissions.ts`, `lib/audit.ts`, `lib/api-auth.ts`, `lib/session.ts`, `lib/staff-invites.ts`, `lib/tutor-view.ts`, `routes/admin.ts`, `routes/auth.ts`, `routes/staff-invites.ts`, `routes/graduates.ts`, `routes/tutor-applications.ts`, `routes/instructor.ts`) | 2026-11-26 |
+| **Phase 5.2 Finance API** (merged in PR #10, live 2026-11-27): receipts (numbered, printable), 3-part instalment schedules with due dates, automatic reminders (3 days before, on the day, 3 days late), overdue list, Paystack daily check. API below. | Claude Code | `claude/finance-tools` | `backend/` (schema + migration, new `lib/receipts.ts`, `lib/installments.ts`, `lib/reconcile.ts`, `routes/finance.ts`; `routes/payments.ts`, `routes/admin.ts`, `lib/payment-ledger.ts` (receipt links in emails), `lib/reminders.ts`) | 2026-11-26 |
+| **Phase 5.2 Finance UI** (merged in PR #10, live 2026-11-27): printable `/receipts/[id]` (`window.print()` PDF + print CSS), Finance portal "Instalments" and "Daily check" tabs, receipt links in Payment Ledger, student "My payments" card. | Antigravity | `antigravity/finance-ui`, off `claude/finance-tools` | `src/app/receipts/[id]/page.tsx`, `src/app/finance/page.tsx`, `src/components/finance/FinanceInstallmentsTab.tsx`, `src/components/finance/FinanceDailyCheckTab.tsx`, `src/components/StudentMyPaymentsCard.tsx`, `src/app/dashboard/page.tsx`, `src/lib/lagos-time.ts`, `src/types/lms.ts` | 2026-11-26 |
+| **Automated browser tests (Playwright)** (merged in PR #9; first CI run found 4 app bugs, fixed by Claude): automate portal role, approval, role-change, session invalidation, and responsive portal-switcher checks; add a CI job using throwaway Postgres only. | GitHub Copilot | `copilot/e2e-tests`, off `main` | new `e2e/`, `playwright.config.ts`, root `package.json` + lockfile + `.gitignore`, `.github/workflows/` (new job), `backend/prisma/` seed helper | 2026-11-26 |
+| **Phase 5.1 Roles & permissions API** (merged in PR #7, live 2026-11-26): three new staff roles (Finance, Admissions, Management), extra roles on one account, a permission per admin endpoint, roles read from the database on every request, portal list in `/api/auth/me`, audit log of money/registration/staff/settings changes. API below. Plan: [Upgrade plan doc](https://claude.ai/artifact/QYyPxeXD463wgUARDs7XJv). | Claude Code | `claude/roles-permissions` | `backend/` (schema + migration, `lib/permissions.ts`, `lib/audit.ts`, `lib/api-auth.ts`, `lib/session.ts`, `lib/staff-invites.ts`, `lib/tutor-view.ts`, `routes/admin.ts`, `routes/auth.ts`, `routes/staff-invites.ts`, `routes/graduates.ts`, `routes/tutor-applications.ts`, `routes/instructor.ts`) | 2026-11-26 |
 | **Phase 5.1 UI: portal shells, Staff & Access roles, audit screen** per the API below | Antigravity | `antigravity/portals-shell`, off `claude/roles-permissions` | new `src/app/finance/`, `src/app/admissions/`, `src/app/management/`, `src/app/admin/page.tsx` (Staff & Access, audit), `src/context/LMSContext.tsx`, `src/app/login`, `src/components/Navbar.tsx` | 2026-11-26 |
 | **Vibrant photos** (can start now, independent of the roles work): replace template graphics with licensed photos; brief below | Antigravity | `antigravity/vibrant-photos`, off `main` | `public/images/`, `src/components/Hero.tsx`, home page sections, `src/app/courses/**`, `src/app/become-instructor`, new `public/images/CREDITS.md` | 2026-11-26 |
 | **Review `claude/roles-permissions`**: (1) every admin endpoint has the right permission and no office role reaches teaching features (grading, lesson videos, attendance); (2) roles come from the database, not the cookie; a removed role stops access at once; (3) role changes: last-admin protection, Admin never an extra role, invites add roles to existing staff correctly; (4) audit entries are written for money, registration, staff and settings changes and hold no secrets; add tests | GitHub Copilot | `copilot/roles-permissions-review` | Read all; write `backend/src/__tests__/` + notes here | 2026-11-26 |
@@ -24,6 +27,28 @@ section.
 | **My Space API, Phase 1** (done; Codex findings fixed in fee8b17; browser-tested with the UI, awaiting merge): welcome-setup answers saved privately; one `GET /api/lms/my-space` with first name + Lagos-time greeting, per course tutor / class type / cohort countdown / progress / next lesson / next live class / latest feedback, this week's study time vs the student's own weekly hours, streak. Also: the student live-classes list no longer gives meeting links to unpaid registrations. API below. | Claude Code | `claude/my-space` | `backend/` (schema + migration, `lib/my-space.ts`, `routes/lms.ts`, `routes/attendance.ts`) | 2026-11-16 |
 | **My Space UI, Phase 1** (done, browser-tested end to end at 375px + desktop, awaiting merge): welcome setup, personal dashboard header, Continue-where-you-left-off, personal home for signed-in students, fix the 375px dashboard header overlap. Per the API below. | Antigravity | `antigravity/my-space-ui`, off `claude/my-space` | `src/app/dashboard/page.tsx`, new `src/app/welcome/page.tsx`, `src/app/page.tsx` / `src/components/Hero.tsx`, `src/context/LMSContext.tsx` | 2026-11-16 |
 | **Personalisation audit + My Space review** (done; 2 findings fixed): (1) walk the whole student journey (sign up → register → pay → confirmed → learn → feedback) at 375px and desktop, and list every spot that feels generic or impersonal (same for everyone, placeholder people/numbers, "Student" instead of their name, fake activity), with file:line and a one-line fix; (2) review `claude/my-space` for privacy (no other student's data, no meeting/lesson links before confirmation, staff behaviour) and the Lagos week/greeting edge cases; add tests in `backend/src/__tests__/` | Codex | `codex/my-space-review` | Read all; write `backend/src/__tests__/` + notes here | 2026-11-16 |
+
+### Copilot E2E notes
+
+- Added 18 Playwright cases across Chromium desktop (1366×900) and phone (375×812): six role accounts, portal authorization, paid-registration approval/audit, role changes/session revocation, and the Management + Admissions portal switcher. Test data resets between cases.
+- The new CI job uses a Postgres 17 service named `bems_e2e_test`, applies migrations and seeds only that database. The seed and test reset both reject non-local databases or any database name other than `bems_e2e_test`. No real payment, email, SMS, or cron credentials are supplied.
+- **Known UI gap (fixed by Claude):** after a role change, the API rejects the prior session (`/api/auth/me` returns `user: null`), but `LMSContext` kept cached office accounts. It now drops any cached staff account; the test is a normal test again.
+- **Found by the first CI run (fixed by Claude):** (1) tutor pages sent signed-in staff without the Tutor role to the sign-in page instead of the "no access" screen (`RequireRole`); (2) the Admissions portal showed blank names on pending approvals and the roster, and an always-empty welcome-call count (wrong response fields); (3) sign-in didn't return roles/portals, so the portal switcher only appeared after a reload (`lib/signed-in-user.ts`); (4) `e2e/` is excluded from the root type-check, which resolved `@prisma/client` to the root schema.
+- **Accessibility follow-ups for Antigravity:**
+  - `src/app/login/page.tsx:297-325`: the sign-in email and password labels are not associated with their inputs. E2E currently uses placeholders.
+  - `src/app/admin/page.tsx:2150-2156`: the mobile admin-menu icon button has no accessible name; E2E currently selects the first button in the header at phone width. Add an `aria-label`.
+  - `src/app/admin/page.tsx:5438-5455`: Staff & Access invite email and role labels are not associated with their controls.
+- **Validation:** root production build, root/backend TypeScript checks, focused E2E lint, and backend lint pass. `npm run test:e2e -- --list` discovers all 18 cases. Root `npm run lint` still reports 44 errors and 60 warnings in existing app files; the new E2E files pass focused lint.
+- **Runtime/flakiness:** all 18 pass in CI (about 1 minute). The first runs found 4 app bugs and 3 test timing issues, all fixed before merge (PR #9).
+
+### Design direction: Copilot
+
+- **Copilot, 2026-11-26 — docs-only:** recording risks for the planned home, catalogue and course-page redesign; no code changed.
+- **Accessibility:** keep form/control labels programmatic, ensure all menus and carousels work by keyboard with visible focus, and verify text/control contrast against the BEMS palette.
+- **Slow Nigerian mobile data:** compress and size images responsively, lazy-load below-fold media, and avoid heavy or auto-rotating carousels; test on throttled mobile connections and respect reduced-motion preferences.
+- **Existing browser checks:** once `copilot/e2e-tests` merges, revisit the six-role portal-access assertions and responsive portal-switcher selectors if shared navigation changes.
+- Add browser coverage for home → catalogue → course detail navigation, mobile layouts, key course CTAs, and keyboard-accessible controls; preserve the no-console-error/HTTP-5xx checks.
+- Keep registration approval/audit and role-change/session-invalidation scenarios unless the redesign changes those flows.
 
 ### Design direction: Antigravity
 Rebuild in our own code, colours, and fonts for **self-paced courses (no cohorts)**:
@@ -185,6 +210,50 @@ Errors are always `{ error }` with a message to show as is. `429` = too many tri
 - `GET /api/staff-invites/:token` → `{ invite: { email, role, expiresAt, accountExists } }`, or `410` (expired/used: show the message).
 - `POST /api/staff-invites/:token/accept`: new person `{ name, password }` (8+ chars); `accountExists` → just `{ password }` of that account. → `{ user }` (signed in: go to `/admin` or `/instructor` by role) or `{ ok, signInRequired: true }` (send to `/login`).
 - `AdminGate`'s "register with staff code" now returns `403` once any admin exists: replace that tab with "Staff accounts are invite-only. Ask an admin for an invite link."
+
+### Phase 5.2 Finance API (Claude Code → Antigravity)
+Branch `claude/finance-tools`. All amounts are whole naira. Dates are ISO strings; show them in Lagos time.
+
+**Receipts.** Every confirmed Paystack or bank payment has a receipt; every refund has a refund note. Waivers (second chance) have neither.
+- `GET /api/finance/receipts/:transactionId` (the student who paid, or anyone with `payments.view`) → `{ receipt: { receiptNumber: "BEMS-2026-000123", kind: "PAYMENT" | "REFUND", issuedAt, student: { name, email }, course: { title }, plan: "full" | "installment", amount, method: "Card (Paystack)" | "Bank transfer" | …, reference, totalDue, paidToDate, balance } }`. 404 for a waiver or an unconfirmed charge.
+- Payment emails (Paystack and staff-confirmed bank transfers) now include a link to `/receipts/<transactionId>`.
+- **Page `/receipts/[id]`** (Antigravity): an A4-friendly receipt with BEMS logo, institute name, receipt number, date, student, course, plan, amount, method, reference, paid to date and balance. Include a "Download PDF" button that calls `window.print()`, and print CSS that hides the navbar, footer and button. Show "Refund note" instead of "Receipt" when `kind` is `REFUND`. Sign-in required; on 403/404 show a short message.
+
+**Instalment plans.** Pay-in-parts registrations get 3 parts: the deposit, then the rest split in two, due 30 and 60 days after the deposit was paid (courses are self-paced, so there is no class start date). Finance can move a due date.
+- `GET /api/finance/my-payments` (student) → `{ enrollments: [{ enrollmentId, course: { id, title, slug }, plan, totalDue, amountPaid, balance, installments: [{ id, seq, amount, dueDate, paid, outstanding, status }], payments: [{ id, kind, amount, paidAt, method, receiptNumber }] }] }`. `status` is `PAID`, `UPCOMING`, `DUE_SOON` (within 3 days), `OVERDUE` or `CANCELLED` (refunded/withdrawn). `installments` is empty for full-payment plans.
+- Paying: `POST /api/payments/init` takes an optional `payWhat: "next" | "balance"`. For an instalment plan after the deposit, `"next"` charges what's left of the next part; `"balance"` (the default, as today) charges everything left. The "Pay next instalment" button sends `payWhat: "next"`.
+- `GET /api/finance/installments?status=overdue|due_soon|upcoming|all&courseId=` (`payments.view`) → `{ installments: [{ id, enrollmentId, student: { id, name, email, phone }, course: { id, title }, seq, amount, outstanding, dueDate, status, daysOverdue, lastReminderAt }], totals: { overdueCount, overdueAmount, dueSoonCount, dueSoonAmount } }`, overdue first.
+- `PATCH /api/finance/installments/:id` `{ dueDate }` (`payments.view` + `payments.record`) → `{ installment }`. 409 `{ error }` if it would put parts out of order (part 2 after part 3); show the error. Audited (`installment.due_date_changed`).
+- Reminders run in the existing 15-minute job between 08:00 and 19:00 Lagos: in-app + email, 3 days before, on the day and 3 days late, each once per part.
+
+**Daily check (Paystack vs our ledger).**
+- `GET /api/finance/reconciliation?date=YYYY-MM-DD` (`payments.view`; one Lagos day, default today) → `{ date, paystackConfigured, totals: { paystack, ledgerPaystack, bank, refunds }, matched: [...], paystackOnly: [...], ledgerOnly: [...], amountMismatch: [...], bankTransfers: [...] }`. Each row: `{ reference, amount, paystackAmount?, status, paidAt, studentName?, email?, courseTitle? }`.
+  - `paystackOnly`: paid on Paystack but not credited here. Show a "Recheck" button.
+  - `ledgerOnly`: credited here but not a success on Paystack. Show it as a warning for Finance to investigate.
+  - `bankTransfers`: staff-confirmed transfers that day, to tick off against the bank statement.
+- `POST /api/finance/reconciliation/:reference/recheck` (`payments.record`) → `{ result }`. Asks Paystack again and credits the payment if it really succeeded (same logic as the webhook).
+- If Paystack isn't configured, `paystackConfigured` is `false` and only `bankTransfers` is filled. Say so on the screen.
+
+**Finance portal (Antigravity), new tabs:**
+- **Instalments:** filter chips Overdue / Due soon / Upcoming / All, plus totals at the top. Each row has the student, course, part `n of 3`, outstanding amount, due date (editable with a date picker, saved via PATCH), days late, last reminder, and Email / WhatsApp buttons (`mailto:` / `wa.me` using `toWhatsAppDigits`).
+- **Daily check:** a date picker, four totals, then the sections above. Use green for matched, amber for bank transfers, red for paystackOnly/ledgerOnly/amountMismatch. Add a "Recheck" button on paystackOnly rows.
+- **Payment Ledger tab:** add a "Receipt" link for rows with a `receiptNumber` (the ledger API will include `transactionId` and `receiptNumber`).
+
+**Student dashboard (Antigravity):** a "My payments" card for students with an instalment plan or a balance. Show the parts with status chips, a "Pay next instalment (₦…)" button (Paystack, `payWhat: "next"`) and a receipts list linking to `/receipts/[id]`.
+
+### Automated browser tests brief (Copilot)
+Goal: what Claude checked by hand for PR #7 runs automatically on every pull request.
+- Add `@playwright/test` (exact version) as a root devDependency, `playwright.config.ts`, and tests in `e2e/`. Chromium only, viewports 1366×900 and 375×812.
+- CI job in `.github/workflows/` (new job or file): Postgres 17 service, `backend` `npm ci` + `npx prisma migrate deploy` + seed, start the backend on 4020 with `FRONTEND_URL=http://localhost:3020`, build the frontend with `NEXT_PUBLIC_API_URL=http://localhost:4020`, `next start -p 3020`, then run Playwright. Upload the HTML report and screenshots on failure. Use a test-only `CRON_SECRET`-free setup; no real Paystack, Resend or Twilio keys. Email just logs when unconfigured.
+- Test data: a setup step creates one account per role (Admin, Finance, Admissions, Management (+Admissions extra), Tutor, Student) with a known test password, plus one paid registration awaiting approval. Use Prisma directly in a setup script or seed helper; never the production database.
+- Tests:
+  1. Each role signs in and lands on its home (`/admin`, `/finance`, `/admissions`, `/management`, `/tutor`, `/dashboard` or `/welcome`), and gets the "no access" screen on the other portals and on `/admin`.
+  2. Admissions approves the paid registration; Management sees it in the audit log.
+  3. Admin changes the Management user's extra roles in Staff & Access; the audit log shows it; that user's old session is signed out.
+  4. Management + Admissions sees the portal switcher (desktop) and "My portals" (phone menu).
+  5. No page errors and no 5xx responses during the run.
+- Make selectors robust: prefer roles/labels/text. If an element has no good selector, list it in TASKS.md for Antigravity to add an `aria-label` or `data-testid`; don't edit app code.
+- Report run time and flakiness in TASKS.md under "Copilot E2E notes".
 
 ### Phase 5.1 Roles & permissions API (Claude Code → Antigravity)
 Branch `claude/roles-permissions`. Part of the [School Management System & LMS upgrade plan](https://claude.ai/artifact/QYyPxeXD463wgUARDs7XJv) (Phase 1 of 4).

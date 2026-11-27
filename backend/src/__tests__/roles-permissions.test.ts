@@ -78,6 +78,17 @@ describe("each role sees only its own portal's data", () => {
     expect(me.homePath).toBe("/management");
     expect(me.portals.map((p: { path: string }) => p.path)).toEqual(["/management", "/admissions"]);
   });
+
+  it("sign-in and profile updates return the same roles and portals as /me", async () => {
+    const { agent, email } = await staff("perm-login-body", "MANAGEMENT", ["ADMISSIONS"]);
+    const me = (await agent.get("/api/auth/me")).body.user;
+    const fresh = new SessionAgent();
+    const login = (await fresh.post("/api/auth/login", { email, password: TEST_PASSWORD })).body.user;
+    expect(login).toEqual(me);
+    expect(login.portals.map((p: { path: string }) => p.path)).toEqual(["/management", "/admissions"]);
+    const updated = (await agent.patch("/api/auth/profile", { name: "Vitest perm-login-body renamed" })).body.user;
+    expect(updated).toEqual({ ...me, name: "Vitest perm-login-body renamed" });
+  });
 });
 
 describe("the student list", () => {
